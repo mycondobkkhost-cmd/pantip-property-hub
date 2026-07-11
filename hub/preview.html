@@ -1,0 +1,3253 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Property Hub — PTP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Sarabun", "Segoe UI", system-ui, sans-serif;
+      background: #f6f7f8;
+      color: #1a1a1a;
+      min-height: 100dvh;
+      font-size: 14px;
+    }
+    .hidden { display: none !important; }
+
+    #login-screen {
+      min-height: 100dvh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px; background: #f8f9fa;
+    }
+    .login-box {
+      background: #fff; border: 1px solid #dadce0; border-radius: 8px;
+      padding: 24px; width: 100%; max-width: 360px;
+    }
+    .login-box h1 { font-size: 20px; margin-bottom: 4px; }
+    .login-box p { font-size: 13px; color: #5f6368; margin-bottom: 16px; }
+    label { display: block; margin-bottom: 12px; }
+    label span { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #3c4043; }
+    input, select, textarea {
+      width: 100%; padding: 8px 10px; border: 1px solid #dadce0; border-radius: 4px;
+      font-size: 13px; font-family: inherit; background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8;
+    }
+    .btn {
+      width: 100%; padding: 9px 12px; border: none; border-radius: 4px;
+      font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit;
+    }
+    .btn-primary { background: #1a73e8; color: #fff; }
+    .btn-primary:hover { background: #1765cc; }
+    .btn-outline {
+      background: #fff; border: 1px solid #dadce0; color: #3c4043;
+      padding: 5px 10px; width: auto; font-size: 12px;
+    }
+    .btn-outline:hover { background: #f8f9fa; }
+    .error { background: #fce8e6; color: #c5221f; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
+    .hint { text-align: center; font-size: 11px; color: #80868b; margin-top: 12px; line-height: 1.5; }
+
+    header {
+      background: #fff; border-bottom: 1px solid #e8eaed;
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    header h1 { font-size: 17px; font-weight: 600; color: #188038; letter-spacing: -0.02em; }
+    header p { display: none; }
+    main { max-width: 720px; margin: 0 auto; padding: 0 0 32px; }
+    main.main-wide { max-width: 1080px; }
+    .page-title { display: none !important; }
+    .open-note, .legend, .cards { display: none !important; }
+
+    .tabs {
+      display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; overflow-x: auto;
+      border-bottom: none; padding: 10px 12px 0; background: transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab {
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      border: 1px solid transparent; cursor: pointer; flex: 0 0 auto; white-space: nowrap;
+      background: transparent; color: #5f6368; margin-bottom: 0;
+    }
+    .tab:hover { background: #fff; color: #202124; }
+    .tab.active { background: #fff; color: #188038; border-color: #ceead6; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+
+    .toolbar { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 6px 10px; border-bottom: 1px solid #e8eaed; background: #fff; }
+    .toolbar-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .toolbar input[type=search], .toolbar select, .filter-grid select, .filter-grid input {
+      padding: 6px 8px; border: 1px solid #dadce0; border-radius: 4px; font-size: 12px; background: #fff;
+    }
+
+    .filter-panel {
+      background: #fff; border: none; border-radius: 16px;
+      padding: 12px; margin: 8px 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+
+    .sheet-search-row {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .sheet-search-row .smart-search { flex: 1; margin: 0; }
+    .advanced-filters-body {
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f3f4;
+    }
+
+    .smart-search {
+      width: 100%; padding: 12px 14px; border: 1px solid #e0e0e0; border-radius: 12px;
+      font-size: 15px; background: #f8f9fa; outline: none;
+    }
+    .smart-search:focus { border-color: #188038; background: #fff; box-shadow: 0 0 0 3px rgba(24,128,56,.12); }
+    .quick-filters { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .quick-row-label { font-size: 12px; color: #80868b; font-weight: 500; min-width: 36px; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .chip {
+      padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      border: 1px solid #e0e0e0; background: #fff; color: #3c4043; cursor: pointer;
+    }
+    .chip.active { background: #e6f4ea; color: #137333; border-color: #137333; }
+    .active-filter-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .active-filter-chip {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px;
+      font-size: 12px; background: #e6f4ea; color: #137333; border: none;
+    }
+    .active-filter-chip button {
+      border: none; background: transparent; color: #5f6368; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px;
+    }
+    .filter-badge {
+      background: #188038; color: #fff; font-size: 11px; font-weight: 600;
+      padding: 2px 7px; border-radius: 999px; min-width: 18px; text-align: center;
+    }
+    .filter-grid { display: grid; gap: 12px; margin-top: 4px; grid-template-columns: 1fr; }
+    @media (min-width: 560px) { .filter-grid { grid-template-columns: 1fr 1fr; } }
+    .filter-grid label, .filter-grid .filter-field { margin: 0; }
+    .filter-grid label span, .filter-field > span {
+      display: block; font-size: 12px; color: #5f6368; margin-bottom: 6px; font-weight: 500;
+    }
+    .price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .check-group {
+      display: flex; flex-direction: column; gap: 2px;
+      max-height: 180px; overflow: auto;
+      border: 1px solid #e8eaed; border-radius: 10px;
+      padding: 8px 10px; background: #fafafa;
+    }
+    .check-group.short { max-height: none; }
+    .check-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      margin: 0; font-size: 13px; color: #202124; cursor: pointer;
+      line-height: 1.4; padding: 4px 0;
+    }
+    .check-item input {
+      margin: 2px 0 0; flex-shrink: 0; width: 16px; height: 16px; accent-color: #188038;
+    }
+    .filter-note { display: none; }
+    .btn-sm {
+      padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 500;
+      border: 1px solid #e0e0e0; background: #fff; color: #3c4043; cursor: pointer; width: auto; font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn-sm.primary { background: #188038; color: #fff; border-color: #188038; }
+    .btn-sm.active-filter-btn { background: #e6f4ea; border-color: #137333; color: #137333; }
+
+    .table-wrap { background: transparent; border: none; border-radius: 0; overflow: visible; box-shadow: none; margin: 0 12px; }
+    .props-table-scroll { display: none !important; }
+    .scroll { overflow: auto; -webkit-overflow-scrolling: touch; max-height: calc(100dvh - 210px); }
+    table { min-width: 900px; width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
+    th {
+      position: sticky; top: 0; z-index: 2; background: #f8f9fa; text-align: left;
+      padding: 8px 10px; font-size: 11px; font-weight: 500; color: #5f6368;
+      border-bottom: 1px solid #e8eaed; white-space: nowrap;
+    }
+    td {
+      padding: 8px 10px; border-bottom: 1px solid #f1f3f4; vertical-align: middle;
+      background: #fff;
+    }
+    tbody tr:hover td { background: #f8fbf9; }
+    .empty { text-align: center; padding: 48px 16px; color: #80868b; }
+    .empty p:first-child, .empty span { color: #5f6368; font-weight: 500; margin-bottom: 4px; display: block; }
+
+    .tag { display: inline; background: none; color: inherit; font-size: inherit; padding: 0; margin: 0; }
+    .code { font-family: ui-monospace, "Roboto Mono", monospace; font-size: 12px; font-weight: 500; color: #202124; }
+    .badge, .offer-badge, .dup-badge, .loc-pending { display: none !important; }
+    .row-coa td, .row-remind-amber td, .row-remind-red td, .row-dup td { background: #fff; }
+    .muted { color: #9aa0a6; }
+    button.linkish {
+      background: none; border: none; padding: 0; cursor: pointer; font: inherit;
+      color: #9aa0a6; text-decoration: underline dotted;
+    }
+    button.linkish:hover { color: #1a73e8; }
+    .rent { color: #137333; font-weight: 500; }
+    .sale { color: #e37400; font-weight: 500; }
+    a { color: #1a73e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .loc-ref { font-size: 12px; color: #202124; }
+
+    .status-bar {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 10px 16px 4px; font-size: 13px; color: #5f6368; background: transparent; border: none;
+    }
+    .status-bar .sort-wrap {
+      display: flex; align-items: center; gap: 6px; margin-left: auto;
+    }
+    .status-bar .sort-wrap select {
+      width: auto; min-width: 140px; padding: 6px 10px; border-radius: 8px; font-size: 12px;
+      border: 1px solid #e0e0e0; background: #fff;
+    }
+    .result-count { font-weight: 600; color: #202124; }
+
+    .tab-badge {
+      display: inline-block; min-width: 14px; padding: 0 4px; margin-left: 3px;
+      border-radius: 3px; background: #e8eaed; color: #5f6368;
+      font-size: 10px; font-weight: 500; line-height: 14px; vertical-align: middle;
+    }
+    .tab.active .tab-badge { background: #e6f4ea; color: #137333; }
+
+    .queue-add, .add-panel {
+      background: #fff; border: none;
+      border-radius: 16px; padding: 16px; margin: 8px 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .add-panel { max-width: none; }
+    .phase-banner {
+      background: #e8f0fe; border: 1px solid #d2e3fc; color: #1967d2;
+      border-radius: 4px; padding: 8px 10px; font-size: 12px; margin-bottom: 10px;
+    }
+    .phase-banner.ok { background: #e6f4ea; border-color: #ceead6; color: #137333; }
+    .phase-banner.err { background: #fce8e6; border-color: #f5c2c0; color: #c5221f; }
+    .add-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+    @media (min-width: 720px) { .add-grid { grid-template-columns: 1fr 1fr; } }
+    .add-wide { grid-column: 1 / -1; }
+    .project-row-actions { display: flex; gap: 6px; align-items: flex-start; }
+    .project-picker { position: relative; flex: 1; }
+    .project-picker-list {
+      position: absolute; left: 0; right: 0; top: 100%; z-index: 20;
+      max-height: 220px; overflow: auto; background: #fff;
+      border: 1px solid #dadce0; border-radius: 4px; margin-top: 2px; list-style: none;
+    }
+    .project-picker-list li { padding: 8px 10px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f1f3f4; }
+    .project-picker-list li:hover, .project-picker-list li.active { background: #e8f0fe; }
+    .transit-row { display: flex; gap: 6px; align-items: center; }
+    .transit-row input { flex: 1; min-width: 0; }
+    .queue-add textarea, .add-panel textarea {
+      width: 100%; min-height: 88px; padding: 8px; border: 1px solid #dadce0;
+      border-radius: 4px; font-size: 13px; resize: vertical;
+    }
+    .queue-status {
+      display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px;
+    }
+    .queue-status.pending { background: #fef7e0; color: #b06000; }
+    .queue-status.working { background: #e8f0fe; color: #1967d2; }
+    .queue-status.done { background: #e6f4ea; color: #137333; }
+    .queue-url { font-size: 11px; word-break: break-all; color: #1a73e8; text-decoration: none; }
+    .queue-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(32,33,36,.4);
+      display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px;
+    }
+    .modal-box {
+      background: #fff; border-radius: 8px; padding: 20px; width: 100%; max-width: 420px; border: 1px solid #dadce0;
+    }
+    .modal-box h3 { font-size: 16px; margin-bottom: 6px; }
+    .modal-box p { font-size: 12px; color: #5f6368; margin-bottom: 14px; line-height: 1.5; }
+    .modal-box label { margin-bottom: 12px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
+
+    .group-rec-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+    .group-card { border: 1px solid #dadce0; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-size: 12px; }
+
+    /* Property cards — primary listing */
+    .prop-cards {
+      display: flex; flex-direction: column; gap: 10px; padding: 8px 0 16px;
+    }
+    .prop-card {
+      display: block; width: 100%; text-align: left;
+      background: #fff; border: none; border-radius: 14px;
+      padding: 14px 16px; cursor: pointer; font: inherit; color: inherit;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      transition: box-shadow .15s ease, transform .15s ease;
+    }
+    .prop-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .prop-card:active { transform: scale(.995); }
+    .prop-card-top {
+      display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .prop-card-code { font-family: ui-monospace, monospace; font-weight: 600; font-size: 12px; color: #188038; }
+    .prop-card-date { font-size: 12px; color: #9aa0a6; white-space: nowrap; }
+    .prop-card-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #202124; line-height: 1.3; }
+    .prop-card-meta { font-size: 13px; color: #5f6368; margin-bottom: 8px; }
+    .prop-card-prices { display: flex; flex-wrap: wrap; gap: 12px; font-size: 15px; font-weight: 600; }
+    .prop-card-prices .rent { color: #137333; }
+    .prop-card-prices .sale { color: #e37400; }
+    .prop-card-loc { font-size: 12px; color: #80868b; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    tbody tr.prop-row { cursor: pointer; }
+    tbody tr.project-row { cursor: pointer; }
+    tbody tr.project-row:hover td { background: #f8fbf9; }
+    .project-view-banner {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin: 8px 12px 0; padding: 10px 14px; border-radius: 12px;
+      background: #e6f4ea; color: #137333; font-size: 13px; font-weight: 500;
+    }
+    .project-view-banner.hidden { display: none !important; }
+    .edit-banner {
+      background: #e6f4ea; border-bottom: 1px solid #ceead6; color: #137333;
+      padding: 10px 16px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .edit-banner.hidden { display: none !important; }
+
+    @media (max-width: 768px) {
+      header { flex-wrap: wrap; }
+      .sheet-search-row { flex-wrap: wrap; }
+      .sheet-search-row .smart-search { flex: 1 1 100%; }
+      .filter-panel { margin: 8px; padding: 12px; }
+      .table-wrap { margin: 0 8px; }
+      .add-panel { max-width: none; padding: 10px; }
+      .add-grid { grid-template-columns: 1fr !important; }
+      main { max-width: none; padding-bottom: 24px; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div id="file-mode-banner" class="hidden" style="max-width:360px;margin:0 auto 12px;padding:12px;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;font-size:13px;text-align:left">
+      <strong>⚠ เปิดแบบผิดวิธี</strong><br/>
+      ดับเบิลคลิก <strong>hub/เปิด Property Hub.command</strong> แทน<br/>
+      <button type="button" id="try-open-server" class="btn btn-primary" style="margin-top:8px;width:100%">ลองเปิดผ่านเซิร์ฟเวอร์</button>
+    </div>
+    <div class="login-box">
+      <h1>Property Hub</h1>
+      <p>ระบบจัดการทรัพย์ — ทีม PTP</p>
+      <div id="login-error" class="error hidden"></div>
+      <form id="login-form">
+        <label>
+          <span>ชื่อผู้ใช้</span>
+          <input type="text" id="username" placeholder="angkarn1996" autocomplete="username" required />
+        </label>
+        <label>
+          <span>รหัสผ่าน</span>
+          <input type="password" id="password" placeholder="รหัสผ่าน" autocomplete="current-password" required />
+        </label>
+        <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+      </form>
+      <p class="hint">
+        เปิดไฟล์นี้ในเบราว์เซอร์ได้เลย — ไม่ต้องติดตั้งอะไร
+      </p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app-screen" class="hidden">
+    <header>
+      <div>
+        <h1>Property Hub</h1>
+        <p id="welcome-text">สวัสดี</p>
+      </div>
+      <button type="button" class="btn btn-outline" id="logout-btn">ออกจากระบบ</button>
+    </header>
+
+    <main>
+
+      <!-- stats kept for JS -->
+      <div class="hidden" id="stats-hidden">
+        <span id="stat-projects"></span><span id="stat-props"></span><span id="stat-active"></span><span id="stat-archived"></span><span id="stat-dup"></span><span id="stat-rent"></span><span id="stat-sale"></span>
+      </div>
+
+<div class="tabs" id="view-tabs">
+        <button class="tab active" data-view="properties">ทรัพย์</button>
+        <button class="tab" data-view="queue">รอโพสต์<span class="tab-badge hidden" id="queue-badge">0</span></button>
+        <button class="tab" data-view="projects">โครงการ</button>
+        <button class="tab" data-view="groups">กลุ่ม FB</button>
+        <button class="tab" data-view="add">+ เพิ่ม</button>
+      </div>
+
+      <div class="page-title" style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h2 id="panel-title">ตารางทรัพย์</h2>
+          <p id="panel-sub">ทั้งหมดจากชีt — เช่า/ขาย/ย้อนหลัง (ไม่รวมแถวว่างและไม่มีลิงก์)</p>
+        </div>
+        <span id="row-count" style="font-size:12px;color:#a1a1aa;">—</span>
+      </div>
+
+<div class="filter-panel" id="filter-panel">
+        <div class="sheet-search-row">
+          <input type="search" id="search-box" class="smart-search" autocomplete="off"
+            placeholder="ค้นหาโครงการ โซน รหัส เช่น พระราม9 1นอน ≤17k" />
+          <button type="button" class="btn-sm" id="toggle-filters">ตัวกรอง</button>
+          <button type="button" class="btn-sm" id="reset-filter">ล้าง</button>
+          <span class="filter-badge hidden" id="filter-badge">0</span>
+        </div>
+
+        <div class="quick-filters">
+          <div class="chip-row" id="offer-chips">
+            <button type="button" class="chip" data-offer="rent">เช่า</button>
+            <button type="button" class="chip" data-offer="sale">ขาย</button>
+          </div>
+          <div class="chip-row" id="beds-chips">
+            <button type="button" class="chip" data-beds="studio">Studio</button>
+            <button type="button" class="chip" data-beds="1">1 นอน</button>
+            <button type="button" class="chip" data-beds="2">2 นอน</button>
+            <button type="button" class="chip" data-beds="3">3+</button>
+          </div>
+          <div class="chip-row" id="zone-chips">
+            <span class="quick-row-label">โซน</span>
+          </div>
+        </div>
+        <div class="active-filter-chips" id="active-filter-chips"></div>
+
+        <div class="advanced-filters-body hidden" id="advanced-filters-body">
+          <div class="filter-grid">
+            <div class="filter-field" style="grid-column:1/-1">
+              <span>งบเช่า (บาท/เดือน)</span>
+              <div class="price-row">
+                <input type="number" id="f-rent-min" placeholder="ต่ำสุด" min="0" step="500" />
+                <input type="number" id="f-rent-max" placeholder="สูงสุด" min="0" step="500" />
+              </div>
+            </div>
+            <div class="filter-field" style="grid-column:1/-1">
+              <span>งบขาย (บาท)</span>
+              <div class="price-row">
+                <input type="number" id="f-sale-min" placeholder="ต่ำสุด" min="0" step="100000" />
+                <input type="number" id="f-sale-max" placeholder="สูงสุด" min="0" step="100000" />
+              </div>
+            </div>
+            <div class="filter-field" style="grid-column:1/-1">
+              <span>BTS / MRT</span>
+              <div class="check-group" id="f-transit"></div>
+            </div>
+            <label style="grid-column:1/-1">
+              <span>โครงการ</span>
+              <input type="search" id="f-project-q" placeholder="พิมพ์ค้น TH/EN เช่น ศรีวรา" style="margin-bottom:6px" />
+              <select id="f-project"><option value="">ทั้งหมด</option></select>
+            </label>
+          </div>
+        </div>
+
+        <!-- power filters kept for JS compatibility -->
+        <div id="power-filters" class="hidden" aria-hidden="true">
+          <select id="f-era"><option value=""></option><option value="active"></option><option value="archived"></option><option value="needs_review"></option></select>
+          <select id="f-dup"><option value=""></option><option value="any"></option><option value="code"></option><option value="url"></option><option value="relist"></option></select>
+          <div id="f-offer">
+            <label><input type="checkbox" value="rent"></label>
+            <label><input type="checkbox" value="sale"></label>
+            <label><input type="checkbox" value="both"></label>
+            <label><input type="checkbox" value="rent_only"></label>
+            <label><input type="checkbox" value="sale_only"></label>
+          </div>
+          <div id="f-type"></div>
+          <div id="f-beds">
+            <label><input type="checkbox" value="studio"></label>
+            <label><input type="checkbox" value="1"></label>
+            <label><input type="checkbox" value="2"></label>
+            <label><input type="checkbox" value="3"></label>
+          </div>
+          <input type="number" id="f-size-min" />
+          <input type="number" id="f-size-max" />
+          <input type="text" id="f-floor" />
+          <select id="f-days"><option value=""></option><option value="7"></option><option value="30"></option><option value="60"></option><option value="90"></option></select>
+          <div id="f-source">
+            <label><input type="checkbox" value="facebook"></label>
+            <label><input type="checkbox" value="living"></label>
+            <label><input type="checkbox" value="thru"></label>
+            <label><input type="checkbox" value="other"></label>
+          </div>
+          <select id="f-media"><option value=""></option><option value="has_link"></option><option value="none"></option></select>
+          <div id="smart-hints">
+            <button type="button" id="preset-rama9"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar" id="prop-toolbar">
+        <span class="result-count" id="filter-result">—</span>
+        <span class="hidden" id="row-count-bar"></span>
+        <div class="sort-wrap">
+          <span>เรียง</span>
+          <select id="f-sort">
+            <option value="date_desc">ใหม่ล่าสุด</option>
+            <option value="date_asc">เก่าสุด</option>
+            <option value="rent_asc">เช่า ↑</option>
+            <option value="rent_desc">เช่า ↓</option>
+            <option value="sale_asc">ขาย ↑</option>
+            <option value="sale_desc">ขาย ↓</option>
+            <option value="project">ชื่อโครงการ</option>
+          </select>
+        </div>
+        <div class="toolbar-row">
+          <button type="button" class="btn btn-outline" id="prev-page">←</button>
+          <button type="button" class="btn btn-outline" id="next-page">→</button>
+        </div>
+      </div>
+
+      <div id="project-view-banner" class="project-view-banner hidden">
+        <span id="project-view-text">กำลังดูโครงการ</span>
+        <button type="button" class="btn-sm" id="project-view-back">← กลับรายการโครงการ</button>
+      </div>
+
+      <div class="table-wrap" id="props-panel">
+        <div class="prop-cards" id="prop-cards"></div>
+        <div class="scroll props-table-scroll">
+          <table>
+            <thead><tr><th>รหัส</th></tr></thead>
+            <tbody id="property-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="hidden" id="queue-panel">
+        <div class="queue-add">
+          <p style="font-size:12px;color:#71717a;margin-bottom:10px;line-height:1.5">
+            คิวงานรอแอดมินโพสต์ — ใส่<strong>ลิงก์ต้นทาง</strong> (โพสต์ทรัพย์) + <strong>ติดต่อเจ้าของ</strong> (ลิงก์เฟสหรือเบอร์)<br/>
+            กด「เปิดไปเพิ่มทรัพย์」→ ดึงจากลิงก์ต้นทาง · เติมช่องติดต่อเจ้าของให้อัตโนมัติ
+          </p>
+          <div class="add-grid" style="margin-top:8px">
+            <label class="add-wide">
+              <span>ลิงก์ต้นทาง *</span>
+              <input type="text" id="queue-source" placeholder="https://www.facebook.com/share/p/... (โพสต์ทรัพย์จากเจ้าของ)" />
+            </label>
+            <label class="add-wide">
+              <span>ลิงก์เจ้าของ / เบอร์ (ถ้ามี)</span>
+              <input type="text" id="queue-owner-contact" placeholder="ลิงก์เฟสเจ้าของ หรือเบอร์ เช่น 0812345678" />
+            </label>
+            <label class="add-wide">
+              <span>หมายเหตุ (ถ้ามี)</span>
+              <input type="text" id="queue-note" placeholder="เช่น เช็คก่อน / ด่วน / โคเอเจนต์" />
+            </label>
+          </div>
+          <div class="toolbar-row" style="margin-top:10px">
+            <button type="button" class="btn-sm primary" id="queue-add-btn">+ ใส่คิว</button>
+            <button type="button" class="btn-sm" id="queue-import-btn">ดึงจากชีท รอโพสต์ (แทนที่)</button>
+            <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#52525b">
+              <input type="checkbox" id="queue-show-done" style="width:auto" />
+              แสดงที่โพสต์แล้ว
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="scroll">
+            <table style="min-width:980px">
+              <thead>
+                <tr>
+                  <th style="width:90px">สถานะ</th>
+                  <th style="width:100px">หมายเหตุ</th>
+                  <th>ลิงก์ต้นทาง</th>
+                  <th>ลิงก์เจ้าของ / เบอร์</th>
+                  <th style="width:100px">ใส่คิว</th>
+                  <th style="width:260px">ทำอะไร</th>
+                </tr>
+              </thead>
+              <tbody id="queue-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap hidden" id="projects-panel">
+        <div style="padding:10px 12px;border-bottom:1px solid #e4e4e7">
+          <label style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">ค้นหาโครงการ · TH หรือ EN</label>
+          <input type="search" id="project-master-search" placeholder="ศรีวรา, Life Asoke, ลาดพร้าว…" style="width:100%;max-width:420px;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px" />
+          <p style="font-size:12px;color:#80868b;margin-top:8px">กดแถวโครงการเพื่อดูห้องทั้งหมดในโครงการนั้น</p>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>โครงการ</th>
+                <th>จำนวนห้อง</th>
+                <th>ชื่ออื่น (alias)</th>
+                <th>ทำเล</th>
+                <th>อ้างอิง (ไม่เชื่อ)</th>
+              </tr>
+            </thead>
+            <tbody id="project-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-wrap hidden" id="groups-panel">
+        <div style="padding:10px 12px;border-bottom:1px solid #e4e4e7;display:flex;flex-wrap:wrap;gap:10px;align-items:end">
+          <label style="flex:1;min-width:200px">
+            <span style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">ค้นหากลุ่ม · ชื่อ / โซน / แท็ก</span>
+            <input type="search" id="groups-book-search" placeholder="ladprao, ลาดพร้าว, condo, rent…" style="width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px" />
+          </label>
+          <label>
+            <span style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">โซน</span>
+            <select id="groups-book-zone" style="padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
+              <option value="">ทั้งหมด</option>
+            </select>
+          </label>
+          <button type="button" class="btn-sm" id="groups-retag-btn">รีแท็กจากชื่อ</button>
+          <span id="groups-book-stats" style="font-size:11px;color:#71717a;align-self:center"></span>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>กลุ่ม</th>
+                <th>โซน</th>
+                <th>ประเภท</th>
+                <th>ลิงก์</th>
+              </tr>
+            </thead>
+            <tbody id="groups-book-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cards" id="info-cards">
+        <div class="card">
+          <h3>รหัสทรัพย์</h3>
+          <p>PTP = เก่า (import) · RXT = ใหม่ · COA = โคเอเจนต์</p>
+          <p style="margin-top:4px">Life Asoke / Hype / Rama 9 = คนละโครงการ</p>
+        </div>
+        <div class="card">
+          <h3>ดึงจากลิงก์</h3>
+          <p>FB share / Living → วิเคราะห์ข้อความ → กรอกฟอร์ม</p>
+        </div>
+        <div class="card">
+          <h3>ข้อความ</h3>
+          <p>Generate TH/EN จากต้นทาง · ตัดข้อมูลเจ้าของ</p>
+        </div>
+        <div class="card">
+          <h3>Reminder</h3>
+          <p>11 เดือนจากวันลงล่าสุด · เตือนในแอp 30 วันก่อน</p>
+        </div>
+      </div>
+
+      <div id="add-panel" class="add-panel hidden">
+        <div class="edit-banner hidden" id="edit-banner">
+          <span id="edit-banner-text">กำลังแก้ไขทรัพย์</span>
+          <button type="button" class="btn-sm" id="cancel-edit">ยกเลิก</button>
+        </div>
+        <div class="phase-banner" id="server-status">กำลังตรวจสอบเซิร์ฟเวอร์ Phase 2…</div>
+        <p style="font-size:12px;color:#52525b;margin-bottom:8px">
+          วางลิงก์ / ข้อความ → เก็บ<strong>ต้นฉบับครบ</strong> (รวมเบอร์·Line เจ้าของ) → สร้างข้อความลูกค้าจะ<strong>ตัด contact ออกเฉพาะตอนส่งลูกค้า</strong>
+        </p>
+        <div class="add-grid">
+          <label class="add-wide">
+            <span>ลิงก์ต้นทาง</span>
+            <input type="url" id="add-url" placeholder="https://www.facebook.com/... หรือ livinginsider.com/..." />
+          </label>
+          <div class="add-wide toolbar-row">
+            <button type="button" class="btn-sm primary" id="add-scrape">ดึงจากลิงก์</button>
+            <button type="button" class="btn-sm" id="add-parse">วิเคราะห์ข้อความด้านล่าง</button>
+          </div>
+          <label class="add-wide">
+            <span>ข้อความต้นฉบับ (เก็บทั้งหมด — ไม่ตัด contact)</span>
+            <textarea id="add-raw" placeholder="วางข้อความประกาศเต็มๆ ที่นี่…"></textarea>
+          </label>
+          <div class="add-wide warn-list" id="add-warnings"></div>
+          <div class="add-wide hidden" id="partial-hint" style="padding:10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;font-size:12px">
+            <strong>📱 Facebook ให้ข้อความไม่ครบ</strong><br/>
+            1. เปิดโพสต์บนมือถือ → กดคัดลอกข้อความทั้งหมด<br/>
+            2. วางทับช่อง「ข้อความต้นฉบับ」ด้านบน<br/>
+            3. กด <strong>「วิเคราะห์ข้อความ」</strong> → ระบบจะเติมเบอร์/Line/ห้อง/ชั้นให้
+          </div>
+          <p class="add-wide" style="font-size:11px;color:#71717a;margin:0">ข้อมูลเจ้าของ (เก็บในฐานข้อมูล — ไม่ส่งให้ลูกค้า)</p>
+          <label>
+            <span>เบอร์เจ้าของ</span>
+            <input type="text" id="add-owner-phone" placeholder="0812345678, 089..." />
+          </label>
+          <label>
+            <span>Line เจ้าของ</span>
+            <input type="text" id="add-owner-line" placeholder="line id / @xxx" />
+          </label>
+          <label class="add-wide">
+            <span>FB / contact อื่น (เจ้าของ)</span>
+            <input type="text" id="add-owner-fb" placeholder="facebook.com/... หรือเบอร์/ช่องทางอื่น" />
+          </label>
+          <p class="add-wide" style="font-size:11px;color:#71717a;margin:8px 0 0">ลิงก์ที่เราโพสต์แล้ว (ใส่หลังโพสต์ — เว้นว่างไว้ก่อนก็ได้)</p>
+          <label class="add-wide">
+            <span>ลิงก์โพสเรา (โปรไฟล์ / กลุ่ม)</span>
+            <input type="url" id="add-post-url" placeholder="https://www.facebook.com/... หลังโพสต์แล้วค่อยวาง" />
+          </label>
+          <label class="add-wide">
+            <span>ลิงก์ Page</span>
+            <input type="url" id="add-page-url" placeholder="https://www.facebook.com/... ลิงก์โพสต์บนเพจ" />
+          </label>
+          <label>
+            <span>รหัสใหม่</span>
+            <input type="text" id="add-code" readonly />
+          </label>
+          <label>
+            <span>ประเภทรหัส</span>
+            <select id="add-prefix">
+              <option value="RXT">RXT — ทรัพย์ใหม่</option>
+              <option value="COA">COA — โคเอเจนต์</option>
+            </select>
+          </label>
+          <label class="add-wide">
+            <span>โครงการ <small style="font-weight:400;color:#a1a1aa">(เลือกจาก Master หรือเพิ่มใหม่)</small></span>
+            <div class="project-row-actions">
+              <div class="project-picker" id="add-project-picker">
+                <input type="text" id="add-project" autocomplete="off" placeholder="พิมพ์ชื่อโครงการ…" />
+                <input type="hidden" id="add-project-id" />
+                <ul class="project-picker-list hidden" id="add-project-list"></ul>
+              </div>
+              <button type="button" class="btn-sm" id="add-new-project">+ โครงการใหม่</button>
+            </div>
+            <p class="project-match-note hidden" id="add-project-note"></p>
+          </label>
+          <label>
+            <span>ประเภททรัพย์</span>
+            <select id="add-type">
+              <option value="">—</option>
+              <option value="Condo">Condo</option>
+              <option value="House">House</option>
+              <option value="Office">Office</option>
+            </select>
+          </label>
+          <label>
+            <span>ห้องนอน</span>
+            <input type="text" id="add-beds" placeholder="Studio / 1 Bed 1 Bath" />
+          </label>
+          <label>
+            <span>ขนาด (ตร.ม.)</span>
+            <input type="text" id="add-size" />
+          </label>
+          <label>
+            <span>ชั้น</span>
+            <input type="text" id="add-floor" />
+          </label>
+          <label>
+            <span>ราคาเช่า</span>
+            <input type="text" id="add-rent" placeholder="17,000" />
+          </label>
+          <label>
+            <span>ราคาขาย</span>
+            <input type="text" id="add-sale" placeholder="2,900,000" />
+          </label>
+          <label class="add-wide">
+            <span>ทำเล / BTS <small style="font-weight:400;color:#a1a1aa">(ดึงจาก Master — แก้/เพิ่มได้)</small></span>
+            <div class="transit-row">
+              <input type="text" id="add-transit" placeholder="เลือกโครงการก่อน หรือกรอกตอนเพิ่มโครงการใหม่" />
+              <button type="button" class="btn-sm hidden" id="add-save-transit">บันทึกทำเล → Master</button>
+            </div>
+            <p class="project-match-note hidden" id="add-transit-note"></p>
+          </label>
+          <label class="add-wide">
+            <span>หมายเหตุภายใน (ทีม — ไม่ส่งลูกค้า)</span>
+            <textarea id="add-notes" placeholder="บันทึกเพิ่มสำหรับทีม…"></textarea>
+          </label>
+        </div>
+        <div class="toolbar-row" style="margin-top:12px">
+          <button type="button" class="btn-sm primary" id="add-generate">สร้างข้อความ TH + EN</button>
+          <button type="button" class="btn-sm" id="copy-th">คัดลอก TH</button>
+          <button type="button" class="btn-sm" id="copy-en">คัดลอก EN</button>
+        </div>
+        <div class="add-grid" style="margin-top:12px">
+          <label class="add-wide">
+            <span>ข้อความลูกค้า (ไทย) — ตัด contact เจ้าของแล้ว</span>
+            <textarea class="output-box" id="out-th" readonly></textarea>
+          </label>
+          <label class="add-wide">
+            <span>ข้อความลูกค้า (English) — ตัด contact แล้ว</span>
+            <textarea class="output-box" id="out-en" readonly></textarea>
+          </label>
+        </div>
+        <div class="toolbar-row" style="margin-top:16px;gap:10px;flex-wrap:wrap;align-items:center">
+          <button type="button" class="btn-sm primary" id="add-proceed" style="font-size:14px;padding:10px 16px">
+            ดำเนินการต่อ — บันทึกทรัพย์
+          </button>
+          <button type="button" class="btn-sm" id="add-recommend-groups">แนะนำกลุ่ม FB</button>
+          <span id="add-proceed-hint" style="font-size:12px;color:#71717a">
+            บันทึกลง Hub · ถ้ามาจากคิวจะติ๊ก「โพสต์แล้ว」ให้
+          </span>
+        </div>
+        <div id="group-recommend-box" class="add-wide" style="margin-top:14px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <strong style="font-size:13px">กลุ่ม FB แนะนำ — 30 กลุ่ม (เรียงจากแนะนำสุด)</strong>
+            <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังเลือกโครงการ/ราคา</span>
+          </div>
+          <div id="group-recommend-tabs" class="hidden" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+          <div id="group-recommend-list" style="margin-top:10px;font-size:12px;color:#a1a1aa;max-height:480px;overflow:auto">ยังไม่มีรายการ</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="new-project-modal">
+    <div class="modal-box">
+      <h3>เพิ่มโครงการใหม่</h3>
+      <p>โครงการใหม่ต้องกำหนดทำเล/BTS/MRT ตั้งแต่ต้น — จะบันทึกลง Master และใช้กับทรัพย์ทุกรายการของโครงการนี้</p>
+      <label>
+        <span>ชื่อโครงการ (ชื่อหลัก)</span>
+        <input type="text" id="new-project-name" placeholder="เช่น The XXX (เดอะ XXX)" />
+      </label>
+      <label>
+        <span>ทำเล / BTS / MRT</span>
+        <input type="text" id="new-project-transit" placeholder="MRT เพชรบุรี, BTS ทองหล่อ" />
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-sm primary" id="new-project-save">บันทึกโครงการ</button>
+        <button type="button" class="btn-sm" id="new-project-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const USERS = {
+      angkarn1996: { password: "angkarn2539", name: "เจ้าของ" },
+      ptp2: { password: "ptp2026b", name: "แอดมิน 1" },
+      ptp3: { password: "ptp2026c", name: "แอดมิน 2" },
+      ptp4: { password: "ptp2026d", name: "ทีม 4" },
+      ptp5: { password: "ptp2026e", name: "ทีม 5" },
+    };
+
+    const loginScreen = document.getElementById("login-screen");
+    const appScreen = document.getElementById("app-screen");
+    const loginForm = document.getElementById("login-form");
+    const loginError = document.getElementById("login-error");
+    const welcomeText = document.getElementById("welcome-text");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    function showApp(name) {
+      loginScreen.classList.add("hidden");
+      appScreen.classList.remove("hidden");
+      welcomeText.textContent = "สวัสดี, " + name;
+      sessionStorage.setItem("ptp_logged_in", name);
+    }
+
+    function showLogin() {
+      appScreen.classList.add("hidden");
+      loginScreen.classList.remove("hidden");
+      sessionStorage.removeItem("ptp_logged_in");
+    }
+
+    if (sessionStorage.getItem("ptp_logged_in")) {
+      showApp(sessionStorage.getItem("ptp_logged_in"));
+    }
+
+    if (window.location.protocol === "file:") {
+      document.getElementById("file-mode-banner").classList.remove("hidden");
+    }
+    document.getElementById("try-open-server").addEventListener("click", function () {
+      window.location.href = "http://127.0.0.1:8765/";
+    });
+
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const u = document.getElementById("username").value.trim().toLowerCase();
+      const p = document.getElementById("password").value;
+      const user = USERS[u];
+      if (!user || user.password !== p) {
+        loginError.textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+        loginError.classList.remove("hidden");
+        return;
+      }
+      loginError.classList.add("hidden");
+      showApp(user.name);
+    });
+
+    logoutBtn.addEventListener("click", showLogin);
+
+    let activeView = "properties";
+    let page = 0;
+    const PAGE_SIZE = 100;
+    let filteredProps = [];
+    let editingPropertyId = "";
+    let activeZones = [];
+    const API_BASE = window.location.protocol.startsWith("http")
+      ? window.location.origin
+      : "http://127.0.0.1:8765";
+
+    // ถ้าเปิด preview.html ตรงๆ แต่เซิร์ฟเวอร์รันอยู่ → ส่งไป URL ที่ถูก
+    (function tryRedirectFromFile() {
+      if (window.location.protocol !== "file:") return;
+      fetch(API_BASE + "/api/health", { mode: "cors" })
+        .then(function (r) { if (r.ok) window.location.replace(API_BASE + "/"); })
+        .catch(function () { /* แสดงแบนเนอร์ด้านล่าง */ });
+    })();
+
+    const ZONE_CHIPS = [
+      { id: "rama9", label: "พระราม 9", keys: ["rama9", "พระราม 9", "พระราม9"] },
+      { id: "asoke", label: "อโศก", keys: ["asoke", "อโศก"] },
+      { id: "thonglor", label: "ทองหล่อ", keys: ["thonglor", "ทองหล่อ"] },
+      { id: "ekamai", label: "เอกมัย", keys: ["ekamai", "เอกมัย"] },
+      { id: "sukhumvit", label: "สุขุมวิท", keys: ["sukhumvit", "สุขุมวิท"] },
+      { id: "ramkhamhaeng", label: "รามคำแหง", keys: ["ramkhamhaeng", "ramkhamhaeng", "รามคำแหง"] },
+      { id: "silom", label: "สีลม", keys: ["silom", "สีลม", "sathorn", "สาทร"] },
+      { id: "ngamwongwan", label: "งามวงศ์", keys: ["ngamwongwan", "งามวงศ์"] },
+      { id: "ladprao", label: "ลาดพร้าว", keys: ["ladprao", "lardprao", "ลาดพร้าว"] },
+    ];
+
+    function esc(s) {
+      return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+    }
+
+    function tagHtml(tags, muted) {
+      if (!tags || !tags.length) return '<span style="color:#d4d4d8">—</span>';
+      const style = muted ? "opacity:.5" : "";
+      return tags.slice(0, 3).map(function (t) {
+        return '<span class="tag" style="' + style + '">' + esc(t) + '</span>';
+      }).join("");
+    }
+
+    function parsePrice(s) {
+      return parseInt(String(s || "").replace(/[^\d]/g, ""), 10) || 0;
+    }
+
+    function hasPrice(s) {
+      var v = String(s || "").trim();
+      return v && v !== "-" && v !== "—" && v !== "0";
+    }
+
+    function listingOffer(p) {
+      var rent = hasPrice(p.rent_price);
+      var sale = hasPrice(p.sale_price);
+      if (rent && sale) return "both";
+      if (rent) return "rent";
+      if (sale) return "sale";
+      return "none";
+    }
+
+    function offerBadgeHtml(offer) {
+      if (offer === "both") return '<span class="offer-badge offer-both">เช่า+ขาย</span>';
+      if (offer === "sale") return '<span class="offer-badge offer-sale">ขาย</span>';
+      if (offer === "rent") return '<span class="offer-badge offer-rent">เช่า</span>';
+      return "";
+    }
+
+    function formatPriceCell(s, cls) {
+      if (!hasPrice(s)) return '<span class="muted">—</span>';
+      return '<span class="' + cls + '">' + esc(s) + '</span>';
+    }
+
+    function dupBadgeHtml(flags) {
+      if (!flags || !flags.length) return "";
+      var labels = { code: "ซ้ำรหัส", url: "ซ้ำลิงก์", relist: "อาจรีลิสต์" };
+      return flags.map(function (f) {
+        return '<span class="dup-badge" title="อาจเป็นรายการซ้ำ — ตรวจก่อนใช้">⚠ ' + (labels[f] || f) + "</span>";
+      }).join("");
+    }
+
+    function locationHtml(p, proj) {
+      var loc = p.location_ref || (proj.transit_unverified || []).slice(0, 2).join(", ");
+      if (!loc) return '<span class="muted">—</span>';
+      return '<span class="loc-ref" title="' + esc(loc) + '">' + esc(loc) + '</span>';
+    }
+
+    var parseRent = parsePrice;
+
+    function parseDateDMY(s) {
+      if (!s) return null;
+      var m = String(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (!m) return null;
+      return new Date(+m[3], +m[2] - 1, +m[1]);
+    }
+
+    function bedCategory(beds) {
+      var b = String(beds || "").toLowerCase();
+      if (b.indexOf("studio") >= 0) return "studio";
+      if (b.indexOf("3") >= 0 || b.indexOf("4") >= 0) return "3";
+      if (b.indexOf("2") >= 0) return "2";
+      if (b.indexOf("1") >= 0) return "1";
+      return "";
+    }
+
+    function isHttpUrl(u) {
+      return !!(u && String(u).trim().toLowerCase().startsWith("http"));
+    }
+
+    function linkHtml(url, label, cls) {
+      if (!isHttpUrl(url)) return '<span class="muted">—</span>';
+      return '<a href="' + esc(url.trim()) + '" target="_blank" rel="noreferrer" class="' + (cls || "") + '">' + esc(label) + '</a>';
+    }
+
+    function linksCell(p) {
+      return linkHtml(p.source_url, "ต้นทาง", "");
+    }
+
+    function ownerContactCell(p) {
+      var bits = [];
+      (p.owner_phones || []).forEach(function (ph) {
+        if (!ph) return;
+        bits.push('<a href="tel:' + esc(String(ph).replace(/\s+/g, "")) + '">' + esc(ph) + "</a>");
+      });
+      (p.owner_lines || []).forEach(function (ln) {
+        if (!ln) return;
+        bits.push("Line:" + esc(ln));
+      });
+      repairOwnerFacebookList(p.owner_facebook || []).forEach(function (fb) {
+        if (!fb) return;
+        if (isHttpUrl(fb)) bits.push(linkHtml(fb, "FB", "post"));
+        else bits.push(esc(fb));
+      });
+      if (!bits.length) {
+        return '<button type="button" class="linkish muted" data-edit-links="' + esc(p.id) + '" data-field="owner" title="ใส่ลิงก์เจ้าของ">—</button>';
+      }
+      return bits.slice(0, 2).join(" · ");
+    }
+
+    function repairOwnerFacebookList(list) {
+      if (!list || !list.length) return [];
+      // ซ่อมเคสเก่าที่ split("/") ตัด URL เป็นชิ้น
+      if (list.length >= 2 && (list[0] === "https:" || list[0] === "http:")) {
+        return [list[0] + "//" + list.slice(1).join("/")];
+      }
+      return list;
+    }
+
+    function postLinksCell(p, proj) {
+      if (isHttpUrl(p.post_url)) return linkHtml(p.post_url, "โพส", "post");
+      if (!isHttpUrl(p.post_pages_url) && !p.source_url && proj.is_thru_thonglor) {
+        return '<span class="muted">Thru</span>';
+      }
+      return '<button type="button" class="linkish muted" data-edit-links="' + esc(p.id) + '" data-field="post" title="ใส่ลิงก์โพสเราหลังโพสต์">—</button>';
+    }
+
+    function pageLinkCell(p) {
+      if (isHttpUrl(p.post_pages_url)) return linkHtml(p.post_pages_url, "Page", "page");
+      return '<button type="button" class="linkish muted" data-edit-links="' + esc(p.id) + '" data-field="page" title="ใส่ลิงก์ Page หลังโพสต์">—</button>';
+    }
+
+    function sourceKind(p, proj) {
+      if (!p.source_url && proj.is_thru_thonglor) return "thru";
+      var u = (p.source_url || "").toLowerCase();
+      if (u.indexOf("facebook") >= 0 || u.indexOf("fb.") >= 0) return "facebook";
+      if (u.indexOf("livinginsider") >= 0) return "living";
+      if (!u) return "thru";
+      return "other";
+    }
+
+    // === ค้นหาสองภาษา (TH ↔ EN) — ใช้ร่วมทุกช่องค้นหาใน Hub ===
+    function normSearchText(name) {
+      var n = (name || "").toLowerCase().trim();
+      // เก็บทั้งชื่อ EN และไทยในวงเล็บ — อย่าตัด (ศรีวรา…) ทิ้ง
+      n = n.replace(/[()（）]/g, " ");
+      n = n.replace(/ลาดพร้าว/g, "ladprao");
+      n = n.replace(/พระราม\s*9|rama\s*9/g, "rama9");
+      n = n.replace(/ทองหล่อ|thonglor|thong\s*lo/g, "thonglor");
+      n = n.replace(/เพชรบุรี|phetchaburi|petchaburi/g, "phetchaburi");
+      n = n.replace(/อโศก|asoke|asok/g, "asoke");
+      n = n.replace(/เอกมัย|ekkamai|ekamai/g, "ekkamai");
+      n = n.replace(/อ่อนนุช|onnut|on\s*nut/g, "onnut");
+      n = n.replace(/พระโขนง|phrakanong|phra\s*khanong/g, "phrakanong");
+      n = n.replace(/ห้วยขวาง|huaikhwang|huai\s*khwang/g, "huaikhwang");
+      n = n.replace(/รัชดา|ratchada/g, "ratchada");
+      n = n.replace(/ศรีนครินทร์|srinakarin|srinagarindra/g, "srinakarin");
+      n = n.replace(/สุขุมวิท|sukhumvit/g, "sukhumvit");
+      n = n.replace(/รามคำแหง|ramkhamhaeng/g, "ramkhamhaeng");
+      n = n.replace(/\bat\b|แอท|@/g, "");
+      n = n.replace(/[^a-z0-9ก-๙]/g, "");
+      return n;
+    }
+
+    function pushSearchKeys(keys, name) {
+      if (!name) return;
+      function add(raw) {
+        var k = normSearchText(raw);
+        if (k && keys.indexOf(k) < 0) keys.push(k);
+      }
+      var s = String(name);
+      add(s);
+      var paren = s.match(/\(([^)]+)\)/g) || [];
+      paren.forEach(function (part) {
+        add(part.replace(/[()（）]/g, ""));
+      });
+      add(s.replace(/\([^)]*\)/g, " "));
+    }
+
+    function collectSearchKeys() {
+      var keys = [];
+      for (var i = 0; i < arguments.length; i++) {
+        var raw = arguments[i];
+        if (!raw) continue;
+        if (Array.isArray(raw)) {
+          raw.forEach(function (x) { pushSearchKeys(keys, x); });
+        } else {
+          pushSearchKeys(keys, raw);
+        }
+      }
+      return keys;
+    }
+
+    function keysMatchQuery(keys, query) {
+      var needle = normSearchText(query);
+      if (!needle) return true;
+      return keys.some(function (k) { return k.indexOf(needle) >= 0; });
+    }
+
+    function textMatchesQuery(text, query) {
+      return keysMatchQuery(collectSearchKeys(text), query);
+    }
+
+    // alias เดิม — ช่องเลือกโครงการ / match ใช้ตัวเดียวกัน
+    function normProjectKey(name) {
+      return normSearchText(name);
+    }
+
+    function getSearchBlob(p, proj) {
+      return collectSearchKeys(
+        p.code,
+        p.project_name,
+        proj.canonical_name || "",
+        p.notes,
+        p.bedrooms,
+        p.property_type,
+        p.location_ref,
+        proj.aliases || [],
+        proj.transit_unverified || [],
+        proj.transit_verified || [],
+        p.transit_from_sheet || [],
+        p.owner_phones || [],
+        p.owner_lines || [],
+        p.owner_facebook || []
+      ).join(" ");
+    }
+
+    function matchFloor(floor, spec) {
+      if (!spec) return true;
+      floor = String(floor || "").trim();
+      if (!floor) return false;
+      spec = spec.trim();
+      if (spec.indexOf("-") >= 0) {
+        var parts = spec.split("-");
+        var lo = parseInt(parts[0], 10);
+        var hi = parseInt(parts[1], 10);
+        var f = parseInt(floor, 10);
+        if (isNaN(f) || isNaN(lo) || isNaN(hi)) return floor.indexOf(spec) >= 0;
+        return f >= lo && f <= hi;
+      }
+      return floor === spec || floor.indexOf(spec) >= 0;
+    }
+
+    function matchZone(p, proj, zoneId) {
+      if (!zoneId) return true;
+      var chip = ZONE_CHIPS.find(function (z) { return z.id === zoneId; });
+      if (!chip) return true;
+      var blob = getSearchBlob(p, proj);
+      return chip.keys.some(function (k) {
+        return blob.indexOf(normSearchText(k)) >= 0 || blob.indexOf(String(k).toLowerCase()) >= 0;
+      });
+    }
+
+    function normalizeTransitLabel(raw) {
+      var s = String(raw || "").trim().replace(/\s+/g, " ");
+      if (!s) return "";
+      s = s.replace(/^airport\s*link\s+/i, "ARL ");
+      var m = s.match(/^(BTS|MRT|ARL)\s*(.+)$/i);
+      if (!m) return s.slice(0, 50);
+      var rest = m[2].trim()
+        .replace(/\s*-\s*/g, "-")
+        .replace(/\s*\/\s*/g, " / ")
+        .replace(/\s+/g, " ");
+      // พระราม9 → พระราม 9, พหลโยธิน24 → พหลโยธิน 24
+      rest = rest.replace(/([^\d\s])(\d)/g, "$1 $2");
+      return (m[1].toUpperCase() + " " + rest).slice(0, 50);
+    }
+
+    function transitNormKey(raw) {
+      return normalizeTransitLabel(raw).toLowerCase().replace(/\s+/g, "");
+    }
+
+    function matchTransit(p, proj, transitFilter) {
+      if (!transitFilter) return true;
+      var want = transitNormKey(transitFilter);
+      if (!want) return true;
+      var all = (proj.transit_verified || [])
+        .concat(proj.transit_unverified || [])
+        .concat(p.transit_from_sheet || []);
+      return all.some(function (x) {
+        var k = transitNormKey(x);
+        return k === want || k.indexOf(want) >= 0;
+      });
+    }
+
+    function selectedValues(el) {
+      if (!el) return [];
+      if (el.tagName === "SELECT") {
+        if (!el.multiple) return el.value ? [el.value] : [];
+        return Array.prototype.map.call(el.selectedOptions || [], function (o) {
+          return o.value;
+        }).filter(Boolean);
+      }
+      return Array.prototype.map.call(el.querySelectorAll('input[type="checkbox"]:checked'), function (c) {
+        return c.value;
+      }).filter(Boolean);
+    }
+
+    function setSelectedValues(el, values) {
+      if (!el) return;
+      var set = {};
+      (values || []).forEach(function (v) { if (v) set[String(v)] = true; });
+      if (el.tagName === "SELECT") {
+        Array.prototype.forEach.call(el.options || [], function (o) {
+          o.selected = !!set[o.value];
+        });
+        return;
+      }
+      Array.prototype.forEach.call(el.querySelectorAll('input[type="checkbox"]'), function (c) {
+        c.checked = !!set[c.value];
+      });
+    }
+
+    function clearSelect(el) {
+      setSelectedValues(el, []);
+    }
+
+    function toggleSelectValue(el, value) {
+      if (!value) return;
+      var vals = selectedValues(el);
+      var i = vals.indexOf(value);
+      if (i >= 0) vals.splice(i, 1);
+      else vals.push(value);
+      setSelectedValues(el, vals);
+    }
+
+    function appendCheckItem(box, value, label) {
+      var lab = document.createElement("label");
+      lab.className = "check-item";
+      var inp = document.createElement("input");
+      inp.type = "checkbox";
+      inp.value = value;
+      lab.appendChild(inp);
+      lab.appendChild(document.createTextNode(" " + label));
+      box.appendChild(lab);
+    }
+
+    function matchAnyZone(p, proj, zoneIds) {
+      if (!zoneIds || !zoneIds.length) return true;
+      return zoneIds.some(function (zid) { return matchZone(p, proj, zid); });
+    }
+
+    function matchAnyTransit(p, proj, transits) {
+      if (!transits || !transits.length) return true;
+      return transits.some(function (t) { return matchTransit(p, proj, t); });
+    }
+
+    function matchAnyOffer(p, offers) {
+      if (!offers || !offers.length) return true;
+      var offer = listingOffer(p);
+      return offers.some(function (f) {
+        if (f === "rent") return hasPrice(p.rent_price);
+        if (f === "sale") return hasPrice(p.sale_price);
+        if (f === "both") return offer === "both";
+        if (f === "rent_only") return offer === "rent";
+        if (f === "sale_only") return offer === "sale";
+        return true;
+      });
+    }
+
+    function matchAnyBeds(p, beds) {
+      if (!beds || !beds.length) return true;
+      var cat = bedCategory(p.bedrooms);
+      return beds.indexOf(cat) >= 0;
+    }
+
+    function matchAnyType(p, types) {
+      if (!types || !types.length) return true;
+      return types.indexOf(p.property_type) >= 0;
+    }
+
+    function matchAnySource(p, proj, sources) {
+      if (!sources || !sources.length) return true;
+      return sources.indexOf(sourceKind(p, proj)) >= 0;
+    }
+
+    function parseSmartPriceToken(tok) {
+      var t = String(tok || "").replace(/,/g, "").trim().toLowerCase();
+      if (!t) return 0;
+      var mk = t.match(/^(\d+(?:\.\d+)?)\s*k$/i);
+      if (mk) return Math.round(parseFloat(mk[1]) * 1000);
+      var n = parseInt(t.replace(/[^\d]/g, ""), 10);
+      return n || 0;
+    }
+
+    function parseSmartQuery(raw) {
+      var result = {
+        q: "",
+        zone: "",
+        beds: "",
+        offer: "",
+        rentMin: 0,
+        rentMax: 0,
+        saleMin: 0,
+        saleMax: 0,
+      };
+      var text = String(raw || "").trim();
+      if (!text) return result;
+
+      var working = text;
+      var wantsSale = /(?:^|\s)(ขาย|for\s*sale)(?:\s|$)/i.test(working);
+      var wantsRent = /(?:^|\s)(เช่า|for\s*rent)(?:\s|$)/i.test(working);
+      if (wantsSale && !wantsRent) result.offer = "sale";
+      else if (wantsRent && !wantsSale) result.offer = "rent";
+      working = working.replace(/(?:^|\s)(ขาย|เช่า|for\s*sale|for\s*rent)(?=\s|$)/gi, " ");
+
+      // beds
+      var bedRe = /\b(studio|สตูดิโอ)\b|(?:^|\s)([123])\s*(?:นอน|bed(?:room)?s?|ห้องนอน|ห้อง)(?=\s|$)|(?:^|\s)([123])\+?\s*(?:นอน|bed)(?=\s|$)/gi;
+      var bedMatch;
+      while ((bedMatch = bedRe.exec(working)) !== null) {
+        if (bedMatch[1]) result.beds = "studio";
+        else if (bedMatch[2] === "3" || bedMatch[3] === "3") result.beds = "3";
+        else if (bedMatch[2] || bedMatch[3]) result.beds = bedMatch[2] || bedMatch[3];
+      }
+      working = working.replace(/\b(studio|สตูดิโอ)\b|(?:^|\s)([123])\s*(?:นอน|bed(?:room)?s?|ห้องนอน|ห้อง)(?=\s|$)|(?:^|\s)([123])\+?\s*(?:นอน|bed)(?=\s|$)/gi, " ");
+
+      // zones — longest keys first (compare via normSearchText)
+      var zoneHits = [];
+      ZONE_CHIPS.forEach(function (z) {
+        z.keys.forEach(function (k) {
+          zoneHits.push({ id: z.id, key: k, len: String(k).length });
+        });
+      });
+      zoneHits.sort(function (a, b) { return b.len - a.len; });
+      for (var i = 0; i < zoneHits.length; i++) {
+        var zh = zoneHits[i];
+        var keyNorm = normSearchText(zh.key);
+        var workNorm = normSearchText(working);
+        if (keyNorm && workNorm.indexOf(keyNorm) >= 0) {
+          result.zone = zh.id;
+          var zoneObj = ZONE_CHIPS.find(function (z) { return z.id === zh.id; });
+          (zoneObj ? zoneObj.keys : [zh.key]).forEach(function (k) {
+            var escKey = String(k).replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s*");
+            working = working.replace(new RegExp(escKey, "ig"), " ");
+          });
+          break;
+        }
+      }
+
+      // price range: 10k-15k / 10000-15000
+      var rangeRe = /(?:^|\s)(\d[\d,]*(?:\.\d+)?\s*k?)\s*[-–—]\s*(\d[\d,]*(?:\.\d+)?\s*k?)(?=\s|$)/i;
+      var rangeM = working.match(rangeRe);
+      if (rangeM) {
+        var lo = parseSmartPriceToken(rangeM[1]);
+        var hi = parseSmartPriceToken(rangeM[2]);
+        if (lo && hi) {
+          if (wantsSale && !wantsRent) {
+            result.saleMin = lo;
+            result.saleMax = hi;
+          } else {
+            result.rentMin = lo;
+            result.rentMax = hi;
+          }
+          working = working.replace(rangeM[0], " ");
+        }
+      }
+
+      // max price: ≤17k / <=17000 / <17k / ไม่เกิน 17k / ต่ำกว่า 17000 / max 17k
+      var maxRe = /(?:≤|<=|＜|<|ไม่เกิน|ต่ำกว่า|สูงสุด|max)\s*(\d[\d,]*(?:\.\d+)?\s*k?)/i;
+      var maxM = working.match(maxRe);
+      if (maxM) {
+        var mx = parseSmartPriceToken(maxM[1]);
+        if (mx) {
+          if (wantsSale && !wantsRent) result.saleMax = mx;
+          else result.rentMax = mx;
+          working = working.replace(maxM[0], " ");
+        }
+      }
+
+      // bare ≤17k without word before (already covered) — also "17k" after เช่า context leftover
+      var bareMax = working.match(/(?:^|\s)(≤|<=)\s*(\d[\d,]*(?:\.\d+)?\s*k?)(?=\s|$)/i);
+      if (bareMax && !result.rentMax && !result.saleMax) {
+        var bx = parseSmartPriceToken(bareMax[2]);
+        if (bx) {
+          if (wantsSale && !wantsRent) result.saleMax = bx;
+          else result.rentMax = bx;
+          working = working.replace(bareMax[0], " ");
+        }
+      }
+
+      result.q = working.replace(/\s+/g, " ").trim();
+      return result;
+    }
+
+    function syncQuickChips() {
+      var smart = parseSmartQuery(document.getElementById("search-box").value.trim());
+      var offers = selectedValues(document.getElementById("f-offer"));
+      if (!offers.length && smart.offer) offers = [smart.offer];
+      document.querySelectorAll("#offer-chips .chip").forEach(function (c) {
+        var v = c.getAttribute("data-offer") || "";
+        c.classList.toggle("active", offers.indexOf(v) >= 0);
+      });
+      var beds = selectedValues(document.getElementById("f-beds"));
+      if (!beds.length && smart.beds) beds = [smart.beds];
+      document.querySelectorAll("#beds-chips .chip").forEach(function (c) {
+        var v = c.getAttribute("data-beds") || "";
+        c.classList.toggle("active", beds.indexOf(v) >= 0);
+      });
+      var zones = activeZones.slice();
+      if (!zones.length && smart.zone) zones = [smart.zone];
+      document.querySelectorAll("#zone-chips .chip").forEach(function (c) {
+        c.classList.toggle("active", zones.indexOf(c.getAttribute("data-zone")) >= 0);
+      });
+    }
+
+    function formatBahtShort(n) {
+      if (!n) return "";
+      if (n >= 1000 && n % 1000 === 0) return (n / 1000) + "k";
+      return String(n);
+    }
+
+    function renderActiveFilterChips(f) {
+      var box = document.getElementById("active-filter-chips");
+      if (!box) return;
+      var chips = [];
+      var offerLabels = {
+        rent: "เช่า", sale: "ขาย", both: "เช่า+ขาย",
+        rent_only: "เช่าอย่างเดียว", sale_only: "ขายอย่างเดียว"
+      };
+      var bedLabels = { studio: "Studio", "1": "1 นอน", "2": "2 นอน", "3": "3+ นอน" };
+      if (f.q) chips.push({ key: "q", label: "ค้นหา: " + f.q });
+      (f.zones || []).forEach(function (zid) {
+        var z = ZONE_CHIPS.find(function (x) { return x.id === zid; });
+        chips.push({ key: "zone:" + zid, label: "โซน: " + (z ? z.label : zid) });
+      });
+      (f.offers || []).forEach(function (o) {
+        chips.push({ key: "offer:" + o, label: offerLabels[o] || o });
+      });
+      (f.beds || []).forEach(function (b) {
+        chips.push({ key: "beds:" + b, label: bedLabels[b] || b });
+      });
+      if (f.rentMin) chips.push({ key: "rentMin", label: "เช่า ≥" + formatBahtShort(f.rentMin) });
+      if (f.rentMax) chips.push({ key: "rentMax", label: "เช่า ≤" + formatBahtShort(f.rentMax) });
+      if (f.saleMin) chips.push({ key: "saleMin", label: "ขาย ≥" + formatBahtShort(f.saleMin) });
+      if (f.saleMax) chips.push({ key: "saleMax", label: "ขาย ≤" + formatBahtShort(f.saleMax) });
+      if (f.projectId) {
+        var pmap = window.PTP_DATA.project_map || {};
+        var pn = (pmap[f.projectId] || {}).canonical_name || f.projectId;
+        chips.push({ key: "projectId", label: "โครงการ: " + pn });
+      }
+      (f.types || []).forEach(function (t) {
+        chips.push({ key: "type:" + t, label: t });
+      });
+      (f.transits || []).forEach(function (t) {
+        chips.push({ key: "transit:" + t, label: t });
+      });
+      if (f.era) chips.push({ key: "era", label: "ช่วง: " + f.era });
+      if (f.dup) chips.push({ key: "dup", label: "ซ้ำ: " + f.dup });
+      if (f.sizeMin) chips.push({ key: "sizeMin", label: "≥" + f.sizeMin + " ตร.ม." });
+      if (f.sizeMax) chips.push({ key: "sizeMax", label: "≤" + f.sizeMax + " ตร.ม." });
+      if (f.floor) chips.push({ key: "floor", label: "ชั้น " + f.floor });
+      if (f.days) chips.push({ key: "days", label: "ภายใน " + f.days + " วัน" });
+      (f.sources || []).forEach(function (s) {
+        chips.push({ key: "source:" + s, label: "แหล่ง: " + s });
+      });
+      if (f.media === "has_link") chips.push({ key: "media", label: "มีลิงก์โพสต์" });
+      if (f.media === "none") chips.push({ key: "media", label: "ไม่มีลิงก์โพสต์" });
+
+      box.innerHTML = chips.map(function (c) {
+        return '<span class="active-filter-chip">' + esc(c.label) +
+          '<button type="button" data-clear-filter="' + esc(c.key) + '" aria-label="ลบ">×</button></span>';
+      }).join("");
+    }
+
+    function clearOneFilter(key) {
+      var box = document.getElementById("search-box");
+      var smart = parseSmartQuery(box.value.trim());
+      var colon = key.indexOf(":");
+      var kind = colon >= 0 ? key.slice(0, colon) : key;
+      var val = colon >= 0 ? key.slice(colon + 1) : "";
+
+      if (key === "q") {
+        box.value = rebuildSmartQuery(Object.assign({}, smart, { q: "" }));
+      } else if (kind === "zone") {
+        if (val) activeZones = activeZones.filter(function (z) { return z !== val; });
+        else activeZones = [];
+        if (!val || smart.zone === val) {
+          box.value = rebuildSmartQuery(Object.assign({}, smart, { zone: "" }));
+        }
+      } else if (kind === "offer") {
+        if (val) {
+          setSelectedValues(document.getElementById("f-offer"),
+            selectedValues(document.getElementById("f-offer")).filter(function (x) { return x !== val; }));
+          if (smart.offer === val) {
+            box.value = rebuildSmartQuery(Object.assign({}, smart, { offer: "" }));
+          }
+        } else {
+          clearSelect(document.getElementById("f-offer"));
+          box.value = rebuildSmartQuery(Object.assign({}, smart, { offer: "" }));
+        }
+      } else if (kind === "beds") {
+        if (val) {
+          setSelectedValues(document.getElementById("f-beds"),
+            selectedValues(document.getElementById("f-beds")).filter(function (x) { return x !== val; }));
+          if (smart.beds === val) {
+            box.value = rebuildSmartQuery(Object.assign({}, smart, { beds: "" }));
+          }
+        } else {
+          clearSelect(document.getElementById("f-beds"));
+          box.value = rebuildSmartQuery(Object.assign({}, smart, { beds: "" }));
+        }
+      } else if (key === "rentMin") {
+        document.getElementById("f-rent-min").value = "";
+        box.value = rebuildSmartQuery(Object.assign({}, smart, { rentMin: 0 }));
+      } else if (key === "rentMax") {
+        document.getElementById("f-rent-max").value = "";
+        box.value = rebuildSmartQuery(Object.assign({}, smart, { rentMax: 0 }));
+      } else if (key === "saleMin") {
+        document.getElementById("f-sale-min").value = "";
+        box.value = rebuildSmartQuery(Object.assign({}, smart, { saleMin: 0 }));
+      } else if (key === "saleMax") {
+        document.getElementById("f-sale-max").value = "";
+        box.value = rebuildSmartQuery(Object.assign({}, smart, { saleMax: 0 }));
+      } else if (key === "projectId") {
+        document.getElementById("f-project").value = "";
+        var pq = document.getElementById("f-project-q");
+        if (pq) pq.value = "";
+        fillProjectFilterSelect("");
+      } else if (kind === "type") {
+        if (val) setSelectedValues(document.getElementById("f-type"),
+          selectedValues(document.getElementById("f-type")).filter(function (x) { return x !== val; }));
+        else clearSelect(document.getElementById("f-type"));
+      } else if (kind === "transit") {
+        if (val) setSelectedValues(document.getElementById("f-transit"),
+          selectedValues(document.getElementById("f-transit")).filter(function (x) { return x !== val; }));
+        else clearSelect(document.getElementById("f-transit"));
+      } else if (kind === "source") {
+        if (val) setSelectedValues(document.getElementById("f-source"),
+          selectedValues(document.getElementById("f-source")).filter(function (x) { return x !== val; }));
+        else clearSelect(document.getElementById("f-source"));
+      } else if (key === "era") document.getElementById("f-era").value = "";
+      else if (key === "dup") document.getElementById("f-dup").value = "";
+      else if (key === "sizeMin") document.getElementById("f-size-min").value = "";
+      else if (key === "sizeMax") document.getElementById("f-size-max").value = "";
+      else if (key === "floor") document.getElementById("f-floor").value = "";
+      else if (key === "days") document.getElementById("f-days").value = "";
+      else if (key === "media") document.getElementById("f-media").value = "";
+      syncQuickChips();
+      applyFilter();
+    }
+
+    function rebuildSmartQuery(smart) {
+      var parts = [];
+      if (smart.zone) {
+        var z = ZONE_CHIPS.find(function (x) { return x.id === smart.zone; });
+        if (z) parts.push(z.label.replace(/\s+/g, ""));
+      }
+      if (smart.offer === "rent") parts.push("เช่า");
+      if (smart.offer === "sale") parts.push("ขาย");
+      if (smart.beds === "studio") parts.push("studio");
+      if (smart.beds === "1") parts.push("1นอน");
+      if (smart.beds === "2") parts.push("2นอน");
+      if (smart.beds === "3") parts.push("3นอน");
+      if (smart.rentMin && smart.rentMax) {
+        parts.push(formatBahtShort(smart.rentMin) + "-" + formatBahtShort(smart.rentMax));
+      } else if (smart.rentMax) {
+        parts.push("≤" + formatBahtShort(smart.rentMax));
+      } else if (smart.rentMin) {
+        parts.push(formatBahtShort(smart.rentMin) + "+");
+      }
+      if (smart.saleMin && smart.saleMax) {
+        parts.push("ขาย " + formatBahtShort(smart.saleMin) + "-" + formatBahtShort(smart.saleMax));
+      } else if (smart.saleMax) {
+        parts.push("ขาย ≤" + formatBahtShort(smart.saleMax));
+      }
+      if (smart.q) parts.push(smart.q);
+      return parts.join(" ").trim();
+    }
+
+    function getFilters() {
+      var smart = parseSmartQuery(document.getElementById("search-box").value.trim());
+      var formOffers = selectedValues(document.getElementById("f-offer"));
+      var formBeds = selectedValues(document.getElementById("f-beds"));
+      var formRentMin = parseInt(document.getElementById("f-rent-min").value, 10) || 0;
+      var formRentMax = parseInt(document.getElementById("f-rent-max").value, 10) || 0;
+      var formSaleMin = parseInt(document.getElementById("f-sale-min").value, 10) || 0;
+      var formSaleMax = parseInt(document.getElementById("f-sale-max").value, 10) || 0;
+      var zones = activeZones.slice();
+      if (!zones.length && smart.zone) zones = [smart.zone];
+      var offers = formOffers.slice();
+      if (!offers.length && smart.offer) offers = [smart.offer];
+      var beds = formBeds.slice();
+      if (!beds.length && smart.beds) beds = [smart.beds];
+      return {
+        q: smart.q,
+        projectId: document.getElementById("f-project").value,
+        types: selectedValues(document.getElementById("f-type")),
+        beds: beds,
+        transits: selectedValues(document.getElementById("f-transit")),
+        era: document.getElementById("f-era").value,
+        dup: document.getElementById("f-dup").value,
+        offers: offers,
+        rentMin: formRentMin || smart.rentMin,
+        rentMax: formRentMax || smart.rentMax,
+        saleMin: formSaleMin || smart.saleMin,
+        saleMax: formSaleMax || smart.saleMax,
+        sizeMin: parseFloat(document.getElementById("f-size-min").value) || 0,
+        sizeMax: parseFloat(document.getElementById("f-size-max").value) || 0,
+        floor: document.getElementById("f-floor").value.trim(),
+        days: parseInt(document.getElementById("f-days").value, 10) || 0,
+        sources: selectedValues(document.getElementById("f-source")),
+        media: document.getElementById("f-media").value,
+        sort: document.getElementById("f-sort").value,
+        zones: zones,
+      };
+    }
+
+    function countActiveFilters(f) {
+      var n = 0;
+      if (f.q) n++;
+      if (f.era) n++;
+      if (f.dup) n++;
+      if (f.projectId) n++;
+      n += (f.types || []).length;
+      n += (f.offers || []).length;
+      n += (f.beds || []).length;
+      n += (f.transits || []).length;
+      if (f.rentMin) n++;
+      if (f.rentMax) n++;
+      if (f.saleMin) n++;
+      if (f.saleMax) n++;
+      if (f.sizeMin) n++;
+      if (f.sizeMax) n++;
+      if (f.floor) n++;
+      if (f.days) n++;
+      n += (f.sources || []).length;
+      if (f.media) n++;
+      n += (f.zones || []).length;
+      return n;
+    }
+
+    function countAdvancedOnly(f) {
+      var n = 0;
+      if (f.projectId) n++;
+      n += (f.transits || []).length;
+      if (document.getElementById("f-rent-min").value) n++;
+      if (document.getElementById("f-rent-max").value) n++;
+      if (document.getElementById("f-sale-min").value) n++;
+      if (document.getElementById("f-sale-max").value) n++;
+      return n;
+    }
+
+    function buildFilterOptions() {
+      var props = window.PTP_DATA.properties || [];
+      var pmap = window.PTP_DATA.project_map || {};
+      var types = {};
+      var transits = {};
+      var projects = {};
+
+      props.forEach(function (p) {
+        if (p.property_type) types[p.property_type] = 1;
+        if (p.project_id && pmap[p.project_id]) {
+          projects[p.project_id] = pmap[p.project_id].canonical_name;
+        }
+        var proj = pmap[p.project_id] || {};
+        (proj.transit_verified || []).concat(proj.transit_unverified || []).concat(p.transit_from_sheet || []).forEach(function (t) {
+          if (!/(?:BTS|MRT|ARL|Airport\s*Link)/i.test(t || "")) return;
+          // แยกสถานีที่คั่นด้วย ,
+          String(t).split(/[,，]/).forEach(function (part) {
+            part = part.trim();
+            if (!/(?:BTS|MRT|ARL|Airport\s*Link)/i.test(part)) return;
+            var label = normalizeTransitLabel(part);
+            var key = transitNormKey(label);
+            if (!key) return;
+            if (!transits[key]) transits[key] = { label: label, count: 0 };
+            transits[key].count += 1;
+            if (/^(BTS|MRT|ARL) /.test(label)) transits[key].label = label;
+          });
+        });
+      });
+
+      var pSel = document.getElementById("f-project");
+      ALL_PROJECT_FILTER_OPTS = Object.keys(projects).map(function (id) {
+        return { id: id, name: projects[id] };
+      }).sort(function (a, b) {
+        return a.name.localeCompare(b.name, "th");
+      });
+      fillProjectFilterSelect("");
+
+      var tSel = document.getElementById("f-type");
+      var prevTypes = selectedValues(tSel);
+      tSel.innerHTML = "";
+      Object.keys(types).sort().forEach(function (t) {
+        appendCheckItem(tSel, t, t);
+      });
+      setSelectedValues(tSel, prevTypes);
+
+      var trSel = document.getElementById("f-transit");
+      var prevTransit = selectedValues(trSel).map(normalizeTransitLabel);
+      trSel.innerHTML = "";
+      Object.keys(transits).sort(function (a, b) {
+        return transits[b].count - transits[a].count;
+      }).slice(0, 80).forEach(function (key) {
+        var item = transits[key];
+        appendCheckItem(trSel, item.label, item.label + " (" + item.count + ")");
+      });
+      setSelectedValues(trSel, prevTransit);
+
+      var chipRow = document.getElementById("zone-chips");
+      Array.prototype.slice.call(chipRow.querySelectorAll(".chip[data-zone]")).forEach(function (el) {
+        el.remove();
+      });
+      ZONE_CHIPS.forEach(function (z) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip";
+        btn.dataset.zone = z.id;
+        btn.textContent = z.label;
+        chipRow.appendChild(btn);
+      });
+    }
+
+    function initData() {
+      if (!window.PTP_DATA) {
+        document.getElementById("property-rows").innerHTML =
+          '<tr><td colspan="11" class="empty"><p>ไม่พบ preview-data.js</p><p>รัน: python3 scripts/build_master.py</p></td></tr>';
+        return;
+      }
+      var s = window.PTP_DATA.stats;
+      document.getElementById("stat-projects").textContent = s.projects;
+      document.getElementById("stat-props").textContent = s.properties_total;
+      document.getElementById("stat-active").textContent = s.properties_active;
+      document.getElementById("stat-archived").textContent = s.properties_archived;
+      document.getElementById("stat-dup").textContent = s.properties_flagged_duplicate || 0;
+      var props = window.PTP_DATA.properties || [];
+      var rentCount = props.filter(function (p) { return hasPrice(p.rent_price); }).length;
+      var saleCount = props.filter(function (p) { return hasPrice(p.sale_price); }).length;
+      document.getElementById("stat-rent").textContent = rentCount;
+      document.getElementById("stat-sale").textContent = saleCount;
+      buildFilterOptions();
+      applyFilter();
+      renderProjects();
+      initAddProjectPicker();
+      loadQueue();
+    }
+
+    var PROJECT_INDEX = [];
+    var addProjectPickerReady = false;
+    var ALL_PROJECT_FILTER_OPTS = [];
+
+    function buildProjectIndex() {
+      var projects = (window.PTP_DATA && window.PTP_DATA.projects) || [];
+      PROJECT_INDEX = projects.map(function (p) {
+        return {
+          id: p.id,
+          name: p.canonical_name,
+          count: p.listing_count || 0,
+          keys: collectSearchKeys(p.canonical_name, p.aliases || []),
+        };
+      });
+    }
+
+    function fillProjectFilterSelect(q) {
+      var pSel = document.getElementById("f-project");
+      if (!pSel) return;
+      var cur = pSel.value;
+      var html = '<option value="">ทั้งหมด</option>';
+      var matched = ALL_PROJECT_FILTER_OPTS.filter(function (o) {
+        return !q || keysMatchQuery(collectSearchKeys(o.name), q);
+      });
+      matched.forEach(function (o) {
+        html += '<option value="' + esc(o.id) + '">' + esc(o.name) + "</option>";
+      });
+      pSel.innerHTML = html;
+      if (cur && matched.some(function (o) { return o.id === cur; })) {
+        pSel.value = cur;
+      } else if (q && matched.length === 1) {
+        pSel.value = matched[0].id;
+      }
+    }
+
+    function masterTransitAll(proj) {
+      var src = (proj.transit_verified && proj.transit_verified.length)
+        ? proj.transit_verified
+        : (proj.transit_unverified || []);
+      var seen = {};
+      var out = [];
+      src.forEach(function (t) {
+        var label = (t || "").trim();
+        if (!label) return;
+        var k = normProjectKey(label);
+        if (!seen[k]) {
+          seen[k] = 1;
+          out.push(label);
+        }
+      });
+      return out;
+    }
+
+    function masterTransitList(proj) {
+      return masterTransitAll(proj).slice(0, 4);
+    }
+
+    function matchProject(text) {
+      if (!text || !PROJECT_INDEX.length) return null;
+      var key = normProjectKey(text);
+      if (!key) return null;
+      var i, j, p;
+      for (i = 0; i < PROJECT_INDEX.length; i++) {
+        p = PROJECT_INDEX[i];
+        for (j = 0; j < p.keys.length; j++) {
+          if (p.keys[j] === key) return p.id;
+        }
+      }
+      var best = null;
+      var bestScore = 0;
+      PROJECT_INDEX.forEach(function (item) {
+        item.keys.forEach(function (k) {
+          if (k.indexOf(key) >= 0 || key.indexOf(k) >= 0) {
+            var score = Math.min(k.length, key.length) / Math.max(k.length, key.length);
+            if (score > bestScore) {
+              bestScore = score;
+              best = item.id;
+            }
+          }
+        });
+      });
+      return bestScore >= 0.55 ? best : null;
+    }
+
+    function showProjectNote(html, isWarn) {
+      var note = document.getElementById("add-project-note");
+      note.innerHTML = html;
+      note.classList.remove("hidden");
+      note.classList.toggle("warn", !!isWarn);
+    }
+
+    function clearProjectMatch() {
+      document.getElementById("add-project-id").value = "";
+      document.getElementById("add-transit").value = "";
+      document.getElementById("add-transit").dataset.masterTransit = "";
+      document.getElementById("add-project").classList.remove("unmatched");
+      document.getElementById("add-project-note").classList.add("hidden");
+      document.getElementById("add-transit-note").classList.add("hidden");
+      updateSaveTransitButton();
+    }
+
+    function updateSaveTransitButton() {
+      var pid = document.getElementById("add-project-id").value;
+      var transitEl = document.getElementById("add-transit");
+      var btn = document.getElementById("add-save-transit");
+      var changed = pid && transitEl.value.trim() !== (transitEl.dataset.masterTransit || "").trim();
+      btn.classList.toggle("hidden", !changed);
+    }
+
+    function mergeProjectIntoData(project, listingsUpdated) {
+      if (!window.PTP_DATA || !project) return;
+      var pmap = window.PTP_DATA.project_map || {};
+      var list = window.PTP_DATA.projects || [];
+      var idx = list.findIndex(function (p) { return p.id === project.id; });
+      if (idx >= 0) list[idx] = project;
+      else list.push(project);
+      list.sort(function (a, b) {
+        return (b.listing_count || 0) - (a.listing_count || 0);
+      });
+      pmap[project.id] = project;
+      window.PTP_DATA.project_map = pmap;
+      window.PTP_DATA.projects = list;
+      window.PTP_DATA.stats.projects = list.length;
+
+      var loc = masterTransitAll(project).join(", ");
+      var count = 0;
+      (window.PTP_DATA.properties || []).forEach(function (p) {
+        if (p.project_id === project.id) {
+          p.location_ref = loc;
+          count++;
+        }
+      });
+
+      document.getElementById("stat-projects").textContent = list.length;
+      buildProjectIndex();
+      buildFilterOptions();
+      applyFilter();
+      renderProjects();
+
+      var note = document.getElementById("add-transit-note");
+      if (listingsUpdated > 0 || count > 0) {
+        note.innerHTML = "✓ อัปเดท Master แล้ว · ทำเลใช้กับทรัพย์ " + count + " รายการของโครงการนี้";
+        note.classList.remove("hidden", "warn");
+      }
+    }
+
+    function applyProjectMaster(projectId, opts) {
+      opts = opts || {};
+      var pmap = window.PTP_DATA.project_map || {};
+      var proj = pmap[projectId];
+      var input = document.getElementById("add-project");
+      var transitEl = document.getElementById("add-transit");
+      if (!proj) {
+        clearProjectMatch();
+        if (!opts.keepInput) input.value = "";
+        return false;
+      }
+      document.getElementById("add-project-id").value = projectId;
+      input.value = proj.canonical_name;
+      input.classList.remove("unmatched");
+      var tags = masterTransitAll(proj).join(", ");
+      transitEl.value = tags;
+      transitEl.dataset.masterTransit = tags;
+      updateSaveTransitButton();
+      showProjectNote(
+        "✓ Master · " + (proj.listing_count || 0) + " รายการ · ทำเลอ้างอิงจากชีตเก่า (ยังไม่ verified)",
+        false
+      );
+      loadGroupRecommendations();
+      return true;
+    }
+
+    function showUnmatchedProject(name) {
+      document.getElementById("add-project-id").value = "";
+      document.getElementById("add-transit").value = "";
+      document.getElementById("add-transit").dataset.masterTransit = "";
+      document.getElementById("add-project").classList.add("unmatched");
+      updateSaveTransitButton();
+      showProjectNote(
+        "⚠ ไม่พบ「" + esc(name) + "」ใน Master — เลือกจากรายการ หรือกด <strong>+ โครงการใหม่</strong>",
+        true
+      );
+    }
+
+    function filterProjectOptions(q) {
+      var needle = normProjectKey(q);
+      if (!needle) {
+        return PROJECT_INDEX.slice().sort(function (a, b) { return b.count - a.count; }).slice(0, 25);
+      }
+      return PROJECT_INDEX.filter(function (p) {
+        return p.keys.some(function (k) { return k.indexOf(needle) >= 0; });
+      }).sort(function (a, b) {
+        function score(item) {
+          var best = 0;
+          item.keys.forEach(function (k) {
+            if (k.indexOf(needle) === 0) best = Math.max(best, 3);
+            else if (k.indexOf(needle) >= 0) best = Math.max(best, 1);
+          });
+          return best;
+        }
+        var sa = score(a);
+        var sb = score(b);
+        if (sa !== sb) return sb - sa;
+        return b.count - a.count;
+      }).slice(0, 25);
+    }
+
+    function renderProjectOptions(q) {
+      var list = document.getElementById("add-project-list");
+      var items = filterProjectOptions(q);
+      if (!items.length) {
+        list.innerHTML = '<li style="color:#a1a1aa;cursor:default">ไม่พบโครงการ — ลองคำอื่น</li>';
+        list.classList.remove("hidden");
+        return;
+      }
+      list.innerHTML = items.map(function (p) {
+        return '<li data-id="' + esc(p.id) + '">' + esc(p.name) +
+          '<small>' + p.count + ' รายการ</small></li>';
+      }).join("");
+      list.classList.remove("hidden");
+    }
+
+    function hideProjectOptions() {
+      document.getElementById("add-project-list").classList.add("hidden");
+    }
+
+    function resolveProjectFromInput() {
+      var text = document.getElementById("add-project").value.trim();
+      if (!text) {
+        clearProjectMatch();
+        return;
+      }
+      var id = matchProject(text);
+      if (id) applyProjectMaster(id);
+      else showUnmatchedProject(text);
+    }
+
+    function initAddProjectPicker() {
+      if (addProjectPickerReady || !window.PTP_DATA) return;
+      addProjectPickerReady = true;
+      buildProjectIndex();
+
+      var input = document.getElementById("add-project");
+      var list = document.getElementById("add-project-list");
+      var picker = document.getElementById("add-project-picker");
+
+      input.addEventListener("focus", function () {
+        renderProjectOptions(input.value);
+      });
+      input.addEventListener("input", function () {
+        document.getElementById("add-project-id").value = "";
+        document.getElementById("add-transit").value = "";
+        document.getElementById("add-transit").dataset.masterTransit = "";
+        input.classList.add("unmatched");
+        document.getElementById("add-project-note").classList.add("hidden");
+        document.getElementById("add-transit-note").classList.add("hidden");
+        updateSaveTransitButton();
+        renderProjectOptions(input.value);
+      });
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") hideProjectOptions();
+        if (e.key === "Enter") {
+          e.preventDefault();
+          var first = list.querySelector("li[data-id]");
+          if (first) applyProjectMaster(first.getAttribute("data-id"));
+          hideProjectOptions();
+        }
+      });
+      input.addEventListener("blur", function () {
+        setTimeout(function () {
+          hideProjectOptions();
+          if (document.getElementById("add-project-id").value) return;
+          resolveProjectFromInput();
+        }, 180);
+      });
+      list.addEventListener("mousedown", function (e) {
+        var li = e.target.closest("li[data-id]");
+        if (!li) return;
+        e.preventDefault();
+        applyProjectMaster(li.getAttribute("data-id"));
+        hideProjectOptions();
+      });
+      document.addEventListener("click", function (e) {
+        if (!picker.contains(e.target)) hideProjectOptions();
+      });
+
+      document.getElementById("add-transit").addEventListener("input", updateSaveTransitButton);
+      document.getElementById("add-new-project").addEventListener("click", function () {
+        openNewProjectModal();
+      });
+      document.getElementById("new-project-cancel").addEventListener("click", closeNewProjectModal);
+      document.getElementById("new-project-save").addEventListener("click", saveNewProject);
+      document.getElementById("new-project-modal").addEventListener("click", function (e) {
+        if (e.target.id === "new-project-modal") closeNewProjectModal();
+      });
+      document.getElementById("add-save-transit").addEventListener("click", saveTransitToMaster);
+    }
+
+    function setAddProjectFromParse(name, projectId) {
+      if (!addProjectPickerReady) initAddProjectPicker();
+      if (projectId) {
+        applyProjectMaster(projectId);
+        return;
+      }
+      if (!name) {
+        clearProjectMatch();
+        return;
+      }
+      document.getElementById("add-project").value = name;
+      var matched = matchProject(name);
+      if (matched) applyProjectMaster(matched);
+      else showUnmatchedProject(name);
+    }
+
+    function openNewProjectModal(prefillName) {
+      document.getElementById("new-project-name").value = prefillName || document.getElementById("add-project").value.trim();
+      document.getElementById("new-project-transit").value = document.getElementById("add-transit").value.trim();
+      document.getElementById("new-project-modal").classList.remove("hidden");
+      document.getElementById("new-project-name").focus();
+    }
+
+    function closeNewProjectModal() {
+      document.getElementById("new-project-modal").classList.add("hidden");
+    }
+
+    async function saveNewProject() {
+      var name = document.getElementById("new-project-name").value.trim();
+      var transit = document.getElementById("new-project-transit").value.trim();
+      if (!name) { alert("กรอกชื่อโครงการ"); return; }
+      if (!transit) { alert("กรอกทำเล / BTS / MRT อย่างน้อย 1 รายการ"); return; }
+      var btn = document.getElementById("new-project-save");
+      btn.disabled = true;
+      btn.textContent = "กำลังบันทึก…";
+      try {
+        var data = await apiPost("/api/projects/create", {
+          canonical_name: name,
+          transit_tags: transit,
+        });
+        mergeProjectIntoData(data.project, 0);
+        applyProjectMaster(data.project.id);
+        closeNewProjectModal();
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "บันทึกโครงการ";
+      }
+    }
+
+    async function saveTransitToMaster() {
+      var pid = document.getElementById("add-project-id").value;
+      var transit = document.getElementById("add-transit").value.trim();
+      if (!pid) { alert("เลือกโครงการจาก Master ก่อน"); return; }
+      if (!transit) { alert("กรอกทำเล / BTS / MRT"); return; }
+      var btn = document.getElementById("add-save-transit");
+      btn.disabled = true;
+      btn.textContent = "กำลังบันทึก…";
+      try {
+        var data = await apiPost("/api/projects/transit", {
+          project_id: pid,
+          transit_tags: transit,
+        });
+        mergeProjectIntoData(data.project, data.listings_updated || 0);
+        applyProjectMaster(data.project.id);
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "บันทึกทำเล → Master";
+      }
+    }
+
+    function applyFilter() {
+      var all = window.PTP_DATA.properties || [];
+      var pmap = window.PTP_DATA.project_map || {};
+      var f = getFilters();
+      var now = new Date();
+      var cutoff = f.days ? new Date(now.getTime() - f.days * 86400000) : null;
+
+      filteredProps = all.filter(function (p) {
+        var proj = pmap[p.project_id] || {};
+        var blob = getSearchBlob(p, proj);
+
+        if (f.q) {
+          var needle = normSearchText(f.q);
+          var qLower = f.q.toLowerCase();
+          var code = String(p.code || "").toLowerCase();
+          if (blob.indexOf(needle) < 0 && code.indexOf(qLower) < 0 && code.indexOf(needle) < 0) {
+            return false;
+          }
+        }
+        if (f.era && p.import_status !== f.era) return false;
+        if (f.dup === "any" && !(p.duplicate_flags && p.duplicate_flags.length)) return false;
+        if (f.dup && f.dup !== "any" && (!p.duplicate_flags || p.duplicate_flags.indexOf(f.dup) < 0)) return false;
+        if (f.projectId && p.project_id !== f.projectId) return false;
+        if (!matchAnyType(p, f.types)) return false;
+        if (!matchAnyOffer(p, f.offers)) return false;
+        if (!matchAnyBeds(p, f.beds)) return false;
+        if (!matchAnyTransit(p, proj, f.transits)) return false;
+        if (!matchAnyZone(p, proj, f.zones)) return false;
+
+        var rent = parsePrice(p.rent_price);
+        if (f.rentMin && rent < f.rentMin) return false;
+        if (f.rentMax && rent > f.rentMax) return false;
+
+        var sale = parsePrice(p.sale_price);
+        if (f.saleMin && sale < f.saleMin) return false;
+        if (f.saleMax && sale > f.saleMax) return false;
+
+        var size = parseFloat(String(p.size_sqm).replace(/[^\d.]/g, "")) || 0;
+        if (f.sizeMin && size < f.sizeMin) return false;
+        if (f.sizeMax && size > f.sizeMax) return false;
+
+        if (!matchFloor(p.floor, f.floor)) return false;
+
+        if (cutoff) {
+          var d = parseDateDMY(p.last_listed_at);
+          if (!d || d < cutoff) return false;
+        }
+
+        if (!matchAnySource(p, proj, f.sources)) return false;
+        if (f.media === "has_link" && !isHttpUrl(p.post_url)) return false;
+        if (f.media === "none" && isHttpUrl(p.post_url)) return false;
+
+        return true;
+      });
+
+      filteredProps.sort(function (a, b) {
+        var pa = pmap[a.project_id] || {};
+        var pb = pmap[b.project_id] || {};
+        if (f.sort === "rent_asc") return parsePrice(a.rent_price) - parsePrice(b.rent_price);
+        if (f.sort === "rent_desc") return parsePrice(b.rent_price) - parsePrice(a.rent_price);
+        if (f.sort === "sale_asc") return parsePrice(a.sale_price) - parsePrice(b.sale_price);
+        if (f.sort === "sale_desc") return parsePrice(b.sale_price) - parsePrice(a.sale_price);
+        if (f.sort === "project") {
+          return (pa.canonical_name || "").localeCompare(pb.canonical_name || "", "th");
+        }
+        var da = parseDateDMY(a.last_listed_at) || new Date(0);
+        var db = parseDateDMY(b.last_listed_at) || new Date(0);
+        return f.sort === "date_asc" ? da - db : db - da;
+      });
+
+      var n = countAdvancedOnly(f);
+      var badge = document.getElementById("filter-badge");
+      if (n > 0) { badge.textContent = n; badge.classList.remove("hidden"); }
+      else { badge.classList.add("hidden"); }
+
+      renderActiveFilterChips(f);
+      syncQuickChips();
+      updateProjectViewBanner(f);
+      page = 0;
+      renderRows();
+    }
+
+    function resetFilters() {
+      document.getElementById("search-box").value = "";
+      document.getElementById("f-era").value = "";
+      document.getElementById("f-dup").value = "";
+      var pq = document.getElementById("f-project-q");
+      if (pq) pq.value = "";
+      fillProjectFilterSelect("");
+      document.getElementById("f-project").value = "";
+      clearSelect(document.getElementById("f-type"));
+      clearSelect(document.getElementById("f-offer"));
+      clearSelect(document.getElementById("f-beds"));
+      clearSelect(document.getElementById("f-transit"));
+      document.getElementById("f-rent-min").value = "";
+      document.getElementById("f-rent-max").value = "";
+      document.getElementById("f-sale-min").value = "";
+      document.getElementById("f-sale-max").value = "";
+      document.getElementById("f-size-min").value = "";
+      document.getElementById("f-size-max").value = "";
+      document.getElementById("f-floor").value = "";
+      document.getElementById("f-days").value = "";
+      clearSelect(document.getElementById("f-source"));
+      document.getElementById("f-media").value = "";
+      document.getElementById("f-sort").value = "date_desc";
+      activeZones = [];
+      syncQuickChips();
+      applyFilter();
+    }
+
+    function renderRows() {
+      const tbody = document.getElementById("property-rows");
+      const cards = document.getElementById("prop-cards");
+      const total = filteredProps.length;
+      const start = page * PAGE_SIZE;
+      const slice = filteredProps.slice(start, start + PAGE_SIZE);
+      var rangeText = total
+        ? (start + 1) + "–" + Math.min(start + PAGE_SIZE, total) + " จาก " + total.toLocaleString("th-TH")
+        : "0 รายการ";
+      document.getElementById("row-count").textContent = rangeText;
+      var bar = document.getElementById("row-count-bar");
+      if (bar) bar.textContent = rangeText;
+      document.getElementById("filter-result").textContent =
+        total.toLocaleString("th-TH") + " รายการ";
+
+      if (!slice.length) {
+        if (tbody) tbody.innerHTML = "";
+        if (cards) cards.innerHTML = '<p class="empty"><span>ไม่พบรายการ</span>ลองล้างตัวกรองหรือเปลี่ยนคำค้น</p>';
+        return;
+      }
+
+      if (tbody) tbody.innerHTML = "";
+
+      if (cards) {
+        cards.innerHTML = slice.map(function (p) {
+          const proj = window.PTP_DATA.project_map[p.project_id] || {};
+          const name = proj.canonical_name || p.project_name || "—";
+          var transitBits = (proj.transit_verified || []).concat(proj.transit_unverified || []).concat(p.transit_from_sheet || []);
+          var loc = p.location_ref || (transitBits[0] || "");
+          const room = [p.bedrooms, p.size_sqm ? p.size_sqm + " ตร.ม." : "", p.floor ? "ชั้น " + p.floor : ""]
+            .filter(Boolean).join(" · ");
+          var prices = [];
+          if (hasPrice(p.rent_price)) prices.push('<span class="rent">เช่า ' + esc(p.rent_price) + "</span>");
+          if (hasPrice(p.sale_price)) prices.push('<span class="sale">ขาย ' + esc(p.sale_price) + "</span>");
+          return '<button type="button" class="prop-card" data-prop-id="' + esc(p.id) + '">' +
+            '<div class="prop-card-top">' +
+              '<span class="prop-card-code">' + esc(p.code) + "</span>" +
+              '<span class="prop-card-date">' + esc(p.last_listed_at || "") + "</span>" +
+            "</div>" +
+            '<div class="prop-card-name">' + esc(name) + "</div>" +
+            (room ? '<div class="prop-card-meta">' + esc(room) + "</div>" : "") +
+            (prices.length ? '<div class="prop-card-prices">' + prices.join("") + "</div>" : '<div class="prop-card-meta">ไม่มีราคา</div>') +
+            (loc ? '<div class="prop-card-loc">' + esc(loc) + "</div>" : "") +
+            "</button>";
+        }).join("");
+      }
+    }
+
+    function clearAddFormFields(nextCode) {
+      document.getElementById("add-url").value = "";
+      document.getElementById("add-raw").value = "";
+      document.getElementById("add-owner-phone").value = "";
+      document.getElementById("add-owner-line").value = "";
+      document.getElementById("add-owner-fb").value = "";
+      document.getElementById("add-post-url").value = "";
+      document.getElementById("add-page-url").value = "";
+      document.getElementById("add-notes").value = "";
+      document.getElementById("out-th").value = "";
+      document.getElementById("out-en").value = "";
+      document.getElementById("add-project").value = "";
+      document.getElementById("add-project-id").value = "";
+      document.getElementById("add-beds").value = "";
+      document.getElementById("add-size").value = "";
+      document.getElementById("add-floor").value = "";
+      document.getElementById("add-rent").value = "";
+      document.getElementById("add-sale").value = "";
+      document.getElementById("add-transit").value = "";
+      document.getElementById("add-warnings").innerHTML = "";
+      if (nextCode) document.getElementById("add-code").value = nextCode;
+    }
+
+    function setEditMode(on, prop) {
+      editingPropertyId = on && prop ? prop.id : "";
+      var banner = document.getElementById("edit-banner");
+      var bannerText = document.getElementById("edit-banner-text");
+      var btn = document.getElementById("add-proceed");
+      var codeEl = document.getElementById("add-code");
+      if (banner) banner.classList.toggle("hidden", !editingPropertyId);
+      if (bannerText && prop) bannerText.textContent = "กำลังแก้ไข · " + (prop.code || "");
+      if (btn) btn.textContent = editingPropertyId ? "บันทึกการแก้ไข" : "ดำเนินการต่อ — บันทึกทรัพย์";
+      if (codeEl) codeEl.readOnly = !!editingPropertyId;
+    }
+
+    function openPropertyEdit(propertyId) {
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      var prop = props.find(function (p) { return p.id === propertyId; });
+      if (!prop) {
+        alert("ไม่พบทรัพย์");
+        return;
+      }
+      document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+        t.classList.toggle("active", t.getAttribute("data-view") === "add");
+      });
+      switchView("add");
+      clearAddFormFields();
+      setEditMode(true, prop);
+      fillAddForm({
+        code: prop.code,
+        code_prefix: prop.code_prefix || (String(prop.code || "").match(/^[A-Z]+/) || ["RXT"])[0],
+        project_id: prop.project_id,
+        project_name: prop.project_name,
+        property_type: prop.property_type,
+        bedrooms: prop.bedrooms,
+        size_sqm: prop.size_sqm,
+        floor: prop.floor,
+        rent_price: prop.rent_price,
+        sale_price: prop.sale_price,
+        owner_phones: prop.owner_phones || [],
+        owner_lines: prop.owner_lines || [],
+        owner_facebook: repairOwnerFacebookList(prop.owner_facebook || []),
+        source_url: prop.source_url,
+        raw_text: prop.raw_text,
+        transit_tags: prop.transit_from_sheet || [],
+      });
+      document.getElementById("add-post-url").value = prop.post_url || "";
+      document.getElementById("add-page-url").value = prop.post_pages_url || "";
+      document.getElementById("add-notes").value = prop.notes || "";
+      document.getElementById("out-th").value = prop.text_th || "";
+      document.getElementById("out-en").value = prop.text_en || "";
+      if (prop.project_id) {
+        document.getElementById("add-project-id").value = prop.project_id;
+        var pmap = window.PTP_DATA.project_map || {};
+        var proj = pmap[prop.project_id];
+        if (proj) {
+          document.getElementById("add-project").value = proj.canonical_name;
+          var tags = (proj.transit_verified && proj.transit_verified.length)
+            ? proj.transit_verified
+            : (proj.transit_unverified || []);
+          if (tags.length) {
+            document.getElementById("add-transit").value = tags.join(", ");
+            document.getElementById("add-transit").dataset.masterTransit = tags.join(", ");
+          }
+        }
+      } else if (prop.location_ref) {
+        document.getElementById("add-transit").value = prop.location_ref;
+      }
+      window.scrollTo(0, 0);
+      checkServer();
+    }
+
+    function cancelPropertyEdit() {
+      setEditMode(false, null);
+      clearAddFormFields();
+      checkServer();
+      document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+        t.classList.toggle("active", t.getAttribute("data-view") === "properties");
+      });
+      switchView("properties");
+    }
+
+    function updateProjectViewBanner(f) {
+      var banner = document.getElementById("project-view-banner");
+      var text = document.getElementById("project-view-text");
+      if (!banner || !text) return;
+      if (!f || !f.projectId) {
+        banner.classList.add("hidden");
+        return;
+      }
+      var pmap = window.PTP_DATA.project_map || {};
+      var name = (pmap[f.projectId] || {}).canonical_name || f.projectId;
+      var n = (filteredProps || []).length;
+      text.textContent = "โครงการ · " + name + " · " + n.toLocaleString("th-TH") + " ห้อง";
+      banner.classList.remove("hidden");
+    }
+
+    function openProjectListings(projectId) {
+      if (!projectId) return;
+      var pmap = window.PTP_DATA.project_map || {};
+      var name = (pmap[projectId] || {}).canonical_name || projectId;
+      resetFilters();
+      var pq = document.getElementById("f-project-q");
+      if (pq) pq.value = name;
+      fillProjectFilterSelect(name);
+      var pSel = document.getElementById("f-project");
+      var hasOpt = Array.prototype.some.call(pSel.options || [], function (o) {
+        return o.value === projectId;
+      });
+      if (!hasOpt) {
+        var opt = document.createElement("option");
+        opt.value = projectId;
+        opt.textContent = name;
+        pSel.appendChild(opt);
+      }
+      pSel.value = projectId;
+      document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+        t.classList.toggle("active", t.getAttribute("data-view") === "properties");
+      });
+      switchView("properties");
+      applyFilter();
+    }
+
+    function renderProjects() {
+      const tbody = document.getElementById("project-rows");
+      const qEl = document.getElementById("project-master-search");
+      const q = qEl ? qEl.value.trim() : "";
+      var projects = (window.PTP_DATA.projects || []).filter(function (p) {
+        if (!q) return true;
+        return keysMatchQuery(collectSearchKeys(p.canonical_name, p.aliases || []), q);
+      });
+      var shown = projects.slice(0, 200);
+      if (!shown.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty"><p>ไม่พบโครงการ — ลองคำไทยหรืออังกฤษ</p></td></tr>';
+        return;
+      }
+      tbody.innerHTML = shown.map(function (p) {
+        const aliases = (p.aliases || []).slice(0, 2).join(" · ");
+        const more = (p.aliases || []).length > 2 ? " +" + (p.aliases.length - 2) : "";
+        return '<tr class="project-row" data-project-id="' + esc(p.id) + '">' +
+          '<td title="' + esc(p.canonical_name) + '"><strong>' + esc(p.canonical_name) + "</strong></td>" +
+          '<td style="text-align:right">' + (p.listing_count || 0) + "</td>" +
+          '<td class="muted">' + esc(aliases) + esc(more) + "</td>" +
+          '<td class="muted">รอตรวจ</td>' +
+          '<td class="muted">' + esc((p.transit_unverified || []).slice(0, 2).join(", ")) + "</td>" +
+          "</tr>";
+      }).join("") +
+        (projects.length > 200
+          ? '<tr><td colspan="5" class="empty"><p>แสดง 200 จาก ' + projects.length + " โครงการที่ตรงคำค้น</p></td></tr>"
+          : "");
+    }
+
+    function switchView(view) {
+      activeView = view;
+      var mainEl = document.querySelector("#app-screen main");
+      if (mainEl) mainEl.classList.toggle("main-wide", view !== "properties");
+      document.getElementById("props-panel").classList.toggle("hidden", view !== "properties");
+      document.getElementById("projects-panel").classList.toggle("hidden", view !== "projects");
+      document.getElementById("queue-panel").classList.toggle("hidden", view !== "queue");
+      document.getElementById("groups-panel").classList.toggle("hidden", view !== "groups");
+      document.getElementById("add-panel").classList.toggle("hidden", view !== "add");
+      document.getElementById("prop-toolbar").classList.toggle("hidden", view !== "properties");
+      document.getElementById("filter-panel").classList.toggle("hidden", view !== "properties");
+      var projectBanner = document.getElementById("project-view-banner");
+      if (projectBanner && view !== "properties") projectBanner.classList.add("hidden");
+      else if (view === "properties") updateProjectViewBanner(getFilters());
+      var infoCards = document.getElementById("info-cards");
+      if (infoCards) infoCards.classList.add("hidden");
+      if (view === "queue") loadQueue();
+      else if (view === "groups") loadGroupsBook();
+      else if (view === "add") checkServer();
+      else if (view === "projects") renderProjects();
+    }
+
+    function addFormPayload() {
+      var projectId = document.getElementById("add-project-id").value;
+      var pmap = window.PTP_DATA.project_map || {};
+      var proj = projectId ? pmap[projectId] : null;
+      return {
+        code: document.getElementById("add-code").value,
+        code_prefix: document.getElementById("add-prefix").value,
+        project_id: projectId,
+        project_name: proj ? proj.canonical_name : document.getElementById("add-project").value,
+        property_type: document.getElementById("add-type").value,
+        bedrooms: document.getElementById("add-beds").value,
+        size_sqm: document.getElementById("add-size").value,
+        floor: document.getElementById("add-floor").value,
+        rent_price: document.getElementById("add-rent").value,
+        sale_price: document.getElementById("add-sale").value,
+        transit_tags: document.getElementById("add-transit").value.split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean),
+        raw_text: document.getElementById("add-raw").value,
+        notes: document.getElementById("add-notes").value,
+        owner_phones: document.getElementById("add-owner-phone").value.split(/[,，|]/).map(function (s) { return s.trim(); }).filter(Boolean),
+        owner_lines: document.getElementById("add-owner-line").value.split(/[,，|]/).map(function (s) { return s.trim(); }).filter(Boolean),
+        // ห้าม split ด้วย "/" — จะตัด URL facebook.com/... เป็นชิ้นๆ
+        owner_facebook: document.getElementById("add-owner-fb").value.split(/[,，|]/).map(function (s) { return s.trim(); }).filter(Boolean),
+        source_url: document.getElementById("add-url").value,
+        post_url: document.getElementById("add-post-url").value.trim(),
+        post_pages_url: document.getElementById("add-page-url").value.trim(),
+      };
+    }
+
+    function fillAddForm(data) {
+      // Fill price/specs first so a project-match error never blocks ราคา
+      if (data.code) document.getElementById("add-code").value = data.code;
+      if (data.code_prefix) document.getElementById("add-prefix").value = data.code_prefix;
+      document.getElementById("add-type").value = data.property_type || (data.bedrooms ? "Condo" : "");
+      document.getElementById("add-beds").value = data.bedrooms || "";
+      document.getElementById("add-size").value = data.size_sqm || "";
+      document.getElementById("add-floor").value = data.floor || "";
+      document.getElementById("add-rent").value = data.rent_price || "";
+      document.getElementById("add-sale").value = data.sale_price || "";
+      // อย่าทับช่องติดต่อด้วยค่าว่าง — คิวอาจใส่ FB จากต้นทาง 2 ไว้แล้ว / แอดมินกรอกเอง
+      var phones = data.owner_phones || [];
+      var lines = data.owner_lines || [];
+      var fbParts = (data.owner_facebook || []).concat(data.owner_contact_other || []);
+      if (phones.length) document.getElementById("add-owner-phone").value = phones.join(", ");
+      if (lines.length) document.getElementById("add-owner-line").value = lines.join(", ");
+      if (fbParts.length) document.getElementById("add-owner-fb").value = fbParts.join(", ");
+      applyPendingOwnerFb();
+      if (data.raw_text) {
+        document.getElementById("add-raw").value = data.raw_text;
+      }
+      if (data.source_url) document.getElementById("add-url").value = data.source_url;
+      if (data.is_co_agent) document.getElementById("add-prefix").value = "COA";
+
+      try {
+        setAddProjectFromParse(data.project_name, data.project_id);
+      } catch (err) {
+        console.error("project match failed", err);
+        if (data.project_name) document.getElementById("add-project").value = data.project_name;
+      }
+      if (!document.getElementById("add-project-id").value && data.transit_tags && data.transit_tags.length) {
+        document.getElementById("add-transit").value = data.transit_tags.join(", ");
+      }
+
+      var w = document.getElementById("add-warnings");
+      w.innerHTML = (data.warnings || []).map(function (x) { return "⚠ " + esc(x); }).join("<br>");
+      var hint = document.getElementById("partial-hint");
+      if (hint) {
+        if (data.is_partial) {
+          hint.classList.remove("hidden");
+          document.getElementById("add-raw").focus();
+          document.getElementById("add-raw").style.borderColor = "#f59e0b";
+        } else {
+          hint.classList.add("hidden");
+          document.getElementById("add-raw").style.borderColor = "";
+        }
+      }
+    }
+
+    async function apiPost(path, body) {
+      var res = await fetch(API_BASE + path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || "API error");
+      return data;
+    }
+
+    async function checkServer() {
+      var el = document.getElementById("server-status");
+      if (window.location.protocol === "file:") {
+        el.innerHTML = "⚠ เปิดผ่าน <strong>hub/เปิดดู.command</strong> (http://127.0.0.1:8765) — file:// อาจดึงลิงก์ FB ไม่ได้";
+      }
+      try {
+        var res = await fetch(API_BASE + "/api/health");
+        var data = await res.json();
+        if (data.ok) {
+          var via = window.location.protocol === "file:" ? "" : " · เปิดผ่านเซิร์ฟเวอร์แล้ว";
+          var ver = data.scraper ? " · scraper " + data.scraper : "";
+          el.innerHTML = "✅ Phase 2 พร้อมใช้" + via + ver + " · รหัสถัดไป <strong>" + esc(data.next_code) + "</strong>";
+          if (!document.getElementById("add-code").value) {
+            document.getElementById("add-code").value = data.next_code;
+          }
+        }
+      } catch (e) {
+        el.innerHTML = "⚠ เปิดเซิร์ฟเวอร์ก่อน: ดับเบิลคลิก <strong>hub/เปิดดู.command</strong> แล้ว refresh";
+      }
+    }
+
+    async function doScrape() {
+      var url = document.getElementById("add-url").value.trim();
+      if (!url) { alert("ใส่ลิงก์ก่อน"); return; }
+      var btn = document.getElementById("add-scrape");
+      btn.textContent = "กำลังดึง…";
+      btn.disabled = true;
+      try {
+        var pasted = document.getElementById("add-raw").value.trim();
+        var data = await apiPost("/api/scrape", { url: url, pasted_text: pasted });
+        fillAddForm(data);
+        if (!data.fetch_ok) {
+          document.getElementById("add-raw").focus();
+          document.getElementById("add-raw").style.borderColor = "#f59e0b";
+        } else {
+          document.getElementById("add-raw").style.borderColor = "";
+        }
+      } catch (e) {
+        alert(e.message + "\n\nลองเปิดผ่าน http://127.0.0.1:8765/ แทน file://");
+      }
+      btn.textContent = "ดึงจากลิงก์";
+      btn.disabled = false;
+    }
+
+    async function doParse() {
+      var text = document.getElementById("add-raw").value.trim();
+      if (!text) { alert("วางข้อความโพสต์ก่อน"); return; }
+      try {
+        var data = await apiPost("/api/parse", {
+          text: text,
+          source_url: document.getElementById("add-url").value.trim(),
+        });
+        fillAddForm(data);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function doGenerate() {
+      if (!document.getElementById("add-project-id").value) {
+        alert("เลือกโครงการจาก Master หรือกด + โครงการใหม่ ก่อนสร้างข้อความ");
+        document.getElementById("add-project").focus();
+        return;
+      }
+      var transitEl = document.getElementById("add-transit");
+      if (transitEl.value.trim() !== (transitEl.dataset.masterTransit || "").trim()) {
+        if (!confirm("ทำเลยังไม่ได้บันทึกลง Master — บันทึกก่อนสร้างข้อความ?")) {
+          // continue without saving
+        } else {
+          await saveTransitToMaster();
+        }
+      }
+      try {
+        var data = await apiPost("/api/generate", { property: addFormPayload() });
+        document.getElementById("out-th").value = data.text_th || "";
+        document.getElementById("out-en").value = data.text_en || "";
+        if (data.code) document.getElementById("add-code").value = data.code;
+        await loadGroupRecommendations();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    var groupRecommendData = null;
+    var groupRecommendCat = "";
+
+    function renderGroupRecommendList(data) {
+      groupRecommendData = data;
+      var box = document.getElementById("group-recommend-list");
+      var meta = document.getElementById("group-recommend-meta");
+      var tabs = document.getElementById("group-recommend-tabs");
+      if (tabs) tabs.innerHTML = "";
+      var groups = (data && data.groups) || [];
+      var total = data.matched || groups.length || 0;
+      var pk = (data.project_keys || []).slice(0, 2).join(", ");
+      meta.textContent = "โซน: " + ((data.zones || []).join(", ") || "—") +
+        (pk ? " · โครงการ: " + pk : "") +
+        " · แนะนำ " + total + " กลุ่ม" +
+        (data.is_luxury_property ? " · Luxury" : "") +
+        " · จากสมุด " + (data.total_groups || 0);
+
+      if (!groups.length) {
+        box.innerHTML = '<span style="color:#a1a1aa">ยังไม่เจอกลุ่ม — ลองเลือกโครงการ/ทำเล หรือรีแท็กสมุดกลุ่ม</span>';
+        return;
+      }
+      box.innerHTML = '<div style="font-size:11px;color:#71717a;margin-bottom:6px">ลำดับ: ชื่อโครงการ → โซน/ทำเล → กลุ่มใหญ่ · มีหมุนเวียนและสำรวจกลุ่มใหม่</div>' +
+        groups.map(function (g, i) {
+          var tier = g.tier || "";
+          var tierLabel = ({ project: "โครงการ", zone: "โซน", large: "กลุ่มใหญ่", fit: "แมตช์", other: "" })[tier] || "";
+          return '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid #eee">' +
+            '<span style="color:#188038;font-weight:600;min-width:22px">' + (i + 1) + "</span>" +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-weight:600;color:#18181b">' + esc(g.name) +
+                (tierLabel ? ' <span class="tag" style="background:#e6f4ea;color:#137333">' + esc(tierLabel) + "</span>" : "") +
+              "</div>" +
+              '<div style="font-size:11px;color:#71717a;margin-top:2px">' + esc((g.reasons || []).join(" · ")) + "</div>" +
+            "</div>" +
+            '<div style="display:flex;flex-direction:column;gap:4px">' +
+              '<a class="btn-sm" href="' + esc(g.url) + '" target="_blank" rel="noopener">เปิด</a>' +
+              '<button type="button" class="btn-sm" data-copy-group="' + esc(g.url) + '">คัดลอก</button>' +
+            "</div>" +
+          "</div>";
+        }).join("");
+    }
+
+    async function loadGroupRecommendations() {
+      var meta = document.getElementById("group-recommend-meta");
+      var list = document.getElementById("group-recommend-list");
+      meta.textContent = "กำลังหากลุ่ม…";
+      list.innerHTML = "…";
+      try {
+        var data = await apiPost("/api/groups/recommend", {
+          property: addFormPayload(),
+          limit: 30,
+        });
+        renderGroupRecommendList(data);
+      } catch (e) {
+        meta.textContent = "แนะนำกลุ่มไม่ได้";
+        list.innerHTML = '<span style="color:#b91c1c">' + esc(e.message) + "</span>";
+      }
+    }
+
+    var groupsBookCache = [];
+
+    function renderGroupsBook() {
+      var q = (document.getElementById("groups-book-search").value || "").trim();
+      var zone = document.getElementById("groups-book-zone").value;
+      var rows = groupsBookCache.filter(function (g) {
+        if (zone && (g.zone_tags || []).indexOf(zone) < 0) return false;
+        if (!q) return true;
+        return keysMatchQuery(
+          collectSearchKeys(g.name, g.url, g.zone_tags || [], g.offer_tags || [], g.notes || ""),
+          q
+        );
+      });
+      document.getElementById("groups-book-stats").textContent =
+        "แสดง " + rows.length + " / " + groupsBookCache.length + " กลุ่ม";
+      var tbody = document.getElementById("groups-book-rows");
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty"><p>ไม่พบกลุ่ม</p></td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.slice(0, 300).map(function (g) {
+        return "<tr>" +
+          '<td><strong style="font-size:12px">' + esc(g.name) + "</strong>" +
+            (g.notes ? '<div style="font-size:10px;color:#a1a1aa">' + esc(g.notes) + "</div>" : "") +
+          "</td>" +
+          "<td>" + ((g.zone_tags || []).length
+            ? g.zone_tags.map(function (t) {
+                return '<span class="tag" style="background:#e0f2fe;color:#0369a1">' + esc(t) + "</span>";
+              }).join(" ")
+            : '<span style="color:#d4d4d8">—</span>') + "</td>" +
+          "<td>" + ((g.offer_tags || []).length
+            ? g.offer_tags.map(function (t) {
+                return '<span class="tag">' + esc(t) + "</span>";
+              }).join(" ")
+            : '<span style="color:#d4d4d8">—</span>') + "</td>" +
+          '<td>' + (g.url
+            ? '<a href="' + esc(g.url) + '" target="_blank" rel="noopener" style="font-size:11px">เปิด</a>'
+            : "—") + "</td>" +
+          "</tr>";
+      }).join("");
+    }
+
+    async function loadGroupsBook() {
+      try {
+        var res = await fetch(API_BASE + "/api/groups");
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || "โหลดกลุ่มไม่ได้");
+        groupsBookCache = data.groups || [];
+        var zoneSel = document.getElementById("groups-book-zone");
+        var cur = zoneSel.value;
+        var zones = Object.keys(data.by_zone || {}).sort();
+        zoneSel.innerHTML = '<option value="">ทั้งหมด</option>' +
+          zones.map(function (z) {
+            return '<option value="' + esc(z) + '">' + esc(z) + " (" + data.by_zone[z] + ")</option>";
+          }).join("");
+        if (cur) zoneSel.value = cur;
+        renderGroupsBook();
+      } catch (e) {
+        document.getElementById("groups-book-rows").innerHTML =
+          '<tr><td colspan="4" class="empty"><p>' + esc(e.message) + "</p></td></tr>";
+      }
+    }
+
+    function copyOut(id) {
+      var el = document.getElementById(id);
+      el.select();
+      document.execCommand("copy");
+    }
+
+    var queueItems = [];
+    var activeQueueId = "";
+    var pendingOwnerFb = "";
+    var pendingOwnerPhone = "";
+
+    function isFacebookUrl(u) {
+      return /facebook\.com|fb\.com|fb\.me/i.test(u || "");
+    }
+
+    function isHttpUrlLoose(u) {
+      return /^https?:\/\//i.test((u || "").trim());
+    }
+
+    function looksLikePhone(s) {
+      var d = String(s || "").replace(/\D/g, "");
+      return d.length >= 9 && d.length <= 12;
+    }
+
+    function ownerContactFromQueue(item) {
+      return (item.owner_contact || item.source_url_2 || item.post_url || "").trim();
+    }
+
+    function applyQueueOwnerContact(contact) {
+      pendingOwnerFb = "";
+      pendingOwnerPhone = "";
+      document.getElementById("add-owner-phone").value = "";
+      document.getElementById("add-owner-fb").value = "";
+      if (!contact) return;
+      if (looksLikePhone(contact) && !isHttpUrlLoose(contact)) {
+        pendingOwnerPhone = contact;
+        document.getElementById("add-owner-phone").value = contact;
+      } else {
+        pendingOwnerFb = contact;
+        document.getElementById("add-owner-fb").value = contact;
+      }
+    }
+
+    function applyPendingOwnerFb() {
+      if (pendingOwnerPhone) {
+        var phoneEl = document.getElementById("add-owner-phone");
+        if (!(phoneEl.value || "").trim()) phoneEl.value = pendingOwnerPhone;
+      }
+      if (!pendingOwnerFb) return;
+      var fbEl = document.getElementById("add-owner-fb");
+      var cur = (fbEl.value || "").trim();
+      if (!cur) fbEl.value = pendingOwnerFb;
+      else if (cur.indexOf(pendingOwnerFb) < 0) fbEl.value = cur + ", " + pendingOwnerFb;
+    }
+
+    function updateQueueBadge(stats) {
+      var badge = document.getElementById("queue-badge");
+      var n = (stats && (stats.pending + stats.working)) || 0;
+      badge.textContent = n;
+      badge.classList.toggle("hidden", n === 0);
+      document.getElementById("row-count").textContent =
+        activeView === "queue"
+          ? "รอ " + ((stats && stats.pending) || 0) + " · กำลังทำ " + ((stats && stats.working) || 0) + " · เสร็จ " + ((stats && stats.done) || 0)
+          : document.getElementById("row-count").textContent;
+    }
+
+    function statusLabel(s) {
+      if (s === "working") return "กำลังทำ";
+      if (s === "done") return "โพสต์แล้ว";
+      return "รอโพสต์";
+    }
+
+    function renderOwnerContactCell(contact) {
+      if (!contact) return '<span style="color:#a1a1aa;font-size:11px">—</span>';
+      if (isHttpUrlLoose(contact)) {
+        return '<a class="queue-url" href="' + esc(contact) + '" target="_blank" rel="noopener">' + esc(contact) + "</a>";
+      }
+      return '<span style="font-size:12px">' + esc(contact) + "</span>";
+    }
+
+    function renderQueue() {
+      var showDone = document.getElementById("queue-show-done").checked;
+      var rows = queueItems.filter(function (x) {
+        return showDone || x.status !== "done";
+      });
+      var tbody = document.getElementById("queue-rows");
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty"><p>คิวว่าง — ใส่ลิงก์ต้นทาง + ติดต่อเจ้าของ (ถ้ามี)</p></td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(function (item) {
+        var source = item.source_url || item.url || "";
+        var owner = ownerContactFromQueue(item);
+        return "<tr data-qid=\"" + esc(item.id) + "\">" +
+          '<td><span class="queue-status ' + esc(item.status || "pending") + '">' + statusLabel(item.status) + "</span></td>" +
+          "<td style=\"font-size:11px\">" + esc(item.note || "—") + "</td>" +
+          '<td>' + (source
+            ? '<a class="queue-url" href="' + esc(source) + '" target="_blank" rel="noopener">' + esc(source) + "</a>"
+            : '<span style="color:#a1a1aa">—</span>') + "</td>" +
+          "<td>" + renderOwnerContactCell(owner) + "</td>" +
+          '<td style="font-size:10px;color:#a1a1aa;white-space:nowrap">' + esc(item.created_at || "") + "</td>" +
+          '<td><div class="queue-actions">' +
+            (item.status !== "done"
+              ? '<button type="button" class="btn-sm primary" data-qact="open">เปิดไปเพิ่มทรัพย์</button>' +
+                '<button type="button" class="btn-sm" data-qact="done">✓ โพสต์แล้ว</button>'
+              : '<button type="button" class="btn-sm" data-qact="reopen">คืนคิว</button>') +
+            '<button type="button" class="btn-sm" data-qact="delete">ลบ</button>' +
+          "</div></td></tr>";
+      }).join("");
+    }
+
+    async function loadQueue() {
+      try {
+        var showDone = document.getElementById("queue-show-done").checked;
+        var res = await fetch(API_BASE + "/api/queue" + (showDone ? "?done=1" : ""));
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || "โหลดคิวไม่ได้");
+        queueItems = data.items || [];
+        updateQueueBadge(data.stats || {});
+        if (activeView === "queue") renderQueue();
+      } catch (e) {
+        if (activeView === "queue") {
+          document.getElementById("queue-rows").innerHTML =
+            '<tr><td colspan="6" class="empty"><p>' + esc(e.message) + "</p></td></tr>";
+        }
+      }
+    }
+
+    async function addToQueue() {
+      var source = document.getElementById("queue-source").value.trim();
+      var owner = document.getElementById("queue-owner-contact").value.trim();
+      var note = document.getElementById("queue-note").value.trim();
+      if (!source) { alert("ใส่ลิงก์ต้นทางก่อน"); return; }
+      try {
+        var data = await apiPost("/api/queue/add", {
+          source_url: source,
+          owner_contact: owner,
+          note: note,
+        });
+        document.getElementById("queue-source").value = "";
+        document.getElementById("queue-owner-contact").value = "";
+        document.getElementById("queue-note").value = "";
+        updateQueueBadge(data.stats || {});
+        await loadQueue();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function importQueueFromSheet() {
+      if (!confirm("ดึงจากชีท「รอโพสต์」แล้วแทนที่คิวปัจจุบัน?\n(แถวในชีท = 1 งาน · ลิงก์ทั้งหมด = ต้นทาง)")) return;
+      try {
+        var data = await apiPost("/api/queue/import-sheet", { replace: true });
+        alert("ดึงจากชีทแล้ว · งาน " + data.added + " รายการ");
+        updateQueueBadge(data.stats || {});
+        await loadQueue();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function openQueueItem(item) {
+      setEditMode(false, null);
+      try {
+        await apiPost("/api/queue/update", { id: item.id, status: "working" });
+      } catch (e) { /* continue anyway */ }
+      document.querySelectorAll("#view-tabs .tab").forEach(function (t) { t.classList.remove("active"); });
+      var addTab = document.querySelector('#view-tabs .tab[data-view="add"]');
+      if (addTab) addTab.classList.add("active");
+      switchView("add");
+      activeQueueId = item.id || "";
+      var source = item.source_url || item.url || "";
+      var owner = ownerContactFromQueue(item);
+      document.getElementById("add-url").value = source;
+      document.getElementById("add-raw").value = "";
+      document.getElementById("add-owner-line").value = "";
+      applyQueueOwnerContact(owner);
+      var noteBits = ["จากคิวรอโพสต์"];
+      if (item.note) noteBits.push(item.note);
+      document.getElementById("add-notes").value = noteBits.join(" · ");
+      var hint = document.getElementById("add-proceed-hint");
+      if (hint) {
+        hint.textContent = owner
+          ? "ติดต่อเจ้าของจากคิว · บันทึกแล้วจะติ๊กคิว「โพสต์แล้ว」"
+          : "บันทึกลง Hub · ถ้ามาจากคิวจะติ๊ก「โพสต์แล้ว」ให้";
+      }
+      checkServer();
+      await doScrape();
+      applyPendingOwnerFb();
+    }
+
+    async function doProceed() {
+      if (!document.getElementById("add-project-id").value) {
+        alert("เลือกโครงการจาก Master ก่อนบันทึก");
+        document.getElementById("add-project").focus();
+        return;
+      }
+      if (!document.getElementById("out-th").value.trim()) {
+        if (!confirm("ยังไม่ได้สร้างข้อความ TH/EN — บันทึกทรัพย์เลย?")) return;
+      }
+      var btn = document.getElementById("add-proceed");
+      btn.disabled = true;
+      btn.textContent = editingPropertyId ? "กำลังบันทึก…" : "กำลังบันทึก…";
+      try {
+        var payload = addFormPayload();
+        payload.text_th = document.getElementById("out-th").value;
+        payload.text_en = document.getElementById("out-en").value;
+        var data;
+        if (editingPropertyId) {
+          payload.id = editingPropertyId;
+          data = await apiPost("/api/properties/update", { id: editingPropertyId, property: payload });
+          alert("อัปเดตแล้ว · " + ((data.property && data.property.code) || payload.code));
+          setEditMode(false, null);
+          clearAddFormFields();
+          await reloadPreviewData();
+          document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+            t.classList.toggle("active", t.getAttribute("data-view") === "properties");
+          });
+          switchView("properties");
+        } else {
+          data = await apiPost("/api/properties/save", { property: payload });
+          if (activeQueueId) {
+            try {
+              await apiPost("/api/queue/update", { id: activeQueueId, status: "done" });
+            } catch (e) { /* ignore */ }
+          }
+          var code = (data.property && data.property.code) || payload.code;
+          alert("บันทึกแล้ว · " + code + (activeQueueId ? " · ปิดคิวแล้ว" : ""));
+          activeQueueId = "";
+          pendingOwnerFb = "";
+          pendingOwnerPhone = "";
+          clearAddFormFields(data.next_code || "");
+          document.getElementById("add-warnings").innerHTML = "";
+          await loadQueue();
+          reloadPreviewData();
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+      btn.disabled = false;
+      btn.textContent = editingPropertyId ? "บันทึกการแก้ไข" : "ดำเนินการต่อ — บันทึกทรัพย์";
+    }
+
+    function reloadPreviewData() {
+      return new Promise(function (resolve) {
+        var s = document.createElement("script");
+        s.src = "preview-data.js?t=" + Date.now();
+        s.onload = function () {
+          applyFilter();
+          resolve();
+        };
+        s.onerror = function () { resolve(); };
+        document.body.appendChild(s);
+      });
+    }
+
+    async function editPropertyLinks(propertyId, field) {
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      var prop = props.find(function (p) { return p.id === propertyId; });
+      if (!prop) {
+        alert("ไม่พบทรัพย์");
+        return;
+      }
+      var body = { id: propertyId };
+      if (field === "post") {
+        var cur = prop.post_url || "";
+        var v = prompt("วางลิงก์โพสเรา (หลังโพสต์ในโปรไฟล์/กลุ่มแล้ว)", cur);
+        if (v === null) return;
+        body.post_url = v.trim();
+      } else if (field === "page") {
+        var curP = prop.post_pages_url || "";
+        var vp = prompt("วางลิงก์โพสต์บน Page", curP);
+        if (vp === null) return;
+        body.post_pages_url = vp.trim();
+      } else if (field === "owner") {
+        var curO = (repairOwnerFacebookList(prop.owner_facebook || [])).join(", ");
+        var vo = prompt("ลิงก์ FB เจ้าของ (หรือเว้นว่าง)", curO);
+        if (vo === null) return;
+        body.owner_facebook = vo.trim();
+      } else {
+        return;
+      }
+      try {
+        await apiPost("/api/properties/update-links", body);
+        await reloadPreviewData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function onQueueAction(e) {
+      var btn = e.target.closest("[data-qact]");
+      if (!btn) return;
+      var tr = btn.closest("tr[data-qid]");
+      if (!tr) return;
+      var id = tr.getAttribute("data-qid");
+      var item = queueItems.find(function (x) { return x.id === id; });
+      if (!item) return;
+      var act = btn.getAttribute("data-qact");
+      try {
+        if (act === "open") {
+          await openQueueItem(item);
+          return;
+        }
+        if (act === "done") {
+          await apiPost("/api/queue/update", { id: id, status: "done" });
+        } else if (act === "reopen") {
+          await apiPost("/api/queue/update", { id: id, status: "pending" });
+        } else if (act === "delete") {
+          if (!confirm("ลบงานนี้ออกจากคิว?")) return;
+          await apiPost("/api/queue/delete", { id: id });
+        }
+        await loadQueue();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    document.getElementById("view-tabs").addEventListener("click", function (e) {
+      var tab = e.target.closest(".tab");
+      if (!tab || !document.getElementById("view-tabs").contains(tab)) return;
+      document.querySelectorAll("#view-tabs .tab").forEach(function (t) { t.classList.remove("active"); });
+      tab.classList.add("active");
+      var view = tab.getAttribute("data-view");
+      if (view === "add" && !editingPropertyId) {
+        setEditMode(false, null);
+      } else if (view !== "add" && editingPropertyId) {
+        setEditMode(false, null);
+      }
+      switchView(view);
+    });
+
+    document.getElementById("project-rows").addEventListener("click", function (e) {
+      var row = e.target.closest("tr.project-row[data-project-id]");
+      if (!row) return;
+      openProjectListings(row.getAttribute("data-project-id"));
+    });
+    var projectViewBack = document.getElementById("project-view-back");
+    if (projectViewBack) {
+      projectViewBack.addEventListener("click", function () {
+        document.getElementById("f-project").value = "";
+        var pq = document.getElementById("f-project-q");
+        if (pq) pq.value = "";
+        fillProjectFilterSelect("");
+        applyFilter();
+        document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+          t.classList.toggle("active", t.getAttribute("data-view") === "projects");
+        });
+        switchView("projects");
+      });
+    }
+
+    document.getElementById("property-rows").addEventListener("click", function (e) {
+      var linkBtn = e.target.closest("[data-edit-links]");
+      if (linkBtn) {
+        editPropertyLinks(linkBtn.getAttribute("data-edit-links"), linkBtn.getAttribute("data-field"));
+        return;
+      }
+      if (e.target.closest("a, button, input")) return;
+      var tr = e.target.closest("tr[data-prop-id]");
+      if (!tr) return;
+      openPropertyEdit(tr.getAttribute("data-prop-id"));
+    });
+    document.getElementById("prop-cards").addEventListener("click", function (e) {
+      var card = e.target.closest("[data-prop-id]");
+      if (!card) return;
+      openPropertyEdit(card.getAttribute("data-prop-id"));
+    });
+    var cancelEditBtn = document.getElementById("cancel-edit");
+    if (cancelEditBtn) cancelEditBtn.addEventListener("click", cancelPropertyEdit);
+
+    document.getElementById("reset-filter").addEventListener("click", resetFilters);
+    document.getElementById("toggle-filters").addEventListener("click", function () {
+      var body = document.getElementById("advanced-filters-body");
+      body.classList.toggle("hidden");
+      document.getElementById("toggle-filters").classList.toggle("active-filter-btn", !body.classList.contains("hidden"));
+    });
+    document.getElementById("active-filter-chips").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-clear-filter]");
+      if (!btn) return;
+      clearOneFilter(btn.getAttribute("data-clear-filter"));
+    });
+    var presetRama = document.getElementById("preset-rama9");
+    if (presetRama) {
+      presetRama.addEventListener("click", function () {
+        resetFilters();
+        document.getElementById("search-box").value = "พระราม9 ≤17k";
+        applyFilter();
+      });
+    }
+    document.querySelectorAll("[data-smart-hint]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        resetFilters();
+        document.getElementById("search-box").value = btn.getAttribute("data-smart-hint") || "";
+        applyFilter();
+      });
+    });
+    document.getElementById("search-box").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") applyFilter();
+    });
+    document.getElementById("search-box").addEventListener("input", function () {
+      applyFilter();
+    });
+    var fProjectQ = document.getElementById("f-project-q");
+    if (fProjectQ) {
+      fProjectQ.addEventListener("input", function () {
+        fillProjectFilterSelect(fProjectQ.value.trim());
+        applyFilter();
+      });
+    }
+    var projectMasterSearch = document.getElementById("project-master-search");
+    if (projectMasterSearch) {
+      projectMasterSearch.addEventListener("input", renderProjects);
+    }
+    document.getElementById("zone-chips").addEventListener("click", function (e) {
+      var chip = e.target.closest(".chip[data-zone]");
+      if (!chip) return;
+      var z = chip.getAttribute("data-zone");
+      var smart = parseSmartQuery(document.getElementById("search-box").value.trim());
+      // seed from smart zone once, then toggle multi
+      if (!activeZones.length && smart.zone) activeZones = [smart.zone];
+      var i = activeZones.indexOf(z);
+      if (i >= 0) {
+        activeZones.splice(i, 1);
+        if (smart.zone === z) {
+          document.getElementById("search-box").value = rebuildSmartQuery(Object.assign({}, smart, { zone: "" }));
+        }
+      } else {
+        activeZones.push(z);
+      }
+      applyFilter();
+    });
+    document.getElementById("offer-chips").addEventListener("click", function (e) {
+      var chip = e.target.closest(".chip[data-offer]");
+      if (!chip) return;
+      var offer = chip.getAttribute("data-offer") || "";
+      var smart = parseSmartQuery(document.getElementById("search-box").value.trim());
+      var el = document.getElementById("f-offer");
+      var cur = selectedValues(el);
+      if (!cur.length && smart.offer) setSelectedValues(el, [smart.offer]);
+      toggleSelectValue(el, offer);
+      // keep only rent/sale quick options in select for chip sync clarity
+      var next = selectedValues(el).filter(function (x) {
+        return x === "rent" || x === "sale" || x === "both" || x === "rent_only" || x === "sale_only";
+      });
+      setSelectedValues(el, next);
+      if (smart.offer === offer && selectedValues(el).indexOf(offer) < 0) {
+        document.getElementById("search-box").value = rebuildSmartQuery(Object.assign({}, smart, { offer: "" }));
+      }
+      applyFilter();
+    });
+    document.getElementById("beds-chips").addEventListener("click", function (e) {
+      var chip = e.target.closest(".chip[data-beds]");
+      if (!chip) return;
+      var beds = chip.getAttribute("data-beds") || "";
+      var smart = parseSmartQuery(document.getElementById("search-box").value.trim());
+      var el = document.getElementById("f-beds");
+      var cur = selectedValues(el);
+      if (!cur.length && smart.beds) setSelectedValues(el, [smart.beds]);
+      toggleSelectValue(el, beds);
+      if (smart.beds === beds && selectedValues(el).indexOf(beds) < 0) {
+        document.getElementById("search-box").value = rebuildSmartQuery(Object.assign({}, smart, { beds: "" }));
+      }
+      applyFilter();
+    });
+    ["f-era","f-dup","f-project","f-offer","f-type","f-beds","f-transit","f-days","f-source","f-media","f-sort"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener("change", applyFilter);
+    });
+    ["f-rent-min","f-rent-max","f-sale-min","f-sale-max","f-size-min","f-size-max","f-floor"].forEach(function (id) {
+      document.getElementById(id).addEventListener("input", applyFilter);
+    });
+    document.getElementById("prev-page").addEventListener("click", function () {
+      if (page > 0) { page--; renderRows(); }
+    });
+    document.getElementById("next-page").addEventListener("click", function () {
+      if ((page + 1) * PAGE_SIZE < filteredProps.length) { page++; renderRows(); }
+    });
+    document.getElementById("add-scrape").addEventListener("click", doScrape);
+    document.getElementById("add-parse").addEventListener("click", doParse);
+    document.getElementById("add-generate").addEventListener("click", doGenerate);
+    document.getElementById("add-proceed").addEventListener("click", doProceed);
+    document.getElementById("add-recommend-groups").addEventListener("click", loadGroupRecommendations);
+    document.getElementById("group-recommend-list").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-copy-group]");
+      if (!btn) return;
+      var url = btn.getAttribute("data-copy-group");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          btn.textContent = "คัดลอกแล้ว";
+          setTimeout(function () { btn.textContent = "คัดลอก"; }, 1200);
+        });
+      } else {
+        prompt("คัดลอกลิงก์กลุ่ม:", url);
+      }
+      apiPost("/api/groups/mark-used", {
+        url: url,
+        code: document.getElementById("add-code").value || "",
+      }).catch(function () { /* ignore */ });
+    });
+    document.getElementById("groups-book-search").addEventListener("input", renderGroupsBook);
+    document.getElementById("groups-book-zone").addEventListener("change", renderGroupsBook);
+    document.getElementById("groups-retag-btn").addEventListener("click", async function () {
+      try {
+        var data = await apiPost("/api/groups/retag", {});
+        alert("รีแท็กแล้ว · แท็กได้ " + data.tagged + "/" + data.total + " กลุ่ม");
+        await loadGroupsBook();
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+    document.getElementById("copy-th").addEventListener("click", function () { copyOut("out-th"); });
+    document.getElementById("copy-en").addEventListener("click", function () { copyOut("out-en"); });
+    document.getElementById("queue-add-btn").addEventListener("click", addToQueue);
+    document.getElementById("queue-import-btn").addEventListener("click", importQueueFromSheet);
+    document.getElementById("queue-show-done").addEventListener("change", loadQueue);
+    document.getElementById("queue-rows").addEventListener("click", onQueueAction);
+    checkServer();
+    loadQueue();
+  </script>
+  <script src="preview-data.js"></script>
+  <script>initData();</script>
+</body>
+</html>

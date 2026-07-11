@@ -1,0 +1,61 @@
+{
+  "items": [
+    {
+      "id": "9a546c0b-75b7-422b-b093-8f277c069c1e",
+      "source_url": "https://www.facebook.com/share/p/1Bb1J79epd/?mibextid=wwXIfr",
+      "source_url_2": "https://www.facebook.com/share/1K4Sa1nt5f/?mibextid=wwXIfr",
+      "post_url": "https://www.facebook.com/share/1K4Sa1nt5f/?mibextid=wwXIfr",
+      "url": "https://www.facebook.com/share/p/1Bb1J79epd/?mibextid=wwXIfr",
+      "note": "",
+      "status": "done",
+      "created_at": "2026-07-11 00:06",
+      "created_ts": 1783703182,
+      "done_at": "2026-07-11 03:26",
+      "source": "sheet",
+      "owner_contact": "https://www.facebook.com/share/1K4Sa1nt5f/?mibextid=wwXIfr"
+    },
+    {
+      "id": "ff380740-05ca-4adb-9372-df66b2ca5d6e",
+      "source_url": "https://www.facebook.com/share/p/1DKxF8kxRh/?mibextid=wwXIfr",
+      "source_url_2": "https://www.facebook.com/share/18xsqvsouH/?mibextid=wwXIfr",
+      "post_url": "https://www.facebook.com/share/18xsqvsouH/?mibextid=wwXIfr",
+      "url": "https://www.facebook.com/share/p/1DKxF8kxRh/?mibextid=wwXIfr",
+      "note": "",
+      "status": "done",
+      "created_at": "2026-07-11 00:06",
+      "created_ts": 1783703182,
+      "done_at": "2026-07-11 03:36",
+      "source": "sheet",
+      "owner_contact": "https://www.facebook.com/share/18xsqvsouH/?mibextid=wwXIfr"
+    },
+    {
+      "id": "873c8281-0209-4e81-b61f-da608b9d8512",
+      "source_url": "https://www.facebook.com/share/p/1UBcfog5jv/",
+      "source_url_2": "",
+      "post_url": "",
+      "url": "https://www.facebook.com/share/p/1UBcfog5jv/",
+      "note": "",
+      "status": "working",
+      "created_at": "2026-07-11 00:06",
+      "created_ts": 1783703182,
+      "done_at": "",
+      "source": "sheet",
+      "owner_contact": ""
+    },
+    {
+      "id": "6a775912-d4b1-41b9-a99a-cbbc336e4dac",
+      "source_url": "https://www.facebook.com/share/p/1LYQAhTspN/",
+      "source_url_2": "",
+      "post_url": "",
+      "url": "https://www.facebook.com/share/p/1LYQAhTspN/",
+      "note": "เช็คก่อน",
+      "status": "working",
+      "created_at": "2026-07-11 00:06",
+      "created_ts": 1783703182,
+      "done_at": "",
+      "source": "sheet",
+      "owner_contact": ""
+    }
+  ],
+  "updated_at": "2026-07-12 04:56"
+}

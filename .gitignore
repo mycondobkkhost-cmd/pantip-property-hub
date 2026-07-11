@@ -1,0 +1,37 @@
+# Environment
+.env
+.venv/
+venv/
+
+# Credentials & sessions
+credentials/
+cookies/
+
+# Runtime / local-only (cloud deploy force-adds essentials — see DEPLOY_RENDER.md)
+data/hub.db
+data/line_chats.jsonl
+data/line_cases.json
+logs/*.log
+logs/*.pid
+logs/line_webhook_url.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Playwright
+.playwright/
+
+# macOS
+.DS_Store
+
+# LINE bot tunnel binary
+bin/cloudflared
+
+# Next.js hub
+hub/node_modules/
+hub/.next/
+hub/out/

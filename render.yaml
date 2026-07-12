@@ -1,10 +1,13 @@
-# Render Blueprint — Free web service (spins down when idle)
-# Dashboard: https://dashboard.render.com → New → Blueprint
+# Property Hub — Render Blueprint (free, separate from LivingBKK)
+# Deploy: Dashboard → New → Blueprint → connect repo pantip-property-hub
 services:
   - type: web
     name: property-hub
     runtime: docker
+    repo: https://github.com/mycondobkkhost-cmd/pantip-property-hub
+    branch: main
     plan: free
+    region: singapore
     healthCheckPath: /api/health
     envVars:
       - key: HOST

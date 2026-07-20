@@ -9,7 +9,7 @@ from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import HTTPSHandler, ProxyHandler, Request, build_opener
 
-from src.hub.parser import parse_listing_text, parsed_to_dict
+from src.hub.parser import is_group_boilerplate, parse_listing_text, parsed_to_dict
 
 DESKTOP_UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -186,11 +186,19 @@ PARTIAL_FB_MSG = (
     "→ วางทับช่องต้นฉบับ → กด「วิเคราะห์ข้อความ」"
 )
 
+GROUP_RULES_FB_MSG = (
+    "Facebook ส่งข้อความกฎกลุ่มมาแทนโพสต์ห้อง — "
+    "คัดลอกเนื้อหาโพสต์จริง (เช่น Thong Lo Tower / ราคา / ชั้น) "
+    "วางทับช่องต้นฉบับ แล้วกด「วิเคราะห์ข้อความ」"
+)
+
 
 def is_partial_text(text: str, kind: str = "") -> bool:
     t = (text or "").strip()
     if not t:
         return False
+    if is_group_boilerplate(t):
+        return True
     if t.endswith("...") or t.endswith("…"):
         return True
     # Facebook มักตัดกลางบรรทัด เช่น "8 นาที..."
@@ -211,6 +219,9 @@ def pick_text(fetched: str, pasted: str) -> tuple[str, str]:
     """Return (text_to_parse, source_note)."""
     fetched = (fetched or "").strip()
     pasted = (pasted or "").strip()
+    # never prefer group-rules blurbs over a real pasted listing
+    if pasted and is_group_boilerplate(fetched) and not is_group_boilerplate(pasted):
+        return pasted, "ใช้ข้อความที่วางเอง (ลิงก์ส่งกฎกลุ่มมา)"
     if pasted and len(pasted) > len(fetched) + 30:
         return pasted, "ใช้ข้อความที่วางเอง (ครบกว่าที่ดึงจากลิงก์)"
     if pasted and is_partial_text(fetched, "facebook") and len(pasted) > 40:
@@ -227,6 +238,8 @@ def scrape_url(url: str, pasted_text: str = "") -> dict:
     warnings = list(fetch_warnings)
     if note:
         warnings.append(note)
+    elif fetched and is_group_boilerplate(fetched) and not pasted_text.strip():
+        warnings.insert(0, GROUP_RULES_FB_MSG)
     elif fetched and is_partial_text(fetched, kind) and not pasted_text.strip():
         warnings.insert(0, PARTIAL_FB_MSG)
 
@@ -241,8 +254,9 @@ def scrape_url(url: str, pasted_text: str = "") -> dict:
     data = parsed_to_dict(parsed)
     data["source_url"] = url
     data["source_kind"] = classify_url(url)
-    data["fetch_ok"] = bool(text)
+    data["fetch_ok"] = bool(text) and not is_group_boilerplate(text)
     data["is_partial"] = bool(
-        fetched and is_partial_text(fetched, kind) and not pasted_text.strip()
+        (fetched and is_partial_text(fetched, kind) and not pasted_text.strip())
+        or is_group_boilerplate(text)
     )
     return data

@@ -90,14 +90,41 @@ def project_transit_display(proj: dict) -> list[str]:
     return dedupe_transit(proj.get("transit_unverified") or [])
 
 
+def project_zone_display(proj: dict) -> list[str]:
+    verified = proj.get("zone_verified") or []
+    if verified:
+        return dedupe_transit(verified)
+    return dedupe_transit(proj.get("zone_unverified") or [])
+
+
+def project_location_label(project: dict) -> str:
+    """ทำเล only (areas/landmarks) — never dump BTS/MRT into this field."""
+    zones = project_zone_display(project)
+    if zones:
+        return ", ".join(zones[:5])
+    # Orphan fallback: leave blank rather than pollute ทำเล with station list
+    return ""
+
+
 def sync_project_listings_location_ref(project: dict, properties: list[dict]) -> int:
-    loc = ", ".join(project_transit_display(project)[:6])
+    """Push master transit/zone onto every listing in this project."""
+    tags = project_transit_display(project)
+    loc = project_location_label(project)
     updated = 0
     for prop in properties:
         if prop.get("project_id") != project["id"]:
             continue
+        changed = False
         if prop.get("location_ref") != loc:
             prop["location_ref"] = loc
+            changed = True
+        if list(prop.get("transit_from_sheet") or []) != list(tags):
+            prop["transit_from_sheet"] = list(tags)
+            changed = True
+        if prop.get("project_name") != project.get("canonical_name"):
+            prop["project_name"] = project.get("canonical_name") or prop.get("project_name")
+            changed = True
+        if changed:
             updated += 1
     return updated
 
@@ -241,15 +268,14 @@ def persist(projects: list[dict], properties: list[dict]) -> None:
 
 
 def _next_rxt_from_list(properties: list[dict]) -> str:
-    max_num = 0
-    for p in properties:
-        code = (p.get("code") or "").upper()
-        if code.startswith("RXT"):
-            try:
-                max_num = max(max_num, int(code[3:]))
-            except ValueError:
-                pass
-    return f"RXT{max_num + 1:04d}"
+    from src.hub.codes import next_hub_code
+
+    return next_hub_code(
+        properties,
+        prefix="RXT",
+        main_csv=BASE_DIR / "data" / "main_sheet.csv",
+        hub_csv=BASE_DIR / "data" / "hub_sheet_export.csv",
+    )
 
 
 def save_new_property(payload: dict) -> dict:
@@ -282,10 +308,9 @@ def save_new_property(payload: dict) -> dict:
     if isinstance(owner_facebook, str):
         owner_facebook = [owner_facebook]
 
-    transit = payload.get("transit_tags") or []
-    if isinstance(transit, str):
-        transit = parse_transit_input(transit)
-    location_ref = ", ".join(transit[:6]) if transit else ", ".join(project_transit_display(proj)[:6])
+    # Always inherit location from project master form (ทำเล + BTS)
+    transit = project_transit_display(proj)
+    location_ref = project_location_label(proj)
 
     prefix = (payload.get("code_prefix") or "RXT").strip().upper() or "RXT"
     listing_kind = "co_agent" if prefix == "COA" else "direct"
@@ -302,6 +327,7 @@ def save_new_property(payload: dict) -> dict:
         "id": str(uuid.uuid4()),
         "code": code,
         "code_prefix": prefix,
+        "data_source": "hub",
         "listing_kind": listing_kind,
         "project_id": project_id,
         "project_name": proj["canonical_name"],
@@ -328,12 +354,22 @@ def save_new_property(payload: dict) -> dict:
         "text_th": payload.get("text_th") or "",
         "text_en": payload.get("text_en") or "",
         "raw_text": payload.get("raw_text") or "",
+        "linked_ptp_code": (payload.get("linked_ptp_code") or "").strip(),
     }
 
     properties.insert(0, prop)
     proj["listing_count"] = int(proj.get("listing_count") or 0) + 1
     projects.sort(key=lambda x: (-int(x.get("listing_count") or 0), x["canonical_name"]))
     persist(projects, properties)
+
+    # Best-effort local Hub CSV export (Google push is separate / optional)
+    try:
+        from src.hub.sheet_write import write_hub_export_csv
+        from src.hub.codes import is_hub_owned
+
+        write_hub_export_csv([p for p in properties if is_hub_owned(p)])
+    except Exception:
+        pass
     return prop
 
 
@@ -368,16 +404,9 @@ def update_property(property_id: str, payload: dict) -> dict:
     if isinstance(owner_facebook, str):
         owner_facebook = [owner_facebook]
 
-    transit = payload.get("transit_tags")
-    if transit is None:
-        transit = prop.get("transit_from_sheet") or []
-    if isinstance(transit, str):
-        transit = parse_transit_input(transit)
-    location_ref = (
-        ", ".join(transit[:6])
-        if transit
-        else ", ".join(project_transit_display(proj)[:6])
-    )
+    # Location always follows project master — room-level edits cannot diverge
+    transit = project_transit_display(proj)
+    location_ref = project_location_label(proj)
 
     owner_fb_urls = [u.strip() for u in owner_facebook if isinstance(u, str) and u.strip()]
     post_url = (payload.get("post_url") if "post_url" in payload else prop.get("post_url") or "").strip()
@@ -521,13 +550,25 @@ def create_project(canonical_name: str, transit_raw: str | list[str]) -> dict:
 
 
 def update_project_transit(project_id: str, transit_raw: str | list[str]) -> tuple[dict, int]:
+    """Replace project BTS/transit master and sync all listings."""
+    return update_project_standard(project_id, transit_raw=transit_raw)
+
+
+def update_project_standard(
+    project_id: str,
+    *,
+    transit_raw: str | list[str] | None = None,
+    zone_raw: str | list[str] | None = None,
+    canonical_name: str | None = None,
+) -> tuple[dict, int]:
+    """
+    Update the project master form (ทำเล/BTS).
+    This becomes the single source of truth for every room in the project,
+    including rooms added later (they read from master on create).
+    """
     pid = (project_id or "").strip()
     if not pid:
         raise ValueError("ไม่พบโครงการ")
-
-    new_tags = parse_transit_input(transit_raw)
-    if not new_tags:
-        raise ValueError("กรุณาระบุทำเล / BTS / MRT อย่างน้อย 1 รายการ")
 
     projects = load_projects()
     properties = load_properties()
@@ -535,12 +576,27 @@ def update_project_transit(project_id: str, transit_raw: str | list[str]) -> tup
     if not proj:
         raise ValueError("ไม่พบโครงการใน Master")
 
-    if proj.get("transit_verified"):
-        merged = dedupe_transit((proj.get("transit_verified") or []) + new_tags)
-        proj["transit_verified"] = merged
-    else:
-        proj["transit_unverified"] = new_tags
+    if canonical_name is not None:
+        name = canonical_name.strip()
+        if not name:
+            raise ValueError("กรุณาระบุชื่อโครงการ")
+        proj["canonical_name"] = name
 
+    if transit_raw is not None:
+        new_tags = parse_transit_input(transit_raw)
+        # Promote to verified master — replace, do not merge leftovers
+        proj["transit_verified"] = new_tags
+        proj["transit_unverified"] = []
+
+    if zone_raw is not None:
+        zones = parse_transit_input(zone_raw)
+        proj["zone_verified"] = zones
+        proj["zone_unverified"] = []
+
+    if not project_transit_display(proj) and not project_zone_display(proj):
+        raise ValueError("กรุณาระบุทำเล หรือ BTS / MRT อย่างน้อย 1 รายการ")
+
+    proj["location_status"] = "verified"
     listings_updated = sync_project_listings_location_ref(proj, properties)
     persist(projects, properties)
     return proj, listings_updated

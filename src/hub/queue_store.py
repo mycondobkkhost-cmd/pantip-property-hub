@@ -106,11 +106,20 @@ def list_queue(include_done: bool = True) -> list[dict]:
     items = load_queue()
     if not include_done:
         items = [x for x in items if x.get("status") != "done"]
-    order = {"pending": 0, "working": 1, "done": 2}
-    return sorted(
-        items,
-        key=lambda x: (order.get(x.get("status") or "pending", 9), -(x.get("created_ts") or 0)),
-    )
+    # เก่าสุด → ใหม่สุด (แถวบนชีท / ใส่คิวก่อนขึ้นก่อน)
+    order = {"working": 0, "pending": 1, "done": 2}
+
+    def sort_key(x: dict):
+        sheet_order = x.get("sheet_order")
+        if sheet_order is None:
+            sheet_order = 10**9
+        return (
+            int(sheet_order),
+            x.get("created_ts") or 0,
+            order.get(x.get("status") or "pending", 9),
+        )
+
+    return sorted(items, key=sort_key)
 
 
 def _source_keys(items: list[dict]) -> set[str]:
@@ -228,17 +237,24 @@ def delete_item(item_id: str) -> None:
 
 
 def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> dict:
-    """Import rows from รอโพสต์ CSV — URL1 = source, URL2/other = owner_contact."""
+    """Import rows from รอโพสต์ CSV — URL1 = source, URL2/other = owner_contact.
+
+    When replace=True the queue becomes the sheet contents (source of truth),
+    but local ``working`` status is preserved for matching URLs, and in-progress
+    jobs not yet on the sheet are kept so work is not lost mid-flow.
+    """
     csv_path = path or SHEET_CSV
     if not csv_path.exists():
         raise ValueError(f"ไม่พบไฟล์ {csv_path.name} — ดาวน์โหลดชีทก่อน")
 
-    items = [] if replace else load_queue()
-    existing = _source_keys(items)
-    added = 0
-    skipped = 0
-    ts = int(datetime.now().timestamp())
+    old_items = load_queue()
+    old_by_url = {
+        (x.get("source_url") or "").strip(): x
+        for x in old_items
+        if (x.get("source_url") or "").strip()
+    }
 
+    sheet_rows: list[dict] = []
     with csv_path.open(encoding="utf-8") as f:
         for row in csv.reader(f):
             cells = [c.strip() for c in row if c.strip()]
@@ -263,31 +279,110 @@ def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> di
                 continue
             source_url = urls[0]
             owner_contact = urls[1] if len(urls) >= 2 else (other[0] if other else "")
-            if source_url in existing:
-                skipped += 1
-                continue
-            items.insert(
-                0,
+            sheet_rows.append(
                 {
-                    "id": str(uuid.uuid4()),
                     "source_url": source_url,
                     "owner_contact": owner_contact,
-                    "source_url_2": owner_contact,
-                    "post_url": owner_contact,
-                    "url": source_url,
                     "note": note,
-                    "status": "pending",
-                    "created_at": _now(),
-                    "created_ts": ts,
+                }
+            )
+
+    ts = int(datetime.now().timestamp())
+    added = 0
+    skipped = 0
+    preserved_working = 0
+
+    if replace:
+        items: list[dict] = []
+        seen: set[str] = set()
+        # แถวบนชีท = เก่าสุด → sheet_order 0,1,2…
+        base_ts = ts - max(len(sheet_rows), 1)
+        for idx, row in enumerate(sheet_rows):
+            source_url = row["source_url"]
+            if source_url in seen:
+                skipped += 1
+                continue
+            seen.add(source_url)
+            prev = old_by_url.get(source_url)
+            status = "pending"
+            item_id = str(uuid.uuid4())
+            created_at = _now()
+            created_ts = base_ts + idx
+            if prev and prev.get("status") == "working":
+                status = "working"
+                item_id = prev.get("id") or item_id
+                created_at = prev.get("created_at") or created_at
+                preserved_working += 1
+            elif prev and prev.get("status") == "pending":
+                item_id = prev.get("id") or item_id
+                created_at = prev.get("created_at") or created_at
+            else:
+                added += 1
+            items.append(
+                {
+                    "id": item_id,
+                    "source_url": source_url,
+                    "owner_contact": row["owner_contact"],
+                    "source_url_2": row["owner_contact"],
+                    "post_url": row["owner_contact"],
+                    "url": source_url,
+                    "note": row["note"],
+                    "status": status,
+                    "created_at": created_at,
+                    "created_ts": created_ts,
+                    "sheet_order": idx,
                     "done_at": "",
                     "source": "sheet",
-                },
+                }
             )
-            existing.add(source_url)
-            added += 1
+        # keep in-progress local jobs that are not on the sheet yet (ท้ายสุด)
+        local_only = 0
+        for prev in old_items:
+            url = (prev.get("source_url") or "").strip()
+            if prev.get("status") == "working" and url and url not in seen:
+                prev = dict(prev)
+                prev["sheet_order"] = 10**9 + local_only
+                items.append(prev)
+                local_only += 1
+                preserved_working += 1
+        save_queue(items)
+        return {
+            "added": added,
+            "skipped": skipped,
+            "preserved_working": preserved_working,
+            "total": len(items),
+            "replaced": True,
+        }
+
+    items = old_items
+    existing = _source_keys(items)
+    for row in sheet_rows:
+        source_url = row["source_url"]
+        if source_url in existing:
+            skipped += 1
+            continue
+        items.insert(
+            0,
+            {
+                "id": str(uuid.uuid4()),
+                "source_url": source_url,
+                "owner_contact": row["owner_contact"],
+                "source_url_2": row["owner_contact"],
+                "post_url": row["owner_contact"],
+                "url": source_url,
+                "note": row["note"],
+                "status": "pending",
+                "created_at": _now(),
+                "created_ts": ts,
+                "done_at": "",
+                "source": "sheet",
+            },
+        )
+        existing.add(source_url)
+        added += 1
 
     save_queue(items)
-    return {"added": added, "skipped": skipped, "total": len(items)}
+    return {"added": added, "skipped": skipped, "total": len(items), "replaced": False}
 
 
 def queue_stats() -> dict:

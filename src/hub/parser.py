@@ -88,6 +88,39 @@ def detect_co_agent(text: str) -> bool:
     return any(re.search(p, low, re.I) for p in CO_AGENT_PATTERNS)
 
 
+# Facebook group pinned / approval-rule blurbs often land in og:description
+GROUP_BOILERPLATE_PATTERNS = [
+    r"กลุ่มนี้ขออนุญาต",
+    r"กลุ่มนี้ขออนุญาติ",
+    r"อนุมัติโพสต์ให้แค่",
+    r"ขึ้นต้นด้วยคำว่า\s*[\"“]?owner\s*post",
+    r"owner\s*only\s*ปล่อยเช่า",
+    r"ปล่อยเช่าและขายคอนโดจากเจ้าของโดยตรง",
+    r"เฉพาะเจ้าของห้อง",
+    r"ขอให้ทุกโพส.*owner\s*post",
+]
+
+
+def is_group_boilerplate(text: str) -> bool:
+    """True when text looks like FB group rules, not a listing body."""
+    t = (text or "").strip()
+    if not t:
+        return False
+    hits = sum(1 for p in GROUP_BOILERPLATE_PATTERNS if re.search(p, t, re.I))
+    if hits >= 1 and len(t) < 450:
+        return True
+    if hits >= 2:
+        return True
+    # short blurbs that are only group policy + no listing signals
+    if hits >= 1 and not re.search(
+        r"(?:ตร\.?\s*ม|sqm|ชั้น\s*\d|bed|ห้องนอน|บาท|/เดือน|for\s*rent|ให้เช่า\s*:)",
+        t,
+        re.I,
+    ):
+        return True
+    return False
+
+
 def _normalize_contact_text(text: str) -> str:
     """Normalize FB quirks so phone/Line regex can match."""
     # unicode dashes / minus → ASCII hyphen
@@ -277,10 +310,11 @@ def parse_listing_text(text: str) -> ParsedListing:
             result.transit_tags.append(tag)
     result.transit_tags = result.transit_tags[:8]
 
-    # Project name — prefer condo/project patterns, reject FB page titles
+    # Project name — prefer condo/project patterns, reject FB page titles / group rules
     reject_project = re.compile(
-        r"owner\s*post|thru\s*thonglor|ประกาศ|รับ\s*agent|ติดต่อ|บาท|เดือน|"
-        r"for\s*rent|for\s*sale|ให้เช่า|ขาย\s*คอนโด|业主|ปล่อยเช่าคอนโด",
+        r"owner\s*post|owner\s*only|thru\s*thonglor|ประกาศ|รับ\s*agent|ติดต่อ|บาท|เดือน|"
+        r"for\s*rent|for\s*sale|ให้เช่า|ขาย\s*คอนโด|业主|ปล่อยเช่า|"
+        r"กลุ่มนี้|อนุมัติโพสต์|เจ้าของห้อง|ขออนุญาต|ขออนุญาติ",
         re.I,
     )
 
@@ -295,7 +329,11 @@ def parse_listing_text(text: str) -> ParsedListing:
     def _ok_project(name: str) -> bool:
         if not name or len(name) < 4:
             return False
+        if is_group_boilerplate(name):
+            return False
         if reject_project.search(name):
+            return False
+        if len(name) > 80:
             return False
         if re.fullmatch(r"[\d,.\s]+", name):
             return False
@@ -303,40 +341,50 @@ def parse_listing_text(text: str) -> ParsedListing:
             return False
         return bool(re.search(r"[A-Za-zก-๙]{3,}", name))
 
-    project_patterns = [
-        # 📌 Life @ลาดพร้าว 18🎉 / คอนโด Life @ ลาดพร้าว 18 ชั้น 8
-        r"(?:📌\s*)?(?:คอนโด\s+)?(Life\s*@?\s*ลาดพร้าว\s*\d+)",
-        r"(?:📌\s*)?(?:คอนโด\s+)?(Life\s*@?\s*Ladprao\s*\d+)",
-        r"(?:📌\s*)?(?:คอนโด\s+)?(Life\s*@?\s*[A-Za-zก-๙][A-Za-zก-๙\s\-]{1,30}?\d{1,3})",
-        r"(?:For\s+Rent|For\s+Sale|ให้เช่า|ขาย)\s*:\s*([^\n|🔥📌📍✅🎉]{6,80})",
-        r"✅\s*(?:For\s+Rent|For\s+Sale|ให้เช่า|ขาย)\s*:\s*([^\n|🔥📌📍]{6,80})",
-        r"คอนโด\s+([A-Za-zก-๙][A-Za-z0-9ก-๙@\s\-\.]{3,50}?)\s*(?=ชั้น|floor|ขนาด|ตร)",
-        r"(?:โครงการ|Project)\s*[:：]?\s*([^\n]{4,80})",
-    ]
-    for pat in project_patterns:
-        m = re.search(pat, raw, re.I)
-        if not m:
-            continue
-        name = _clean_project_candidate(m.group(1))
-        if _ok_project(name):
-            result.project_name = name
-            break
-
-    lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
-    if not result.project_name:
-        for ln in lines[:10]:
-            if len(ln) < 6 or re.match(r"^(?:#|http)", ln):
+    if is_group_boilerplate(raw):
+        result.warnings.append(
+            "ข้อความที่ได้เป็นกฎกลุ่ม Facebook ไม่ใช่โพสต์ห้อง — "
+            "คัดลอกเนื้อหาโพสต์จริงมาวางทับช่องต้นฉบับ แล้วกด「วิเคราะห์ข้อความ」"
+        )
+    else:
+        project_patterns = [
+            r"(?:📌\s*)?(?:คอนโด\s+)?(Life\s*@?\s*ลาดพร้าว\s*\d+)",
+            r"(?:📌\s*)?(?:คอนโด\s+)?(Life\s*@?\s*Ladprao\s*\d+)",
+            r"(?:📌\s*)?(?:คอนโด\s+)?(Life\s*@?\s*[A-Za-zก-๙][A-Za-zก-๙\s\-]{1,30}?\d{1,3})",
+            r"(?:For\s+Rent|For\s+Sale|ให้เช่า|ขาย)\s*[:：]\s*([^\n|🔥📌📍✅🎉]{6,80})",
+            r"✅\s*(?:For\s+Rent|For\s+Sale|ให้เช่า|ขาย)\s*[:：]\s*([^\n|🔥📌📍]{6,80})",
+            r"คอนโด\s+([A-Za-zก-๙][A-Za-z0-9ก-๙@\s\-\.]{3,50}?)\s*(?=ชั้น|floor|ขนาด|ตร)",
+            r"(?:โครงการ|Project)\s*[:：]?\s*([^\n]{4,80})",
+            r"((?:Thong\s*Lo|Thonglor|ทองหล่อ)\s*(?:Tower|ทาวเวอร์)(?:\s*คอนโด)?)",
+        ]
+        for pat in project_patterns:
+            m = re.search(pat, raw, re.I)
+            if not m:
                 continue
-            cand = _clean_project_candidate(ln)
-            # skip price-only / contact lines
-            if re.search(r"(?:เช่า|ขาย|rent|sale|line|โทร|ติดต่อ|ราคา|บาท)", cand, re.I):
-                # still allow "Life ... ประกาศเช่า" style if Life/Ideo/etc present
-                if not re.search(r"(?:Life|Ideo|Niche|Asoke|Rhythm|Chapter|Whizdom|Supalai|Noble)", cand, re.I):
-                    continue
-                cand = re.split(r"(?:ประกาศ|ให้เช่า|for\s*rent)", cand, flags=re.I)[0].strip()
-            if _ok_project(cand):
-                result.project_name = cand[:120]
+            name = _clean_project_candidate(m.group(1))
+            if _ok_project(name):
+                result.project_name = name
                 break
+
+        lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+        if not result.project_name:
+            for ln in lines[:10]:
+                if len(ln) < 6 or re.match(r"^(?:#|http)", ln):
+                    continue
+                if is_group_boilerplate(ln):
+                    continue
+                cand = _clean_project_candidate(ln)
+                if re.search(r"(?:เช่า|ขาย|rent|sale|line|โทร|ติดต่อ|ราคา|บาท)", cand, re.I):
+                    if not re.search(
+                        r"(?:Life|Ideo|Niche|Asoke|Rhythm|Chapter|Whizdom|Supalai|Noble|Tower|ทาวเวอร์)",
+                        cand,
+                        re.I,
+                    ):
+                        continue
+                    cand = re.split(r"(?:ประกาศ|ให้เช่า|for\s*rent)", cand, flags=re.I)[0].strip()
+                if _ok_project(cand):
+                    result.project_name = cand[:120]
+                    break
 
     # notes = ข้อความต้นฉบับทั้งหมด (เก็บครบ ไม่ตัด contact)
     result.notes = raw

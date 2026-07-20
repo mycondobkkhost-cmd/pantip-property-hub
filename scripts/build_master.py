@@ -338,6 +338,7 @@ def build_properties(
                 "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, f"ptp-{code}-{row['row']}")),
                 "code": code,
                 "code_prefix": "PTP",
+                "data_source": "sheet",
                 "listing_kind": "direct",
                 "project_id": project_id,
                 "project_name": row["project"],
@@ -472,7 +473,8 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
     )
 
 
-def main() -> None:
+def rebuild_from_csv() -> dict:
+    """Rebuild projects/properties/preview from data/main_sheet.csv. Returns summary stats."""
     if not CSV_PATH.exists():
         raise FileNotFoundError(f"Missing {CSV_PATH} — download sheet CSV first")
 
@@ -492,19 +494,31 @@ def main() -> None:
     write_preview_js(projects, properties)
 
     active = sum(1 for p in properties if p["import_status"] == "active")
+    return {
+        "projects": len(projects),
+        "properties_total": len(properties),
+        "properties_active": active,
+        "properties_archived": stats["import_archived"],
+        "properties_needs_review": stats["import_needs_review"],
+        "properties_flagged_duplicate": dup_stats["properties_flagged"],
+        "drive_dropped": stats["drive_dropped"],
+        "code_only_dropped": stats["code_only_dropped"],
+        "incomplete_skipped": stats["incomplete_skipped"],
+    }
+
+
+def main() -> None:
+    summary = rebuild_from_csv()
     print("=== build_master.py complete ===")
-    print(f"Projects in master: {len(projects)}")
-    print(f"Properties total (after filters): {len(properties)}")
-    print(f"  active (9 mo): {active}")
-    print(f"  archived: {stats['import_archived']}")
-    print(f"  needs_review: {stats['import_needs_review']}")
-    print(f"  flagged duplicate: {dup_stats['properties_flagged']}")
-    print(f"    dup code rows: {dup_stats['dup_code_rows']}")
-    print(f"    dup url rows: {dup_stats['dup_url_rows']}")
-    print(f"    probable relist rows: {dup_stats['dup_relist_rows']}")
-    print(f"  drive dropped: {stats['drive_dropped']}")
-    print(f"  code_only dropped: {stats['code_only_dropped']}")
-    print(f"  incomplete skipped: {stats['incomplete_skipped']}")
+    print(f"Projects in master: {summary['projects']}")
+    print(f"Properties total (after filters): {summary['properties_total']}")
+    print(f"  active (9 mo): {summary['properties_active']}")
+    print(f"  archived: {summary['properties_archived']}")
+    print(f"  needs_review: {summary['properties_needs_review']}")
+    print(f"  flagged duplicate: {summary['properties_flagged_duplicate']}")
+    print(f"  drive dropped: {summary['drive_dropped']}")
+    print(f"  code_only dropped: {summary['code_only_dropped']}")
+    print(f"  incomplete skipped: {summary['incomplete_skipped']}")
     print(f"Written: {DB_PATH}")
     print(f"Written: {PREVIEW_JS}")
 

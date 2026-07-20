@@ -15,10 +15,16 @@ HUB_DIR = BASE_DIR / "hub"
 sys.path.insert(0, str(BASE_DIR))
 
 from src.hub.parser import parse_listing_text, parsed_to_dict  # noqa: E402
+from src.hub.codes import next_hub_code  # noqa: E402
 from src.hub.group_store import list_groups_summary, mark_group_used, recommend_groups, retag_all  # noqa: E402
 from src.hub.project_store import (  # noqa: E402
     create_project,
+    load_properties,
+    project_location_label,
+    project_transit_display,
+    project_zone_display,
     save_new_property,
+    update_project_standard,
     update_project_transit,
     update_property,
     update_property_links,
@@ -33,6 +39,8 @@ from src.hub.queue_store import (  # noqa: E402
     update_item,
 )
 from src.hub.scraper import scrape_url  # noqa: E402
+from src.hub.sheet_sync import refresh_main_sheet, refresh_wait_post_sheet  # noqa: E402
+from src.hub.sheet_write import push_hub_properties_to_sheet  # noqa: E402
 from src.hub.text_gen import generate_text  # noqa: E402
 
 PORT = 8765
@@ -61,18 +69,12 @@ def _inject_users_into_preview(html: str) -> str:
 
 
 def next_rxt_code() -> str:
-    props_path = BASE_DIR / "data" / "properties.json"
-    max_num = 0
-    if props_path.exists():
-        props = json.loads(props_path.read_text(encoding="utf-8"))
-        for p in props:
-            code = (p.get("code") or "").upper()
-            if code.startswith("RXT"):
-                try:
-                    max_num = max(max_num, int(code[3:]))
-                except ValueError:
-                    pass
-    return f"RXT{max_num + 1:04d}"
+    return next_hub_code(
+        load_properties(),
+        prefix="RXT",
+        main_csv=BASE_DIR / "data" / "main_sheet.csv",
+        hub_csv=BASE_DIR / "data" / "hub_sheet_export.csv",
+    )
 
 
 class HubHandler(BaseHTTPRequestHandler):
@@ -296,9 +298,8 @@ class HubHandler(BaseHTTPRequestHandler):
                 project_id = (body.get("project_id") or "").strip()
                 transit = body.get("transit_tags") or body.get("transit") or ""
                 project, listings_updated = update_project_transit(project_id, transit)
-                verified = project.get("transit_verified") or []
-                unverified = project.get("transit_unverified") or []
-                tags = verified if verified else unverified
+                tags = project_transit_display(project)
+                zones = project_zone_display(project)
                 self._json(
                     200,
                     {
@@ -306,6 +307,36 @@ class HubHandler(BaseHTTPRequestHandler):
                         "project": project,
                         "listings_updated": listings_updated,
                         "transit_display": ", ".join(tags),
+                        "zone_display": ", ".join(zones),
+                        "location_display": project_location_label(project),
+                    },
+                )
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/projects/update":
+            try:
+                project_id = (body.get("project_id") or "").strip()
+                project, listings_updated = update_project_standard(
+                    project_id,
+                    transit_raw=body.get("transit_tags") or body.get("transit"),
+                    zone_raw=body.get("zone_tags") or body.get("zone") or "",
+                    canonical_name=body.get("canonical_name"),
+                )
+                tags = project_transit_display(project)
+                zones = project_zone_display(project)
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "project": project,
+                        "listings_updated": listings_updated,
+                        "transit_display": ", ".join(tags),
+                        "zone_display": ", ".join(zones),
+                        "location_display": project_location_label(project),
                     },
                 )
             except ValueError as exc:
@@ -373,9 +404,63 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/queue/import-sheet":
             try:
+                sheet_meta = refresh_wait_post_sheet(
+                    csv_url=(body.get("csv_url") or "").strip()
+                )
                 replace = bool(body.get("replace"))
                 result = import_from_sheet_csv(replace=replace)
-                self._json(200, {"ok": True, **result, "stats": queue_stats()})
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        **result,
+                        "sheet": sheet_meta,
+                        "stats": queue_stats(),
+                    },
+                )
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/properties/refresh-sheet":
+            try:
+                result = refresh_main_sheet(
+                    csv_url=(body.get("csv_url") or "").strip(),
+                    rebuild=True,
+                )
+                # Also pull รอโพสต์ tab → queue (same refresh action users expect)
+                wait_meta: dict = {}
+                wait_import: dict = {}
+                try:
+                    wait_meta = refresh_wait_post_sheet(
+                        csv_url=(body.get("wait_csv_url") or "").strip()
+                    )
+                    wait_import = import_from_sheet_csv(replace=True)
+                except Exception as wait_exc:  # noqa: BLE001
+                    wait_meta = {
+                        "ok": False,
+                        "download_warning": str(wait_exc),
+                    }
+                result["wait_post"] = {
+                    **wait_meta,
+                    **wait_import,
+                    "stats": queue_stats(),
+                }
+                self._json(200, result)
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except FileNotFoundError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/properties/sync-to-sheet":
+            try:
+                result = push_hub_properties_to_sheet()
+                self._json(200, result)
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})
             except Exception as exc:  # noqa: BLE001

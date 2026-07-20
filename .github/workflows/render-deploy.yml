@@ -1,0 +1,31 @@
+# Auto-deploy Property Hub to Render on push to main.
+# Required GitHub repo secrets:
+#   RENDER_API_KEY  — from https://dashboard.render.com/u/settings#api-keys
+#   RENDER_SERVICE_ID — from service Settings after first Blueprint create (optional for first run)
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        if: ${{ secrets.RENDER_SERVICE_ID != '' }}
+        run: |
+          curl -sf -X POST \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"do_not_clear"}'
+          echo "Deploy triggered."
+
+      - name: First-time setup hint
+        if: ${{ secrets.RENDER_SERVICE_ID == '' }}
+        run: |
+          echo "::notice::Render service not linked yet."
+          echo "1. Open https://dashboard.render.com/blueprint/new?repo=https://github.com/mycondobkkhost-cmd/pantip-property-hub"
+          echo "2. Apply blueprint, then add RENDER_SERVICE_ID + RENDER_API_KEY to GitHub repo secrets."

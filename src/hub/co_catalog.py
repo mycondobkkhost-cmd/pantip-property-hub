@@ -51,12 +51,27 @@ def page_post_url(prop: dict) -> str:
     return ""
 
 
-def slim_property(prop: dict, proj: dict) -> dict | None:
-    page = page_post_url(prop)
-    if not page:
+def slim_property(
+    prop: dict,
+    proj: dict,
+    *,
+    require_page: bool = False,
+    include_archived: bool = True,
+) -> dict | None:
+    """Slim row for Co-Agent.
+
+    Catalog mirrors Hub default (all eras, page optional). Match keeps active-only.
+    """
+    code = (prop.get("code") or "").strip()
+    if not code:
         return None
+
+    page = page_post_url(prop)
+    if require_page and not page:
+        return None
+
     status = (prop.get("import_status") or "").strip()
-    if status and status not in {"active", "needs_review", ""}:
+    if not include_archived and status and status not in {"active", "needs_review", ""}:
         return None
 
     zones = project_zone_display(proj) or []
@@ -67,7 +82,7 @@ def slim_property(prop: dict, proj: dict) -> dict | None:
         transit = list(prop.get("transit_from_sheet") or [])[:4]
 
     return {
-        "code": prop.get("code") or "",
+        "code": code,
         "project_id": prop.get("project_id") or "",
         "project_name": prop.get("project_name") or proj.get("canonical_name") or "",
         "property_type": prop.get("property_type") or "",
@@ -83,6 +98,7 @@ def slim_property(prop: dict, proj: dict) -> dict | None:
         "transit": transit[:5],
         "location_ref": prop.get("location_ref") or "",
         "page_url": page,
+        "import_status": status or "active",
         "last_listed_at": prop.get("last_listed_at") or "",
     }
 
@@ -97,7 +113,8 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
 
     for prop in props:
         proj = projects.get(prop.get("project_id")) or {}
-        slim = slim_property(prop, proj)
+        # Same universe as Hub list (includes archived); page link optional for thumbs.
+        slim = slim_property(prop, proj, require_page=False, include_archived=True)
         if not slim:
             continue
         items.append(slim)
@@ -238,7 +255,8 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
             proj = projects.get(pid) or {}
             if project_ids and pid not in project_ids:
                 continue
-            slim = slim_property(prop, proj)
+            # Match for co-agents: live stock only (skip archived).
+            slim = slim_property(prop, proj, require_page=False, include_archived=False)
             if not slim:
                 continue
             if soft_needles and not project_ids:
@@ -270,7 +288,12 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
         prop = by_code.get(code)
         if not prop:
             continue
-        slim = slim_property(prop, projects.get(prop.get("project_id")) or {})
+        slim = slim_property(
+            prop,
+            projects.get(prop.get("project_id")) or {},
+            require_page=False,
+            include_archived=False,
+        )
         if not slim:
             continue
         slim["score"] = hit.get("score")

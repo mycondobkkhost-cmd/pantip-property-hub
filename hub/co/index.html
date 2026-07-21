@@ -92,6 +92,7 @@
       .filter-grid.two { grid-template-columns: 1fr 1fr; }
       .filter-grid.three { grid-template-columns: 1fr 1fr 1fr; }
       .filter-grid.four { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
+      .filter-grid.four > .field:nth-child(5) { grid-column: 1 / -1; max-width: 280px; }
     }
     label.field { display: block; margin: 0; }
     label.field > span, .field > span {
@@ -277,6 +278,14 @@
               <option value="">ทั้งหมด</option>
               <option value="rent">มีราคาเช่า</option>
               <option value="sale">มีราคาขาย</option>
+            </select>
+          </label>
+          <label class="field"><span>สถานะ</span>
+            <select id="stock-era">
+              <option value="">ทั้งหมด (เหมือนเว็บหลัก)</option>
+              <option value="active">Active</option>
+              <option value="needs_review">Needs review</option>
+              <option value="archived">Archived</option>
             </select>
           </label>
         </div>
@@ -533,24 +542,97 @@
       fillProjectPicker("");
     }
 
+    var THUMB_CACHE = {};
+    var thumbQueue = [];
+    var thumbActive = 0;
+    var THUMB_MAX_PARALLEL = 3;
+
+    function thumbPlaceholder(p) {
+      if (!p.page_url) return '<div class="thumb-ph">ไม่มีเพจ</div>';
+      // Hub-style: poll /api/preview-thumb (202=pending). <img onerror> breaks on JSON 202.
+      return '<div class="thumb-ph" data-thumb-url="' + esc(p.page_url) + '" title="กำลังดึงรูป">…</div>';
+    }
+
+    function markThumbRetry(el, url) {
+      if (!el || !el.isConnected) return;
+      el.outerHTML = '<button type="button" class="thumb-ph" data-thumb-retry="' + esc(url) +
+        '" style="cursor:pointer;border:1px solid var(--line)">ไม่มีรูป<br/>แตะใหม่</button>';
+    }
+
+    function loadThumbForEl(el) {
+      var url = el.getAttribute("data-thumb-url") || "";
+      if (!url) return Promise.resolve();
+      if (THUMB_CACHE[url] === "") {
+        markThumbRetry(el, url);
+        return Promise.resolve();
+      }
+      if (THUMB_CACHE[url]) {
+        el.outerHTML = '<img class="thumb" src="' + esc(THUMB_CACHE[url]) + '" alt="" />';
+        return Promise.resolve();
+      }
+      var src = API + "/api/preview-thumb?url=" + encodeURIComponent(url);
+      var attempt = function (n) {
+        return fetch(src, { cache: "no-store" }).then(function (r) {
+          if (r.status === 202) {
+            if (n >= 12) throw new Error("pending timeout");
+            return new Promise(function (resolve) { setTimeout(resolve, 900); })
+              .then(function () { return attempt(n + 1); });
+          }
+          if (r.status === 404) throw new Error("miss");
+          if (!r.ok) throw new Error("http " + r.status);
+          return r.blob().then(function (blob) {
+            if (!blob || blob.size < 500 || (blob.type && blob.type.indexOf("image/") !== 0)) {
+              throw new Error("empty");
+            }
+            var obj = URL.createObjectURL(blob);
+            THUMB_CACHE[url] = obj;
+            if (!el.isConnected) return;
+            el.outerHTML = '<img class="thumb" src="' + obj + '" alt="" />';
+          });
+        }).catch(function () {
+          THUMB_CACHE[url] = "";
+          markThumbRetry(el, url);
+        });
+      };
+      return attempt(0);
+    }
+
+    function pumpThumbQueue() {
+      while (thumbActive < THUMB_MAX_PARALLEL && thumbQueue.length) {
+        var el = thumbQueue.shift();
+        if (!el || !el.isConnected) continue;
+        thumbActive += 1;
+        loadThumbForEl(el).finally(function () {
+          thumbActive -= 1;
+          pumpThumbQueue();
+        });
+      }
+    }
+
+    function scheduleThumbLoads(root) {
+      var nodes = (root || document).querySelectorAll("[data-thumb-url]");
+      if (!nodes.length) return;
+      Array.prototype.forEach.call(nodes, function (el) { thumbQueue.push(el); });
+      pumpThumbQueue();
+    }
+
     function rowHtml(p, extra) {
       var rent = fmtPrice(p.rent_price);
       var sale = fmtPrice(p.sale_price);
       var loc = (p.zones || []).slice(0, 2).concat((p.transit || []).slice(0, 1)).join(" · ");
-      var thumb = p.page_url
-        ? '<img class="thumb" loading="lazy" alt="" src="' + esc(API + "/api/preview-thumb?url=" + encodeURIComponent(p.page_url)) + '" onerror="this.outerHTML=\'<div class=thumb-ph>ดูเพจ</div>\'" />'
-        : '<div class="thumb-ph">ไม่มีเพจ</div>';
       var priceHtml = "";
       if (rent) priceHtml += '<div class="rent">เช่า ' + esc(rent) + "</div>";
       if (sale) priceHtml += '<div class="sale">ขาย ' + esc(sale) + "</div>";
       if (!priceHtml) priceHtml = '<div class="muted">สอบถามราคา</div>';
+      var sideNote = p.page_url ? "เปิดโพสต์เพจ" : "ยังไม่มีลิงก์เพจ";
 
       return '<button type="button" class="prop-row" data-page="' + esc(p.page_url || "") + '">' +
-        '<div class="thumb-wrap">' + thumb + "</div>" +
+        '<div class="thumb-wrap">' + thumbPlaceholder(p) + "</div>" +
         '<div class="main">' +
           '<div class="top-line">' +
             '<span class="code">' + esc(p.code) + "</span>" +
             (p.property_type ? '<span class="badge">' + esc(p.property_type) + "</span>" : "") +
+            (p.import_status === "archived" ? '<span class="badge" style="background:#f1f3f5;color:#5f6368;border-color:#e3e8ee">archived</span>' : "") +
           "</div>" +
           '<div class="project">' + esc(p.project_name || "—") + "</div>" +
           '<div class="meta">' +
@@ -563,7 +645,7 @@
         '<div class="side">' +
           priceHtml +
           '<button type="button" class="copy-btn" data-copy="' + esc(p.code) + '">คัดลอกรหัส</button>' +
-          '<div class="side-note">เปิดโพสต์เพจ</div>' +
+          '<div class="side-note">' + sideNote + "</div>" +
         "</div></button>";
     }
 
@@ -572,11 +654,13 @@
       var zone = document.getElementById("stock-zone").value;
       var transit = document.getElementById("stock-transit").value;
       var deal = document.getElementById("stock-deal").value;
+      var era = document.getElementById("stock-era").value;
       filteredStock = (CATALOG.items || []).filter(function (p) {
         if (q) {
           var blob = soft([p.code, p.project_name, p.location_ref].concat(p.zones || []).concat(p.transit || []).join(" "));
           if (blob.indexOf(q) < 0) return false;
         }
+        if (era && (p.import_status || "active") !== era) return false;
         if (zone && !(p.zones || []).some(function (z) { return z === zone || soft(z).indexOf(soft(zone)) >= 0; })) return false;
         if (transit && !(p.transit || []).some(function (t) { return t === transit || soft(t).indexOf(soft(transit)) >= 0; })) return false;
         if (deal === "rent" && !p.rent_n) return false;
@@ -601,6 +685,7 @@
       if (stockShown < filteredStock.length) {
         box.innerHTML += '<div class="more-wrap"><button type="button" class="btn-sm" id="stock-more">โหลดเพิ่ม</button></div>';
       }
+      scheduleThumbLoads(box);
     }
 
     function selectedBeds() {
@@ -652,6 +737,7 @@
         box.innerHTML = items.map(function (p) {
           return rowHtml(p, (p.reasons || []).slice(0, 2).join(" · "));
         }).join("");
+        scheduleThumbLoads(box);
       } catch (e) {
         box.innerHTML = '<div class="empty"><span>ผิดพลาด</span>' + esc(e.message) + "</div>";
       }
@@ -660,6 +746,20 @@
     function onListClick(e) {
       var more = e.target.closest("#stock-more");
       if (more) { renderStock(); return; }
+      var retry = e.target.closest("[data-thumb-retry]");
+      if (retry) {
+        e.preventDefault(); e.stopPropagation();
+        var u = retry.getAttribute("data-thumb-retry") || "";
+        delete THUMB_CACHE[u];
+        var ph = document.createElement("div");
+        ph.className = "thumb-ph";
+        ph.setAttribute("data-thumb-url", u);
+        ph.textContent = "…";
+        retry.replaceWith(ph);
+        thumbQueue.push(ph);
+        pumpThumbQueue();
+        return;
+      }
       var copy = e.target.closest("[data-copy]");
       if (copy) {
         e.preventDefault(); e.stopPropagation();
@@ -691,7 +791,7 @@
       var btn = e.target.closest("button[data-view]");
       if (btn) switchView(btn.getAttribute("data-view"));
     });
-    ["stock-q", "stock-zone", "stock-transit", "stock-deal"].forEach(function (id) {
+    ["stock-q", "stock-zone", "stock-transit", "stock-deal", "stock-era"].forEach(function (id) {
       document.getElementById(id).addEventListener("input", applyStockFilter);
       document.getElementById(id).addEventListener("change", applyStockFilter);
     });

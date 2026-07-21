@@ -1,228 +1,239 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#1a0b2e" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2e1065" />
   <title>Pantip Property ( Co-Agent Stock )</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg0: #12081f;
-      --bg1: #1a0b2e;
-      --bg2: #2a1548;
-      --card: #ffffff;
-      --ink: #1a1028;
+      --bg: #f3f0f8;
+      --surface: #ffffff;
+      --ink: #1e1433;
       --muted: #6b6280;
-      --line: #ebe6f4;
-      --violet: #7c3aed;
-      --violet-soft: #ede9fe;
-      --violet-glow: rgba(124, 58, 237, 0.35);
+      --line: #e8e2f1;
+      --header: #2e1065;
+      --header-2: #3b0764;
+      --accent: #6d28d9;
+      --accent-soft: #f3e8ff;
+      --accent-border: #ddd6fe;
       --line-green: #06c755;
+      --shadow: 0 8px 24px rgba(46, 16, 101, 0.07);
+      --radius: 14px;
       --safe-b: env(safe-area-inset-bottom, 0px);
-      --radius: 18px;
-      --shadow: 0 12px 40px rgba(18, 8, 31, 0.18);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { min-height: 100%; }
     body {
-      font-family: Manrope, system-ui, sans-serif;
+      font-family: "IBM Plex Sans Thai", "Sarabun", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
       color: var(--ink);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, #4c1d95 0%, transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, #6d28d9 0%, transparent 50%),
-        linear-gradient(165deg, var(--bg1), var(--bg0) 55%, #0c0616);
-      background-attachment: fixed;
+      min-height: 100dvh;
+      font-size: 14px;
     }
-    a { color: inherit; }
     button, input, select { font: inherit; }
-    .shell { max-width: 920px; margin: 0 auto; padding: 18px 16px calc(28px + var(--safe-b)); }
+    a { color: inherit; }
 
-    .top {
-      display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
-      gap: 14px; margin-bottom: 18px;
+    .topbar {
+      background: linear-gradient(180deg, var(--header), var(--header-2));
+      color: #f5f3ff;
+      padding: 14px 16px calc(14px + 0px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .brand {
-      color: #fff; min-width: 0;
+    .topbar-inner {
+      max-width: 980px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
-    .brand .mark {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 42px; height: 42px; border-radius: 14px; margin-bottom: 10px;
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
       background: linear-gradient(145deg, #c4b5fd, #7c3aed);
-      color: #1a0b2e; font-family: Syne, sans-serif; font-weight: 800; font-size: 15px;
-      box-shadow: 0 8px 24px var(--violet-glow);
+      color: #1e1433; font-weight: 700; font-size: 15px;
+      display: grid; place-items: center;
     }
-    .brand h1 {
-      font-family: Syne, sans-serif; font-weight: 800; font-size: clamp(1.25rem, 4vw, 1.7rem);
-      letter-spacing: -0.03em; line-height: 1.15; max-width: 16ch;
-    }
-    .brand p { margin-top: 6px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.45; }
-
+    .brand strong { display: block; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; }
+    .brand span { display: block; font-size: 11px; color: rgba(245,243,255,.65); margin-top: 2px; }
     .line-cta {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 12px 16px; border-radius: 999px; text-decoration: none;
-      background: var(--line-green); color: #fff; font-weight: 700; font-size: 13px;
-      box-shadow: 0 10px 28px rgba(6, 199, 85, 0.28);
-      transition: transform .15s ease, filter .15s ease;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 14px; border-radius: 10px; text-decoration: none;
+      background: var(--line-green); color: #fff; font-size: 12px; font-weight: 600;
+      white-space: nowrap; flex-shrink: 0;
     }
-    .line-cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
-    .line-cta .id { opacity: .92; font-weight: 600; font-size: 12px; }
+    .line-cta:hover { filter: brightness(1.05); }
+
+    .shell { max-width: 980px; margin: 0 auto; padding: 14px 16px calc(24px + var(--safe-b)); }
 
     .tabs {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-      padding: 6px; border-radius: 16px; margin-bottom: 16px;
-      background: rgba(255,255,255,.08); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,.12);
+      display: flex; gap: 6px; margin-bottom: 12px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 12px; padding: 4px; box-shadow: var(--shadow);
     }
     .tabs button {
-      appearance: none; border: 0; border-radius: 12px; padding: 12px 10px;
-      background: transparent; color: rgba(255,255,255,.75); font-weight: 700;
-      cursor: pointer; transition: .15s ease;
+      flex: 1; border: 0; background: transparent; color: var(--muted);
+      padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer;
     }
-    .tabs button.active {
-      background: #fff; color: var(--violet); box-shadow: var(--shadow);
-    }
+    .tabs button.active { background: var(--accent-soft); color: var(--accent); }
 
     .panel { display: none; }
     .panel.active { display: block; }
 
-    .toolbar {
-      background: var(--card); border-radius: var(--radius); padding: 14px;
-      box-shadow: var(--shadow); margin-bottom: 14px;
+    .filter-panel {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 12px; margin-bottom: 12px;
+      box-shadow: var(--shadow);
     }
-    .toolbar .row {
+    .filter-grid {
       display: grid; gap: 10px; grid-template-columns: 1fr;
     }
     @media (min-width: 720px) {
-      .toolbar .row.two { grid-template-columns: 1fr 1fr; }
-      .toolbar .row.three { grid-template-columns: 1fr 1fr 1fr; }
+      .filter-grid.two { grid-template-columns: 1fr 1fr; }
+      .filter-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+      .filter-grid.four { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
     }
-    label.field { display: block; }
-    label.field span {
-      display: block; font-size: 11px; font-weight: 700; letter-spacing: .04em;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+    label.field { display: block; margin: 0; }
+    label.field > span {
+      display: block; font-size: 12px; font-weight: 500; color: #4c4260; margin-bottom: 4px;
     }
-    label.field input, label.field select {
-      width: 100%; border: 1px solid var(--line); border-radius: 12px;
-      padding: 11px 12px; background: #fbfafe; color: var(--ink);
-      outline: none; transition: border-color .15s, box-shadow .15s;
+    input, select {
+      width: 100%; padding: 8px 10px; border: 1px solid #d8d0e6; border-radius: 8px;
+      font-size: 13px; background: #fff; color: var(--ink);
     }
-    label.field input:focus, label.field select:focus {
-      border-color: #c4b5fd; box-shadow: 0 0 0 3px var(--violet-soft);
+    input:focus, select:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
     }
-    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .chip {
-      appearance: none; border: 1px solid var(--line); background: #fff;
-      border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 600;
-      color: var(--muted); cursor: pointer;
+      border: 1px solid var(--line); background: #fff; color: #4c4260;
+      border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 500; cursor: pointer;
     }
-    .chip.on { background: var(--violet-soft); border-color: #c4b5fd; color: var(--violet); }
-    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .btn {
-      appearance: none; border: 0; border-radius: 12px; padding: 11px 16px;
-      font-weight: 700; cursor: pointer; font-size: 13px;
+    .chip.on { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .btn-sm {
+      padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      border: 1px solid var(--line); background: #fff; color: #3c3548; cursor: pointer;
     }
-    .btn-primary { background: var(--violet); color: #fff; }
-    .btn-ghost { background: var(--violet-soft); color: var(--violet); }
+    .btn-sm.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-sm.primary:hover { background: #5b21b6; }
     .meta-bar {
-      display: flex; justify-content: space-between; align-items: center; gap: 8px;
-      color: rgba(255,255,255,.7); font-size: 12px; margin: 4px 2px 12px;
+      display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+      font-size: 12px; color: var(--muted); margin: 0 2px 10px;
     }
 
-    .list { display: flex; flex-direction: column; gap: 12px; }
-    .card {
-      display: grid; grid-template-columns: 96px 1fr; gap: 12px;
-      background: var(--card); border-radius: var(--radius); padding: 12px;
-      box-shadow: var(--shadow); cursor: pointer; text-align: left;
-      border: 1px solid transparent; transition: transform .12s ease, border-color .12s;
-      width: 100%; font: inherit; color: inherit;
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
     }
-    .card:hover { transform: translateY(-1px); border-color: #c4b5fd; }
-    .thumb {
-      width: 96px; height: 96px; border-radius: 14px; overflow: hidden;
-      background: linear-gradient(145deg, #ede9fe, #ddd6fe); flex-shrink: 0;
-      position: relative;
+    .list-head {
+      display: grid; grid-template-columns: 96px minmax(0, 1.5fr) minmax(120px, 0.85fr);
+      gap: 12px; align-items: center;
+      padding: 8px 12px; background: #f7f4fb; border-bottom: 1px solid var(--line);
+      font-size: 11px; font-weight: 600; color: var(--muted);
     }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .thumb .ph {
-      position: absolute; inset: 0; display: grid; place-items: center;
-      font-size: 11px; font-weight: 700; color: var(--violet); text-align: center; padding: 8px;
+    .prop-list { display: flex; flex-direction: column; }
+    .prop-row {
+      display: grid; grid-template-columns: 96px minmax(0, 1.5fr) minmax(120px, 0.85fr);
+      gap: 12px; align-items: start;
+      padding: 12px; border-bottom: 1px solid #f0ebf7;
+      background: #fff; cursor: pointer; width: 100%; text-align: left;
+      border-left: 0; border-right: 0; border-top: 0; font: inherit; color: inherit;
     }
-    .card-body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-    .code-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .code {
-      font-family: Syne, sans-serif; font-weight: 800; font-size: 14px; color: var(--violet);
-      letter-spacing: -0.02em;
+    .prop-row:nth-child(even) { background: #fbfafe; }
+    .prop-row:hover { background: #f3e8ff; }
+    .thumb, .thumb-ph {
+      width: 96px; height: 96px; border-radius: 12px;
+      border: 1px solid var(--line); background: #f3f0f8; display: block; object-fit: cover;
     }
+    .thumb-ph {
+      color: var(--muted); font-size: 11px; display: grid; place-items: center;
+      text-align: center; padding: 6px; line-height: 1.3;
+    }
+    .main { min-width: 0; }
+    .top-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+    .code { font-weight: 700; font-size: 13px; color: var(--ink); }
     .badge {
-      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
-      background: var(--violet-soft); color: var(--violet);
+      font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border);
     }
-    .proj {
-      font-weight: 700; font-size: 14px; line-height: 1.35;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    .project { font-size: 14px; font-weight: 600; line-height: 1.35; word-break: break-word; color: var(--ink); }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .meta-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500;
+      background: #f1f3f5; color: #3c4043; border: 1px solid #e3e8ee;
     }
-    .facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-    .fact {
-      font-size: 11px; color: var(--muted); background: #f6f3fb;
-      padding: 3px 8px; border-radius: 999px;
-    }
-    .price { margin-top: auto; font-weight: 800; font-size: 14px; color: var(--ink); }
-    .price .sale { color: var(--muted); font-weight: 600; font-size: 12px; margin-left: 6px; }
+    .meta-chip.loc { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+    .meta-chip strong { font-weight: 600; color: var(--muted); font-size: 10px; }
+    .side { text-align: right; min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .rent { color: var(--accent); font-weight: 700; font-size: 14px; }
+    .sale { color: #475569; font-weight: 600; font-size: 12px; }
+    .muted { color: #9aa0a6; font-size: 11px; }
     .copy-btn {
-      appearance: none; border: 1px solid var(--line); background: #fff;
-      border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700;
-      color: var(--violet); cursor: pointer;
+      border: 1px solid var(--line); background: #fff; color: var(--accent);
+      border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 600; cursor: pointer;
     }
     .copy-btn.ok { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
-    .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
-    .empty, .loading {
-      background: rgba(255,255,255,.92); border-radius: var(--radius); padding: 28px 18px;
-      text-align: center; color: var(--muted); box-shadow: var(--shadow);
+    .side-note { font-size: 11px; color: var(--muted); }
+    .reasons { font-size: 11px; color: var(--accent); margin-top: 4px; }
+    .empty {
+      padding: 28px 16px; text-align: center; color: var(--muted); font-size: 13px;
     }
-    .empty strong, .loading strong { display: block; color: var(--ink); margin-bottom: 6px; font-family: Syne, sans-serif; }
+    .empty span { display: block; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+    .more-wrap { padding: 12px; border-top: 1px solid var(--line); }
+    .more-wrap .btn-sm { width: 100%; }
     .toast {
-      position: fixed; left: 50%; bottom: calc(18px + var(--safe-b)); transform: translateX(-50%);
-      background: #1a0b2e; color: #fff; padding: 10px 16px; border-radius: 999px;
-      font-size: 12px; font-weight: 600; opacity: 0; pointer-events: none;
-      transition: opacity .2s; z-index: 50; white-space: nowrap;
+      position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%);
+      background: var(--header); color: #fff; padding: 9px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40;
     }
     .toast.show { opacity: 1; }
-    .reasons { font-size: 11px; color: #7c3aed; margin-top: 2px; }
+
+    @media (max-width: 700px) {
+      .list-head { display: none; }
+      .prop-row {
+        grid-template-columns: 80px minmax(0, 1fr);
+        grid-template-areas: "thumb main" "thumb side";
+      }
+      .prop-row .thumb-wrap { grid-area: thumb; }
+      .prop-row .main { grid-area: main; }
+      .prop-row .side { grid-area: side; align-items: flex-start; text-align: left; margin-top: 4px; }
+      .thumb, .thumb-ph { width: 80px; height: 80px; }
+      .brand strong { font-size: 13px; }
+    }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="top">
+  <header class="topbar">
+    <div class="topbar-inner">
       <div class="brand">
-        <div class="mark">PP</div>
-        <h1>Pantip Property ( Co-Agent Stock )</h1>
-        <p>ดูสต็อก · จับคู่ทรัพย์ · กดเปิดโพสต์เพจเพื่อดูรูป · คัดลอกรหัสส่งแอดมินได้</p>
+        <div class="brand-mark">PP</div>
+        <div>
+          <strong>Pantip Property ( Co-Agent Stock )</strong>
+          <span>ดูสต็อก · Match ทรัพย์ · เปิดโพสต์เพจ · คัดลอกรหัส</span>
+        </div>
       </div>
-      <a class="line-cta" href="https://lin.ee/5W00Nwl" target="_blank" rel="noopener">
-        <span>คุยไลน์</span>
-        <span class="id">@PTP.CONDO</span>
-      </a>
-    </header>
+      <a class="line-cta" href="https://lin.ee/5W00Nwl" target="_blank" rel="noopener">คุยไลน์ · @PTP.CONDO</a>
+    </div>
+  </header>
 
+  <main class="shell">
     <nav class="tabs" aria-label="เมนู">
       <button type="button" class="active" data-view="stock">สต็อกทรัพย์</button>
       <button type="button" data-view="match">Match ทรัพย์</button>
     </nav>
 
     <section id="view-stock" class="panel active">
-      <div class="toolbar">
-        <div class="row two">
+      <div class="filter-panel">
+        <div class="filter-grid four">
           <label class="field"><span>ค้นหา</span>
             <input id="stock-q" type="search" placeholder="รหัส / โครงการ เช่น PTP8088, ทองหล่อ" autocomplete="off" />
           </label>
           <label class="field"><span>ทำเล</span>
             <select id="stock-zone"><option value="">ทั้งหมด</option></select>
           </label>
-        </div>
-        <div class="row two" style="margin-top:10px">
           <label class="field"><span>BTS / MRT</span>
             <select id="stock-transit"><option value="">ทั้งหมด</option></select>
           </label>
@@ -237,14 +248,23 @@
       </div>
       <div class="meta-bar">
         <span id="stock-count">กำลังโหลด…</span>
-        <span>กดการ์ด → เปิดโพสต์เพจ</span>
+        <span>กดแถว → เปิดโพสต์เพจ</span>
       </div>
-      <div id="stock-list" class="list"><div class="loading"><strong>กำลังโหลดสต็อก</strong>ดึงข้อมูลจาก Hub…</div></div>
+      <div class="table-wrap">
+        <div class="list-head">
+          <span>รูป</span>
+          <span>รหัส · โครงการ · รายละเอียด</span>
+          <span style="text-align:right">ราคา</span>
+        </div>
+        <div id="stock-list" class="prop-list">
+          <div class="empty"><span>กำลังโหลดสต็อก</span>ดึงข้อมูลจาก Hub…</div>
+        </div>
+      </div>
     </section>
 
     <section id="view-match" class="panel">
-      <div class="toolbar">
-        <div class="row two">
+      <div class="filter-panel">
+        <div class="filter-grid two">
           <label class="field"><span>ทำเล</span>
             <input id="m-loc" type="text" placeholder="ทองหล่อ, เอกมัย" list="zone-list" />
           </label>
@@ -252,7 +272,7 @@
             <input id="m-transit" type="text" placeholder="BTS ทองหล่อ" list="transit-list" />
           </label>
         </div>
-        <div class="row three" style="margin-top:10px">
+        <div class="filter-grid three" style="margin-top:10px">
           <label class="field"><span>งบต่ำ</span><input id="m-min" type="number" min="0" placeholder="15000" /></label>
           <label class="field"><span>งบสูง</span><input id="m-max" type="number" min="0" placeholder="30000" /></label>
           <label class="field"><span>ดีล</span>
@@ -263,11 +283,11 @@
             </select>
           </label>
         </div>
-        <div class="row two" style="margin-top:10px">
+        <div class="filter-grid two" style="margin-top:10px">
           <label class="field"><span>โครงการ</span>
             <input id="m-project" type="search" placeholder="ชื่อโครงการ เช่น Thru, Life Asoke" list="project-list" />
           </label>
-          <label class="field"><span>โจทย์สั้นๆ (ถ้ามี)</span>
+          <label class="field"><span>โจทย์สั้นๆ</span>
             <input id="m-brief" type="text" placeholder="1 นอน ใกล้รถไฟฟ้า" />
           </label>
         </div>
@@ -278,19 +298,26 @@
           <button type="button" class="chip" data-bed="3">3+</button>
         </div>
         <div class="actions">
-          <button type="button" class="btn btn-primary" id="m-run">ค้นหา Match</button>
-          <button type="button" class="btn btn-ghost" id="m-clear">ล้าง</button>
+          <button type="button" class="btn-sm primary" id="m-run">ค้นหา Match</button>
+          <button type="button" class="btn-sm" id="m-clear">ล้าง</button>
         </div>
       </div>
       <div class="meta-bar">
         <span id="match-count">ใส่โจทย์แล้วกดค้นหา</span>
         <span>คัดลอกรหัสส่งแอดมินได้</span>
       </div>
-      <div id="match-list" class="list">
-        <div class="empty"><strong>ยังไม่มีผล Match</strong>กรอกทำเล / BTS / งบ แล้วกดค้นหา</div>
+      <div class="table-wrap">
+        <div class="list-head">
+          <span>รูป</span>
+          <span>รหัส · โครงการ · รายละเอียด</span>
+          <span style="text-align:right">ราคา</span>
+        </div>
+        <div id="match-list" class="prop-list">
+          <div class="empty"><span>ยังไม่มีผล Match</span>กรอกทำเล / BTS / งบ แล้วกดค้นหา</div>
+        </div>
       </div>
     </section>
-  </div>
+  </main>
 
   <datalist id="zone-list"></datalist>
   <datalist id="transit-list"></datalist>
@@ -313,17 +340,15 @@
       var el = document.getElementById("toast");
       el.textContent = msg;
       el.classList.add("show");
-      setTimeout(function () { el.classList.remove("show"); }, 1600);
+      setTimeout(function () { el.classList.remove("show"); }, 1500);
     }
     function fmtPrice(s) {
       var n = parseInt(String(s || "").replace(/[^\d]/g, ""), 10);
-      if (!n) return "";
-      return n.toLocaleString("th-TH");
+      return n ? n.toLocaleString("th-TH") : "";
     }
     function soft(s) {
       return String(s || "").toLowerCase().replace(/[^a-z0-9ก-๙]+/g, "");
     }
-
     function switchView(view) {
       document.querySelectorAll(".tabs button").forEach(function (b) {
         b.classList.toggle("active", b.getAttribute("data-view") === view);
@@ -360,57 +385,38 @@
       });
     }
 
-    function cardHtml(p, extra) {
+    function rowHtml(p, extra) {
       var rent = fmtPrice(p.rent_price);
       var sale = fmtPrice(p.sale_price);
-      var price = "";
-      if (rent) price += "เช่า " + rent;
-      if (sale) price += (price ? " · " : "") + "ขาย " + sale;
-      if (!price) price = "สอบถามราคา";
       var loc = (p.zones || []).slice(0, 2).concat((p.transit || []).slice(0, 1)).join(" · ");
-      var thumbUrl = p.page_url
-        ? (API + "/api/preview-thumb?url=" + encodeURIComponent(p.page_url))
-        : "";
-      return '<button type="button" class="card" data-page="' + esc(p.page_url || "") + '">' +
-        '<div class="thumb">' +
-          (thumbUrl
-            ? '<div class="ph" data-ph>…</div><img loading="lazy" alt="" data-src="' + esc(thumbUrl) + '" />'
-            : '<div class="ph">ไม่มีเพจ</div>') +
-        "</div>" +
-        '<div class="card-body">' +
-          '<div class="code-row">' +
+      var thumb = p.page_url
+        ? '<img class="thumb" loading="lazy" alt="" src="' + esc(API + "/api/preview-thumb?url=" + encodeURIComponent(p.page_url)) + '" onerror="this.outerHTML=\'<div class=thumb-ph>ดูเพจ</div>\'" />'
+        : '<div class="thumb-ph">ไม่มีเพจ</div>';
+      var priceHtml = "";
+      if (rent) priceHtml += '<div class="rent">เช่า ' + esc(rent) + "</div>";
+      if (sale) priceHtml += '<div class="sale">ขาย ' + esc(sale) + "</div>";
+      if (!priceHtml) priceHtml = '<div class="muted">สอบถามราคา</div>';
+
+      return '<button type="button" class="prop-row" data-page="' + esc(p.page_url || "") + '">' +
+        '<div class="thumb-wrap">' + thumb + "</div>" +
+        '<div class="main">' +
+          '<div class="top-line">' +
             '<span class="code">' + esc(p.code) + "</span>" +
             (p.property_type ? '<span class="badge">' + esc(p.property_type) + "</span>" : "") +
-            '<button type="button" class="copy-btn" data-copy="' + esc(p.code) + '">คัดลอกรหัส</button>' +
           "</div>" +
-          '<div class="proj">' + esc(p.project_name || "—") + "</div>" +
-          '<div class="facts">' +
-            (p.bedrooms ? '<span class="fact">' + esc(p.bedrooms) + "</span>" : "") +
-            (p.size_sqm ? '<span class="fact">' + esc(String(p.size_sqm)) + " ตร.ม.</span>" : "") +
-            (loc ? '<span class="fact">' + esc(loc) + "</span>" : "") +
+          '<div class="project">' + esc(p.project_name || "—") + "</div>" +
+          '<div class="meta">' +
+            (p.bedrooms ? '<span class="meta-chip"><strong>ห้อง</strong> ' + esc(p.bedrooms) + "</span>" : "") +
+            (p.size_sqm ? '<span class="meta-chip"><strong>ขนาด</strong> ' + esc(String(p.size_sqm)) + " ตร.ม.</span>" : "") +
+            (loc ? '<span class="meta-chip loc">' + esc(loc) + "</span>" : "") +
           "</div>" +
           (extra ? '<div class="reasons">' + esc(extra) + "</div>" : "") +
-          '<div class="price">' + esc(price) +
-            '<div class="hint">เปิดโพสต์เพจ Pantip Property</div>' +
-          "</div>" +
+        "</div>" +
+        '<div class="side">' +
+          priceHtml +
+          '<button type="button" class="copy-btn" data-copy="' + esc(p.code) + '">คัดลอกรหัส</button>' +
+          '<div class="side-note">เปิดโพสต์เพจ</div>' +
         "</div></button>";
-    }
-
-    function hydrateThumbs(root) {
-      root.querySelectorAll("img[data-src]").forEach(function (img) {
-        var url = img.getAttribute("data-src");
-        if (!url) return;
-        var ph = img.parentElement && img.parentElement.querySelector("[data-ph]");
-        fetch(url).then(function (r) {
-          if (!r.ok) throw new Error("no thumb");
-          return r.blob();
-        }).then(function (b) {
-          img.src = URL.createObjectURL(b);
-          if (ph) ph.remove();
-        }).catch(function () {
-          if (ph) ph.textContent = "ดูเพจ";
-        });
-      });
     }
 
     function applyStockFilter() {
@@ -430,24 +436,23 @@
         return true;
       });
       stockShown = 0;
-      renderStock(true);
+      renderStock();
     }
 
-    function renderStock(reset) {
+    function renderStock() {
       var box = document.getElementById("stock-list");
-      document.getElementById("stock-count").textContent =
-        "แสดง " + Math.min(stockShown + PAGE, filteredStock.length) + " / " + filteredStock.length + " รายการ";
+      var n = Math.min(stockShown + PAGE, filteredStock.length);
+      document.getElementById("stock-count").textContent = "แสดง " + n + " / " + filteredStock.length + " รายการ";
       if (!filteredStock.length) {
-        box.innerHTML = '<div class="empty"><strong>ไม่พบทรัพย์</strong>ลองเปลี่ยนคำค้นหรือตัวกรอง</div>';
+        box.innerHTML = '<div class="empty"><span>ไม่พบทรัพย์</span>ลองเปลี่ยนคำค้นหรือตัวกรอง</div>';
         return;
       }
-      var slice = filteredStock.slice(0, stockShown + PAGE);
+      var slice = filteredStock.slice(0, n);
       stockShown = slice.length;
-      box.innerHTML = slice.map(function (p) { return cardHtml(p); }).join("");
+      box.innerHTML = slice.map(function (p) { return rowHtml(p); }).join("");
       if (stockShown < filteredStock.length) {
-        box.innerHTML += '<button type="button" class="btn btn-ghost" id="stock-more" style="width:100%">โหลดเพิ่ม</button>';
+        box.innerHTML += '<div class="more-wrap"><button type="button" class="btn-sm" id="stock-more">โหลดเพิ่ม</button></div>';
       }
-      hydrateThumbs(box);
     }
 
     function selectedBeds() {
@@ -477,7 +482,7 @@
         return;
       }
       var box = document.getElementById("match-list");
-      box.innerHTML = '<div class="loading"><strong>กำลัง Match</strong>ค้นจากสต็อก Hub…</div>';
+      box.innerHTML = '<div class="empty"><span>กำลัง Match</span>ค้นจากสต็อก Hub…</div>';
       document.getElementById("match-count").textContent = "กำลังค้น…";
       try {
         var res = await fetch(API + "/api/co/match", {
@@ -490,16 +495,36 @@
         var items = data.items || [];
         document.getElementById("match-count").textContent = "เจอ " + items.length + " รายการ";
         if (!items.length) {
-          box.innerHTML = '<div class="empty"><strong>ไม่พบที่ตรงโจทย์</strong>ลองขยายงบหรือเปลี่ยนทำเล</div>';
+          box.innerHTML = '<div class="empty"><span>ไม่พบที่ตรงโจทย์</span>ลองขยายงบหรือเปลี่ยนทำเล</div>';
           return;
         }
         box.innerHTML = items.map(function (p) {
-          return cardHtml(p, (p.reasons || []).slice(0, 2).join(" · "));
+          return rowHtml(p, (p.reasons || []).slice(0, 2).join(" · "));
         }).join("");
-        hydrateThumbs(box);
       } catch (e) {
-        box.innerHTML = '<div class="empty"><strong>ผิดพลาด</strong>' + esc(e.message) + "</div>";
+        box.innerHTML = '<div class="empty"><span>ผิดพลาด</span>' + esc(e.message) + "</div>";
       }
+    }
+
+    function onListClick(e) {
+      var more = e.target.closest("#stock-more");
+      if (more) { renderStock(); return; }
+      var copy = e.target.closest("[data-copy]");
+      if (copy) {
+        e.preventDefault(); e.stopPropagation();
+        var code = copy.getAttribute("data-copy");
+        navigator.clipboard.writeText(code).then(function () {
+          copy.classList.add("ok"); copy.textContent = "คัดลอกแล้ว";
+          toast("คัดลอก " + code);
+          setTimeout(function () { copy.classList.remove("ok"); copy.textContent = "คัดลอกรหัส"; }, 1200);
+        }).catch(function () { toast(code); });
+        return;
+      }
+      var row = e.target.closest(".prop-row[data-page]");
+      if (!row) return;
+      var url = row.getAttribute("data-page");
+      if (url) window.open(url, "_blank", "noopener");
+      else toast("รายการนี้ยังไม่มีลิงก์เพจ");
     }
 
     async function loadCatalog() {
@@ -513,50 +538,14 @@
 
     document.querySelector(".tabs").addEventListener("click", function (e) {
       var btn = e.target.closest("button[data-view]");
-      if (!btn) return;
-      switchView(btn.getAttribute("data-view"));
+      if (btn) switchView(btn.getAttribute("data-view"));
     });
     ["stock-q", "stock-zone", "stock-transit", "stock-deal"].forEach(function (id) {
       document.getElementById(id).addEventListener("input", applyStockFilter);
       document.getElementById(id).addEventListener("change", applyStockFilter);
     });
-    document.getElementById("stock-list").addEventListener("click", function (e) {
-      var more = e.target.closest("#stock-more");
-      if (more) { renderStock(false); return; }
-      var copy = e.target.closest("[data-copy]");
-      if (copy) {
-        e.preventDefault(); e.stopPropagation();
-        var code = copy.getAttribute("data-copy");
-        navigator.clipboard.writeText(code).then(function () {
-          copy.classList.add("ok"); copy.textContent = "คัดลอกแล้ว";
-          toast("คัดลอก " + code);
-          setTimeout(function () { copy.classList.remove("ok"); copy.textContent = "คัดลอกรหัส"; }, 1200);
-        }).catch(function () { toast(code); });
-        return;
-      }
-      var card = e.target.closest(".card[data-page]");
-      if (!card) return;
-      var url = card.getAttribute("data-page");
-      if (url) window.open(url, "_blank", "noopener");
-      else toast("รายการนี้ยังไม่มีลิงก์เพจ");
-    });
-    document.getElementById("match-list").addEventListener("click", function (e) {
-      var copy = e.target.closest("[data-copy]");
-      if (copy) {
-        e.preventDefault(); e.stopPropagation();
-        var code = copy.getAttribute("data-copy");
-        navigator.clipboard.writeText(code).then(function () {
-          copy.classList.add("ok"); copy.textContent = "คัดลอกแล้ว";
-          toast("คัดลอก " + code);
-          setTimeout(function () { copy.classList.remove("ok"); copy.textContent = "คัดลอกรหัส"; }, 1200);
-        });
-        return;
-      }
-      var card = e.target.closest(".card[data-page]");
-      if (card && card.getAttribute("data-page")) {
-        window.open(card.getAttribute("data-page"), "_blank", "noopener");
-      }
-    });
+    document.getElementById("stock-list").addEventListener("click", onListClick);
+    document.getElementById("match-list").addEventListener("click", onListClick);
     document.getElementById("m-beds").addEventListener("click", function (e) {
       var chip = e.target.closest(".chip");
       if (chip) chip.classList.toggle("on");
@@ -572,13 +561,13 @@
       document.getElementById("m-deal").value = "rent";
       document.querySelectorAll("#m-beds .chip").forEach(function (c) { c.classList.remove("on"); });
       document.getElementById("match-list").innerHTML =
-        '<div class="empty"><strong>ยังไม่มีผล Match</strong>กรอกทำเล / BTS / งบ แล้วกดค้นหา</div>';
+        '<div class="empty"><span>ยังไม่มีผล Match</span>กรอกทำเล / BTS / งบ แล้วกดค้นหา</div>';
       document.getElementById("match-count").textContent = "ใส่โจทย์แล้วกดค้นหา";
     });
 
     loadCatalog().catch(function (e) {
       document.getElementById("stock-list").innerHTML =
-        '<div class="empty"><strong>โหลดไม่สำเร็จ</strong>' + esc(e.message) + "</div>";
+        '<div class="empty"><span>โหลดไม่สำเร็จ</span>' + esc(e.message) + "</div>";
     });
   </script>
 </body>

@@ -1,0 +1,56 @@
+{
+  "items": [
+    {
+      "chat_name": "ตัวอย่าง · ลูกค้าเอกมัย",
+      "channel": "LINE OA",
+      "deal_type": "rent",
+      "budget_min": 15000,
+      "budget_max": 25000,
+      "locations": "เอกมัย, ทองหล่อ",
+      "transits": [
+        "BTS เอกมัย",
+        "BTS ทองหล่อ"
+      ],
+      "bedrooms": [
+        "1"
+      ],
+      "property_types": [
+        "Condo"
+      ],
+      "brief": "คอนโดเอกมัยหรือทองหล่อ 1 BR ใกล้รถไฟฟ้า",
+      "followup_in_days": 3,
+      "priority": "high",
+      "owner": "ทดสอบ",
+      "id": "fu_8f78bef3be",
+      "case_code": "FU-260722-01",
+      "first_contact_at": "2026-07-22",
+      "last_contact_at": "2026-07-22",
+      "created_at": "2026-07-22 05:13",
+      "updated_at": "2026-07-22 05:14",
+      "phone": "",
+      "line_id": "",
+      "next_followup_at": "2026-07-25",
+      "status": "new",
+      "lost_reason": "",
+      "move_in": "",
+      "constraints": "",
+      "offered_codes": [],
+      "offered_at": "",
+      "offer_feedback": "",
+      "viewing_codes": [],
+      "viewing_at": "",
+      "viewing_feedback": "",
+      "reserved_codes": [],
+      "chat_link": "",
+      "co_agent": "",
+      "tags": [],
+      "last_note": "",
+      "recommended_codes": [
+        "PTP5541",
+        "PTP5569",
+        "PTP5588"
+      ]
+    }
+  ],
+  "updated_at": "2026-07-22 05:14"
+}

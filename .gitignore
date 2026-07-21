@@ -11,6 +11,7 @@ cookies/
 data/hub.db
 data/line_chats.jsonl
 data/line_cases.json
+data/thumb_cache/
 logs/*.log
 logs/*.pid
 logs/line_webhook_url.txt

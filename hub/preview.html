@@ -6,13 +6,29 @@
   <title>Property Hub — PTP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --bg: #eef1f4;
+      --surface: #ffffff;
+      --ink: #15202b;
+      --muted: #6b7785;
+      --line: #e3e8ee;
+      --sidebar: #15202b;
+      --sidebar-2: #1c2a38;
+      --accent: #1f8a4c;
+      --accent-soft: #e7f6ee;
+      --gold: #c9a227;
+      --shadow: 0 8px 24px rgba(21, 32, 43, 0.08);
+      --radius: 14px;
+      --sidebar-w: 248px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: "Sarabun", "Segoe UI", system-ui, sans-serif;
-      background: #f6f7f8;
-      color: #1a1a1a;
+      font-family: "IBM Plex Sans Thai", "Sarabun", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
       min-height: 100dvh;
       font-size: 14px;
     }
@@ -21,60 +37,160 @@
     #login-screen {
       min-height: 100dvh;
       display: flex; align-items: center; justify-content: center;
-      padding: 16px; background: #f8f9fa;
+      padding: 16px;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(31,138,76,.18), transparent 45%),
+        radial-gradient(ellipse at 90% 90%, rgba(201,162,39,.12), transparent 40%),
+        #e9eef2;
     }
     .login-box {
-      background: #fff; border: 1px solid #dadce0; border-radius: 8px;
-      padding: 24px; width: 100%; max-width: 360px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+      padding: 28px 24px; width: 100%; max-width: 380px;
+      box-shadow: var(--shadow);
     }
-    .login-box h1 { font-size: 20px; margin-bottom: 4px; }
-    .login-box p { font-size: 13px; color: #5f6368; margin-bottom: 16px; }
+    .login-box h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .login-box p { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
     label { display: block; margin-bottom: 12px; }
     label span { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #3c4043; }
     input, select, textarea {
-      width: 100%; padding: 8px 10px; border: 1px solid #dadce0; border-radius: 4px;
+      width: 100%; padding: 8px 10px; border: 1px solid #dadce0; border-radius: 8px;
       font-size: 13px; font-family: inherit; background: #fff;
     }
     input:focus, select:focus, textarea:focus {
-      outline: none; border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8;
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31,138,76,.15);
     }
     .btn {
-      width: 100%; padding: 9px 12px; border: none; border-radius: 4px;
-      font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit;
+      width: 100%; padding: 10px 12px; border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
     }
-    .btn-primary { background: #1a73e8; color: #fff; }
-    .btn-primary:hover { background: #1765cc; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #187a43; }
     .btn-outline {
-      background: #fff; border: 1px solid #dadce0; color: #3c4043;
-      padding: 5px 10px; width: auto; font-size: 12px;
+      background: #fff; border: 1px solid var(--line); color: #3c4043;
+      padding: 8px 12px; width: auto; font-size: 12px; border-radius: 10px;
     }
     .btn-outline:hover { background: #f8f9fa; }
-    .error { background: #fce8e6; color: #c5221f; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
+    .error { background: #fce8e6; color: #c5221f; padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
     .hint { text-align: center; font-size: 11px; color: #80868b; margin-top: 12px; line-height: 1.5; }
 
-    header {
-      background: #fff; border-bottom: 1px solid #e8eaed;
-      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    /* ===== App shell (dashboard) ===== */
+    #app-screen { min-height: 100dvh; }
+    .app-shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      min-height: 100dvh;
     }
-    header h1 { font-size: 17px; font-weight: 600; color: #188038; letter-spacing: -0.02em; }
-    header p { display: none; }
-    main { max-width: 1200px; margin: 0 auto; padding: 0 0 32px; }
-    main.main-wide { max-width: 1200px; }
-    .page-title { display: none !important; }
-    .open-note, .legend, .cards { display: none !important; }
+    .sidebar-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(15,23,32,.45);
+      z-index: 40;
+    }
+    .sidebar-backdrop.open { display: block; }
+    .sidebar {
+      background: linear-gradient(180deg, var(--sidebar) 0%, var(--sidebar-2) 100%);
+      color: #e8eef4;
+      display: flex; flex-direction: column;
+      padding: 18px 14px 14px;
+      position: sticky; top: 0; height: 100dvh;
+      z-index: 50;
+    }
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 12px;
+      padding: 6px 8px 18px; border-bottom: 1px solid rgba(255,255,255,.08);
+      margin-bottom: 12px;
+    }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(145deg, #d4af37, #9a7418);
+      color: #1a1408; font-weight: 700; font-size: 18px;
+      display: grid; place-items: center; flex-shrink: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    .brand-text strong { display: block; font-size: 15px; letter-spacing: -0.01em; }
+    .brand-text span { display: block; font-size: 11px; color: rgba(232,238,244,.62); margin-top: 2px; }
 
     .tabs {
-      display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; overflow-x: auto;
-      border-bottom: none; padding: 10px 12px 0; background: transparent;
+      display: flex; flex-direction: column; gap: 4px;
+      flex: 1; overflow-y: auto; padding: 4px 0;
       -webkit-overflow-scrolling: touch;
     }
     .tab {
-      padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 500;
-      border: 1px solid transparent; cursor: pointer; flex: 0 0 auto; white-space: nowrap;
-      background: transparent; color: #5f6368; margin-bottom: 0;
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; text-align: left;
+      padding: 11px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;
+      border: none; cursor: pointer; white-space: nowrap;
+      background: transparent; color: rgba(232,238,244,.78);
+      position: relative; font-family: inherit;
     }
-    .tab:hover { background: #fff; color: #202124; }
-    .tab.active { background: #fff; color: #188038; border-color: #ceead6; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .tab .tab-ico { width: 18px; opacity: .85; flex-shrink: 0; }
+    .tab:hover { background: rgba(255,255,255,.06); color: #fff; }
+    .tab.active {
+      background: rgba(31,138,76,.22); color: #fff;
+      box-shadow: inset 3px 0 0 var(--gold);
+    }
+    .tab.active .tab-ico { opacity: 1; }
+
+    .sidebar-user {
+      margin-top: auto; padding: 12px 10px 6px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #2b3d4f; color: #d7e2ec; font-weight: 700; font-size: 13px;
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .user-meta { flex: 1; min-width: 0; }
+    .user-meta #welcome-text {
+      display: block; font-size: 13px; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .user-meta .user-role { font-size: 11px; color: rgba(232,238,244,.55); }
+    .sidebar-user .btn-outline {
+      border-color: rgba(255,255,255,.18); color: #e8eef4; background: transparent;
+      padding: 7px 8px; font-size: 11px;
+    }
+    .sidebar-user .btn-outline:hover { background: rgba(255,255,255,.08); }
+
+    .app-main {
+      min-width: 0; display: flex; flex-direction: column;
+      background: var(--bg);
+    }
+    .topbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px 8px; position: sticky; top: 0; z-index: 20;
+      background: linear-gradient(180deg, var(--bg) 70%, rgba(238,241,244,0));
+    }
+    .menu-toggle {
+      display: none; width: 42px; height: 42px; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--surface); cursor: pointer;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .menu-toggle span {
+      display: block; width: 16px; height: 2px; background: var(--ink); position: relative;
+    }
+    .menu-toggle span::before, .menu-toggle span::after {
+      content: ""; position: absolute; left: 0; width: 16px; height: 2px; background: var(--ink);
+    }
+    .menu-toggle span::before { top: -5px; }
+    .menu-toggle span::after { top: 5px; }
+    .page-title { flex: 1; min-width: 0; display: block !important; }
+    .page-title h2 {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .page-title p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .topbar-meta {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+    }
+    .topbar-chip {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+      padding: 8px 12px; font-size: 12px; color: var(--muted); white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+    #row-count { font-size: 12px; color: var(--muted); font-weight: 600; }
+
+    main { max-width: none; margin: 0; padding: 0 20px calc(28px + var(--safe-b)); flex: 1; }
+    main.main-wide { max-width: none; }
+    .open-note, .legend, .cards { display: none !important; }
 
     .toolbar { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 6px 10px; border-bottom: 1px solid #e8eaed; background: #fff; }
     .toolbar-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -83,8 +199,8 @@
     }
 
     .filter-panel {
-      background: #fff; border: none; border-radius: 16px;
-      padding: 12px; margin: 8px 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 14px; margin: 0 0 12px; box-shadow: var(--shadow);
     }
 
     .sheet-search-row {
@@ -242,9 +358,87 @@
     .btn-sm.primary { background: #188038; color: #fff; border-color: #188038; }
     .btn-sm.active-filter-btn { background: #e6f4ea; border-color: #137333; color: #137333; }
 
-    .table-wrap { background: #fff; border: 1px solid #e8eaed; border-radius: 8px; overflow: hidden; box-shadow: none; margin: 0 12px; }
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      overflow: hidden; box-shadow: var(--shadow); margin: 0;
+    }
     .props-table-scroll { display: block !important; }
     .scroll { overflow: auto; -webkit-overflow-scrolling: touch; max-height: calc(100dvh - 200px); }
+
+    /* Compact sheet-like property list — all fields visible, no clipped columns */
+    .prop-list-head {
+      display: grid;
+      grid-template-columns: 104px minmax(0, 1.4fr) minmax(140px, 0.9fr);
+      gap: 12px; align-items: center;
+      padding: 8px 12px; background: #f3f5f7; border-bottom: 1px solid var(--line);
+      font-size: 11px; font-weight: 600; color: #6b7785;
+      position: sticky; top: 0; z-index: 2;
+    }
+    .prop-list { display: flex; flex-direction: column; }
+    .prop-sheet-row {
+      display: grid;
+      grid-template-columns: 104px minmax(0, 1.4fr) minmax(140px, 0.9fr);
+      gap: 12px; align-items: start;
+      padding: 12px; border-bottom: 1px solid #eef1f4;
+      cursor: pointer; background: #fff;
+    }
+    .prop-sheet-row:nth-child(even) { background: #fafbfc; }
+    .prop-sheet-row:hover { background: #eef6f1; }
+    .prop-sheet-main { min-width: 0; }
+    .prop-sheet-top {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px;
+      margin-bottom: 4px;
+    }
+    .prop-sheet-top .code { font-weight: 700; font-size: 13px; color: var(--ink); }
+    .prop-sheet-top .date { font-size: 12px; color: #6b7785; font-variant-numeric: tabular-nums; }
+    .prop-sheet-project {
+      font-size: 14px; font-weight: 600; color: #15202b; line-height: 1.35;
+      word-break: break-word;
+    }
+    .prop-sheet-project .prop-project-link {
+      display: inline; padding: 0; margin: 0; border: 0; background: none;
+      font: inherit; font-weight: 600; color: #137333; cursor: pointer; text-align: left;
+      text-decoration: none;
+    }
+    .prop-sheet-project .prop-project-link:hover { text-decoration: underline; }
+    .prop-sheet-meta {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
+    }
+    .prop-sheet-meta .meta-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500;
+      background: #f1f3f5; color: #3c4043; border: 1px solid #e3e8ee;
+      max-width: 100%;
+    }
+    .prop-sheet-meta .meta-chip strong { font-weight: 600; color: #6b7785; font-size: 10px; }
+    .prop-sheet-meta .meta-chip.loc { background: #e8f5e9; border-color: #c8e6c9; color: #137333; }
+    .prop-sheet-side {
+      text-align: right; min-width: 0;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+    }
+    .prop-sheet-side .price-stack { align-items: flex-end; }
+    .prop-sheet-side .price-stack .rent { color: #137333; font-weight: 700; font-size: 14px; }
+    .prop-sheet-side .price-stack .sale { color: #1967d2; font-weight: 600; font-size: 12px; }
+    .prop-sheet-side .price-stack .muted { color: #9aa0a6; font-size: 11px; }
+    .prop-sheet-side .side-note { font-size: 11px; color: #6b7785; }
+    .prop-list .empty {
+      padding: 28px 16px; text-align: center; color: #6b7785; font-size: 13px;
+    }
+    .prop-list .empty span { display: block; font-weight: 600; color: #15202b; margin-bottom: 4px; }
+
+    .prop-sheet-thumb { flex-shrink: 0; }
+    .prop-thumb {
+      width: 96px; height: 96px; border-radius: 12px; object-fit: cover;
+      background: #eef1f4; border: 1px solid #e3e8ee; display: block;
+    }
+    .prop-thumb-ph {
+      width: 96px; height: 96px; border-radius: 12px;
+      background: linear-gradient(135deg, #eef1f4, #e3e8ee);
+      border: 1px solid #e3e8ee; color: #9aa0a6; font-size: 11px;
+      display: grid; place-items: center; line-height: 1.2; text-align: center; padding: 6px;
+    }
+    .price-stack { display: flex; flex-direction: column; gap: 1px; line-height: 1.2; }
+
     table { min-width: 960px; width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
     th {
       position: sticky; top: 0; z-index: 2; background: #f8f9fa; text-align: left;
@@ -255,8 +449,6 @@
       padding: 5px 8px; border-bottom: 1px solid #f1f3f4; vertical-align: middle;
       background: #fff; line-height: 1.35; white-space: nowrap;
     }
-    #props-panel td.col-project { white-space: normal; max-width: 220px; font-weight: 500; color: #202124; }
-    #props-panel td.col-loc { white-space: normal; max-width: 220px; color: #5f6368; font-size: 11px; }
     .prop-loc-bubbles { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
     .prop-loc-bubble {
       display: inline-flex; align-items: center;
@@ -343,16 +535,73 @@
     .result-count { font-weight: 600; color: #202124; }
 
     .tab-badge {
-      display: inline-block; min-width: 14px; padding: 0 4px; margin-left: 3px;
-      border-radius: 3px; background: #e8eaed; color: #5f6368;
-      font-size: 10px; font-weight: 500; line-height: 14px; vertical-align: middle;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; padding: 0 5px; margin-left: auto;
+      border-radius: 999px; background: rgba(255,255,255,.14); color: #fff;
+      font-size: 10px; font-weight: 700; line-height: 1;
     }
-    .tab.active .tab-badge { background: #e6f4ea; color: #137333; }
+    .tab.active .tab-badge { background: var(--gold); color: #1a1408; }
 
     .queue-add, .add-panel {
-      background: #fff; border: none;
-      border-radius: 16px; padding: 16px; margin: 8px 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 16px; margin: 0 0 12px;
+      box-shadow: var(--shadow);
+    }
+    .fu-due { color: #b45309; font-weight: 600; }
+    .fu-overdue { color: #b91c1c; font-weight: 700; }
+    .fu-status {
+      display: inline-block; padding: 2px 7px; border-radius: 999px;
+      font-size: 10px; font-weight: 600; background: #f4f4f5; color: #3f3f46;
+    }
+    .fu-status.due { background: #fef3c7; color: #92400e; }
+    .fu-status.high { background: #fee2e2; color: #991b1b; }
+    .fu-recommend-box {
+      margin-top: 10px; padding: 12px; border: 1px solid #e4e4e7; border-radius: 10px; background: #fafafa;
+    }
+    .fu-rec-item {
+      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start;
+      padding: 10px 0; border-bottom: 1px solid #eee; font-size: 12px;
+    }
+    .fu-rec-item:last-child { border-bottom: none; }
+    .fu-rec-meta { color: #71717a; font-size: 11px; margin-top: 3px; line-height: 1.45; }
+    .fu-form-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px;
+    }
+    .fu-form-grid label { display: block; margin: 0; font-size: 11px; color: #52525b; }
+    .fu-form-grid label span { display: block; margin-bottom: 3px; }
+    .fu-form-grid input, .fu-form-grid select, .fu-form-grid textarea {
+      width: 100%; padding: 7px 9px; border: 1px solid #d4d4d8; border-radius: 8px;
+      font-size: 13px; font-family: inherit; box-sizing: border-box;
+    }
+    .fu-form-grid .fu-wide { grid-column: 1 / -1; }
+    .fu-picker {
+      border: 1px solid #d4d4d8; border-radius: 8px; background: #fff; padding: 6px 8px;
+    }
+    .fu-picker-chips {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; min-height: 0;
+    }
+    .fu-picker-chips:empty { display: none; margin: 0; }
+    .fu-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 999px; background: #e6f4ea; color: #137333;
+      font-size: 11px; font-weight: 600; border: 0; cursor: pointer; font-family: inherit;
+    }
+    .fu-chip .x { opacity: .7; font-weight: 700; }
+    .fu-picker-q {
+      width: 100%; border: 0 !important; padding: 4px 2px !important; outline: none;
+      font-size: 13px; background: transparent;
+    }
+    .fu-picker-panel {
+      max-height: 180px; overflow: auto; margin-top: 4px;
+      border-top: 1px solid #f0f0f0; padding-top: 4px;
+    }
+    .fu-picker-panel .check-item { font-size: 12px; padding: 3px 0; }
+    .fu-picker-panel .check-item .fu-opt-meta {
+      display: block; font-size: 10px; color: #71717a; font-weight: 400; margin-left: 24px; margin-top: -2px;
+    }
+    .fu-picker-hint { font-size: 10px; color: #a1a1aa; margin-top: 2px; }
+    @media (max-width: 700px) {
+      .fu-form-grid { grid-template-columns: 1fr; }
     }
     .add-panel { max-width: none; }
     .phase-banner {
@@ -546,8 +795,9 @@
     }
     .project-view-banner {
       display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
-      margin: 8px 12px 0; padding: 10px 14px; border-radius: 12px;
+      margin: 0 0 12px; padding: 10px 14px; border-radius: 12px;
       background: #e6f4ea; color: #137333; font-size: 13px; font-weight: 500;
+      box-shadow: var(--shadow);
     }
     .project-view-banner.hidden { display: none !important; }
     .project-actions { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -567,9 +817,9 @@
     .submenu-bar {
       position: sticky; top: 0; z-index: 30;
       display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-      margin: 0 12px; padding: 10px 12px;
-      background: #fff; border: 1px solid #ceead6; border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      margin: 0 0 12px; padding: 10px 12px;
+      background: var(--surface); border: 1px solid #ceead6; border-radius: 12px;
+      box-shadow: var(--shadow);
     }
     .submenu-bar.hidden { display: none !important; }
     .submenu-bar-title {
@@ -583,37 +833,83 @@
     .edit-banner.hidden { display: none !important; }
 
     @media (max-width: 768px) {
-      header { flex-wrap: wrap; padding: 10px 12px; }
-      header h1 { font-size: 16px; }
-      .tabs { padding: 8px 8px 0; gap: 4px; }
-      .tab { padding: 7px 12px; font-size: 12px; }
-      .filter-panel { margin: 8px; padding: 10px; border-radius: 12px; }
+      .app-shell { grid-template-columns: 1fr; }
+      .menu-toggle { display: inline-flex; }
+      .sidebar {
+        position: fixed; left: 0; top: 0; bottom: 0; width: min(86vw, 280px);
+        transform: translateX(-105%); transition: transform .22s ease;
+        box-shadow: 8px 0 30px rgba(0,0,0,.25);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .topbar { padding: 12px 12px 6px; }
+      .page-title h2 { font-size: 18px; }
+      .topbar-chip { display: none; }
+      .filter-panel { margin: 0 0 10px; padding: 10px; border-radius: 12px; }
       .sheet-search-row { flex-wrap: wrap; gap: 6px; align-items: stretch; }
       .sheet-search-fields { flex: 1 1 100%; grid-template-columns: 1fr; }
       .sheet-search-actions { flex: 1 1 100%; }
       .sheet-search-row .search-suggest-wrap { flex: 1 1 100%; }
-      .sheet-search-row .smart-search { flex: 1 1 100%; padding: 11px 12px; font-size: 16px; /* prevent iOS zoom */ }
+      .sheet-search-row .smart-search { flex: 1 1 100%; padding: 11px 12px; font-size: 16px; }
       .sheet-search-row .btn-sm { padding: 8px 10px; font-size: 12px; flex: 1 1 auto; }
       .search-suggest { max-height: min(50dvh, 280px); }
       .status-bar { padding: 8px 12px; gap: 8px; }
       .status-bar .sort-wrap { margin-left: 0; width: 100%; justify-content: space-between; }
       .status-bar .sort-wrap select { flex: 1; min-width: 0; }
-      .table-wrap { margin: 0; border-radius: 0; border-left: none; border-right: none; }
-      .scroll { max-height: calc(100dvh - 250px); }
-      #props-panel table { min-width: 640px; font-size: 11px; }
-      #props-panel th, #props-panel td { padding: 7px 6px; }
-      #props-panel .col-hide-sm { display: none !important; }
-      #props-panel td.col-project { max-width: 140px; }
+      .table-wrap { margin: 0; border-radius: 12px; }
+      .scroll { max-height: calc(100dvh - 280px); }
+      .prop-list-head {
+        grid-template-columns: 80px minmax(0, 1fr);
+        padding: 8px 10px;
+      }
+      .prop-list-head .head-side { display: none; }
+      .prop-sheet-row {
+        grid-template-columns: 80px minmax(0, 1fr);
+        gap: 10px; padding: 10px;
+      }
+      .prop-sheet-side {
+        grid-column: 2; flex-direction: row; flex-wrap: wrap;
+        justify-content: flex-start; align-items: center; gap: 8px;
+        text-align: left; margin-top: 2px;
+      }
+      .prop-sheet-side .price-stack { flex-direction: row; align-items: baseline; gap: 8px; }
+      .prop-thumb, .prop-thumb-ph { width: 80px; height: 80px; font-size: 10px; }
       .add-panel { max-width: none; padding: 10px; }
       .add-grid { grid-template-columns: 1fr !important; }
-      main { max-width: none; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+      main { padding: 0 12px calc(78px + var(--safe-b)); }
       .btn-sm.primary { flex: 1 1 40%; }
+      /* Mobile bottom nav — mirror of sidebar tabs */
+      .mobile-nav {
+        display: grid; grid-template-columns: repeat(6, 1fr);
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+        background: #15202b; border-top: 1px solid rgba(255,255,255,.08);
+        padding: 6px 2px calc(6px + var(--safe-b));
+        box-shadow: 0 -8px 24px rgba(0,0,0,.18);
+      }
+      .mobile-nav button {
+        appearance: none; border: none; background: transparent; color: rgba(232,238,244,.7);
+        font-family: inherit; font-size: 9px; font-weight: 600; padding: 6px 1px;
+        display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+        min-height: 44px;
+      }
+      .mobile-nav button.active { color: #fff; }
+      .mobile-nav button svg { width: 18px; height: 18px; }
+      .mobile-nav .nav-badge {
+        position: absolute; top: 2px; right: calc(50% - 18px);
+        min-width: 14px; height: 14px; padding: 0 3px; border-radius: 999px;
+        background: var(--gold); color: #1a1408; font-size: 9px; font-weight: 700;
+        display: none; align-items: center; justify-content: center;
+      }
+      .mobile-nav button { position: relative; }
+      .mobile-nav .nav-badge.show { display: inline-flex; }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-nav { display: none !important; }
     }
 
     @media (min-width: 769px) and (max-width: 1100px) {
-      #props-panel .col-hide-md { display: none !important; }
-      #props-panel table { min-width: 780px; }
-      main { max-width: 100%; padding: 0 8px 32px; }
+      #props-panel table { min-width: 0; }
+      main { padding: 0 14px 28px; }
     }
 
   </style>
@@ -650,41 +946,76 @@
 
   <!-- APP -->
   <div id="app-screen" class="hidden">
-    <header>
-      <div>
-        <h1>Property Hub</h1>
-        <p id="welcome-text">สวัสดี</p>
-      </div>
-      <button type="button" class="btn btn-outline" id="logout-btn">ออกจากระบบ</button>
-    </header>
+    <div class="app-shell">
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+      <aside class="sidebar" id="app-sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-mark">P</div>
+          <div class="brand-text">
+            <strong>Property Hub</strong>
+            <span>ระบบจัดการทรัพย์ PTP</span>
+          </div>
+        </div>
+        <nav class="tabs" id="view-tabs" aria-label="เมนูหลัก">
+          <button type="button" class="tab active" data-view="properties">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
+            ทรัพย์
+          </button>
+          <button type="button" class="tab" data-view="queue">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+            รอโพสต์<span class="tab-badge hidden" id="queue-badge">0</span>
+          </button>
+          <button type="button" class="tab" data-view="followup">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
+            ฟอโล่ว<span class="tab-badge hidden" id="followup-badge">0</span>
+          </button>
+          <button type="button" class="tab" data-view="projects">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg>
+            โครงการ
+          </button>
+          <button type="button" class="tab" data-view="groups">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            กลุ่ม FB
+          </button>
+          <button type="button" class="tab" data-view="add">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+            เพิ่มทรัพย์
+          </button>
+        </nav>
+        <div class="sidebar-user">
+          <div class="user-avatar" id="user-avatar">P</div>
+          <div class="user-meta">
+            <span id="welcome-text">สวัสดี</span>
+            <span class="user-role">ทีม PTP</span>
+          </div>
+          <button type="button" class="btn btn-outline" id="logout-btn">ออก</button>
+        </div>
+      </aside>
 
-    <main>
+      <div class="app-main">
+        <header class="topbar">
+          <button type="button" class="menu-toggle" id="menu-toggle" aria-label="เปิดเมนู"><span></span></button>
+          <div class="page-title">
+            <h2 id="panel-title">ภาพรวมทรัพย์</h2>
+            <p id="panel-sub">ค้นหา · กรอง · จัดการรายการจากชีทและ Hub</p>
+          </div>
+          <div class="topbar-meta">
+            <span class="topbar-chip" id="topbar-date">—</span>
+            <span class="topbar-chip" id="row-count">—</span>
+          </div>
+        </header>
+
+        <main>
 
       <!-- stats kept for JS -->
       <div class="hidden" id="stats-hidden">
         <span id="stat-projects"></span><span id="stat-props"></span><span id="stat-active"></span><span id="stat-archived"></span><span id="stat-dup"></span><span id="stat-rent"></span><span id="stat-sale"></span>
       </div>
 
-<div class="tabs" id="view-tabs">
-        <button class="tab active" data-view="properties">ทรัพย์</button>
-        <button class="tab" data-view="queue">รอโพสต์<span class="tab-badge hidden" id="queue-badge">0</span></button>
-        <button class="tab" data-view="projects">โครงการ</button>
-        <button class="tab" data-view="groups">กลุ่ม FB</button>
-        <button class="tab" data-view="add">+ เพิ่ม</button>
-      </div>
-
       <div id="submenu-bar" class="submenu-bar hidden">
         <button type="button" class="btn-sm" id="submenu-back">← ย้อนกลับ</button>
         <span class="submenu-bar-title" id="submenu-title">เมนูย่อย</span>
         <button type="button" class="btn-sm primary hidden" id="submenu-save">บันทึก</button>
-      </div>
-
-      <div class="page-title" style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:8px;">
-        <div>
-          <h2 id="panel-title">ตารางทรัพย์</h2>
-          <p id="panel-sub">ทั้งหมดจากชีt — เช่า/ขาย/ย้อนหลัง (ไม่รวมแถวว่างและไม่มีลิงก์)</p>
-        </div>
-        <span id="row-count" style="font-size:12px;color:#a1a1aa;">—</span>
       </div>
 
 <div class="filter-panel" id="filter-panel">
@@ -804,6 +1135,17 @@
                   <input type="number" id="f-sale-max" placeholder="สูงสุด" min="0" step="100000" />
                 </div>
               </div>
+              <div class="filter-field">
+                <span>ขนาด (ตร.ม.)</span>
+                <div class="price-row">
+                  <input type="number" id="f-size-min" placeholder="ต่ำสุด" min="0" step="1" />
+                  <input type="number" id="f-size-max" placeholder="สูงสุด" min="0" step="1" />
+                </div>
+              </div>
+              <div class="filter-field">
+                <span>ชั้น</span>
+                <input type="text" id="f-floor" placeholder="เช่น 12 หรือ 5-15" />
+              </div>
               <div class="filter-field" style="grid-column:1/-1">
                 <span>ทำเล / โซน</span>
                 <input type="search" id="f-zone-q" class="filter-list-search" placeholder="ค้นหาทำเล เช่น ทองหล่อ, RCA, พร้อมพงษ์…" autocomplete="off" />
@@ -830,9 +1172,6 @@
         <div id="power-filters" class="hidden" aria-hidden="true">
           <select id="f-era"><option value=""></option><option value="active"></option><option value="archived"></option><option value="needs_review"></option></select>
           <select id="f-dup"><option value=""></option><option value="any"></option><option value="code"></option><option value="url"></option><option value="relist"></option></select>
-          <input type="number" id="f-size-min" />
-          <input type="number" id="f-size-max" />
-          <input type="text" id="f-floor" />
           <select id="f-days"><option value=""></option><option value="7"></option><option value="30"></option><option value="60"></option><option value="90"></option></select>
           <select id="f-media"><option value=""></option><option value="has_link"></option><option value="none"></option></select>
           <div id="smart-hints">
@@ -871,29 +1210,13 @@
       </div>
 
       <div class="table-wrap" id="props-panel">
-        <div class="prop-cards" id="prop-cards"></div>
+        <div class="prop-list-head">
+          <span>รูป</span>
+          <span>รหัส · วันที่ · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล</span>
+          <span class="head-side">ราคา</span>
+        </div>
         <div class="scroll props-table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th class="col-code">รหัส</th>
-                <th>วันที่</th>
-                <th>โครงการ</th>
-                <th class="col-hide-sm">ประเภท</th>
-                <th>ห้อง</th>
-                <th class="col-hide-sm">ขนาด</th>
-                <th class="col-hide-sm">ชั้น</th>
-                <th>เช่า</th>
-                <th class="col-hide-sm col-hide-md">ขาย</th>
-                <th class="col-loc col-hide-sm">ทำเล / BTS</th>
-                <th class="col-hide-sm">ต้นทาง</th>
-                <th class="col-hide-sm">เจ้าของ</th>
-                <th class="col-hide-sm">โพสต์</th>
-                <th class="col-hide-sm">เพจ</th>
-              </tr>
-            </thead>
-            <tbody id="property-rows"></tbody>
-          </table>
+          <div id="property-rows" class="prop-list"></div>
         </div>
       </div>
 
@@ -940,6 +1263,177 @@
                 </tr>
               </thead>
               <tbody id="queue-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="hidden" id="followup-panel">
+        <div class="queue-add">
+          <p style="font-size:12px;color:#71717a;margin-bottom:10px;line-height:1.5">
+            เคสลูกค้าที่ต้องฟอโล่ว — กรอกโจทย์แล้วกด<strong>แนะนำทรัพย์</strong>ให้ระบบดึงจากลิสต์ใน Hub ที่ตรงงบ/ทำเล/BTS/ห้องนอน<br/>
+            บันทึกรหัสที่เสนอ / นัดดู ในเคสเดียวกัน · ส่งออก CSV ได้สำหรับวางในชีททดลอง
+          </p>
+          <input type="hidden" id="fu-edit-id" value="" />
+          <div class="fu-form-grid" id="fu-form">
+            <label><span>ชื่อในแชท *</span><input id="fu-chat-name" placeholder="ชื่อไลน์ / เฟส" /></label>
+            <label><span>ประเภทลูกค้า</span>
+              <select id="fu-customer-kind">
+                <option value="direct">ลูกค้าตรง</option>
+                <option value="co_agent">โคเอเจนต์</option>
+              </select>
+            </label>
+            <label><span>ช่องทาง</span>
+              <select id="fu-channel">
+                <option>LINE OA</option>
+                <option>คุยไลน์ส่วนตัว</option>
+                <option>Facebook</option>
+                <option>IG</option>
+                <option>Co-agent</option>
+                <option>โทร</option>
+                <option>อื่น</option>
+              </select>
+            </label>
+            <label><span>เบอร์</span><input id="fu-phone" placeholder="08x" /></label>
+            <label><span>LINE ID</span><input id="fu-line-id" /></label>
+            <label><span>ผู้รับผิดชอบ</span><input id="fu-owner" placeholder="แอดมิน" /></label>
+            <label id="fu-co-agent-wrap"><span>ชื่อโคเอเจนต์</span><input id="fu-co-agent" placeholder="ชื่อเอเจนต์ที่ส่งเคสมา" /></label>
+            <label><span>ประเภทดีล</span>
+              <select id="fu-deal">
+                <option value="rent">เช่า</option>
+                <option value="sale">ซื้อ</option>
+                <option value="both">เช่า+ซื้อ</option>
+              </select>
+            </label>
+            <label class="fu-wide"><span>รหัสห้องที่ลูกค้าติดต่อเข้ามา (จากลิสต์ทรัพย์)</span>
+              <div class="fu-picker" data-fu-picker="inquiry">
+                <div class="fu-picker-chips" id="fu-inquiry-chips"></div>
+                <input type="search" class="fu-picker-q" id="fu-inquiry-q" placeholder="พิมพ์รหัสหรือโครงการที่ลูกค้าทักมา เช่น PTP8123" autocomplete="off" />
+                <div class="fu-picker-panel"><div class="check-group short" id="fu-inquiry-list"></div></div>
+              </div>
+              <div class="fu-picker-hint">ห้องต้นทางที่ลูกค้าสนใจก่อนเสนอเพิ่ม</div>
+            </label>
+            <label><span>งบต่ำ</span><input id="fu-budget-min" type="number" min="0" placeholder="15000" /></label>
+            <label><span>งบสูง</span><input id="fu-budget-max" type="number" min="0" placeholder="25000" /></label>
+            <label class="fu-wide"><span>ทำเลที่ต้องการ (จากฐานข้อมูล)</span>
+              <div class="fu-picker" data-fu-picker="zones">
+                <div class="fu-picker-chips" id="fu-zones-chips"></div>
+                <input type="search" class="fu-picker-q" id="fu-zones-q" placeholder="พิมพ์ค้นทำเล เช่น ทองหล่อ แล้วติ๊ก" autocomplete="off" />
+                <div class="fu-picker-panel"><div class="check-group short" id="fu-zones-list"></div></div>
+              </div>
+              <div class="fu-picker-hint">ติ๊กได้หลายอัน · ใช้จับคู่แนะนำทรัพย์</div>
+            </label>
+            <label class="fu-wide"><span>BTS / MRT (จากฐานข้อมูล)</span>
+              <div class="fu-picker" data-fu-picker="transits">
+                <div class="fu-picker-chips" id="fu-transits-chips"></div>
+                <input type="search" class="fu-picker-q" id="fu-transits-q" placeholder="พิมพ์ค้นสถานี เช่น BTS ทองหล่อ" autocomplete="off" />
+                <div class="fu-picker-panel"><div class="check-group short" id="fu-transits-list"></div></div>
+              </div>
+            </label>
+            <label class="fu-wide"><span>ห้องนอน</span>
+              <div class="check-group inline-row short" id="fu-beds-list" style="border:1px solid #d4d4d8;border-radius:8px;padding:8px 10px;background:#fff">
+                <label class="check-item"><input type="checkbox" value="studio" /> Studio</label>
+                <label class="check-item"><input type="checkbox" value="1" /> 1 นอน</label>
+                <label class="check-item"><input type="checkbox" value="2" /> 2 นอน</label>
+                <label class="check-item"><input type="checkbox" value="3" /> 3+ นอน</label>
+                <label class="check-item"><input type="checkbox" value="duplex" /> Duplex</label>
+                <label class="check-item"><input type="checkbox" value="penthouse" /> Penthouse</label>
+              </div>
+            </label>
+            <label class="fu-wide"><span>ประเภททรัพย์</span>
+              <div class="fu-picker" data-fu-picker="types">
+                <div class="fu-picker-chips" id="fu-types-chips"></div>
+                <input type="search" class="fu-picker-q" id="fu-types-q" placeholder="พิมพ์ค้นประเภท" autocomplete="off" />
+                <div class="fu-picker-panel"><div class="check-group short" id="fu-types-list"></div></div>
+              </div>
+            </label>
+            <label><span>ทักซ้ำในอีกกี่วัน</span><input id="fu-follow-days" type="number" min="0" value="3" /></label>
+            <label><span>สถานะ</span>
+              <select id="fu-status">
+                <option value="new">ใหม่</option>
+                <option value="waiting_info">รอข้อมูล</option>
+                <option value="offered">เสนอแล้ว</option>
+                <option value="viewing">นัดดู</option>
+                <option value="deciding">รอตัดสินใจ</option>
+                <option value="reserved">จอง/มัดจำ</option>
+                <option value="paused">พัก</option>
+                <option value="closed_won">ปิดได้</option>
+                <option value="closed_lost">หลุด</option>
+              </select>
+            </label>
+            <label><span>ลำดับความสำคัญ</span>
+              <select id="fu-priority">
+                <option value="normal">กลาง</option>
+                <option value="high">สูง</option>
+                <option value="low">ต่ำ</option>
+              </select>
+            </label>
+            <label><span>เข้าอยู่ได้เมื่อ</span><input id="fu-move-in" placeholder="ด่วน / 1 ส.ค." /></label>
+            <label class="fu-wide"><span>โจทย์สั้นๆ</span>
+              <textarea id="fu-brief" rows="2" placeholder="คอนโดเอกมัย 1 BR ใกล้รถไฟฟ้า งบ 2หมื่น"></textarea>
+            </label>
+            <label class="fu-wide"><span>สัตว์เลี้ยง / ที่จอด / ข้อจำกัด</span>
+              <input id="fu-constraints" placeholder="เลี้ยงแมวได้, ต้องการที่จอด" />
+            </label>
+            <label class="fu-wide"><span>รหัสที่เสนอแล้ว (จากลิสต์ทรัพย์)</span>
+              <div class="fu-picker" data-fu-picker="offered">
+                <div class="fu-picker-chips" id="fu-offered-chips"></div>
+                <input type="search" class="fu-picker-q" id="fu-offered-q" placeholder="พิมพ์รหัสหรือชื่อโครงการ เช่น PTP8123 / Thru" autocomplete="off" />
+                <div class="fu-picker-panel"><div class="check-group short" id="fu-offered-list"></div></div>
+              </div>
+              <div class="fu-picker-hint">ติ๊กจากฐานทรัพย์ · หรือกด「+ เสนอแล้ว」หลังแนะนำ</div>
+            </label>
+            <label class="fu-wide"><span>รหัสที่นัดดู</span>
+              <div class="fu-picker" data-fu-picker="viewing">
+                <div class="fu-picker-chips" id="fu-viewing-chips"></div>
+                <input type="search" class="fu-picker-q" id="fu-viewing-q" placeholder="พิมพ์รหัสหรือโครงการแล้วติ๊ก" autocomplete="off" />
+                <div class="fu-picker-panel"><div class="check-group short" id="fu-viewing-list"></div></div>
+              </div>
+            </label>
+            <label class="fu-wide"><span>รหัสจอง / มัดจำ</span>
+              <div class="fu-picker" data-fu-picker="reserved">
+                <div class="fu-picker-chips" id="fu-reserved-chips"></div>
+                <input type="search" class="fu-picker-q" id="fu-reserved-q" placeholder="พิมพ์รหัสแล้วติ๊ก" autocomplete="off" />
+                <div class="fu-picker-panel"><div class="check-group short" id="fu-reserved-list"></div></div>
+              </div>
+            </label>
+            <label class="fu-wide"><span>โน้ตฟอโล่วล่าสุด</span><input id="fu-note" /></label>
+            <label class="fu-wide"><span>เหตุผลหลุด (ถ้ามี)</span><input id="fu-lost" /></label>
+          </div>
+          <div class="toolbar-row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+            <button type="button" class="btn-sm primary" id="fu-save-btn">+ บันทึกเคส</button>
+            <button type="button" class="btn-sm" id="fu-clear-btn">ล้างฟอร์ม</button>
+            <button type="button" class="btn-sm primary" id="fu-recommend-form-btn" title="ใช้โจทย์ในฟอร์มแม้ยังไม่บันทึก">แนะนำทรัพย์จากโจทย์</button>
+            <button type="button" class="btn-sm" id="fu-export-btn">ส่งออก CSV ชีท</button>
+            <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#52525b">
+              <input type="checkbox" id="fu-show-closed" style="width:auto" />
+              แสดงที่ปิดแล้ว
+            </label>
+            <span id="fu-stats" style="font-size:12px;color:#71717a;margin-left:auto"></span>
+          </div>
+          <div id="fu-recommend-box" class="fu-recommend-box hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <strong style="font-size:13px" id="fu-recommend-title">ทรัพย์แนะนำ</strong>
+              <button type="button" class="btn-sm" id="fu-recommend-close">ปิด</button>
+            </div>
+            <div id="fu-recommend-list" style="margin-top:8px;max-height:420px;overflow:auto">—</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:88px">เคส</th>
+                  <th>ลูกค้า · โจทย์</th>
+                  <th style="width:100px">งบ</th>
+                  <th style="width:88px">ฟอโล่ว</th>
+                  <th style="width:72px">สถานะ</th>
+                  <th>เสนอ / นัดดู</th>
+                  <th style="min-width:200px">ทำอะไร</th>
+                </tr>
+              </thead>
+              <tbody id="followup-rows"></tbody>
             </table>
           </div>
         </div>
@@ -1257,6 +1751,35 @@
         </div>
       </div>
     </main>
+
+        <nav class="mobile-nav" id="mobile-nav" aria-label="เมนูมือถือ">
+          <button type="button" data-view="properties" class="active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
+            ทรัพย์
+          </button>
+          <button type="button" data-view="queue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+            คิว<span class="nav-badge" id="mobile-queue-badge">0</span>
+          </button>
+          <button type="button" data-view="followup">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
+            ฟอโล่ว<span class="nav-badge" id="mobile-followup-badge">0</span>
+          </button>
+          <button type="button" data-view="projects">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg>
+            โครงการ
+          </button>
+          <button type="button" data-view="groups">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>
+            กลุ่ม
+          </button>
+          <button type="button" data-view="add">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+            เพิ่ม
+          </button>
+        </nav>
+      </div>
+    </div>
   </div>
 
   <div class="modal-backdrop hidden" id="new-project-modal">
@@ -1297,7 +1820,19 @@
     function showApp(name) {
       loginScreen.classList.add("hidden");
       appScreen.classList.remove("hidden");
-      welcomeText.textContent = "สวัสดี, " + name;
+      welcomeText.textContent = name || "ผู้ใช้";
+      var av = document.getElementById("user-avatar");
+      if (av) av.textContent = String(name || "P").trim().charAt(0).toUpperCase() || "P";
+      var dateEl = document.getElementById("topbar-date");
+      if (dateEl) {
+        try {
+          dateEl.textContent = new Date().toLocaleDateString("th-TH", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric"
+          });
+        } catch (e) {
+          dateEl.textContent = new Date().toLocaleDateString("th-TH");
+        }
+      }
       sessionStorage.setItem("ptp_logged_in", name);
     }
 
@@ -1333,6 +1868,40 @@
     });
 
     logoutBtn.addEventListener("click", showLogin);
+
+    (function initAppShell() {
+      var sidebar = document.getElementById("app-sidebar");
+      var backdrop = document.getElementById("sidebar-backdrop");
+      var menuBtn = document.getElementById("menu-toggle");
+      function closeSidebar() {
+        if (sidebar) sidebar.classList.remove("open");
+        if (backdrop) backdrop.classList.remove("open");
+      }
+      function openSidebar() {
+        if (sidebar) sidebar.classList.add("open");
+        if (backdrop) backdrop.classList.add("open");
+      }
+      if (menuBtn) {
+        menuBtn.addEventListener("click", function () {
+          if (sidebar && sidebar.classList.contains("open")) closeSidebar();
+          else openSidebar();
+        });
+      }
+      if (backdrop) backdrop.addEventListener("click", closeSidebar);
+      window.closeAppSidebar = closeSidebar;
+      var mobileNav = document.getElementById("mobile-nav");
+      if (mobileNav) {
+        mobileNav.addEventListener("click", function (e) {
+          var btn = e.target.closest("button[data-view]");
+          if (!btn) return;
+          var view = btn.getAttribute("data-view");
+          document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+            t.classList.toggle("active", t.getAttribute("data-view") === view);
+          });
+          if (typeof switchView === "function") switchView(view);
+        });
+      }
+    })();
 
     let activeView = "properties";
     let page = 0;
@@ -1840,15 +2409,23 @@
       });
     }
 
+    function explodeTransitParts(raw) {
+      var s = String(raw || "").trim();
+      if (!s) return [];
+      return s.split(/[,，/|]| และ /).map(function (p) {
+        return p.trim();
+      }).filter(Boolean);
+    }
+
     function normalizeTransitLabel(raw) {
       var s = String(raw || "").trim().replace(/\s+/g, " ");
       if (!s) return "";
       s = s.replace(/^airport\s*link\s+/i, "ARL ");
+      s = s.replace(/^APL\s+/i, "ARL ");
       var m = s.match(/^(BTS|MRT|ARL)\s*(.+)$/i);
       if (!m) return s.slice(0, 50);
       var rest = m[2].trim()
         .replace(/\s*-\s*/g, "-")
-        .replace(/\s*\/\s*/g, " / ")
         .replace(/\s+/g, " ");
       // พระราม9 → พระราม 9, พหลโยธิน24 → พหลโยธิน 24
       rest = rest.replace(/([^\d\s])(\d)/g, "$1 $2");
@@ -1866,12 +2443,17 @@
       var all = (proj.transit_verified || [])
         .concat(proj.transit_unverified || [])
         .concat(p.transit_from_sheet || []);
-      if (all.some(function (x) {
+      var exploded = [];
+      all.forEach(function (x) {
+        explodeTransitParts(x).forEach(function (part) {
+          exploded.push(normalizeTransitLabel(part));
+        });
+      });
+      if (exploded.some(function (x) {
         var k = transitNormKey(x);
         return k === want || k.indexOf(want) >= 0 || want.indexOf(k) >= 0;
       })) return true;
-      // also allow matching free-text in location_ref / search blob
-      var blob = ((p.location_ref || "") + " " + all.join(" ")).toLowerCase().replace(/\s+/g, "");
+      var blob = ((p.location_ref || "") + " " + exploded.join(" ")).toLowerCase().replace(/\s+/g, "");
       return blob.indexOf(want) >= 0;
     }
 
@@ -2524,6 +3106,9 @@
       if (document.getElementById("f-rent-max").value) n++;
       if (document.getElementById("f-sale-min").value) n++;
       if (document.getElementById("f-sale-max").value) n++;
+      if (document.getElementById("f-size-min").value) n++;
+      if (document.getElementById("f-size-max").value) n++;
+      if (document.getElementById("f-floor").value.trim()) n++;
       return n;
     }
 
@@ -2541,14 +3126,15 @@
         }
         var proj = pmap[p.project_id] || {};
         (proj.transit_verified || []).concat(proj.transit_unverified || []).concat(p.transit_from_sheet || []).forEach(function (t) {
-          if (!/(?:BTS|MRT|ARL|Airport\s*Link)/i.test(t || "")) return;
-          // แยกสถานีที่คั่นด้วย ,
-          String(t).split(/[,，]/).forEach(function (part) {
-            part = part.trim();
-            if (!/(?:BTS|MRT|ARL|Airport\s*Link)/i.test(part)) return;
+          if (!/(?:BTS|MRT|ARL|Airport\s*Link|APL)/i.test(t || "")) return;
+          // แยกสถานีที่คั่นด้วย , / | และ
+          explodeTransitParts(t).forEach(function (part) {
+            if (!/(?:BTS|MRT|ARL|Airport\s*Link|APL)/i.test(part)) return;
             var label = normalizeTransitLabel(part);
             var key = transitNormKey(label);
             if (!key) return;
+            // ข้ามค่าที่ยังเป็น compound (มี / ค้าง)
+            if (key.indexOf("/") >= 0) return;
             if (!transits[key]) transits[key] = { label: label, count: 0 };
             transits[key].count += 1;
             if (/^(BTS|MRT|ARL) /.test(label)) transits[key].label = label;
@@ -2716,7 +3302,7 @@
     function initData() {
       if (!window.PTP_DATA) {
         document.getElementById("property-rows").innerHTML =
-          '<tr><td colspan="11" class="empty"><p>ไม่พบ preview-data.js</p><p>รัน: python3 scripts/build_master.py</p></td></tr>';
+          '<div class="empty"><span>ไม่พบ preview-data.js</span>รัน: python3 scripts/build_master.py</div>';
         return;
       }
       initLinkFields();
@@ -2734,6 +3320,7 @@
       document.getElementById("stat-rent").textContent = rentCount;
       document.getElementById("stat-sale").textContent = saleCount;
       buildFilterOptions();
+      buildFuPickers(false);
       applyFilter();
       renderProjects();
       initAddProjectPicker();
@@ -3706,8 +4293,7 @@
     }
 
     function renderRows() {
-      const tbody = document.getElementById("property-rows");
-      const cards = document.getElementById("prop-cards");
+      const list = document.getElementById("property-rows");
       const total = filteredProps.length;
       const start = page * PAGE_SIZE;
       const slice = filteredProps.slice(start, start + PAGE_SIZE);
@@ -3720,49 +4306,175 @@
       document.getElementById("filter-result").textContent =
         total.toLocaleString("th-TH") + " รายการ";
 
-      if (cards) cards.innerHTML = "";
+      if (!list) return;
 
       if (!slice.length) {
-        if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="14" class="empty"><span>ไม่พบรายการ</span>ลองล้างตัวกรองหรือเปลี่ยนคำค้น</td></tr>';
-        }
+        list.innerHTML = '<div class="empty"><span>ไม่พบรายการ</span>ลองล้างตัวกรองหรือเปลี่ยนคำค้น</div>';
         return;
       }
 
       var collisions = CODE_COLLISIONS_CACHE || (ensureSearchCaches(), CODE_COLLISIONS_CACHE) || {};
-      if (tbody) {
-        tbody.innerHTML = slice.map(function (p) {
-          const proj = window.PTP_DATA.project_map[p.project_id] || {};
-          const name = proj.canonical_name || p.project_name || "—";
-          var bubbles = propLocBubblesHtml(p, proj);
-          var origin = propertyOrigin(p);
-          var originLabel = origin === "hub" ? "Hub" : "ชีท";
-          var num = codeNumericPart(p.code);
-          var warn = (num && collisions[num]) ? ' <span class="prop-card-warn" title="เลขซ้ำคนละรหัส">⚠</span>' : "";
-          return '<tr class="prop-row" data-prop-id="' + esc(p.id) + '">' +
-            '<td class="col-code"><span class="code">' + esc(p.code) + "</span>" +
-              ' <span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + "</td>" +
-            '<td class="muted">' + esc(p.last_listed_at || "—") + "</td>" +
-            '<td class="col-project" title="' + esc(name) + ' — กดเพื่อดูห้องในโครงการนี้">' +
-              (p.project_id
-                ? '<button type="button" class="prop-project-link" data-open-project="' + esc(p.project_id) + '">' + esc(name) + "</button>"
-                : '<div class="prop-name">' + esc(name) + "</div>") +
-              bubbles +
-            "</td>" +
-            '<td class="col-hide-sm">' + esc(propertyTypeLabel(p.property_type)) + "</td>" +
-            '<td>' + esc(p.bedrooms || "—") + "</td>" +
-            '<td class="col-hide-sm">' + formatSizeCell(p.size_sqm) + "</td>" +
-            '<td class="col-hide-sm">' + esc(p.floor || "—") + "</td>" +
-            '<td>' + formatPriceCell(p.rent_price, "rent") + "</td>" +
-            '<td class="col-hide-sm col-hide-md">' + formatPriceCell(p.sale_price, "sale") + "</td>" +
-            '<td class="col-loc col-hide-sm">' + bubbles + "</td>" +
-            '<td class="col-hide-sm">' + linksCell(p) + "</td>" +
-            '<td class="col-hide-sm">' + ownerContactCell(p) + "</td>" +
-            '<td class="col-hide-sm">' + postLinksCell(p, proj) + "</td>" +
-            '<td class="col-hide-sm">' + pageLinkCell(p) + "</td>" +
-            "</tr>";
-        }).join("");
+      list.innerHTML = slice.map(function (p) {
+        const proj = window.PTP_DATA.project_map[p.project_id] || {};
+        const name = proj.canonical_name || p.project_name || "—";
+        var locText = propLocText(p, proj);
+        var origin = propertyOrigin(p);
+        var originLabel = origin === "hub" ? "Hub" : "ชีท";
+        var num = codeNumericPart(p.code);
+        var warn = (num && collisions[num]) ? ' <span class="prop-card-warn" title="เลขซ้ำคนละรหัส">⚠</span>' : "";
+        var previewUrl = propertyPreviewSourceUrl(p);
+        var typeLabel = propertyTypeLabel(p.property_type) || "—";
+        var beds = p.bedrooms || "—";
+        var size = formatSizeCell(p.size_sqm);
+        var floor = p.floor || "—";
+        var projectBtn = p.project_id
+          ? '<button type="button" class="prop-project-link" data-open-project="' + esc(p.project_id) + '">' + esc(name) + "</button>"
+          : esc(name);
+        return '<article class="prop-sheet-row" data-prop-id="' + esc(p.id) + '">' +
+          '<div class="prop-sheet-thumb">' + thumbCellHtml(p, previewUrl) + "</div>" +
+          '<div class="prop-sheet-main">' +
+            '<div class="prop-sheet-top">' +
+              '<span class="code">' + esc(p.code) + "</span>" +
+              '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn +
+              '<span class="date">' + esc(p.last_listed_at || "—") + "</span>" +
+            "</div>" +
+            '<div class="prop-sheet-project" title="' + esc(name) + '">' + projectBtn + "</div>" +
+            '<div class="prop-sheet-meta">' +
+              '<span class="meta-chip"><strong>ห้อง</strong> ' + esc(beds) + "</span>" +
+              '<span class="meta-chip"><strong>ขนาด</strong> ' + (size === "—" ? "—" : size + " ตร.ม.") + "</span>" +
+              '<span class="meta-chip"><strong>ชั้น</strong> ' + esc(floor) + "</span>" +
+              '<span class="meta-chip"><strong>ประเภท</strong> ' + esc(typeLabel) + "</span>" +
+              (locText ? '<span class="meta-chip loc" title="' + esc(locText) + '"><strong>ทำเล</strong> ' + esc(locText) + "</span>" : "") +
+            "</div>" +
+          "</div>" +
+          '<div class="prop-sheet-side">' +
+            priceStackHtml(p) +
+            '<span class="side-note">กดเพื่อแก้ไข</span>' +
+          "</div>" +
+          "</article>";
+      }).join("");
+      scheduleThumbLoads();
+    }
+
+    function propertyPreviewSourceUrl(p) {
+      // ดึงรูปจาก「โพสต์บนเพจ」เท่านั้น
+      var page = (p.post_pages_url || "").trim();
+      return isHttpUrl(page) ? page : "";
+    }
+
+    function thumbCellHtml(p, previewUrl) {
+      if (!previewUrl) {
+        return '<div class="prop-thumb-ph">ไม่มี<br/>เพจ</div>';
       }
+      // โหลดทีละใบผ่านคิว — กันยิง Facebook พร้อมกันแล้วเซิร์ฟเวอร์ค้าง
+      return '<div class="prop-thumb-ph" data-thumb-url="' + esc(previewUrl) + '" title="กำลังดึงรูปจากโพสต์เพจ">…</div>';
+    }
+
+    function priceStackHtml(p) {
+      var rent = formatPriceCell(p.rent_price, "rent");
+      var sale = formatPriceCell(p.sale_price, "sale");
+      var hasRent = hasPrice(p.rent_price);
+      var hasSale = hasPrice(p.sale_price);
+      if (!hasRent && !hasSale) return '<span class="muted">—</span>';
+      return '<div class="price-stack">' +
+        (hasRent ? rent : '<span class="muted">—</span>') +
+        (hasSale ? sale : "") +
+        "</div>";
+    }
+
+    function propLocText(p, proj) {
+      var tags = propMasterTags(p, proj);
+      var zones = (tags.zones || []).slice(0, 2);
+      var transit = (tags.transit || []).slice(0, 2);
+      return zones.concat(transit).join(" · ");
+    }
+
+    var THUMB_CACHE = {};
+    var thumbObserver = null;
+    var thumbQueue = [];
+    var thumbActive = 0;
+    var THUMB_MAX_PARALLEL = 3;
+
+    function scheduleThumbLoads() {
+      var nodes = document.querySelectorAll("#property-rows [data-thumb-url]");
+      if (!nodes.length) return;
+      if (!thumbObserver) {
+        thumbObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var el = entry.target;
+            thumbObserver.unobserve(el);
+            enqueueThumb(el);
+          });
+        }, { root: document.querySelector("#props-panel .scroll"), rootMargin: "180px", threshold: 0.01 });
+      }
+      nodes.forEach(function (el) { thumbObserver.observe(el); });
+    }
+
+    function enqueueThumb(el) {
+      thumbQueue.push(el);
+      pumpThumbQueue();
+    }
+
+    function pumpThumbQueue() {
+      while (thumbActive < THUMB_MAX_PARALLEL && thumbQueue.length) {
+        var el = thumbQueue.shift();
+        if (!el || !el.isConnected) continue;
+        thumbActive += 1;
+        loadThumbForEl(el).finally(function () {
+          thumbActive -= 1;
+          pumpThumbQueue();
+        });
+      }
+    }
+
+    function markThumbRetry(el, url) {
+      if (!el || !el.isConnected) return;
+      el.innerHTML = '<button type="button" class="prop-thumb-ph" data-thumb-retry="' + esc(url) + '" style="cursor:pointer;border:0">ไม่มีรูป<br/>แตะใหม่</button>';
+    }
+
+    function loadThumbForEl(el) {
+      var url = el.getAttribute("data-thumb-url") || "";
+      if (!url) {
+        el.innerHTML = "—";
+        return Promise.resolve();
+      }
+      if (THUMB_CACHE[url] === "") {
+        markThumbRetry(el, url);
+        return Promise.resolve();
+      }
+      if (THUMB_CACHE[url]) {
+        el.outerHTML = '<img class="prop-thumb" src="' + esc(THUMB_CACHE[url]) + '" alt="" />';
+        return Promise.resolve();
+      }
+      var src = API_BASE + "/api/preview-thumb?url=" + encodeURIComponent(url);
+      // Server returns instantly: 200=image, 202=queued (poll), 404=no image
+      var attempt = function (n) {
+        return fetch(src, { cache: "no-store" })
+          .then(function (r) {
+            if (r.status === 202) {
+              if (n >= 12) throw new Error("pending timeout");
+              return new Promise(function (resolve) { setTimeout(resolve, 900); })
+                .then(function () { return attempt(n + 1); });
+            }
+            if (r.status === 404) throw new Error("miss");
+            if (!r.ok) throw new Error("http " + r.status);
+            return r.blob().then(function (blob) {
+              if (!blob || blob.size < 500 || (blob.type && blob.type.indexOf("image/") !== 0)) {
+                throw new Error("empty");
+              }
+              var obj = URL.createObjectURL(blob);
+              THUMB_CACHE[url] = obj;
+              if (!el.isConnected) return;
+              el.outerHTML = '<img class="prop-thumb" src="' + obj + '" alt="" />';
+            });
+          })
+          .catch(function () {
+            THUMB_CACHE[url] = "";
+            markThumbRetry(el, url);
+          });
+      };
+      return attempt(0);
     }
 
     function clearAddFormFields(nextCode) {
@@ -3814,8 +4526,8 @@
       var f = (typeof getFilters === "function") ? getFilters() : {};
       var inProjectDrill = activeView === "properties" &&
         !!(f && ((f.projectIds && f.projectIds.length === 1) || f.projectId));
-      var show = activeView === "add" || activeView === "queue" || activeView === "projects" ||
-        activeView === "groups" || inProjectDrill;
+      var show = activeView === "add" || activeView === "queue" || activeView === "followup" ||
+        activeView === "projects" || activeView === "groups" || inProjectDrill;
       bar.classList.toggle("hidden", !show);
       saveBtn.classList.toggle("hidden", activeView !== "add");
 
@@ -3837,6 +4549,9 @@
         if (backBtn) backBtn.textContent = "← ดูทุกโครงการ";
       } else if (activeView === "queue") {
         title.textContent = "รอโพสต์";
+        if (backBtn) backBtn.textContent = "← กลับทรัพย์";
+      } else if (activeView === "followup") {
+        title.textContent = "ฟอโล่วเคส";
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "projects") {
         title.textContent = "โครงการ";
@@ -4082,16 +4797,38 @@
       document.getElementById("props-panel").classList.toggle("hidden", view !== "properties");
       document.getElementById("projects-panel").classList.toggle("hidden", view !== "projects");
       document.getElementById("queue-panel").classList.toggle("hidden", view !== "queue");
+      document.getElementById("followup-panel").classList.toggle("hidden", view !== "followup");
       document.getElementById("groups-panel").classList.toggle("hidden", view !== "groups");
       document.getElementById("add-panel").classList.toggle("hidden", view !== "add");
       document.getElementById("prop-toolbar").classList.toggle("hidden", view !== "properties");
       document.getElementById("filter-panel").classList.toggle("hidden", view !== "properties");
+      var titles = {
+        properties: ["ภาพรวมทรัพย์", "ค้นหา · กรอง · จัดการรายการจากชีทและ Hub"],
+        queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
+        followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
+        projects: ["โครงการ", "Master โครงการ · ทำเล · สถานี"],
+        groups: ["กลุ่ม Facebook", "สมุดกลุ่มสำหรับโพสต์"],
+        add: ["เพิ่มทรัพย์", "วางลิงก์ / ข้อความ → วิเคราะห์ → บันทึก"]
+      };
+      var t = titles[view] || titles.properties;
+      var titleEl = document.getElementById("panel-title");
+      var subEl = document.getElementById("panel-sub");
+      if (titleEl) titleEl.textContent = t[0];
+      if (subEl) subEl.textContent = t[1];
+      document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-view") === view);
+      });
+      if (typeof window.closeAppSidebar === "function") window.closeAppSidebar();
       var projectBanner = document.getElementById("project-view-banner");
       if (projectBanner && view !== "properties") projectBanner.classList.add("hidden");
       else if (view === "properties") updateProjectViewBanner(getFilters());
       var infoCards = document.getElementById("info-cards");
       if (infoCards) infoCards.classList.add("hidden");
       if (view === "queue") loadQueue();
+      else if (view === "followup") {
+        buildFuPickers(true);
+        loadFollowups();
+      }
       else if (view === "groups") loadGroupsBook();
       else if (view === "add") {
         initLinkFields();
@@ -4181,12 +4918,25 @@
     }
 
     async function apiPost(path, body) {
-      var res = await fetch(API_BASE + path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      var data = await res.json();
+      var res;
+      try {
+        res = await fetch(API_BASE + path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } catch (err) {
+        throw new Error(
+          "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เปิด hub/เปิดดู.command แล้วลองใหม่\n(" +
+            ((err && err.message) || "Load failed") + ")"
+        );
+      }
+      var data;
+      try {
+        data = await res.json();
+      } catch (err) {
+        throw new Error("เซิร์ฟเวอร์ตอบไม่ถูกต้อง (HTTP " + res.status + ")");
+      }
       if (!res.ok) throw new Error(data.error || "API error");
       return data;
     }
@@ -4546,6 +5296,11 @@
       var n = (stats && (stats.pending + stats.working)) || 0;
       badge.textContent = n;
       badge.classList.toggle("hidden", n === 0);
+      var mBadge = document.getElementById("mobile-queue-badge");
+      if (mBadge) {
+        mBadge.textContent = n;
+        mBadge.classList.toggle("show", n > 0);
+      }
       document.getElementById("row-count").textContent =
         activeView === "queue"
           ? "รอ " + ((stats && stats.pending) || 0) + " · กำลังทำ " + ((stats && stats.working) || 0) + " · เสร็จ " + ((stats && stats.done) || 0)
@@ -4621,6 +5376,713 @@
             '<tr><td colspan="6" class="empty"><p>' + esc(e.message) + "</p></td></tr>";
         }
       }
+    }
+
+    var followupItems = [];
+    var FU_STATUS = {
+      new: "ใหม่", waiting_info: "รอข้อมูล", offered: "เสนอแล้ว", viewing: "นัดดู",
+      deciding: "รอตัดสินใจ", reserved: "จอง/มัดจำ", closed_won: "ปิดได้",
+      closed_lost: "หลุด", paused: "พัก"
+    };
+    var activeRecommendCaseId = "";
+
+    function updateFollowupBadge(stats) {
+      var due = (stats && stats.due) || 0;
+      ["followup-badge", "mobile-followup-badge"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = String(due);
+        el.classList.toggle("hidden", !due);
+        el.classList.toggle("show", !!due);
+      });
+      var st = document.getElementById("fu-stats");
+      if (st && stats) {
+        st.textContent = "เปิด " + (stats.open || 0) + " · ถึงกำหนดทัก " + due + " · ทั้งหมด " + (stats.total || 0);
+      }
+    }
+
+    function fuSplitList(s) {
+      return String(s || "").split(/[,，|/]+/).map(function (x) { return x.trim(); }).filter(Boolean);
+    }
+
+    function fuCssEscape(s) {
+      if (window.CSS && CSS.escape) return CSS.escape(s);
+      return String(s).replace(/["\\]/g, "\\$&");
+    }
+
+    // ค่าที่เลือกของแต่ละ picker — ไม่พึ่ง DOM อย่างเดียว กันติ๊กแล้วหลุด
+    var FU_PICK = {
+      zones: [],
+      transits: [],
+      types: ["Condo"],
+      inquiry: [],
+      offered: [],
+      viewing: [],
+      reserved: []
+    };
+
+    var FU_PICK_LIST = {
+      zones: "fu-zones-list",
+      transits: "fu-transits-list",
+      types: "fu-types-list",
+      inquiry: "fu-inquiry-list",
+      offered: "fu-offered-list",
+      viewing: "fu-viewing-list",
+      reserved: "fu-reserved-list"
+    };
+
+    function fuPickKeyFromListId(listId) {
+      if (listId === "fu-zones-list") return "zones";
+      if (listId === "fu-transits-list") return "transits";
+      if (listId === "fu-types-list") return "types";
+      if (listId === "fu-inquiry-list") return "inquiry";
+      if (listId === "fu-offered-list") return "offered";
+      if (listId === "fu-viewing-list") return "viewing";
+      if (listId === "fu-reserved-list") return "reserved";
+      return "";
+    }
+
+    function fuIsPropPick(key) {
+      return key === "inquiry" || key === "offered" || key === "viewing" || key === "reserved";
+    }
+
+    function fuGetPick(key) {
+      return (FU_PICK[key] || []).slice();
+    }
+
+    function fuSetPick(key, values) {
+      var seen = {};
+      var out = [];
+      (values || []).forEach(function (v) {
+        var s = String(v || "").trim();
+        if (!s) return;
+        if (fuIsPropPick(key)) s = s.toUpperCase();
+        if (seen[s]) return;
+        seen[s] = true;
+        out.push(s);
+      });
+      FU_PICK[key] = out;
+      return out;
+    }
+
+    function fuTogglePick(key, value, on) {
+      var s = String(value || "").trim();
+      if (!s) return fuGetPick(key);
+      if (fuIsPropPick(key)) s = s.toUpperCase();
+      var cur = fuGetPick(key);
+      var idx = cur.indexOf(s);
+      if (on && idx < 0) cur.push(s);
+      if (!on && idx >= 0) cur.splice(idx, 1);
+      return fuSetPick(key, cur);
+    }
+
+    function fuSelectedChecks(boxId) {
+      var key = fuPickKeyFromListId(boxId);
+      if (key) return fuGetPick(key);
+      var box = document.getElementById(boxId);
+      if (!box) return [];
+      return Array.prototype.map.call(
+        box.querySelectorAll('input[type="checkbox"]:checked'),
+        function (c) { return c.value; }
+      );
+    }
+
+    function fuSetChecks(boxId, values) {
+      var key = fuPickKeyFromListId(boxId);
+      if (key) fuSetPick(key, values);
+      var box = document.getElementById(boxId);
+      if (!box) return;
+      var want = {};
+      (key ? fuGetPick(key) : (values || [])).forEach(function (v) { want[String(v)] = true; });
+      Array.prototype.forEach.call(box.querySelectorAll('input[type="checkbox"]'), function (c) {
+        c.checked = !!want[c.value];
+      });
+    }
+
+    function fuRenderChips(chipsId, listId) {
+      var chips = document.getElementById(chipsId);
+      var box = document.getElementById(listId);
+      if (!chips) return;
+      var key = fuPickKeyFromListId(listId);
+      var selected = key ? fuGetPick(key) : [];
+      if (!selected.length && box) {
+        selected = Array.prototype.map.call(
+          box.querySelectorAll('input[type="checkbox"]:checked'),
+          function (c) { return c.value; }
+        );
+      }
+      chips.innerHTML = "";
+      selected.forEach(function (val) {
+        var text = val;
+        if (box) {
+          var inp = box.querySelector('input[type="checkbox"][value="' + fuCssEscape(val) + '"]');
+          var lab = inp && inp.closest(".check-item");
+          if (lab) {
+            text = String(lab.getAttribute("data-chip") || "").trim() || val;
+          }
+        }
+        if (key === "zones") {
+          var z = FU_ZONE_OPTS.find(function (o) { return o.id === val; });
+          if (z) text = z.label;
+        }
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "fu-chip";
+        btn.dataset.list = listId;
+        btn.dataset.value = val;
+        btn.setAttribute("aria-label", "เอาออก " + text);
+        btn.innerHTML = '<span class="fu-chip-text">' + esc(text) + '</span> <span class="x" aria-hidden="true">×</span>';
+        chips.appendChild(btn);
+      });
+    }
+
+    function fuAppendCheck(box, value, label, meta, chipLabel) {
+      if (!box) return;
+      if (box.querySelector('input[type="checkbox"][value="' + fuCssEscape(value) + '"]')) return;
+      var lab = document.createElement("label");
+      lab.className = "check-item";
+      lab.setAttribute("data-chip", chipLabel || label);
+      lab.setAttribute("data-search", softNormText(label + " " + (meta || "") + " " + value));
+      var inp = document.createElement("input");
+      inp.type = "checkbox";
+      inp.value = value;
+      lab.appendChild(inp);
+      lab.appendChild(document.createTextNode(" " + label));
+      if (meta) {
+        var m = document.createElement("span");
+        m.className = "fu-opt-meta";
+        m.textContent = meta;
+        lab.appendChild(m);
+      }
+      box.appendChild(lab);
+    }
+
+    function fuFilterPickerList(listId, q) {
+      var box = document.getElementById(listId);
+      if (!box) return;
+      var key = fuPickKeyFromListId(listId);
+      var selected = key ? fuGetPick(key) : [];
+      var selectedMap = {};
+      selected.forEach(function (v) { selectedMap[v] = true; });
+      var needles = expandSearchNeedles(q || "");
+      var shown = 0;
+      Array.prototype.forEach.call(box.querySelectorAll(".check-item"), function (lab) {
+        var inp = lab.querySelector("input");
+        var val = inp ? inp.value : "";
+        if (inp) inp.checked = !!selectedMap[val];
+        var blob = lab.getAttribute("data-search") || softNormText(lab.textContent || "");
+        var ok = !needles.length || needles.some(function (n) { return blob.indexOf(n) >= 0; });
+        if (selectedMap[val]) ok = true;
+        if (!needles.length && fuIsPropPick(key)) {
+          if (!selectedMap[val]) ok = false;
+        }
+        lab.classList.toggle("is-filtered-out", !ok);
+        if (ok) shown += 1;
+      });
+      var empty = box.querySelector(".fu-opt-empty");
+      if (!shown) {
+        if (!empty) {
+          empty = document.createElement("div");
+          empty.className = "fu-opt-empty";
+          empty.style.cssText = "font-size:11px;color:#a1a1aa;padding:6px 2px";
+          box.appendChild(empty);
+        }
+        empty.textContent = needles.length
+          ? "ไม่พบในฐานข้อมูล — ลองพิมพ์รหัส/ชื่อโครงการ"
+          : (fuIsPropPick(key) ? "พิมพ์ค้นหาแล้วติ๊กเลือกจากรายการ" : "ไม่พบรายการ");
+        empty.classList.remove("is-filtered-out");
+      } else if (empty) {
+        empty.remove();
+      }
+    }
+
+    var FU_ZONE_OPTS = [];
+    var FU_TRANSIT_OPTS = [];
+    var FU_TYPE_OPTS = [];
+    var FU_PROP_INDEX = [];
+
+    function rebuildFuCatalog() {
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      var pmap = (window.PTP_DATA && window.PTP_DATA.project_map) || {};
+      var projects = (window.PTP_DATA && window.PTP_DATA.projects) || [];
+      var types = {};
+      var transits = {};
+      var zones = {};
+
+      props.forEach(function (p) {
+        if (p.property_type) types[p.property_type] = (types[p.property_type] || 0) + 1;
+        var proj = pmap[p.project_id] || {};
+        (proj.transit_verified || []).concat(proj.transit_unverified || []).concat(p.transit_from_sheet || []).forEach(function (t) {
+          if (!/(?:BTS|MRT|ARL|Airport\s*Link|APL)/i.test(t || "")) return;
+          explodeTransitParts(t).forEach(function (part) {
+            if (!/(?:BTS|MRT|ARL|Airport\s*Link|APL)/i.test(part)) return;
+            var label = normalizeTransitLabel(part);
+            var key = transitNormKey(label);
+            if (!key || key.indexOf("/") >= 0) return;
+            if (!transits[key]) transits[key] = { label: label, count: 0 };
+            transits[key].count += 1;
+            if (/^(BTS|MRT|ARL) /.test(label)) transits[key].label = label;
+          });
+        });
+      });
+
+      (typeof ZONE_CHIPS !== "undefined" ? ZONE_CHIPS : []).forEach(function (z) {
+        zones[z.id] = { id: z.id, label: z.label, count: 0 };
+      });
+      projects.forEach(function (proj) {
+        var n = intOr(proj.listing_count, 1);
+        masterZoneAll(proj).forEach(function (z) {
+          var label = String(z || "").trim();
+          if (!label || label.length > 28) return;
+          var chip = (ZONE_CHIPS || []).find(function (c) {
+            return c.label === label || softNormText(c.label) === softNormText(label);
+          });
+          if (chip) {
+            zones[chip.id].count += n;
+            return;
+          }
+          var key = "tag:" + softNormText(label);
+          if (!zones[key]) zones[key] = { id: label, label: label, count: 0 };
+          zones[key].count += n;
+        });
+      });
+
+      FU_ZONE_OPTS = Object.keys(zones).map(function (k) { return zones[k]; })
+        .sort(function (a, b) { return (b.count - a.count) || a.label.localeCompare(b.label, "th"); })
+        .slice(0, 120);
+      FU_TRANSIT_OPTS = Object.keys(transits).map(function (k) { return transits[k]; })
+        .sort(function (a, b) { return b.count - a.count; })
+        .slice(0, 120);
+      FU_TYPE_OPTS = Object.keys(types).sort().map(function (t) {
+        return { value: t, label: t, count: types[t] };
+      });
+      FU_PROP_INDEX = props.filter(function (p) {
+        return p.code && (p.import_status === "active" || p.import_status === "needs_review" || !p.import_status);
+      }).map(function (p) {
+        var proj = pmap[p.project_id] || {};
+        var name = p.project_name || proj.canonical_name || "";
+        var rent = hasPrice(p.rent_price) ? ("เช่า " + p.rent_price) : "";
+        var sale = hasPrice(p.sale_price) ? ("ขาย " + p.sale_price) : "";
+        return {
+          code: String(p.code).toUpperCase(),
+          label: String(p.code).toUpperCase() + " · " + name,
+          meta: [p.bedrooms, rent || sale, p.location_ref].filter(Boolean).join(" · "),
+          search: softNormText([p.code, name, p.location_ref, p.bedrooms].join(" "))
+        };
+      });
+    }
+
+    function fuFillStaticPicker(listId, chipsId, opts, selected, valueKey, labelFn) {
+      var box = document.getElementById(listId);
+      if (!box) return;
+      var key = fuPickKeyFromListId(listId);
+      var prev = key ? fuSetPick(key, selected != null ? selected : fuGetPick(key)) : (selected || []);
+      box.innerHTML = "";
+      opts.forEach(function (o) {
+        var value = valueKey ? o[valueKey] : (o.value || o.label);
+        var label = labelFn ? labelFn(o) : (o.label + (o.count ? " (" + o.count + ")" : ""));
+        fuAppendCheck(box, value, label, "", o.label || value);
+      });
+      prev.forEach(function (v) {
+        if (!box.querySelector('input[type="checkbox"][value="' + fuCssEscape(v) + '"]')) {
+          fuAppendCheck(box, v, v, "", v);
+        }
+      });
+      fuSetChecks(listId, prev);
+      fuRenderChips(chipsId, listId);
+      fuFilterPickerList(listId, (document.getElementById(listId.replace("-list", "-q")) || {}).value || "");
+    }
+
+    function fuFillPropPicker(listId, chipsId, selected, query) {
+      var box = document.getElementById(listId);
+      if (!box) return;
+      var key = fuPickKeyFromListId(listId);
+      var prev = key ? fuSetPick(key, selected != null ? selected : fuGetPick(key)) : (selected || []);
+      var needles = expandSearchNeedles(query || "");
+      var hits = [];
+      if (needles.length) {
+        hits = FU_PROP_INDEX.filter(function (p) {
+          return needles.some(function (n) { return p.search.indexOf(n) >= 0 || p.code.toLowerCase().indexOf(n) >= 0; });
+        }).slice(0, 40);
+      }
+      var have = {};
+      hits.forEach(function (p) { have[p.code] = true; });
+      prev.forEach(function (code) {
+        var c = String(code).toUpperCase();
+        if (have[c]) return;
+        var found = FU_PROP_INDEX.find(function (p) { return p.code === c; });
+        if (found) hits.unshift(found);
+        else hits.unshift({ code: c, label: c, meta: "ไม่อยู่ในลิสต์ active", search: softNormText(c) });
+        have[c] = true;
+      });
+      box.innerHTML = "";
+      hits.forEach(function (p) {
+        fuAppendCheck(box, p.code, p.label, p.meta, p.code);
+      });
+      fuSetChecks(listId, prev);
+      fuRenderChips(chipsId, listId);
+      fuFilterPickerList(listId, query || "");
+    }
+
+    function buildFuPickers(preserve) {
+      rebuildFuCatalog();
+      if (!preserve) {
+        fuSetPick("zones", []);
+        fuSetPick("transits", []);
+        fuSetPick("types", ["Condo"]);
+        fuSetPick("inquiry", []);
+        fuSetPick("offered", []);
+        fuSetPick("viewing", []);
+        fuSetPick("reserved", []);
+      }
+      fuFillStaticPicker("fu-zones-list", "fu-zones-chips", FU_ZONE_OPTS, fuGetPick("zones"), "id", function (o) {
+        return o.label + (o.count ? " (" + o.count + ")" : "");
+      });
+      fuFillStaticPicker("fu-transits-list", "fu-transits-chips", FU_TRANSIT_OPTS, fuGetPick("transits"), "label", function (o) {
+        return o.label + " (" + o.count + ")";
+      });
+      fuFillStaticPicker("fu-types-list", "fu-types-chips", FU_TYPE_OPTS, fuGetPick("types"), "value", function (o) {
+        return o.label + " (" + o.count + ")";
+      });
+      fuFillPropPicker("fu-inquiry-list", "fu-inquiry-chips", fuGetPick("inquiry"),
+        (document.getElementById("fu-inquiry-q") || {}).value || "");
+      fuFillPropPicker("fu-offered-list", "fu-offered-chips", fuGetPick("offered"),
+        (document.getElementById("fu-offered-q") || {}).value || "");
+      fuFillPropPicker("fu-viewing-list", "fu-viewing-chips", fuGetPick("viewing"),
+        (document.getElementById("fu-viewing-q") || {}).value || "");
+      fuFillPropPicker("fu-reserved-list", "fu-reserved-chips", fuGetPick("reserved"),
+        (document.getElementById("fu-reserved-q") || {}).value || "");
+      syncFuCustomerKindUi();
+    }
+
+    function syncFuCustomerKindUi() {
+      var kind = (document.getElementById("fu-customer-kind") || {}).value || "direct";
+      var wrap = document.getElementById("fu-co-agent-wrap");
+      if (wrap) wrap.style.display = kind === "co_agent" ? "" : "none";
+    }
+
+    function fuZoneLabelsSelected() {
+      return fuGetPick("zones").map(function (id) {
+        var opt = FU_ZONE_OPTS.find(function (z) { return z.id === id; });
+        return (opt && opt.label) || id;
+      });
+    }
+
+    function fuFormPayload() {
+      return {
+        chat_name: document.getElementById("fu-chat-name").value.trim(),
+        customer_kind: document.getElementById("fu-customer-kind").value || "direct",
+        channel: document.getElementById("fu-channel").value,
+        phone: document.getElementById("fu-phone").value.trim(),
+        line_id: document.getElementById("fu-line-id").value.trim(),
+        owner: document.getElementById("fu-owner").value.trim(),
+        deal_type: document.getElementById("fu-deal").value,
+        budget_min: document.getElementById("fu-budget-min").value,
+        budget_max: document.getElementById("fu-budget-max").value,
+        locations: fuZoneLabelsSelected().join(", "),
+        transits: fuSelectedChecks("fu-transits-list"),
+        bedrooms: fuSelectedChecks("fu-beds-list"),
+        property_types: fuSelectedChecks("fu-types-list"),
+        followup_in_days: document.getElementById("fu-follow-days").value || 3,
+        status: document.getElementById("fu-status").value,
+        priority: document.getElementById("fu-priority").value,
+        move_in: document.getElementById("fu-move-in").value.trim(),
+        brief: document.getElementById("fu-brief").value.trim(),
+        constraints: document.getElementById("fu-constraints").value.trim(),
+        inquiry_codes: fuSelectedChecks("fu-inquiry-list"),
+        offered_codes: fuSelectedChecks("fu-offered-list"),
+        viewing_codes: fuSelectedChecks("fu-viewing-list"),
+        reserved_codes: fuSelectedChecks("fu-reserved-list"),
+        co_agent: document.getElementById("fu-co-agent").value.trim(),
+        last_note: document.getElementById("fu-note").value.trim(),
+        lost_reason: document.getElementById("fu-lost").value.trim()
+      };
+    }
+
+    function clearFollowupForm() {
+      document.getElementById("fu-edit-id").value = "";
+      document.getElementById("fu-chat-name").value = "";
+      document.getElementById("fu-customer-kind").value = "direct";
+      document.getElementById("fu-phone").value = "";
+      document.getElementById("fu-line-id").value = "";
+      document.getElementById("fu-owner").value = "";
+      document.getElementById("fu-budget-min").value = "";
+      document.getElementById("fu-budget-max").value = "";
+      document.getElementById("fu-follow-days").value = "3";
+      document.getElementById("fu-status").value = "new";
+      document.getElementById("fu-priority").value = "normal";
+      document.getElementById("fu-deal").value = "rent";
+      document.getElementById("fu-move-in").value = "";
+      document.getElementById("fu-brief").value = "";
+      document.getElementById("fu-constraints").value = "";
+      document.getElementById("fu-co-agent").value = "";
+      document.getElementById("fu-note").value = "";
+      document.getElementById("fu-lost").value = "";
+      ["fu-zones-q", "fu-transits-q", "fu-types-q", "fu-inquiry-q", "fu-offered-q", "fu-viewing-q", "fu-reserved-q"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+      fuSetChecks("fu-beds-list", []);
+      buildFuPickers(false);
+      document.getElementById("fu-save-btn").textContent = "+ บันทึกเคส";
+    }
+
+    function fillFollowupForm(it) {
+      document.getElementById("fu-edit-id").value = it.id || "";
+      document.getElementById("fu-chat-name").value = it.chat_name || "";
+      document.getElementById("fu-customer-kind").value = it.customer_kind || "direct";
+      var ch = it.channel || "LINE OA";
+      var chEl = document.getElementById("fu-channel");
+      chEl.value = ch;
+      if (chEl.value !== ch) {
+        var opt = document.createElement("option");
+        opt.value = ch;
+        opt.textContent = ch;
+        chEl.appendChild(opt);
+        chEl.value = ch;
+      }
+      document.getElementById("fu-phone").value = it.phone || "";
+      document.getElementById("fu-line-id").value = it.line_id || "";
+      document.getElementById("fu-owner").value = it.owner || "";
+      document.getElementById("fu-deal").value = it.deal_type || "rent";
+      document.getElementById("fu-budget-min").value = it.budget_min || "";
+      document.getElementById("fu-budget-max").value = it.budget_max || "";
+      document.getElementById("fu-follow-days").value = it.followup_in_days != null ? it.followup_in_days : 3;
+      document.getElementById("fu-status").value = it.status || "new";
+      document.getElementById("fu-priority").value = it.priority || "normal";
+      document.getElementById("fu-move-in").value = it.move_in || "";
+      document.getElementById("fu-brief").value = it.brief || "";
+      document.getElementById("fu-constraints").value = it.constraints || "";
+      document.getElementById("fu-co-agent").value = it.co_agent || "";
+      document.getElementById("fu-note").value = it.last_note || "";
+      document.getElementById("fu-lost").value = it.lost_reason || "";
+      fuSetChecks("fu-beds-list", it.bedrooms || []);
+      ["fu-zones-q", "fu-transits-q", "fu-types-q", "fu-inquiry-q", "fu-offered-q", "fu-viewing-q", "fu-reserved-q"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+      rebuildFuCatalog();
+      var wantLocs = fuSplitList(it.locations || "");
+      var zoneVals = [];
+      FU_ZONE_OPTS.forEach(function (z) {
+        if (wantLocs.some(function (w) {
+          return softNormText(w) === softNormText(z.label) || softNormText(w) === softNormText(z.id) || z.id === w;
+        })) zoneVals.push(z.id);
+      });
+      wantLocs.forEach(function (w) {
+        if (!zoneVals.some(function (id) {
+          var z = FU_ZONE_OPTS.find(function (o) { return o.id === id; });
+          return z && softNormText(z.label) === softNormText(w);
+        })) zoneVals.push(w);
+      });
+      fuSetPick("zones", zoneVals);
+      fuSetPick("transits", it.transits || []);
+      fuSetPick("types", (it.property_types && it.property_types.length) ? it.property_types : ["Condo"]);
+      fuSetPick("inquiry", it.inquiry_codes || []);
+      fuSetPick("offered", it.offered_codes || []);
+      fuSetPick("viewing", it.viewing_codes || []);
+      fuSetPick("reserved", it.reserved_codes || []);
+      buildFuPickers(true);
+      document.getElementById("fu-save-btn").textContent = "อัปเดตเคส";
+    }
+
+    function fuBudgetText(it) {
+      var a = it.budget_min || 0, b = it.budget_max || 0;
+      if (!a && !b) return "—";
+      if (a && b) return a.toLocaleString("th-TH") + "–" + b.toLocaleString("th-TH");
+      if (a) return "≥ " + a.toLocaleString("th-TH");
+      return "≤ " + b.toLocaleString("th-TH");
+    }
+
+    function fuFollowClass(it) {
+      var nxt = (it.next_followup_at || "").slice(0, 10);
+      if (!nxt) return "";
+      var today = new Date();
+      var t = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+      if (nxt < t) return "fu-overdue";
+      if (nxt === t) return "fu-due";
+      return "";
+    }
+
+    function renderFollowups() {
+      var tbody = document.getElementById("followup-rows");
+      if (!followupItems.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty"><p>ยังไม่มีเคส — กรอกด้านบนแล้วบันทึก</p></td></tr>';
+        return;
+      }
+      tbody.innerHTML = followupItems.map(function (it) {
+        var stLabel = FU_STATUS[it.status] || it.status;
+        var dueCls = fuFollowClass(it);
+        var stCls = "fu-status" + (dueCls ? " due" : "") + (it.priority === "high" ? " high" : "");
+        var offered = (it.offered_codes || []).join(", ") || "—";
+        var viewing = (it.viewing_codes || []).join(", ") || "—";
+        var inquiry = (it.inquiry_codes || []).join(", ") || "—";
+        var kindLabel = it.customer_kind === "co_agent" ? "โคเอเจนต์" : "ลูกค้าตรง";
+        var brief = it.brief || [it.locations, (it.transits || []).join("/")].filter(Boolean).join(" · ") || "—";
+        return "<tr>" +
+          '<td><strong>' + esc(it.case_code || "") + "</strong><div style='font-size:10px;color:#a1a1aa'>" + esc(it.channel || "") + "</div></td>" +
+          "<td><strong>" + esc(it.chat_name || "—") + "</strong>" +
+            '<div style="font-size:11px;color:#52525b;margin-top:2px">' + esc(kindLabel) +
+            (it.customer_kind === "co_agent" && it.co_agent ? (" · " + esc(it.co_agent)) : "") +
+            " · ทักมา: " + esc(inquiry) + "</div>" +
+            '<div style="font-size:11px;color:#52525b;margin-top:2px">' + esc(brief) + "</div></td>" +
+          "<td style='font-size:11px'>" + esc(fuBudgetText(it)) +
+            '<div style="color:#71717a">' + esc(it.deal_type === "sale" ? "ซื้อ" : it.deal_type === "both" ? "เช่า+ซื้อ" : "เช่า") + "</div></td>" +
+          '<td class="' + dueCls + '">' + esc((it.next_followup_at || "").slice(0, 10) || "—") +
+            '<div style="font-size:10px;color:#a1a1aa">ทุก ' + esc(String(it.followup_in_days || 3)) + " วัน</div></td>" +
+          '<td><span class="' + stCls + '">' + esc(stLabel) + "</span></td>" +
+          '<td style="font-size:11px"><div>เสนอ: ' + esc(offered) + "</div><div>นัดดู: " + esc(viewing) + "</div></td>" +
+          '<td><div class="queue-actions">' +
+            '<button type="button" class="btn-xs primary" data-fu-rec="' + esc(it.id) + '">แนะนำทรัพย์</button>' +
+            '<button type="button" class="btn-xs" data-fu-edit="' + esc(it.id) + '">แก้ไข</button>' +
+            '<button type="button" class="btn-xs" data-fu-contact="' + esc(it.id) + '">ทักแล้ว</button>' +
+            '<button type="button" class="btn-xs danger" data-fu-del="' + esc(it.id) + '">ลบ</button>' +
+          "</div></td></tr>";
+      }).join("");
+    }
+
+    async function loadFollowups() {
+      try {
+        var showClosed = document.getElementById("fu-show-closed").checked;
+        var res = await fetch(API_BASE + "/api/customers" + (showClosed ? "?closed=1" : ""));
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || "โหลดเคสไม่ได้");
+        followupItems = data.items || [];
+        if (data.status_labels) FU_STATUS = Object.assign({}, FU_STATUS, data.status_labels);
+        updateFollowupBadge(data.stats || {});
+        if (activeView === "followup") renderFollowups();
+      } catch (e) {
+        if (activeView === "followup") {
+          document.getElementById("followup-rows").innerHTML =
+            '<tr><td colspan="7" class="empty"><p>' + esc(e.message) + "</p></td></tr>";
+        }
+      }
+    }
+
+    async function saveFollowup() {
+      var payload = fuFormPayload();
+      if (!payload.chat_name) { alert("ใส่ชื่อในแชทก่อน"); return; }
+      var editId = document.getElementById("fu-edit-id").value.trim();
+      try {
+        if (editId) {
+          await apiPost("/api/customers/update", Object.assign({ id: editId }, payload));
+        } else {
+          await apiPost("/api/customers/add", payload);
+        }
+        clearFollowupForm();
+        await loadFollowups();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function renderRecommendList(data, caseId) {
+      activeRecommendCaseId = caseId || "";
+      var box = document.getElementById("fu-recommend-box");
+      var list = document.getElementById("fu-recommend-list");
+      var title = document.getElementById("fu-recommend-title");
+      box.classList.remove("hidden");
+      title.textContent = "ทรัพย์แนะนำ · " + (data.count || 0) + " จากที่ตรง " + (data.matched || 0) +
+        (data.case_code ? " · " + data.case_code : "");
+      var items = data.items || [];
+      if (!items.length) {
+        list.innerHTML = '<p style="color:#71717a;font-size:12px">ไม่พบทรัพย์ที่ตรงโจทย์ — ลองขยายงบ/ทำเล หรือลดเงื่อนไขห้องนอน</p>';
+        return;
+      }
+      list.innerHTML = items.map(function (p) {
+        var price = "";
+        if (hasPrice(p.rent_price)) price += "เช่า " + (formatThNumber(p.rent_price, 0) || p.rent_price);
+        if (hasPrice(p.sale_price)) price += (price ? " · " : "") + "ขาย " + (formatThNumber(p.sale_price, 0) || p.sale_price);
+        var why = (p.reasons || []).join(" · ");
+        var transit = (p.transit || []).join(", ");
+        return '<div class="fu-rec-item">' +
+          "<div><strong>" + esc(p.code) + "</strong> · " + esc(p.project_name || "") +
+          '<div class="fu-rec-meta">' + esc(p.bedrooms || "") +
+            (p.size_sqm ? " · " + esc(String(p.size_sqm)) + " ตร.ม." : "") +
+            (price ? " · " + esc(price) : "") +
+            (transit ? " · " + esc(transit) : "") +
+            (why ? "<br/>ทำไมตรง: " + esc(why) : "") +
+          "</div></div>" +
+          '<div class="queue-actions" style="flex-direction:column">' +
+            (caseId
+              ? '<button type="button" class="btn-xs primary" data-fu-add-offer="' + esc(p.code) + '">+ เสนอแล้ว</button>' +
+                '<button type="button" class="btn-xs" data-fu-add-view="' + esc(p.code) + '">+ นัดดู</button>'
+              : "") +
+            '<button type="button" class="btn-xs" data-fu-open-code="' + esc(p.code) + '">ดูในลิสต์</button>' +
+          "</div></div>";
+      }).join("");
+    }
+
+    async function recommendForCaseId(caseId) {
+      try {
+        var data = await apiPost("/api/customers/recommend", {
+          id: caseId,
+          limit: 20,
+          exclude_offered: true
+        });
+        renderRecommendList(data, caseId);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function recommendFromForm() {
+      var payload = fuFormPayload();
+      if (!payload.locations && !(payload.transits || []).length && !payload.brief &&
+          !payload.budget_min && !payload.budget_max) {
+        alert("เลือกทำเล / BTS / งบ หรือใส่โจทย์สั้นๆ ก่อน");
+        return;
+      }
+      var editId = document.getElementById("fu-edit-id").value.trim();
+      try {
+        var body = editId
+          ? { id: editId, limit: 20, exclude_offered: true }
+          : { case: payload, limit: 20, exclude_offered: true };
+        var data = await apiPost("/api/customers/recommend", body);
+        renderRecommendList(data, editId || "");
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function fuAppendCode(kind, code) {
+      var pickKey = kind === "viewing" ? "viewing" : kind === "reserved" ? "reserved" : "offered";
+      if (!activeRecommendCaseId) {
+        fuTogglePick(pickKey, code, true);
+        var listId = FU_PICK_LIST[pickKey];
+        var chipsId = listId.replace("-list", "-chips");
+        fuFillPropPicker(listId, chipsId, fuGetPick(pickKey), "");
+        return;
+      }
+      var body = { id: activeRecommendCaseId };
+      body[kind] = code;
+      try {
+        var data = await apiPost("/api/customers/append-codes", body);
+        await loadFollowups();
+        if (data.item && document.getElementById("fu-edit-id").value === activeRecommendCaseId) {
+          fillFollowupForm(data.item);
+        } else if (data.item) {
+          var codes = kind === "viewing" ? (data.item.viewing_codes || []) : (data.item.offered_codes || []);
+          fuSetPick(pickKey, codes);
+          fuFillPropPicker(FU_PICK_LIST[pickKey], FU_PICK_LIST[pickKey].replace("-list", "-chips"), codes, "");
+        }
+        await recommendForCaseId(activeRecommendCaseId);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function openCodeInProperties(code) {
+      document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+        t.classList.toggle("active", t.getAttribute("data-view") === "properties");
+      });
+      switchView("properties");
+      var box = document.getElementById("search-box");
+      if (box) {
+        box.value = code || "";
+        box.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      if (typeof applyFilter === "function") applyFilter();
     }
 
     async function addToQueue() {
@@ -4748,14 +6210,20 @@
     }
 
     function reloadPreviewData() {
-      return new Promise(function (resolve) {
+      return new Promise(function (resolve, reject) {
         var s = document.createElement("script");
         s.src = "preview-data.js?t=" + Date.now();
         s.onload = function () {
-          initData();
-          resolve();
+          try {
+            initData();
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
         };
-        s.onerror = function () { resolve(); };
+        s.onerror = function () {
+          reject(new Error("โหลดข้อมูลทรัพย์หลังดึงชีทไม่สำเร็จ — รีเฟรชหน้าเว็บแล้วลองใหม่"));
+        };
         document.body.appendChild(s);
       });
     }
@@ -4766,15 +6234,35 @@
       if (!confirm("รีเฟรชจาก Google Sheet?\n• ชีทหลัก (PTP) → ตารางทรัพย์\n• แท็บ「รอโพสต์」→ คิวหน้านี้\nรายการ Hub (RXT) จะถูกเก็บไว้")) return;
       var old = btn.textContent;
       btn.disabled = true;
-      btn.textContent = "กำลังดึง…";
+      btn.textContent = "กำลังดึงชีท…";
       try {
         var data = await apiPost("/api/properties/refresh-sheet", {});
+        btn.textContent = "กำลังโหลดตาราง…";
         await reloadPreviewData();
         await loadQueue();
         var st = (data && data.stats) || {};
-        var src = data.downloaded ? "ดึงชีทสดแล้ว" : "ใช้ CSV บนเซิร์ฟเวอร์";
-        var msg = src + " · ทรัพย์ " + (st.properties_total || "—") +
+        var src = data.downloaded ? "ดึงชีทสดจาก Google แล้ว" : "ใช้ CSV บนเซิร์ฟเวอร์ (ดึง Google ไม่ได้)";
+        var msg = src;
+        if (data.sheet_title) msg += "\nชีท: " + data.sheet_title;
+        msg += " · ทรัพย์ในแอป " + (st.properties_total || "—") +
           " · เก็บ Hub ไว้ " + (data.preserved_hub || 0) + " รายการ";
+        if (st.newest_imported_code || st.newest_sheet_code) {
+          msg += "\nรหัสล่าสุดที่นำเข้าได้ " + (st.newest_imported_code || "—") +
+            " · รหัสสูงสุดในชีทนี้ " + (st.newest_sheet_code || "—");
+        }
+        if (st.partial_imported) {
+          msg += "\nนำเข้าแบบยังไม่ครบ (รอตรวจ) " + st.partial_imported + " รายการ";
+        }
+        if (st.code_only_dropped || st.incomplete_skipped) {
+          msg += "\nข้ามรหัสเปล่า " + (st.code_only_dropped || 0) +
+            " · ข้ามข้อมูลไม่พอ " + (st.incomplete_skipped || 0);
+        }
+        if (
+          (data.sheet_title && /ทดลอง/i.test(data.sheet_title)) ||
+          (data.spreadsheet_id && String(data.spreadsheet_id).indexOf("14U1y4dsebeuudTSK") === 0)
+        ) {
+          msg += "\n\n⚠ ตอนนี้ดึงจากชีททดลองอยู่ — ควรเป็นชีทจริง「ชีตทำงาน」";
+        }
         var wp = data.wait_post || {};
         if (wp.total != null) {
           msg += "\nรอโพสต์ · คิว " + wp.total + " รายการ";
@@ -4782,11 +6270,19 @@
           else if (wp.source === "local_csv") msg += " (ใช้ไฟล์ในเซิร์ฟเวอร์)";
           if (wp.preserved_working) msg += " · คงสถานะกำลังทำ " + wp.preserved_working;
         }
-        if (data.download_warning) msg += "\n\nหมายเหตุ: " + data.download_warning;
+        if (data.download_warning) msg += "\n\nหมายเหตุชีทหลัก: " + data.download_warning;
         if (wp.download_warning) msg += "\nรอโพสต์: " + wp.download_warning;
         alert(msg);
       } catch (e) {
-        alert(e.message || String(e));
+        var raw = (e && e.message) || String(e);
+        if (/Load failed|Failed to fetch|NetworkError|เชื่อมต่อเซิร์ฟเวอร์/i.test(raw)) {
+          alert(
+            "ดึงข้อมูลจากชีทไม่สำเร็จ — เซิร์ฟเวอร์หลุดหรือค้างระหว่างดาวน์โหลด\n" +
+            "ให้เปิด hub/เปิด Property Hub.command ใหม่ แล้วกด「รีเฟรชชีท」อีกครั้ง"
+          );
+        } else {
+          alert("ดึงข้อมูลจากชีทไม่สำเร็จ\n" + raw);
+        }
       }
       btn.disabled = false;
       btn.textContent = old;
@@ -4939,6 +6435,24 @@
     }
 
     document.getElementById("property-rows").addEventListener("click", function (e) {
+      var retry = e.target.closest("[data-thumb-retry]");
+      if (retry) {
+        e.preventDefault();
+        e.stopPropagation();
+        var u = retry.getAttribute("data-thumb-retry") || "";
+        delete THUMB_CACHE[u];
+        var ph = document.createElement("div");
+        ph.className = "prop-thumb-ph";
+        ph.setAttribute("data-thumb-url", u);
+        ph.textContent = "…";
+        var wrap = retry.closest(".prop-sheet-thumb") || retry.parentElement;
+        if (wrap) {
+          wrap.innerHTML = "";
+          wrap.appendChild(ph);
+          enqueueThumb(ph);
+        }
+        return;
+      }
       var projectLink = e.target.closest("[data-open-project]");
       if (projectLink) {
         e.preventDefault();
@@ -4962,14 +6476,9 @@
         return;
       }
       if (e.target.closest("a, button, input")) return;
-      var tr = e.target.closest("tr[data-prop-id]");
-      if (!tr) return;
-      openPropertyEdit(tr.getAttribute("data-prop-id"));
-    });
-    document.getElementById("prop-cards").addEventListener("click", function (e) {
-      var card = e.target.closest("[data-prop-id]");
-      if (!card) return;
-      openPropertyEdit(card.getAttribute("data-prop-id"));
+      var row = e.target.closest("[data-prop-id]");
+      if (!row) return;
+      openPropertyEdit(row.getAttribute("data-prop-id"));
     });
     var cancelEditBtn = document.getElementById("cancel-edit");
     if (cancelEditBtn) cancelEditBtn.addEventListener("click", cancelPropertyEdit);
@@ -5179,6 +6688,158 @@
     document.getElementById("queue-add-btn").addEventListener("click", addToQueue);
     document.getElementById("queue-import-btn").addEventListener("click", importQueueFromSheet);
     document.getElementById("queue-show-done").addEventListener("change", loadQueue);
+    document.getElementById("fu-save-btn").addEventListener("click", saveFollowup);
+    document.getElementById("fu-clear-btn").addEventListener("click", clearFollowupForm);
+    document.getElementById("fu-recommend-form-btn").addEventListener("click", recommendFromForm);
+    document.getElementById("fu-recommend-close").addEventListener("click", function () {
+      document.getElementById("fu-recommend-box").classList.add("hidden");
+    });
+    document.getElementById("fu-show-closed").addEventListener("change", loadFollowups);
+    // picker: search / tick / remove chip
+    (function initFuPickersUi() {
+      function onPickerSearch(qId, listId, chipsId, isProp) {
+        var qEl = document.getElementById(qId);
+        if (!qEl) return;
+        qEl.addEventListener("input", function () {
+          var q = qEl.value;
+          var key = fuPickKeyFromListId(listId);
+          if (isProp) {
+            fuFillPropPicker(listId, chipsId, fuGetPick(key), q);
+          } else {
+            fuFilterPickerList(listId, q);
+          }
+        });
+      }
+      onPickerSearch("fu-zones-q", "fu-zones-list", "fu-zones-chips", false);
+      onPickerSearch("fu-transits-q", "fu-transits-list", "fu-transits-chips", false);
+      onPickerSearch("fu-types-q", "fu-types-list", "fu-types-chips", false);
+      onPickerSearch("fu-inquiry-q", "fu-inquiry-list", "fu-inquiry-chips", true);
+      onPickerSearch("fu-offered-q", "fu-offered-list", "fu-offered-chips", true);
+      onPickerSearch("fu-viewing-q", "fu-viewing-list", "fu-viewing-chips", true);
+      onPickerSearch("fu-reserved-q", "fu-reserved-list", "fu-reserved-chips", true);
+
+      Object.keys(FU_PICK_LIST).forEach(function (key) {
+        var listId = FU_PICK_LIST[key];
+        var box = document.getElementById(listId);
+        if (!box) return;
+        box.addEventListener("change", function (e) {
+          if (!e.target || e.target.type !== "checkbox") return;
+          e.stopPropagation();
+          var val = e.target.value;
+          var on = !!e.target.checked;
+          fuTogglePick(key, val, on);
+          var chipsId = listId.replace("-list", "-chips");
+          var qEl = document.getElementById(listId.replace("-list", "-q"));
+          // หลังติ๊กสถานี/ทำเล — เคลียร์คำค้นเพื่อให้ติ๊กอันถัดไปได้ทันที
+          if (!fuIsPropPick(key) && on && qEl && qEl.value) {
+            qEl.value = "";
+          }
+          var q = (qEl && qEl.value) || "";
+          if (fuIsPropPick(key)) {
+            if (on && qEl) qEl.value = "";
+            fuFillPropPicker(listId, chipsId, fuGetPick(key), (qEl && qEl.value) || "");
+          } else {
+            fuSetChecks(listId, fuGetPick(key));
+            fuRenderChips(chipsId, listId);
+            fuFilterPickerList(listId, q);
+          }
+        });
+      });
+
+      Object.keys(FU_PICK_LIST).forEach(function (key) {
+        var listId = FU_PICK_LIST[key];
+        var chipsId = listId.replace("-list", "-chips");
+        var chips = document.getElementById(chipsId);
+        if (!chips) return;
+        chips.addEventListener("click", function (e) {
+          var btn = e.target.closest(".fu-chip");
+          if (!btn) return;
+          e.preventDefault();
+          e.stopPropagation();
+          var val = btn.dataset.value;
+          fuTogglePick(key, val, false);
+          var qEl = document.getElementById(listId.replace("-list", "-q"));
+          if (fuIsPropPick(key)) {
+            fuFillPropPicker(listId, chipsId, fuGetPick(key), (qEl && qEl.value) || "");
+          } else {
+            fuSetChecks(listId, fuGetPick(key));
+            fuRenderChips(chipsId, listId);
+            fuFilterPickerList(listId, (qEl && qEl.value) || "");
+          }
+        });
+      });
+
+      var kindEl = document.getElementById("fu-customer-kind");
+      if (kindEl) {
+        kindEl.addEventListener("change", syncFuCustomerKindUi);
+        syncFuCustomerKindUi();
+      }
+    })();
+    document.getElementById("fu-export-btn").addEventListener("click", async function () {
+      try {
+        var data = await apiPost("/api/customers/export-csv", {});
+        alert("ส่งออกแล้ว · " + (data.export_csv || "data/customer_followup_export.csv") +
+          "\nนำไปวางเป็นแท็บใหม่ในชีททดลองได้");
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+    document.getElementById("followup-rows").addEventListener("click", async function (e) {
+      var rec = e.target.closest("[data-fu-rec]");
+      var edit = e.target.closest("[data-fu-edit]");
+      var contact = e.target.closest("[data-fu-contact]");
+      var del = e.target.closest("[data-fu-del]");
+      if (rec) {
+        await recommendForCaseId(rec.getAttribute("data-fu-rec"));
+        return;
+      }
+      if (edit) {
+        var id = edit.getAttribute("data-fu-edit");
+        var it = followupItems.find(function (x) { return x.id === id; });
+        if (it) {
+          fillFollowupForm(it);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        return;
+      }
+      if (contact) {
+        try {
+          await apiPost("/api/customers/mark-contacted", {
+            id: contact.getAttribute("data-fu-contact"),
+            note: "ทักแล้วจาก Hub"
+          });
+          await loadFollowups();
+        } catch (err) {
+          alert(err.message);
+        }
+        return;
+      }
+      if (del) {
+        if (!confirm("ลบเคสนี้?")) return;
+        try {
+          await apiPost("/api/customers/delete", { id: del.getAttribute("data-fu-del") });
+          await loadFollowups();
+        } catch (err) {
+          alert(err.message);
+        }
+      }
+    });
+    document.getElementById("fu-recommend-list").addEventListener("click", async function (e) {
+      var offer = e.target.closest("[data-fu-add-offer]");
+      var view = e.target.closest("[data-fu-add-view]");
+      var open = e.target.closest("[data-fu-open-code]");
+      if (offer) {
+        await fuAppendCode("offered", offer.getAttribute("data-fu-add-offer"));
+        return;
+      }
+      if (view) {
+        await fuAppendCode("viewing", view.getAttribute("data-fu-add-view"));
+        return;
+      }
+      if (open) {
+        openCodeInProperties(open.getAttribute("data-fu-open-code"));
+      }
+    });
     document.getElementById("refresh-sheet-btn").addEventListener("click", refreshFromSheet);
     document.getElementById("sync-hub-sheet-btn").addEventListener("click", syncHubToSheet);
     document.getElementById("queue-rows").addEventListener("click", onQueueAction);
@@ -5186,6 +6847,7 @@
     initFilterDropdowns();
     checkServer();
     loadQueue();
+    loadFollowups();
   </script>
   <script src="preview-data.js"></script>
   <script>initData();</script>

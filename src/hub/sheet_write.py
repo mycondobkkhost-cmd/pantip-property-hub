@@ -295,7 +295,7 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
         except Exception as exc:  # noqa: BLE001
             result["push_warning"] = f"Apps Script: {exc}"
 
-    sheet_id = _env("GOOGLE_SHEETS_ID")
+    sheet_id = _env("HUB_GOOGLE_SHEETS_ID") or _env("GOOGLE_SHEETS_ID")
     hub_name = _env("HUB_SHEET_NAME") or "ทรัพย์ Hub"
     hub_gid = _env("HUB_SHEET_GID")
 
@@ -306,7 +306,9 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
         return result
 
     if not sheet_id or sheet_id.startswith("your_"):
-        result["push_warning"] = "ยังไม่ได้ตั้ง GOOGLE_SHEETS_ID"
+        result["push_warning"] = (
+            "ยังไม่ได้ตั้ง HUB_GOOGLE_SHEETS_ID / GOOGLE_SHEETS_ID (ชีททดลองสำหรับซิงค์กลับ)"
+        )
         return result
 
     ss = client.open_by_key(sheet_id)

@@ -11,6 +11,7 @@ import re
 from dataclasses import dataclass, field
 
 from src.hub.project_store import (
+    dedupe_stations,
     dedupe_transit,
     load_projects,
     load_properties,
@@ -627,7 +628,7 @@ def enrich_project(proj: dict, property_hints: list[str] | None = None) -> tuple
 
     # Cap lists — nearest stations only; never leave stations inside zone field
     zones = [z for z in dedupe_transit(zones) if not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I)][:5]
-    stations = dedupe_transit(stations)[:3]
+    stations = dedupe_stations(stations)[:3]
 
     if not zones and not stations:
         source = "empty"

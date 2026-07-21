@@ -7,12 +7,16 @@ import csv
 import json
 import re
 import sqlite3
+import sys
 import uuid
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 CSV_PATH = BASE_DIR / "data" / "main_sheet.csv"
 DB_PATH = BASE_DIR / "data" / "hub.db"
 PROJECTS_JSON = BASE_DIR / "data" / "projects.json"
@@ -29,6 +33,8 @@ CANONICAL_OVERRIDES: dict[str, str] = {
     "thru_thonglor": "Thru Thonglor (ทรู ทองหล่อ)",
 }
 
+from src.hub.project_identity import resolve_bucket as _resolve_bucket  # noqa: E402
+
 
 def norm_key(name: str) -> str:
     n = name.lower().strip()
@@ -43,22 +49,8 @@ def is_thru_thonglor(name: str) -> bool:
 
 
 def project_bucket(name: str) -> str | None:
-    if not name or not name.strip():
-        return None
-    k = norm_key(name)
-    if len(k) < 3:
-        return None
-    if is_thru_thonglor(name):
-        return "thru_thonglor"
-    # Life family — must check before generic rama9
-    if "lifeasoke" in k or k.startswith("lifeasoke"):
-        if "hype" in k:
-            return "life_asoke_hype"
-        if "rama9" in k:
-            return "life_asoke_rama9"
-        return "life_asoke"
-    return k
-
+    """Prefer persistent alias map + stronger soft-norm identity."""
+    return _resolve_bucket(name)
 
 def parse_date(s: str) -> datetime | None:
     s = (s or "").strip()
@@ -80,19 +72,32 @@ def parse_date(s: str) -> datetime | None:
 
 
 def parse_transit_reference(raw: str) -> list[str]:
-    """Sheet transit — reference only, NOT verified."""
+    """Sheet transit — explode compounds into atomic station labels when possible."""
     if not raw:
         return []
-    parts = re.split(r"[,，\n]", raw)
+    try:
+        from src.hub.project_location_enrich import extract_stations
+
+        found = extract_stations([raw])
+        if found:
+            return found[:8]
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Fallback: split compounds, keep rail-looking fragments
     tags: list[str] = []
-    for p in parts:
-        p = p.strip()
+    seen: set[str] = set()
+    for part in re.split(r"[,，\n/,|]| และ ", raw):
+        p = re.sub(r"\s+", " ", (part or "").strip())
         if not p or len(p) > 80:
             continue
-        if p.upper().startswith(("BTS ", "MRT ", "ARL ", "AIRPORT")):
-            tags.append(p[:60])
-        elif "BTS" in p or "MRT" in p:
-            tags.append(p[:60])
+        if not (p.upper().startswith(("BTS ", "MRT ", "ARL ", "AIRPORT", "APL ")) or "BTS" in p or "MRT" in p):
+            continue
+        k = re.sub(r"[^a-z0-9ก-๙]", "", p.lower())
+        if k in seen:
+            continue
+        seen.add(k)
+        tags.append(p[:60])
     return tags[:8]
 
 
@@ -147,8 +152,9 @@ def load_rows() -> list[dict[str, str]]:
                 "transit": col(r, "สถานีรถไฟฟ้า"),
                 "source": col(r, "ลิ้งค์ต้นโพสต์"),
                 "post_link": col(r, "ลิ้งค์โพส"),
-                "post_pages": col(r, "ลิ้งค์โพส Pages"),
+                "post_pages": col(r, "ลิ้งค์โพส Pages") or col(r, "ลิ้งค์โพส Pages "),
                 "notes": col(r, "หมายเหตุ"),
+                "owner_fb": col(r, "เฟสเจ้าของ"),
             }
         )
     return out
@@ -211,14 +217,27 @@ def has_price(raw: str) -> bool:
 
 
 def usable_property(row: dict[str, str]) -> bool:
-    """Keep rows with project + price. Source link required except Thru Thonglor."""
-    if not row.get("project"):
-        return False
-    if not has_price(row.get("rent", "")) and not has_price(row.get("sale", "")):
-        return False
-    if not row.get("source"):
-        return is_thru_thonglor(row["project"])
-    return True
+    """Keep complete rows, or partial rows that already have a source link / project."""
+    has_project = bool(row.get("project"))
+    priced = has_price(row.get("rent", "")) or has_price(row.get("sale", ""))
+    has_source = bool(row.get("source"))
+
+    if has_project and priced:
+        if not has_source:
+            return is_thru_thonglor(row["project"])
+        return True
+
+    # แถวที่เริ่มกรอกแล้ว (มีลิงก์ต้นทาง หรือมีชื่อโครงการ) — เก็บเป็น needs_review
+    if has_source or has_project:
+        return True
+    return False
+
+
+def is_incomplete_property(row: dict[str, str]) -> bool:
+    """True when row is importable but missing project or price."""
+    has_project = bool(row.get("project"))
+    priced = has_price(row.get("rent", "")) or has_price(row.get("sale", ""))
+    return not (has_project and priced)
 
 
 def normalize_source_url(url: str) -> str:
@@ -318,8 +337,13 @@ def build_properties(
         acquired = parse_date(row.get("acquired_raw", ""))
         bucket = project_bucket(row["project"])
         project_id = bucket_to_id.get(bucket or "", "")
+        incomplete = is_incomplete_property(row)
 
-        if acquired and acquired >= CUTOFF:
+        if incomplete:
+            import_status = "needs_review"
+            stats["import_needs_review"] += 1
+            stats["partial_imported"] += 1
+        elif acquired and acquired >= CUTOFF:
             import_status = "active"
             stats["import_active"] += 1
         elif acquired:
@@ -494,6 +518,16 @@ def rebuild_from_csv() -> dict:
     write_preview_js(projects, properties)
 
     active = sum(1 for p in properties if p["import_status"] == "active")
+    codes = []
+    for p in properties:
+        m = re.search(r"PTP(\d+)", (p.get("code") or "").upper())
+        if m:
+            codes.append(int(m.group(1)))
+    sheet_codes = []
+    for row in rows:
+        m = re.search(r"PTP(\d+)", (row.get("code") or "").upper())
+        if m:
+            sheet_codes.append(int(m.group(1)))
     return {
         "projects": len(projects),
         "properties_total": len(properties),
@@ -504,6 +538,9 @@ def rebuild_from_csv() -> dict:
         "drive_dropped": stats["drive_dropped"],
         "code_only_dropped": stats["code_only_dropped"],
         "incomplete_skipped": stats["incomplete_skipped"],
+        "partial_imported": stats["partial_imported"],
+        "newest_imported_code": f"PTP{max(codes)}" if codes else "",
+        "newest_sheet_code": f"PTP{max(sheet_codes)}" if sheet_codes else "",
     }
 
 

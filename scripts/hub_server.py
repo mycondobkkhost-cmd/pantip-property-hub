@@ -38,13 +38,171 @@ from src.hub.queue_store import (  # noqa: E402
     queue_stats,
     update_item,
 )
-from src.hub.scraper import scrape_url  # noqa: E402
+from src.hub.customer_store import (  # noqa: E402
+    STATUS_LABELS,
+    add_case,
+    append_codes,
+    case_stats,
+    delete_case,
+    get_case,
+    list_cases,
+    mark_contacted,
+    update_case,
+    write_followup_export_csv,
+)
+from src.hub.customer_match import recommend_for_case  # noqa: E402
+from src.hub.scraper import scrape_url, fetch_preview_image, fetch_image_bytes  # noqa: E402
 from src.hub.sheet_sync import refresh_main_sheet, refresh_wait_post_sheet  # noqa: E402
 from src.hub.sheet_write import push_hub_properties_to_sheet  # noqa: E402
 from src.hub.text_gen import generate_text  # noqa: E402
 
 PORT = 8765
 SCRAPER_VERSION = "mobile-ua-proxy-bypass-v4"
+THUMB_CACHE_DIR = BASE_DIR / "data" / "thumb_cache"
+_PREVIEW_OG_CACHE: dict[str, str] = {}
+_PREVIEW_BYTES_CACHE: dict[str, tuple[bytes, str]] = {}
+_PREVIEW_CACHE_MAX = 400
+_THUMB_FETCH_LOCK = __import__("threading").Semaphore(1)
+_THUMB_PENDING: set[str] = set()
+_THUMB_QUEUE = __import__("queue").Queue()
+_THUMB_FAIL_UNTIL: dict[str, float] = {}
+
+
+def _cache_put(cache: dict, key: str, value) -> None:
+    cache[key] = value
+    while len(cache) > _PREVIEW_CACHE_MAX:
+        cache.pop(next(iter(cache)), None)
+
+
+def _thumb_key(url: str) -> str:
+    import hashlib
+
+    return hashlib.sha1(url.encode("utf-8")).hexdigest()
+
+
+def _load_thumb_disk(url: str) -> tuple[bytes, str] | None:
+    THUMB_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    key = _thumb_key(url)
+    bin_path = THUMB_CACHE_DIR / f"{key}.bin"
+    meta_path = THUMB_CACHE_DIR / f"{key}.meta"
+    if not bin_path.is_file() or not meta_path.is_file():
+        return None
+    try:
+        meta = meta_path.read_text(encoding="utf-8").strip()
+        ctype = meta.split("\n", 1)[0] or "image/jpeg"
+        data = bin_path.read_bytes()
+        if data and len(data) >= 500:
+            return data, ctype
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def _save_thumb_disk(url: str, data: bytes, ctype: str) -> None:
+    THUMB_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    key = _thumb_key(url)
+    try:
+        (THUMB_CACHE_DIR / f"{key}.bin").write_bytes(data)
+        (THUMB_CACHE_DIR / f"{key}.meta").write_text(
+            f"{ctype or 'image/jpeg'}\n{url}\n", encoding="utf-8"
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _fetch_thumb_blocking(page_url: str) -> tuple[bytes, str]:
+    """Hit Facebook — only from background worker (never on request thread)."""
+    with _THUMB_FETCH_LOCK:
+        disk = _load_thumb_disk(page_url)
+        if disk:
+            _cache_put(_PREVIEW_BYTES_CACHE, page_url, disk)
+            return disk
+        image_url = _PREVIEW_OG_CACHE.get(page_url)
+        if image_url is None:
+            try:
+                image_url, _ = fetch_preview_image(page_url)
+            except Exception:  # noqa: BLE001
+                image_url = ""
+            _cache_put(_PREVIEW_OG_CACHE, page_url, image_url or "")
+        if not image_url:
+            return b"", ""
+        try:
+            data, ctype = fetch_image_bytes(image_url)
+        except Exception:  # noqa: BLE001
+            return b"", ""
+        if not data or len(data) < 500:
+            return b"", ""
+        ctype = ctype or "image/jpeg"
+        _cache_put(_PREVIEW_BYTES_CACHE, page_url, (data, ctype))
+        _save_thumb_disk(page_url, data, ctype)
+        return data, ctype
+
+
+def enqueue_preview_thumb(page_url: str) -> None:
+    page_url = (page_url or "").strip()
+    if not page_url.startswith("http"):
+        return
+    if page_url in _PREVIEW_BYTES_CACHE and _PREVIEW_BYTES_CACHE[page_url][0]:
+        return
+    if _load_thumb_disk(page_url):
+        return
+    import time
+
+    if _THUMB_FAIL_UNTIL.get(page_url, 0) > time.time():
+        return
+    if page_url in _THUMB_PENDING:
+        return
+    _THUMB_PENDING.add(page_url)
+    _THUMB_QUEUE.put(page_url)
+
+
+def resolve_preview_thumb(page_url: str, *, wait: bool = False) -> tuple[bytes, str, str]:
+    """Return (bytes, ctype, status) where status is hit|pending|miss.
+
+    HTTP handlers must use wait=False so sheet/API stay responsive while FB fetch
+    runs in the background worker.
+    """
+    page_url = (page_url or "").strip()
+    if not page_url.startswith("http"):
+        return b"", "", "miss"
+
+    cached = _PREVIEW_BYTES_CACHE.get(page_url)
+    if cached and cached[0]:
+        return cached[0], cached[1], "hit"
+
+    disk = _load_thumb_disk(page_url)
+    if disk:
+        _cache_put(_PREVIEW_BYTES_CACHE, page_url, disk)
+        return disk[0], disk[1], "hit"
+
+    if wait:
+        data, ctype = _fetch_thumb_blocking(page_url)
+        return data, ctype, ("hit" if data else "miss")
+
+    import time
+
+    if _THUMB_FAIL_UNTIL.get(page_url, 0) > time.time():
+        return b"", "", "miss"
+
+    enqueue_preview_thumb(page_url)
+    return b"", "", "pending"
+
+
+def _thumb_worker_loop() -> None:
+    import time
+
+    while True:
+        page_url = _THUMB_QUEUE.get()
+        try:
+            data, _ctype = _fetch_thumb_blocking(page_url)
+            if not data:
+                _THUMB_FAIL_UNTIL[page_url] = time.time() + 120
+        except Exception as exc:  # noqa: BLE001
+            print(f"[hub] thumb worker error: {exc}")
+            _THUMB_FAIL_UNTIL[page_url] = time.time() + 120
+        finally:
+            _THUMB_PENDING.discard(page_url)
+            _THUMB_QUEUE.task_done()
 
 
 def _inject_users_into_preview(html: str) -> str:
@@ -124,6 +282,87 @@ class HubHandler(BaseHTTPRequestHandler):
             include_done = "done=1" in (urlparse(self.path).query or "")
             items = list_queue(include_done=include_done)
             self._json(200, {"items": items, "stats": queue_stats()})
+            return
+        if path == "/api/customers":
+            include_closed = "closed=1" in (urlparse(self.path).query or "")
+            items = list_cases(include_closed=include_closed)
+            self._json(
+                200,
+                {
+                    "items": items,
+                    "stats": case_stats(),
+                    "status_labels": STATUS_LABELS,
+                },
+            )
+            return
+        if path == "/api/preview-image":
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            url = ((qs.get("url") or [""])[0] or "").strip()
+            if not url:
+                self._json(400, {"ok": False, "error": "missing url", "image_url": ""})
+                return
+            try:
+                if url in _PREVIEW_OG_CACHE:
+                    image_url = _PREVIEW_OG_CACHE[url]
+                    warnings: list[str] = []
+                else:
+                    image_url, warnings = fetch_preview_image(url)
+                    _cache_put(_PREVIEW_OG_CACHE, url, image_url or "")
+                self._json(
+                    200,
+                    {
+                        "ok": bool(image_url),
+                        "image_url": image_url,
+                        "warnings": warnings,
+                        "source_url": url,
+                        "thumb_url": (
+                            f"/api/preview-thumb?url={__import__('urllib.parse').quote(url, safe='')}"
+                            if image_url
+                            else ""
+                        ),
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc), "image_url": ""})
+            return
+        if path == "/api/preview-thumb":
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            url = ((qs.get("url") or [""])[0] or "").strip()
+            if not url.startswith("http"):
+                self.send_error(400)
+                return
+            try:
+                data, ctype, status = resolve_preview_thumb(url, wait=False)
+                if data:
+                    self.send_response(200)
+                    self._cors()
+                    self.send_header("Content-Type", ctype or "image/jpeg")
+                    self.send_header("Content-Length", str(len(data)))
+                    self.send_header("Cache-Control", "public, max-age=86400")
+                    self.send_header("X-Thumb-Status", "hit")
+                    self.end_headers()
+                    self.wfile.write(data)
+                    return
+                # pending = queued for background FB fetch; miss = failed / no image
+                code = 202 if status == "pending" else 404
+                body = b'{"ok":false,"status":"' + status.encode() + b'"}'
+                self.send_response(code)
+                self._cors()
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Thumb-Status", status)
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception:  # noqa: BLE001
+                try:
+                    self.send_error(502)
+                except Exception:  # noqa: BLE001
+                    pass
             return
         if path == "/api/groups":
             data = list_groups_summary()
@@ -424,6 +663,114 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"error": str(exc)})
             return
 
+        if path == "/api/customers/add":
+            try:
+                item = add_case(**{k: v for k, v in body.items() if k != "id"})
+                self._json(200, {"ok": True, "item": item, "stats": case_stats()})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/customers/update":
+            try:
+                cid = (body.get("id") or "").strip()
+                fields = {k: v for k, v in body.items() if k != "id"}
+                item = update_case(cid, **fields)
+                self._json(200, {"ok": True, "item": item, "stats": case_stats()})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/customers/delete":
+            try:
+                delete_case((body.get("id") or "").strip())
+                self._json(200, {"ok": True, "stats": case_stats()})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/customers/mark-contacted":
+            try:
+                days = body.get("followup_in_days")
+                item = mark_contacted(
+                    (body.get("id") or "").strip(),
+                    note=(body.get("note") or body.get("last_note") or ""),
+                    followup_in_days=int(days) if days not in (None, "") else None,
+                )
+                self._json(200, {"ok": True, "item": item, "stats": case_stats()})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/customers/append-codes":
+            try:
+                item = append_codes(
+                    (body.get("id") or "").strip(),
+                    offered=body.get("offered") or body.get("offered_codes"),
+                    viewing=body.get("viewing") or body.get("viewing_codes"),
+                    reserved=body.get("reserved") or body.get("reserved_codes"),
+                )
+                self._json(200, {"ok": True, "item": item, "stats": case_stats()})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/customers/recommend":
+            try:
+                cid = (body.get("id") or "").strip()
+                if cid:
+                    case = get_case(cid)
+                    if not case:
+                        self._json(404, {"error": "ไม่พบเคส"})
+                        return
+                else:
+                    case = body.get("case") or body
+                limit = int(body.get("limit") or 20)
+                result = recommend_for_case(
+                    case,
+                    limit=limit,
+                    exclude_offered=bool(body.get("exclude_offered", True)),
+                    exclude_viewing=bool(body.get("exclude_viewing", False)),
+                )
+                # remember last recommend codes on saved cases
+                if cid and result.get("items"):
+                    codes = [x.get("code") for x in result["items"] if x.get("code")]
+                    try:
+                        update_case(cid, recommended_codes=codes[:30])
+                    except ValueError:
+                        pass
+                self._json(200, result)
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/customers/export-csv":
+            try:
+                path_out = write_followup_export_csv()
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "export_csv": str(path_out.relative_to(BASE_DIR)),
+                        "stats": case_stats(),
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
         if path == "/api/properties/refresh-sheet":
             try:
                 result = refresh_main_sheet(
@@ -470,15 +817,47 @@ class HubHandler(BaseHTTPRequestHandler):
         self._json(404, {"error": "ไม่พบ API"})
 
 
+class ReuseThreadingHTTPServer(ThreadingHTTPServer):
+    allow_reuse_address = True
+
+
 def main() -> None:
     import os
+    import threading
+    import time
 
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", str(PORT)))
-    server = ThreadingHTTPServer((host, port), HubHandler)
+    server = ReuseThreadingHTTPServer((host, port), HubHandler)
+
+    for _ in range(2):
+        threading.Thread(target=_thumb_worker_loop, daemon=True).start()
+
+    def _warm_recent_thumbs() -> None:
+        time.sleep(2)
+        try:
+            props = load_properties()
+        except Exception as exc:  # noqa: BLE001
+            print(f"[hub] thumb warm skip: {exc}")
+            return
+        candidates = []
+        for p in props:
+            if (p.get("import_status") or "") not in ("", "active"):
+                continue
+            u = (p.get("post_pages_url") or "").strip()
+            if u.startswith("http"):
+                candidates.append(u)
+            if len(candidates) >= 20:
+                break
+        for u in candidates:
+            enqueue_preview_thumb(u)
+        print(f"[hub] queued {len(candidates)} page thumbs for background warm")
+
+    threading.Thread(target=_warm_recent_thumbs, daemon=True).start()
+
     print("=== Property Hub Server (Phase 2) ===")
     print(f"Listening: http://{host}:{port}/")
-    print("API:  scrape/parse/generate · projects · queue")
+    print("API:  scrape/parse/generate · projects · queue · preview-thumb")
     print("Ctrl+C to stop")
     try:
         server.serve_forever()

@@ -115,6 +115,25 @@ def download_csv(url: str, dest: Path, timeout: int = 90) -> int:
     return len(text)
 
 
+def fetch_spreadsheet_title(spreadsheet_id: str, timeout: int = 20) -> str:
+    """Best-effort public title from htmlview (no auth)."""
+    sid = (spreadsheet_id or "").strip()
+    if not sid:
+        return ""
+    url = f"https://docs.google.com/spreadsheets/d/{sid}/htmlview"
+    req = urllib.request.Request(url, headers={"User-Agent": "PropertyHubSheetSync/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+    except Exception:
+        return ""
+    m = re.search(r"<title>([^<]+)</title>", html, re.I)
+    if not m:
+        return ""
+    title = m.group(1).replace(" - Google ไดรฟ์", "").replace(" - Google Drive", "").strip()
+    return title
+
+
 def _env(*keys: str) -> str:
     for k in keys:
         v = (os.environ.get(k) or "").strip()
@@ -130,9 +149,15 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
     from src.hub.codes import is_hub_owned
     from src.hub.project_store import load_projects, load_properties, persist
 
+    # ดึงเข้าแอป = ชีทจริง (SOURCE_*) · อย่าใช้ GOOGLE_SHEETS_ID ที่ไว้ซิงค์กลับทดลอง
+    source_id = _env(
+        "SOURCE_GOOGLE_SHEETS_ID",
+        "MAIN_GOOGLE_SHEETS_ID",
+        "HUB_SOURCE_GOOGLE_SHEETS_ID",
+    )
     url = resolve_csv_export_url(
         explicit_url=csv_url or _env("MAIN_SHEET_CSV_URL", "HUB_MAIN_SHEET_CSV_URL"),
-        spreadsheet_id=_env("GOOGLE_SHEETS_ID", "HUB_GOOGLE_SHEETS_ID"),
+        spreadsheet_id=source_id,
         sheet_name=_env("MAIN_SHEET_NAME", "HUB_MAIN_SHEET_NAME") or "ชีตสำหรับทำงาน",
         gid=_env("MAIN_SHEET_GID", "HUB_MAIN_SHEET_GID") or "0",
     )
@@ -160,15 +185,27 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
             or "ไม่พบ data/main_sheet.csv และยังไม่ได้ตั้ง MAIN_SHEET_CSV_URL"
         )
 
+    sid = _sheet_id_from_url(url or "") or source_id
     summary: dict = {
         "ok": True,
         "downloaded": downloaded,
         "bytes": bytes_written,
         "source": "google_sheet" if downloaded else "local_csv",
         "preserved_hub": 0,
+        "spreadsheet_id": sid,
+        "csv_url": url or "",
+        "sync_role": "pull_source",
     }
     if download_error and not downloaded:
         summary["download_warning"] = download_error
+
+    if sid:
+        try:
+            summary["sheet_title"] = fetch_spreadsheet_title(sid)
+        except Exception:
+            summary["sheet_title"] = ""
+    if url:
+        summary["sheet_gid"] = _gid_from_url(url) or _env("MAIN_SHEET_GID", "HUB_MAIN_SHEET_GID") or ""
 
     if rebuild:
         build_master = _load_build_master()
@@ -226,11 +263,16 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
 
 def refresh_wait_post_sheet(*, csv_url: str = "") -> dict:
     """Download wait-post sheet CSV if URL configured; otherwise keep local file."""
+    source_id = _env(
+        "SOURCE_GOOGLE_SHEETS_ID",
+        "MAIN_GOOGLE_SHEETS_ID",
+        "HUB_SOURCE_GOOGLE_SHEETS_ID",
+    )
     url = resolve_csv_export_url(
         explicit_url=csv_url or _env("WAIT_POST_SHEET_CSV_URL", "HUB_WAIT_POST_SHEET_CSV_URL"),
-        spreadsheet_id=_env("GOOGLE_SHEETS_ID", "HUB_GOOGLE_SHEETS_ID"),
+        spreadsheet_id=source_id,
         sheet_name=_env("WAIT_POST_SHEET_NAME", "HUB_WAIT_SHEET_NAME") or "รอโพสต์",
-        gid=_env("WAIT_POST_SHEET_GID", "HUB_WAIT_SHEET_GID") or "682245640",
+        gid=_env("WAIT_POST_SHEET_GID", "HUB_WAIT_SHEET_GID") or "",
     )
     if not url:
         if not WAIT_CSV.exists():

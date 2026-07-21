@@ -15,13 +15,13 @@ DB_PATH = BASE_DIR / "data" / "hub.db"
 PREVIEW_JS = BASE_DIR / "hub" / "preview-data.js"
 
 
+from src.hub.project_identity import resolve_bucket as _resolve_bucket
+from src.hub.project_identity import soft_norm as _soft_norm
+
+
 def norm_key(name: str) -> str:
     """Normalize for bucket / identity — use outer name, drop parenthetical alias."""
-    n = name.lower().strip()
-    n = re.sub(r"\(.*?\)", "", n)
-    n = re.sub(r"[()（）]", " ", n)
-    n = re.sub(r"[^a-z0-9ก-๙]", "", n)
-    return n
+    return _soft_norm(name)
 
 
 def norm_search_key(name: str) -> str:
@@ -33,33 +33,28 @@ def norm_search_key(name: str) -> str:
 
 
 def project_bucket(name: str) -> str | None:
-    if not name or not name.strip():
-        return None
-    k = norm_key(name)
-    if len(k) < 3:
-        return None
-    if "thru" in k and "thonglor" in k:
-        return "thru_thonglor"
-    if "lifeasoke" in k or k.startswith("lifeasoke"):
-        if "hype" in k:
-            return "life_asoke_hype"
-        if "rama9" in k:
-            return "life_asoke_rama9"
-        return "life_asoke"
-    return k
+    return _resolve_bucket(name)
 
-
-def parse_transit_input(raw: str | list[str]) -> list[str]:
+def split_tag_parts(raw: str | list[str]) -> list[str]:
+    """Split free-text tags on commas, slashes, pipes, and Thai 'และ'."""
     if isinstance(raw, list):
-        parts = raw
+        chunks = [str(x) for x in raw if x is not None]
     else:
-        parts = re.split(r"[,，\n]", raw or "")
+        chunks = re.split(r"[,，\n]", raw or "")
+    parts: list[str] = []
+    for chunk in chunks:
+        for part in re.split(r"[/,|]| และ ", chunk or ""):
+            label = re.sub(r"\s+", " ", (part or "").strip())
+            if label and len(label) <= 80:
+                parts.append(label)
+    return parts
+
+
+def parse_tag_list(raw: str | list[str]) -> list[str]:
+    """Dedupe tag parts without station canonicalization (safe for zones)."""
     out: list[str] = []
     seen: set[str] = set()
-    for p in parts:
-        label = re.sub(r"\s+", " ", (p or "").strip())
-        if not label or len(label) > 80:
-            continue
+    for label in split_tag_parts(raw):
         k = norm_key(label)
         if k and k not in seen:
             seen.add(k)
@@ -67,8 +62,42 @@ def parse_transit_input(raw: str | list[str]) -> list[str]:
     return out
 
 
+def parse_station_tags(raw: str | list[str]) -> list[str]:
+    """Split compounds and canonicalize to atomic BTS/MRT/ARL labels when possible."""
+    try:
+        from src.hub.project_location_enrich import canonicalize_station
+    except Exception:  # noqa: BLE001
+        canonicalize_station = None  # type: ignore[assignment]
+
+    out: list[str] = []
+    seen: set[str] = set()
+    for label in split_tag_parts(raw):
+        use = label
+        if canonicalize_station is not None:
+            canon = canonicalize_station(label)
+            if canon:
+                use = canon
+            elif not re.search(r"\b(BTS|MRT|ARL|Airport\s*Link|APL)\b", label, re.I):
+                # bare area name without rail prefix — skip in station lists
+                continue
+        k = norm_key(use)
+        if k and k not in seen:
+            seen.add(k)
+            out.append(use)
+    return out
+
+
+def parse_transit_input(raw: str | list[str]) -> list[str]:
+    """Backward-compatible tag parser — splits compounds; no station forcing."""
+    return parse_tag_list(raw)
+
+
 def dedupe_transit(tags: list[str]) -> list[str]:
-    return parse_transit_input(tags)
+    return parse_tag_list(tags)
+
+
+def dedupe_stations(tags: list[str]) -> list[str]:
+    return parse_station_tags(tags)
 
 
 def load_projects() -> list[dict]:
@@ -86,15 +115,15 @@ def load_properties() -> list[dict]:
 def project_transit_display(proj: dict) -> list[str]:
     verified = proj.get("transit_verified") or []
     if verified:
-        return dedupe_transit(verified)
-    return dedupe_transit(proj.get("transit_unverified") or [])
+        return dedupe_stations(verified)
+    return dedupe_stations(proj.get("transit_unverified") or [])
 
 
 def project_zone_display(proj: dict) -> list[str]:
     verified = proj.get("zone_verified") or []
     if verified:
-        return dedupe_transit(verified)
-    return dedupe_transit(proj.get("zone_unverified") or [])
+        return parse_tag_list(verified)
+    return parse_tag_list(proj.get("zone_unverified") or [])
 
 
 def project_location_label(project: dict) -> str:
@@ -518,7 +547,10 @@ def create_project(canonical_name: str, transit_raw: str | list[str]) -> dict:
     if not bucket:
         raise ValueError("ชื่อโครงการสั้นเกินไป")
 
-    transit = parse_transit_input(transit_raw)
+    transit = parse_station_tags(transit_raw)
+    if not transit:
+        # allow zone-only create via free tags that aren't stations
+        transit = parse_tag_list(transit_raw)
     if not transit:
         raise ValueError("กรุณาระบุทำเล / BTS / MRT อย่างน้อย 1 รายการ")
 
@@ -583,13 +615,15 @@ def update_project_standard(
         proj["canonical_name"] = name
 
     if transit_raw is not None:
-        new_tags = parse_transit_input(transit_raw)
+        new_tags = parse_station_tags(transit_raw) or parse_tag_list(transit_raw)
         # Promote to verified master — replace, do not merge leftovers
         proj["transit_verified"] = new_tags
         proj["transit_unverified"] = []
 
     if zone_raw is not None:
-        zones = parse_transit_input(zone_raw)
+        zones = parse_tag_list(zone_raw)
+        # keep stations out of zone field
+        zones = [z for z in zones if not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I)]
         proj["zone_verified"] = zones
         proj["zone_unverified"] = []
 

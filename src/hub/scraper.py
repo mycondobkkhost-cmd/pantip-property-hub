@@ -231,6 +231,83 @@ def pick_text(fetched: str, pasted: str) -> tuple[str, str]:
     return pasted, ""
 
 
+def fetch_preview_image(url: str) -> tuple[str, list[str]]:
+    """Best-effort og:image / twitter:image from listing URL. Facebook often blocked."""
+    warnings: list[str] = []
+    url = (url or "").strip()
+    if not url.startswith("http"):
+        return "", ["URL ไม่ถูกต้อง"]
+
+    kind = classify_url(url)
+    candidates = _facebook_fetch_urls(url) if kind == "facebook" else [url]
+    agents = [MOBILE_UA, DESKTOP_UA] if kind == "facebook" else [DESKTOP_UA, MOBILE_UA]
+
+    last_error = ""
+    for candidate in candidates:
+        for agent in agents:
+            try:
+                html = _http_get(candidate, agent)
+            except URLError as exc:
+                last_error = str(exc.reason)
+                continue
+            except Exception as exc:  # noqa: BLE001
+                last_error = str(exc)
+                continue
+
+            for prop in ("og:image", "og:image:url", "twitter:image", "twitter:image:src"):
+                img = _meta(html, prop).strip()
+                if img.startswith("//"):
+                    img = "https:" + img
+                if not img.startswith("http"):
+                    continue
+                low = img.lower()
+                if kind == "facebook" and ("static.xx.fbcdn" in low or "/rsrc.php/" in low):
+                    continue
+                return img, _unique_warnings(warnings)
+
+    if last_error:
+        warnings.append(f"ดึงรูปไม่ได้: {last_error}")
+    elif kind == "facebook":
+        warnings.append("Facebook มักไม่ให้ดึงรูปโดยตรง — Living / ลิงก์สาธารณะมีโอกาสสำเร็จกว่า")
+    else:
+        warnings.append("ไม่พบรูปตัวอย่างในหน้า")
+    return "", _unique_warnings(warnings)
+
+
+def fetch_image_bytes(image_url: str) -> tuple[bytes, str]:
+    """Download image bytes for proxying (Facebook CDN often blocks browser hotlink)."""
+    image_url = (image_url or "").strip()
+    if not image_url.startswith("http"):
+        return b"", ""
+    last_error = ""
+    for agent in (MOBILE_UA, DESKTOP_UA):
+        try:
+            req = Request(
+                image_url,
+                headers={
+                    "User-Agent": agent,
+                    "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+                    "Accept-Language": "th,en;q=0.9",
+                    "Referer": "https://www.facebook.com/",
+                },
+            )
+            ctx = ssl.create_default_context()
+            opener = build_opener(ProxyHandler({}), HTTPSHandler(context=ctx))
+            with opener.open(req, timeout=TIMEOUT) as resp:
+                data = resp.read()
+                ctype = (resp.headers.get("Content-Type") or "image/jpeg").split(";")[0].strip()
+                if data and ctype.startswith("image/"):
+                    return data, ctype
+                if data and len(data) > 1000:
+                    return data, ctype or "image/jpeg"
+        except Exception as exc:  # noqa: BLE001
+            last_error = str(exc)
+            continue
+    if last_error:
+        return b"", ""
+    return b"", ""
+
+
 def scrape_url(url: str, pasted_text: str = "") -> dict:
     kind = classify_url(url)
     fetched, fetch_warnings = fetch_page_text(url)
@@ -259,4 +336,10 @@ def scrape_url(url: str, pasted_text: str = "") -> dict:
         (fetched and is_partial_text(fetched, kind) and not pasted_text.strip())
         or is_group_boilerplate(text)
     )
+    try:
+        preview, _ = fetch_preview_image(url)
+        if preview:
+            data["preview_image"] = preview
+    except Exception:  # noqa: BLE001
+        pass
     return data

@@ -51,6 +51,7 @@ from src.hub.customer_store import (  # noqa: E402
     write_followup_export_csv,
 )
 from src.hub.customer_match import recommend_for_case  # noqa: E402
+from src.hub.co_catalog import build_co_catalog, match_co_brief  # noqa: E402
 from src.hub.scraper import scrape_url, fetch_preview_image, fetch_image_bytes  # noqa: E402
 from src.hub.sheet_sync import refresh_main_sheet, refresh_wait_post_sheet  # noqa: E402
 from src.hub.sheet_write import push_hub_properties_to_sheet  # noqa: E402
@@ -61,6 +62,7 @@ SCRAPER_VERSION = "mobile-ua-proxy-bypass-v4"
 THUMB_CACHE_DIR = BASE_DIR / "data" / "thumb_cache"
 _PREVIEW_OG_CACHE: dict[str, str] = {}
 _PREVIEW_BYTES_CACHE: dict[str, tuple[bytes, str]] = {}
+_CO_CATALOG_CACHE: dict = {"mtime": 0.0, "data": None}
 _PREVIEW_CACHE_MAX = 400
 _THUMB_FETCH_LOCK = __import__("threading").Semaphore(1)
 _THUMB_PENDING: set[str] = set()
@@ -72,6 +74,24 @@ def _cache_put(cache: dict, key: str, value) -> None:
     cache[key] = value
     while len(cache) > _PREVIEW_CACHE_MAX:
         cache.pop(next(iter(cache)), None)
+
+
+def _co_catalog_cached() -> dict:
+    """Rebuild Co-Agent catalog when properties.json changes."""
+    from src.hub.project_store import PROPERTIES_JSON
+
+    path = PROPERTIES_JSON
+    try:
+        mtime = path.stat().st_mtime if path.exists() else 0.0
+    except OSError:
+        mtime = 0.0
+    cached = _CO_CATALOG_CACHE.get("data")
+    if cached is not None and _CO_CATALOG_CACHE.get("mtime") == mtime:
+        return cached
+    data = build_co_catalog()
+    _CO_CATALOG_CACHE["mtime"] = mtime
+    _CO_CATALOG_CACHE["data"] = data
+    return data
 
 
 def _thumb_key(url: str) -> str:
@@ -368,6 +388,14 @@ class HubHandler(BaseHTTPRequestHandler):
             data = list_groups_summary()
             self._json(200, data)
             return
+        if path == "/api/co/catalog":
+            try:
+                self._json(200, _co_catalog_cached())
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path in {"/co", "/co/"}:
+            path = "/co/index.html"
         if path == "/":
             path = "/preview.html"
         file_path = (HUB_DIR / path.lstrip("/")).resolve()
@@ -381,6 +409,8 @@ class HubHandler(BaseHTTPRequestHandler):
         if file_path.name == "preview.html":
             content = _inject_users_into_preview(content.decode("utf-8")).encode("utf-8")
         ctype = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
+        if file_path.suffix == ".html":
+            ctype = "text/html; charset=utf-8"
         self.send_response(200)
         self._cors()
         self.send_header("Content-Type", ctype)
@@ -771,6 +801,17 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"error": str(exc)})
             return
 
+        if path == "/api/co/match":
+            try:
+                limit = int(body.get("limit") or 30)
+                result = match_co_brief(body, limit=limit)
+                self._json(200, result)
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/properties/refresh-sheet":
             try:
                 result = refresh_main_sheet(
@@ -858,6 +899,7 @@ def main() -> None:
     print("=== Property Hub Server (Phase 2) ===")
     print(f"Listening: http://{host}:{port}/")
     print("API:  scrape/parse/generate · projects · queue · preview-thumb")
+    print(f"Co-Agent: http://{host}:{port}/co/")
     print("Ctrl+C to stop")
     try:
         server.serve_forever()

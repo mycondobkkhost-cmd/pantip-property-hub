@@ -113,19 +113,46 @@ def slim_property(
         "bed_cat": bed_category(prop.get("bedrooms")),
         "size_sqm": size_sqm,
         "size_n": _size_n(size_sqm),
-        "floor": prop.get("floor") or "",
         "rent_price": prop.get("rent_price") or "",
         "sale_price": prop.get("sale_price") or "",
         "rent_n": _parse_price(prop.get("rent_price")) if _has_price(prop.get("rent_price")) else 0,
         "sale_n": _parse_price(prop.get("sale_price")) if _has_price(prop.get("sale_price")) else 0,
-        "zones": zones[:5],
-        "transit": transit[:5],
-        "location_ref": prop.get("location_ref") or "",
+        "zones": zones[:4],
+        "transit": transit[:4],
         "page_url": url,
         "link_kind": link_kind,
-        "import_status": status or "active",
         "last_listed_at": prop.get("last_listed_at") or "",
     }
+
+
+_CO_ITEM_KEYS = (
+    "code",
+    "project_id",
+    "project_name",
+    "property_type",
+    "bedrooms",
+    "bed_cat",
+    "size_sqm",
+    "size_n",
+    "rent_price",
+    "sale_price",
+    "rent_n",
+    "sale_n",
+    "zones",
+    "transit",
+    "page_url",
+    "link_kind",
+    "last_listed_at",
+)
+
+
+def _pack_items(items: list[dict]) -> list[list]:
+    """Column-pack rows to shrink JSON (repeated keys dominate payload size)."""
+    keys = _CO_ITEM_KEYS
+    out: list[list] = []
+    for it in items:
+        out.append([it.get(k) for k in keys])
+    return out
 
 
 def build_co_catalog(*, limit: int | None = None) -> dict:
@@ -155,14 +182,22 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
         pname = slim.get("project_name") or ""
         if pid and pname and pid not in project_opts:
             aliases = [str(a).strip() for a in (proj.get("aliases") or []) if str(a).strip()]
-            # Ensure short English tokens like Thru are searchable even if only in canonical name.
             project_opts[pid] = {
                 "id": pid,
                 "name": pname,
-                "aliases": aliases[:20],
+                "aliases": aliases[:8],
             }
 
-    items.sort(key=lambda x: (x.get("last_listed_at") or ""), reverse=True)
+    # Newest first by real date (DD/MM/YYYY), not lexicographic string order.
+    def _sort_key(it: dict) -> tuple:
+        raw = str(it.get("last_listed_at") or "")
+        m = re.match(r"^(\d{1,2})/(\d{1,2})/(\d{4})$", raw)
+        if not m:
+            return (0, 0, 0, it.get("code") or "")
+        d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        return (y, mo, d, it.get("code") or "")
+
+    items.sort(key=_sort_key, reverse=True)
     if limit:
         items = items[: int(limit)]
 
@@ -174,12 +209,13 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
     return {
         "ok": True,
         "count": len(items),
-        "items": items,
+        # Packed rows keep payload small enough for mobile browsers.
+        "keys": list(_CO_ITEM_KEYS),
+        "rows": _pack_items(items),
         "filters": {
             "zones": [{"label": k, "count": v} for k, v in zones],
             "transits": [{"label": k, "count": v} for k, v in transits],
             "property_types": [{"label": k, "count": v} for k, v in types],
-            # Full list (Hub-style searchable picker); was truncated at 600 and hid Thru etc.
             "projects": projects_list,
             "beds": [
                 {"value": "studio", "label": "Studio"},

@@ -43,12 +43,34 @@ def _as_str_list(val: Any) -> list[str]:
     return []
 
 
+def listing_post_url(prop: dict) -> tuple[str, str]:
+    """Prefer Pantip page post; fall back to personal FB post (post_url)."""
+    page = (prop.get("post_pages_url") or "").strip()
+    if page.startswith("http"):
+        return page, "page"
+    personal = (prop.get("post_url") or "").strip()
+    if personal.startswith("http"):
+        return personal, "personal"
+    return "", ""
+
+
 def page_post_url(prop: dict) -> str:
-    """Facebook Pantip Property page post only (same source as Hub thumbs)."""
-    u = (prop.get("post_pages_url") or "").strip()
-    if u.startswith("http"):
-        return u
-    return ""
+    """Backward-compatible: best open/thumb URL (page, else personal)."""
+    url, _kind = listing_post_url(prop)
+    return url
+
+
+def _size_n(s: Any) -> float:
+    raw = str(s or "").strip().replace(",", "")
+    if not raw or raw in {"-", "—"}:
+        return 0.0
+    m = re.search(r"[\d.]+", raw)
+    if not m:
+        return 0.0
+    try:
+        return float(m.group(0))
+    except ValueError:
+        return 0.0
 
 
 def slim_property(
@@ -66,8 +88,8 @@ def slim_property(
     if not code:
         return None
 
-    page = page_post_url(prop)
-    if require_page and not page:
+    url, link_kind = listing_post_url(prop)
+    if require_page and not url:
         return None
 
     status = (prop.get("import_status") or "").strip()
@@ -81,6 +103,7 @@ def slim_property(
     if not transit and prop.get("transit_from_sheet"):
         transit = list(prop.get("transit_from_sheet") or [])[:4]
 
+    size_sqm = prop.get("size_sqm") or ""
     return {
         "code": code,
         "project_id": prop.get("project_id") or "",
@@ -88,7 +111,8 @@ def slim_property(
         "property_type": prop.get("property_type") or "",
         "bedrooms": prop.get("bedrooms") or "",
         "bed_cat": bed_category(prop.get("bedrooms")),
-        "size_sqm": prop.get("size_sqm") or "",
+        "size_sqm": size_sqm,
+        "size_n": _size_n(size_sqm),
         "floor": prop.get("floor") or "",
         "rent_price": prop.get("rent_price") or "",
         "sale_price": prop.get("sale_price") or "",
@@ -97,7 +121,8 @@ def slim_property(
         "zones": zones[:5],
         "transit": transit[:5],
         "location_ref": prop.get("location_ref") or "",
-        "page_url": page,
+        "page_url": url,
+        "link_kind": link_kind,
         "import_status": status or "active",
         "last_listed_at": prop.get("last_listed_at") or "",
     }
@@ -109,6 +134,7 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
     items: list[dict] = []
     zone_counts: dict[str, int] = {}
     transit_counts: dict[str, int] = {}
+    type_counts: dict[str, int] = {}
     project_opts: dict[str, dict] = {}
 
     for prop in props:
@@ -122,6 +148,9 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
             zone_counts[z] = zone_counts.get(z, 0) + 1
         for t in slim.get("transit") or []:
             transit_counts[t] = transit_counts.get(t, 0) + 1
+        ptype = (slim.get("property_type") or "").strip()
+        if ptype:
+            type_counts[ptype] = type_counts.get(ptype, 0) + 1
         pid = slim.get("project_id") or ""
         pname = slim.get("project_name") or ""
         if pid and pname and pid not in project_opts:
@@ -137,8 +166,9 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
     if limit:
         items = items[: int(limit)]
 
-    zones = sorted(zone_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:80]
-    transits = sorted(transit_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:80]
+    zones = sorted(zone_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    transits = sorted(transit_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    types = sorted(type_counts.items(), key=lambda kv: (-kv[1], kv[0]))
     projects_list = sorted(project_opts.values(), key=lambda x: x["name"])
 
     return {
@@ -148,6 +178,7 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
         "filters": {
             "zones": [{"label": k, "count": v} for k, v in zones],
             "transits": [{"label": k, "count": v} for k, v in transits],
+            "property_types": [{"label": k, "count": v} for k, v in types],
             # Full list (Hub-style searchable picker); was truncated at 600 and hid Thru etc.
             "projects": projects_list,
             "beds": [
@@ -219,20 +250,59 @@ def _parse_project_filters(brief: dict, projects: dict[str, dict]) -> tuple[set[
     return ids, uniq_q
 
 
+def _normalize_deal(raw: Any) -> str:
+    deal = str(raw or "all").strip().lower() or "all"
+    if deal in {"", "all", "any", "ทั้งหมด"}:
+        return "both"
+    if deal in {"buy", "sale", "sell", "ขาย", "ซื้อ"}:
+        return "sale"
+    if deal in {"rent", "เช่า"}:
+        return "rent"
+    if deal == "both":
+        return "both"
+    return deal
+
+
+def _locations_to_str(raw: Any) -> str:
+    if raw is None:
+        return ""
+    if isinstance(raw, (list, tuple, set)):
+        return ", ".join(str(x).strip() for x in raw if str(x).strip())
+    return str(raw).strip()
+
+
+def _passes_size(slim: dict, size_min: float, size_max: float) -> bool:
+    n = float(slim.get("size_n") or 0)
+    if size_min and (not n or n < size_min):
+        return False
+    if size_max and (not n or n > size_max):
+        return False
+    return True
+
+
 def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
-    """Reuse Hub matcher; return only page-linked active rows."""
+    """Reuse Hub matcher; active rows; open URL = page post or personal post."""
     projects = {p.get("id"): p for p in load_projects()}
     project_ids, project_queries = _parse_project_filters(brief, projects)
 
+    try:
+        size_min = float(brief.get("size_min") or 0)
+    except (TypeError, ValueError):
+        size_min = 0.0
+    try:
+        size_max = float(brief.get("size_max") or 0)
+    except (TypeError, ValueError):
+        size_max = 0.0
+
     case = {
-        "deal_type": (brief.get("deal_type") or "rent").strip().lower() or "rent",
+        "deal_type": _normalize_deal(brief.get("deal_type")),
         "budget_min": brief.get("budget_min") or 0,
         "budget_max": brief.get("budget_max") or 0,
-        "locations": brief.get("locations") or "",
-        "transits": brief.get("transits") or [],
+        "locations": _locations_to_str(brief.get("locations")),
+        "transits": _as_str_list(brief.get("transits")),
         "bedrooms": brief.get("bedrooms") or [],
-        "property_types": brief.get("property_types") or ["Condo"],
-        "brief": brief.get("brief") or "",
+        "property_types": _as_str_list(brief.get("property_types")),
+        "brief": "",
         "inquiry_codes": [],
         "offered_codes": [],
         "viewing_codes": [],
@@ -240,11 +310,17 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
 
     # Keep free-text project names in brief for soft boost when not resolved to ids
     if project_queries:
-        extra = " ".join(project_queries)
-        if _soft(extra) not in _soft(case["brief"]):
-            case["brief"] = (case["brief"] + " " + extra).strip()
+        case["brief"] = " ".join(project_queries).strip()
 
     lim = max(1, int(limit or 30))
+
+    def _finish(scored_or_items: list) -> dict:
+        return {
+            "ok": True,
+            "count": len(scored_or_items),
+            "matched": len(scored_or_items),
+            "items": scored_or_items,
+        }
 
     # Selected projects: score all matching listings (don't rely on global top-N).
     if project_ids or project_queries:
@@ -259,6 +335,8 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
             slim = slim_property(prop, proj, require_page=False, include_archived=False)
             if not slim:
                 continue
+            if not _passes_size(slim, size_min, size_max):
+                continue
             if soft_needles and not project_ids:
                 blob = _project_search_blob(slim, proj)
                 if not any(n in blob for n in soft_needles):
@@ -271,13 +349,7 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
             slim["reasons"] = reasons
             scored.append((score, reasons, slim))
         scored.sort(key=lambda x: (-x[0], x[2].get("code") or ""))
-        out = [s[2] for s in scored[:lim]]
-        return {
-            "ok": True,
-            "count": len(out),
-            "matched": len(out),
-            "items": out,
-        }
+        return _finish([s[2] for s in scored[:lim]])
 
     raw = recommend_for_case(case, limit=max(80, lim * 3), exclude_offered=False)
     by_code = {str(p.get("code") or "").upper(): p for p in load_properties()}
@@ -296,15 +368,12 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
         )
         if not slim:
             continue
+        if not _passes_size(slim, size_min, size_max):
+            continue
         slim["score"] = hit.get("score")
         slim["reasons"] = hit.get("reasons") or []
         out.append(slim)
         if len(out) >= lim:
             break
 
-    return {
-        "ok": True,
-        "count": len(out),
-        "matched": len(out),
-        "items": out,
-    }
+    return _finish(out)

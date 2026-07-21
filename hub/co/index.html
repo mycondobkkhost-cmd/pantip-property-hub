@@ -47,12 +47,6 @@
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
     .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .brand-mark {
-      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
-      background: linear-gradient(145deg, #c4b5fd, #7c3aed);
-      color: #1e1433; font-weight: 700; font-size: 15px;
-      display: grid; place-items: center;
-    }
     .brand strong { display: block; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; }
     .brand span { display: block; font-size: 11px; color: rgba(245,243,255,.65); margin-top: 2px; }
     .line-cta {
@@ -91,8 +85,9 @@
     @media (min-width: 720px) {
       .filter-grid.two { grid-template-columns: 1fr 1fr; }
       .filter-grid.three { grid-template-columns: 1fr 1fr 1fr; }
-      .filter-grid.four { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
-      .filter-grid.four > .field:nth-child(5) { grid-column: 1 / -1; max-width: 280px; }
+      .filter-grid.four { grid-template-columns: 1.4fr 1fr 1fr; }
+      .filter-grid.budget { grid-template-columns: 1fr 1fr; }
+      .filter-grid.size { grid-template-columns: 1fr 1fr; }
     }
     label.field { display: block; margin: 0; }
     label.field > span, .field > span {
@@ -113,7 +108,16 @@
     }
     .chip.on { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
 
-    .project-picker-field { grid-column: 1 / -1; }
+    .picker-field { grid-column: 1 / -1; }
+    .picker-field > span.lbl { display: block; font-size: 12px; font-weight: 500; color: #4c4260; margin-bottom: 4px; }
+    .seg {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .seg button {
+      border: 1px solid var(--line); background: #fff; color: #4c4260;
+      border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .seg button.on { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
     .filter-list-search {
       width: 100%; margin-bottom: 6px; padding: 8px 10px;
       border: 1px solid #d8d0e6; border-radius: 8px; font-size: 13px; background: #fff;
@@ -245,10 +249,9 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <div class="brand-mark">PP</div>
         <div>
           <strong>Pantip Property ( Co-Agent Stock )</strong>
-          <span>ดูสต็อก · Match ทรัพย์ · เปิดโพสต์เพจ · คัดลอกรหัส</span>
+          <span>ดูสต็อก · Match ทรัพย์ · เปิดโพสต์ · คัดลอกรหัส</span>
         </div>
       </div>
       <a class="line-cta" href="https://lin.ee/5W00Nwl" target="_blank" rel="noopener">คุยไลน์ · @PTP.CONDO</a>
@@ -267,17 +270,11 @@
           <label class="field"><span>ค้นหา</span>
             <input id="stock-q" type="search" placeholder="รหัส / โครงการ เช่น PTP8088, ทองหล่อ" autocomplete="off" />
           </label>
-          <label class="field"><span>ทำเล</span>
-            <select id="stock-zone"><option value="">ทั้งหมด</option></select>
-          </label>
-          <label class="field"><span>BTS / MRT</span>
-            <select id="stock-transit"><option value="">ทั้งหมด</option></select>
-          </label>
-          <label class="field"><span>ประเภทดีล</span>
+          <label class="field"><span>ประเภท</span>
             <select id="stock-deal">
               <option value="">ทั้งหมด</option>
-              <option value="rent">มีราคาเช่า</option>
-              <option value="sale">มีราคาขาย</option>
+              <option value="rent">เช่า</option>
+              <option value="sale">ขาย</option>
             </select>
           </label>
           <label class="field"><span>สถานะ</span>
@@ -289,10 +286,22 @@
             </select>
           </label>
         </div>
+        <div class="picker-field" style="margin-top:10px">
+          <span class="lbl">ทำเล</span>
+          <input id="stock-zone-q" type="search" class="filter-list-search" placeholder="ค้นหาทำเล แล้วติ๊กได้หลายรายการ" autocomplete="off" />
+          <div class="filter-selected-strip" id="stock-zone-picked" hidden></div>
+          <div class="check-group is-search-hidden" id="stock-zone"></div>
+        </div>
+        <div class="picker-field" style="margin-top:10px">
+          <span class="lbl">BTS / MRT</span>
+          <input id="stock-transit-q" type="search" class="filter-list-search" placeholder="ค้นหาสถานี แล้วติ๊กได้หลายรายการ" autocomplete="off" />
+          <div class="filter-selected-strip" id="stock-transit-picked" hidden></div>
+          <div class="check-group is-search-hidden" id="stock-transit"></div>
+        </div>
       </div>
       <div class="meta-bar">
         <span id="stock-count">กำลังโหลด…</span>
-        <span>กดแถว → เปิดโพสต์เพจ</span>
+        <span>กดแถว → เปิดโพสต์ (เพจ หรือเฟสส่วนตัว)</span>
       </div>
       <div class="table-wrap">
         <div class="list-head">
@@ -308,42 +317,55 @@
 
     <section id="view-match" class="panel">
       <div class="filter-panel">
-        <div class="filter-grid two">
-          <label class="field"><span>ทำเล</span>
-            <input id="m-loc" type="text" placeholder="ทองหล่อ, เอกมัย" list="zone-list" />
-          </label>
-          <label class="field"><span>BTS / MRT</span>
-            <input id="m-transit" type="text" placeholder="BTS ทองหล่อ" list="transit-list" />
-          </label>
+        <div class="picker-field">
+          <span class="lbl">โครงการ</span>
+          <input id="m-project-q" type="search" class="filter-list-search"
+            placeholder="ค้นหาโครงการ TH/EN เช่น Thru, ทรู, Life Asoke…" autocomplete="off" />
+          <div class="filter-selected-strip" id="m-project-picked" hidden></div>
+          <div class="check-group is-search-hidden" id="m-project"></div>
         </div>
-        <div class="filter-grid three" style="margin-top:10px">
-          <label class="field"><span>งบต่ำ</span><input id="m-min" type="number" min="0" placeholder="15000" /></label>
-          <label class="field"><span>งบสูง</span><input id="m-max" type="number" min="0" placeholder="30000" /></label>
-          <label class="field"><span>ดีล</span>
-            <select id="m-deal">
-              <option value="rent">เช่า</option>
-              <option value="sale">ซื้อ</option>
-              <option value="both">เช่า+ซื้อ</option>
-            </select>
-          </label>
+        <div class="picker-field" style="margin-top:10px">
+          <span class="lbl">BTS / MRT</span>
+          <input id="m-transit-q" type="search" class="filter-list-search" placeholder="ค้นหาสถานี แล้วติ๊กได้หลายรายการ" autocomplete="off" />
+          <div class="filter-selected-strip" id="m-transit-picked" hidden></div>
+          <div class="check-group is-search-hidden" id="m-transit"></div>
         </div>
-        <div class="filter-grid two" style="margin-top:10px">
-          <div class="field project-picker-field">
-            <span>โครงการ</span>
-            <input id="m-project-q" type="search" class="filter-list-search"
-              placeholder="ค้นหาโครงการ TH/EN เช่น Thru, ทรู, Life Asoke…" autocomplete="off" />
-            <div class="filter-selected-strip" id="m-project-picked" hidden></div>
-            <div class="check-group is-search-hidden" id="m-project"></div>
+        <div class="picker-field" style="margin-top:10px">
+          <span class="lbl">ทำเล</span>
+          <input id="m-zone-q" type="search" class="filter-list-search" placeholder="ค้นหาทำเล แล้วติ๊กได้หลายรายการ" autocomplete="off" />
+          <div class="filter-selected-strip" id="m-zone-picked" hidden></div>
+          <div class="check-group is-search-hidden" id="m-zone"></div>
+        </div>
+        <div class="filter-grid budget" style="margin-top:10px">
+          <label class="field"><span>ราคาเริ่มต้น</span><input id="m-min" type="number" min="0" placeholder="15000" /></label>
+          <label class="field"><span>ราคาสูงสุด</span><input id="m-max" type="number" min="0" placeholder="30000" /></label>
+        </div>
+        <div class="picker-field" style="margin-top:10px">
+          <span class="lbl">ประเภททรัพย์</span>
+          <input id="m-type-q" type="search" class="filter-list-search" placeholder="ค้นหาประเภท เช่น Condo, House" autocomplete="off" />
+          <div class="filter-selected-strip" id="m-type-picked" hidden></div>
+          <div class="check-group is-search-hidden" id="m-type"></div>
+        </div>
+        <div style="margin-top:10px">
+          <span class="lbl" style="display:block;font-size:12px;font-weight:500;color:#4c4260;margin-bottom:6px">ประเภท</span>
+          <div class="seg" id="m-deal">
+            <button type="button" class="on" data-deal="all">ทั้งหมด</button>
+            <button type="button" data-deal="rent">เช่า</button>
+            <button type="button" data-deal="sale">ขาย</button>
           </div>
-          <label class="field"><span>โจทย์สั้นๆ</span>
-            <input id="m-brief" type="text" placeholder="1 นอน ใกล้รถไฟฟ้า" />
-          </label>
         </div>
-        <div class="chip-row" id="m-beds">
-          <button type="button" class="chip" data-bed="studio">Studio</button>
-          <button type="button" class="chip" data-bed="1">1 นอน</button>
-          <button type="button" class="chip" data-bed="2">2 นอน</button>
-          <button type="button" class="chip" data-bed="3">3+</button>
+        <div style="margin-top:10px">
+          <span class="lbl" style="display:block;font-size:12px;font-weight:500;color:#4c4260;margin-bottom:6px">จำนวนห้อง</span>
+          <div class="chip-row" id="m-beds" style="margin-top:0">
+            <button type="button" class="chip" data-bed="studio">Studio</button>
+            <button type="button" class="chip" data-bed="1">1 นอน</button>
+            <button type="button" class="chip" data-bed="2">2 นอน</button>
+            <button type="button" class="chip" data-bed="3">3+</button>
+          </div>
+        </div>
+        <div class="filter-grid size" style="margin-top:10px">
+          <label class="field"><span>ขนาดขั้นต่ำ (ตร.ม.)</span><input id="m-size-min" type="number" min="0" step="0.1" placeholder="25" /></label>
+          <label class="field"><span>ขนาดสูงสุด (ตร.ม.)</span><input id="m-size-max" type="number" min="0" step="0.1" placeholder="60" /></label>
         </div>
         <div class="actions">
           <button type="button" class="btn-sm primary" id="m-run">ค้นหา Match</button>
@@ -351,7 +373,7 @@
         </div>
       </div>
       <div class="meta-bar">
-        <span id="match-count">ใส่โจทย์แล้วกดค้นหา</span>
+        <span id="match-count">ใส่เงื่อนไขแล้วกดค้นหา</span>
         <span>คัดลอกรหัสส่งแอดมินได้</span>
       </div>
       <div class="table-wrap">
@@ -361,24 +383,40 @@
           <span style="text-align:right">ราคา</span>
         </div>
         <div id="match-list" class="prop-list">
-          <div class="empty"><span>ยังไม่มีผล Match</span>กรอกทำเล / BTS / งบ แล้วกดค้นหา</div>
+          <div class="empty"><span>ยังไม่มีผล Match</span>เลือกโครงการ / BTS / ทำเล แล้วกดค้นหา</div>
         </div>
       </div>
     </section>
   </main>
 
-  <datalist id="zone-list"></datalist>
-  <datalist id="transit-list"></datalist>
   <div class="toast" id="toast">คัดลอกแล้ว</div>
 
   <script>
+
     var API = location.origin;
     var CATALOG = { items: [], filters: {} };
     var PAGE = 40;
     var stockShown = 0;
     var filteredStock = [];
-    var ALL_PROJECT_OPTS = [];
-    var selectedProjectIds = [];
+
+    var PICKERS = {
+      "stock-zone": { selected: [], opts: [], labelOf: function (v) { return v; }, match: softIncludes, emptyText: "ไม่พบทำเล" },
+      "stock-transit": { selected: [], opts: [], labelOf: function (v) { return v; }, match: softIncludes, emptyText: "ไม่พบสถานี" },
+      "m-project": {
+        selected: [], opts: [],
+        labelOf: function (v) {
+          var found = (PICKERS["m-project"].opts || []).find(function (o) { return o.id === v; });
+          return found ? found.name : v;
+        },
+        match: projectMatchesQuery,
+        emptyText: "ไม่พบโครงการที่ตรงคำค้น",
+        valueOf: function (o) { return o.id; },
+        textOf: function (o) { return o.name; }
+      },
+      "m-transit": { selected: [], opts: [], labelOf: function (v) { return v; }, match: softIncludes, emptyText: "ไม่พบสถานี" },
+      "m-zone": { selected: [], opts: [], labelOf: function (v) { return v; }, match: softIncludes, emptyText: "ไม่พบทำเล" },
+      "m-type": { selected: [], opts: [], labelOf: function (v) { return v; }, match: softIncludes, emptyText: "ไม่พบประเภท" }
+    };
 
     function esc(s) {
       return String(s == null ? "" : s)
@@ -397,6 +435,13 @@
     }
     function soft(s) {
       return String(s || "").toLowerCase().replace(/[^a-z0-9ก-๙]+/g, "");
+    }
+    function softIncludes(opt, query) {
+      var q = soft(query);
+      if (!q) return true;
+      var label = typeof opt === "string" ? opt : (opt.name || opt.label || opt.id || "");
+      var k = soft(label);
+      return k.indexOf(q) >= 0 || (q.length >= 3 && k.length >= 3 && q.indexOf(k) >= 0);
     }
     function switchView(view) {
       document.querySelectorAll(".tabs button").forEach(function (b) {
@@ -420,25 +465,27 @@
       add(str.replace(/\([^)]*\)/g, " "));
       return keys;
     }
-
     function projectMatchesQuery(opt, query) {
       var q = soft(query);
       if (!q) return true;
-      var keys = collectProjectKeys(opt.name, opt.aliases);
-      return keys.some(function (k) {
+      return collectProjectKeys(opt.name, opt.aliases).some(function (k) {
         return k.indexOf(q) >= 0 || (q.length >= 3 && q.indexOf(k) >= 0 && k.length >= 3);
       });
     }
 
-    function projectLabelById(id) {
-      var found = ALL_PROJECT_OPTS.find(function (o) { return o.id === id; });
-      return found ? found.name : id;
+    function pickerIds(listId) {
+      return {
+        q: listId + "-q",
+        picked: listId + "-picked",
+        list: listId
+      };
     }
 
-    function syncProjectPickedStrip() {
-      var strip = document.getElementById("m-project-picked");
-      if (!strip) return;
-      if (!selectedProjectIds.length) {
+    function syncPickedStrip(listId) {
+      var p = PICKERS[listId];
+      var strip = document.getElementById(listId + "-picked");
+      if (!p || !strip) return;
+      if (!p.selected.length) {
         strip.hidden = true;
         strip.innerHTML = "";
         return;
@@ -447,16 +494,17 @@
       strip.innerHTML = "";
       var label = document.createElement("span");
       label.className = "filter-picked-label";
-      label.textContent = "เลือกแล้ว " + selectedProjectIds.length;
+      label.textContent = "เลือกแล้ว " + p.selected.length;
       strip.appendChild(label);
-      selectedProjectIds.forEach(function (id) {
+      p.selected.forEach(function (id) {
         var chip = document.createElement("button");
         chip.type = "button";
         chip.className = "filter-picked-chip";
         chip.dataset.id = id;
+        chip.dataset.picker = listId;
         chip.title = "เอาออก";
         var name = document.createElement("span");
-        name.textContent = projectLabelById(id);
+        name.textContent = p.labelOf(id);
         var x = document.createElement("span");
         x.className = "x";
         x.setAttribute("aria-hidden", "true");
@@ -467,79 +515,98 @@
       });
     }
 
-    function fillProjectPicker(q) {
-      var box = document.getElementById("m-project");
-      if (!box) return;
+    function fillPicker(listId, q) {
+      var p = PICKERS[listId];
+      var box = document.getElementById(listId);
+      if (!p || !box) return;
       var query = String(q || "").trim();
+      var valueOf = p.valueOf || function (o) { return typeof o === "string" ? o : (o.id || o.label || o); };
+      var textOf = p.textOf || function (o) { return typeof o === "string" ? o : (o.name || o.label || o.id || ""); };
       var matched = [];
       if (!query) {
-        selectedProjectIds.forEach(function (id) {
-          var found = ALL_PROJECT_OPTS.find(function (o) { return o.id === id; });
+        p.selected.forEach(function (id) {
+          var found = p.opts.find(function (o) { return valueOf(o) === id; });
           if (found) matched.push(found);
+          else matched.push(id);
         });
       } else {
-        matched = ALL_PROJECT_OPTS.filter(function (o) { return projectMatchesQuery(o, query); });
-        selectedProjectIds.forEach(function (id) {
-          if (matched.some(function (o) { return o.id === id; })) return;
-          var found = ALL_PROJECT_OPTS.find(function (o) { return o.id === id; });
+        matched = p.opts.filter(function (o) { return p.match(o, query); });
+        p.selected.forEach(function (id) {
+          if (matched.some(function (o) { return valueOf(o) === id; })) return;
+          var found = p.opts.find(function (o) { return valueOf(o) === id; });
           if (found) matched.unshift(found);
         });
-        matched = matched.slice(0, 100);
+        matched = matched.slice(0, 120);
       }
       box.innerHTML = "";
       if (!matched.length) {
         if (query) {
           var empty = document.createElement("div");
           empty.className = "check-empty";
-          empty.textContent = "ไม่พบโครงการที่ตรงคำค้น";
+          empty.textContent = p.emptyText || "ไม่พบรายการ";
           box.appendChild(empty);
         }
-        box.classList.toggle("is-search-hidden", !query);
-        syncProjectPickedStrip();
+        box.classList.toggle("is-search-hidden", !query && !p.selected.length);
+        syncPickedStrip(listId);
         return;
       }
       matched.forEach(function (o) {
+        var val = valueOf(o);
         var lab = document.createElement("label");
         lab.className = "check-item";
         var inp = document.createElement("input");
         inp.type = "checkbox";
-        inp.value = o.id;
-        inp.checked = selectedProjectIds.indexOf(o.id) >= 0;
+        inp.value = val;
+        inp.checked = p.selected.indexOf(val) >= 0;
         lab.appendChild(inp);
-        lab.appendChild(document.createTextNode(" " + o.name));
+        lab.appendChild(document.createTextNode(" " + textOf(o)));
         box.appendChild(lab);
       });
-      box.classList.toggle("is-search-hidden", !query && !selectedProjectIds.length);
-      if (!query && selectedProjectIds.length) box.classList.remove("is-search-hidden");
-      syncProjectPickedStrip();
+      box.classList.toggle("is-search-hidden", !query && !p.selected.length);
+      if (!query && p.selected.length) box.classList.remove("is-search-hidden");
+      syncPickedStrip(listId);
     }
 
-    function fillFilterSelects() {
+    function bindPicker(listId, onChange) {
+      var qEl = document.getElementById(listId + "-q");
+      var listEl = document.getElementById(listId);
+      var strip = document.getElementById(listId + "-picked");
+      if (qEl) qEl.addEventListener("input", function () { fillPicker(listId, this.value); });
+      if (listEl) listEl.addEventListener("change", function (e) {
+        var inp = e.target.closest('input[type="checkbox"]');
+        if (!inp) return;
+        var p = PICKERS[listId];
+        var id = inp.value;
+        var idx = p.selected.indexOf(id);
+        if (inp.checked && idx < 0) p.selected.push(id);
+        if (!inp.checked && idx >= 0) p.selected.splice(idx, 1);
+        syncPickedStrip(listId);
+        if (onChange) onChange();
+      });
+      if (strip) strip.addEventListener("click", function (e) {
+        var chip = e.target.closest(".filter-picked-chip");
+        if (!chip) return;
+        var p = PICKERS[listId];
+        var id = chip.dataset.id;
+        p.selected = p.selected.filter(function (x) { return x !== id; });
+        fillPicker(listId, (qEl && qEl.value) || "");
+        if (onChange) onChange();
+      });
+    }
+
+    function fillFilterPickers() {
       var f = CATALOG.filters || {};
-      var z = document.getElementById("stock-zone");
-      var t = document.getElementById("stock-transit");
-      (f.zones || []).forEach(function (x) {
-        var o = document.createElement("option");
-        o.value = x.label; o.textContent = x.label + " (" + x.count + ")";
-        z.appendChild(o);
-      });
-      (f.transits || []).forEach(function (x) {
-        var o = document.createElement("option");
-        o.value = x.label; o.textContent = x.label + " (" + x.count + ")";
-        t.appendChild(o);
-      });
-      var zl = document.getElementById("zone-list");
-      var tl = document.getElementById("transit-list");
-      (f.zones || []).slice(0, 40).forEach(function (x) {
-        var o = document.createElement("option"); o.value = x.label; zl.appendChild(o);
-      });
-      (f.transits || []).slice(0, 40).forEach(function (x) {
-        var o = document.createElement("option"); o.value = x.label; tl.appendChild(o);
-      });
-      ALL_PROJECT_OPTS = (f.projects || []).map(function (x) {
+      PICKERS["stock-zone"].opts = (f.zones || []).map(function (x) { return x.label; });
+      PICKERS["stock-transit"].opts = (f.transits || []).map(function (x) { return x.label; });
+      PICKERS["m-zone"].opts = (f.zones || []).map(function (x) { return x.label; });
+      PICKERS["m-transit"].opts = (f.transits || []).map(function (x) { return x.label; });
+      PICKERS["m-type"].opts = (f.property_types || []).map(function (x) { return x.label; });
+      PICKERS["m-project"].opts = (f.projects || []).map(function (x) {
         return { id: x.id, name: x.name, aliases: x.aliases || [] };
       });
-      fillProjectPicker("");
+      ["stock-zone", "stock-transit", "m-project", "m-transit", "m-zone", "m-type"].forEach(function (id) {
+        fillPicker(id, (document.getElementById(id + "-q") || {}).value || "");
+      });
     }
 
     var THUMB_CACHE = {};
@@ -548,24 +615,18 @@
     var THUMB_MAX_PARALLEL = 3;
 
     function thumbPlaceholder(p) {
-      if (!p.page_url) return '<div class="thumb-ph">ไม่มีเพจ</div>';
-      // Hub-style: poll /api/preview-thumb (202=pending). <img onerror> breaks on JSON 202.
+      if (!p.page_url) return '<div class="thumb-ph">ไม่มีโพสต์</div>';
       return '<div class="thumb-ph" data-thumb-url="' + esc(p.page_url) + '" title="กำลังดึงรูป">…</div>';
     }
-
     function markThumbRetry(el, url) {
       if (!el || !el.isConnected) return;
       el.outerHTML = '<button type="button" class="thumb-ph" data-thumb-retry="' + esc(url) +
         '" style="cursor:pointer;border:1px solid var(--line)">ไม่มีรูป<br/>แตะใหม่</button>';
     }
-
     function loadThumbForEl(el) {
       var url = el.getAttribute("data-thumb-url") || "";
       if (!url) return Promise.resolve();
-      if (THUMB_CACHE[url] === "") {
-        markThumbRetry(el, url);
-        return Promise.resolve();
-      }
+      if (THUMB_CACHE[url] === "") { markThumbRetry(el, url); return Promise.resolve(); }
       if (THUMB_CACHE[url]) {
         el.outerHTML = '<img class="thumb" src="' + esc(THUMB_CACHE[url]) + '" alt="" />';
         return Promise.resolve();
@@ -581,9 +642,7 @@
           if (r.status === 404) throw new Error("miss");
           if (!r.ok) throw new Error("http " + r.status);
           return r.blob().then(function (blob) {
-            if (!blob || blob.size < 500 || (blob.type && blob.type.indexOf("image/") !== 0)) {
-              throw new Error("empty");
-            }
+            if (!blob || blob.size < 500 || (blob.type && blob.type.indexOf("image/") !== 0)) throw new Error("empty");
             var obj = URL.createObjectURL(blob);
             THUMB_CACHE[url] = obj;
             if (!el.isConnected) return;
@@ -596,22 +655,16 @@
       };
       return attempt(0);
     }
-
     function pumpThumbQueue() {
       while (thumbActive < THUMB_MAX_PARALLEL && thumbQueue.length) {
         var el = thumbQueue.shift();
         if (!el || !el.isConnected) continue;
         thumbActive += 1;
-        loadThumbForEl(el).finally(function () {
-          thumbActive -= 1;
-          pumpThumbQueue();
-        });
+        loadThumbForEl(el).finally(function () { thumbActive -= 1; pumpThumbQueue(); });
       }
     }
-
     function scheduleThumbLoads(root) {
       var nodes = (root || document).querySelectorAll("[data-thumb-url]");
-      if (!nodes.length) return;
       Array.prototype.forEach.call(nodes, function (el) { thumbQueue.push(el); });
       pumpThumbQueue();
     }
@@ -624,7 +677,8 @@
       if (rent) priceHtml += '<div class="rent">เช่า ' + esc(rent) + "</div>";
       if (sale) priceHtml += '<div class="sale">ขาย ' + esc(sale) + "</div>";
       if (!priceHtml) priceHtml = '<div class="muted">สอบถามราคา</div>';
-      var sideNote = p.page_url ? "เปิดโพสต์เพจ" : "ยังไม่มีลิงก์เพจ";
+      var sideNote = !p.page_url ? "ยังไม่มีลิงก์โพสต์"
+        : (p.link_kind === "personal" ? "เปิดโพสต์เฟสส่วนตัว" : "เปิดโพสต์เพจ");
 
       return '<button type="button" class="prop-row" data-page="' + esc(p.page_url || "") + '">' +
         '<div class="thumb-wrap">' + thumbPlaceholder(p) + "</div>" +
@@ -651,8 +705,8 @@
 
     function applyStockFilter() {
       var q = soft(document.getElementById("stock-q").value);
-      var zone = document.getElementById("stock-zone").value;
-      var transit = document.getElementById("stock-transit").value;
+      var zones = PICKERS["stock-zone"].selected.slice();
+      var transits = PICKERS["stock-transit"].selected.slice();
       var deal = document.getElementById("stock-deal").value;
       var era = document.getElementById("stock-era").value;
       filteredStock = (CATALOG.items || []).filter(function (p) {
@@ -661,8 +715,12 @@
           if (blob.indexOf(q) < 0) return false;
         }
         if (era && (p.import_status || "active") !== era) return false;
-        if (zone && !(p.zones || []).some(function (z) { return z === zone || soft(z).indexOf(soft(zone)) >= 0; })) return false;
-        if (transit && !(p.transit || []).some(function (t) { return t === transit || soft(t).indexOf(soft(transit)) >= 0; })) return false;
+        if (zones.length && !(p.zones || []).some(function (z) {
+          return zones.some(function (sel) { return z === sel || soft(z).indexOf(soft(sel)) >= 0; });
+        })) return false;
+        if (transits.length && !(p.transit || []).some(function (t) {
+          return transits.some(function (sel) { return t === sel || soft(t).indexOf(soft(sel)) >= 0; });
+        })) return false;
         if (deal === "rent" && !p.rent_n) return false;
         if (deal === "sale" && !p.sale_n) return false;
         return true;
@@ -694,27 +752,32 @@
         function (b) { return b.getAttribute("data-bed"); }
       );
     }
+    function selectedDeal() {
+      var on = document.querySelector("#m-deal button.on");
+      return on ? on.getAttribute("data-deal") : "all";
+    }
 
     async function runMatch() {
       var body = {
-        deal_type: document.getElementById("m-deal").value,
+        deal_type: selectedDeal(),
         budget_min: document.getElementById("m-min").value || 0,
         budget_max: document.getElementById("m-max").value || 0,
-        locations: document.getElementById("m-loc").value.trim(),
-        transits: document.getElementById("m-transit").value.trim()
-          ? document.getElementById("m-transit").value.split(/[,，|/]+/).map(function (s) { return s.trim(); }).filter(Boolean)
-          : [],
-        project_ids: selectedProjectIds.slice(),
-        brief: document.getElementById("m-brief").value.trim(),
+        size_min: document.getElementById("m-size-min").value || 0,
+        size_max: document.getElementById("m-size-max").value || 0,
+        locations: PICKERS["m-zone"].selected.slice(),
+        transits: PICKERS["m-transit"].selected.slice(),
+        project_ids: PICKERS["m-project"].selected.slice(),
+        property_types: PICKERS["m-type"].selected.slice(),
         bedrooms: selectedBeds(),
-        property_types: ["Condo"],
-        limit: 30
+        limit: 40
       };
       var typedProject = (document.getElementById("m-project-q").value || "").trim();
-      // If user typed a query but forgot to tick, still try soft name match (e.g. THRU).
       if (!body.project_ids.length && typedProject) body.project = typedProject;
-      if (!body.locations && !(body.transits || []).length && !(body.project_ids || []).length && !body.project && !body.budget_min && !body.budget_max && !body.brief) {
-        toast("ใส่ทำเล / BTS / งบ หรือโครงการก่อน");
+      var hasAny = body.locations.length || body.transits.length || body.project_ids.length || body.project ||
+        body.budget_min || body.budget_max || body.size_min || body.size_max ||
+        body.property_types.length || body.bedrooms.length || body.deal_type !== "all";
+      if (!hasAny) {
+        toast("ใส่เงื่อนไขอย่างน้อย 1 อย่าง");
         return;
       }
       var box = document.getElementById("match-list");
@@ -731,7 +794,7 @@
         var items = data.items || [];
         document.getElementById("match-count").textContent = "เจอ " + items.length + " รายการ";
         if (!items.length) {
-          box.innerHTML = '<div class="empty"><span>ไม่พบที่ตรงโจทย์</span>ลองขยายงบหรือเปลี่ยนทำเล</div>';
+          box.innerHTML = '<div class="empty"><span>ไม่พบที่ตรงโจทย์</span>ลองขยายราคาหรือเปลี่ยนทำเล</div>';
           return;
         }
         box.innerHTML = items.map(function (p) {
@@ -775,7 +838,7 @@
       if (!row) return;
       var url = row.getAttribute("data-page");
       if (url) window.open(url, "_blank", "noopener");
-      else toast("รายการนี้ยังไม่มีลิงก์เพจ");
+      else toast("รายการนี้ยังไม่มีลิงก์โพสต์");
     }
 
     async function loadCatalog() {
@@ -783,7 +846,7 @@
       var data = await res.json();
       if (!res.ok) throw new Error(data.error || "โหลดสต็อกไม่ได้");
       CATALOG = data;
-      fillFilterSelects();
+      fillFilterPickers();
       applyStockFilter();
     }
 
@@ -791,56 +854,54 @@
       var btn = e.target.closest("button[data-view]");
       if (btn) switchView(btn.getAttribute("data-view"));
     });
-    ["stock-q", "stock-zone", "stock-transit", "stock-deal", "stock-era"].forEach(function (id) {
+    ["stock-q", "stock-deal", "stock-era"].forEach(function (id) {
       document.getElementById(id).addEventListener("input", applyStockFilter);
       document.getElementById(id).addEventListener("change", applyStockFilter);
     });
+    bindPicker("stock-zone", applyStockFilter);
+    bindPicker("stock-transit", applyStockFilter);
+    bindPicker("m-project");
+    bindPicker("m-transit");
+    bindPicker("m-zone");
+    bindPicker("m-type");
+
     document.getElementById("stock-list").addEventListener("click", onListClick);
     document.getElementById("match-list").addEventListener("click", onListClick);
     document.getElementById("m-beds").addEventListener("click", function (e) {
       var chip = e.target.closest(".chip");
       if (chip) chip.classList.toggle("on");
     });
+    document.getElementById("m-deal").addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-deal]");
+      if (!btn) return;
+      document.querySelectorAll("#m-deal button").forEach(function (b) { b.classList.toggle("on", b === btn); });
+    });
     document.getElementById("m-run").addEventListener("click", runMatch);
-    document.getElementById("m-project-q").addEventListener("input", function () {
-      fillProjectPicker(this.value);
-    });
-    document.getElementById("m-project").addEventListener("change", function (e) {
-      var inp = e.target.closest('input[type="checkbox"]');
-      if (!inp) return;
-      var id = inp.value;
-      var idx = selectedProjectIds.indexOf(id);
-      if (inp.checked && idx < 0) selectedProjectIds.push(id);
-      if (!inp.checked && idx >= 0) selectedProjectIds.splice(idx, 1);
-      syncProjectPickedStrip();
-    });
-    document.getElementById("m-project-picked").addEventListener("click", function (e) {
-      var chip = e.target.closest(".filter-picked-chip");
-      if (!chip) return;
-      var id = chip.dataset.id;
-      selectedProjectIds = selectedProjectIds.filter(function (x) { return x !== id; });
-      fillProjectPicker(document.getElementById("m-project-q").value);
-    });
     document.getElementById("m-clear").addEventListener("click", function () {
-      document.getElementById("m-loc").value = "";
-      document.getElementById("m-transit").value = "";
+      ["m-project", "m-transit", "m-zone", "m-type"].forEach(function (id) {
+        PICKERS[id].selected = [];
+        var q = document.getElementById(id + "-q");
+        if (q) q.value = "";
+        fillPicker(id, "");
+      });
       document.getElementById("m-min").value = "";
       document.getElementById("m-max").value = "";
-      document.getElementById("m-project-q").value = "";
-      selectedProjectIds = [];
-      fillProjectPicker("");
-      document.getElementById("m-brief").value = "";
-      document.getElementById("m-deal").value = "rent";
+      document.getElementById("m-size-min").value = "";
+      document.getElementById("m-size-max").value = "";
+      document.querySelectorAll("#m-deal button").forEach(function (b) {
+        b.classList.toggle("on", b.getAttribute("data-deal") === "all");
+      });
       document.querySelectorAll("#m-beds .chip").forEach(function (c) { c.classList.remove("on"); });
       document.getElementById("match-list").innerHTML =
-        '<div class="empty"><span>ยังไม่มีผล Match</span>กรอกทำเล / BTS / งบ แล้วกดค้นหา</div>';
-      document.getElementById("match-count").textContent = "ใส่โจทย์แล้วกดค้นหา";
+        '<div class="empty"><span>ยังไม่มีผล Match</span>เลือกโครงการ / BTS / ทำเล แล้วกดค้นหา</div>';
+      document.getElementById("match-count").textContent = "ใส่เงื่อนไขแล้วกดค้นหา";
     });
 
     loadCatalog().catch(function (e) {
       document.getElementById("stock-list").innerHTML =
         '<div class="empty"><span>โหลดไม่สำเร็จ</span>' + esc(e.message) + "</div>";
     });
+
   </script>
 </body>
 </html>

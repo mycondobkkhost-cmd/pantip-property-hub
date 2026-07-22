@@ -16,7 +16,14 @@ sys.path.insert(0, str(BASE_DIR))
 
 from src.hub.parser import parse_listing_text, parsed_to_dict  # noqa: E402
 from src.hub.codes import next_hub_code  # noqa: E402
-from src.hub.group_store import list_groups_summary, mark_group_used, recommend_groups, retag_all  # noqa: E402
+from src.hub.group_store import (  # noqa: E402
+    create_group,
+    list_groups_summary,
+    mark_group_used,
+    recommend_groups,
+    retag_all,
+    update_group,
+)
 from src.hub.project_store import (  # noqa: E402
     create_project,
     load_properties,
@@ -501,6 +508,28 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"error": str(exc)})
             return
 
+        if path == "/api/groups/create":
+            try:
+                group = create_group(body.get("group") or body)
+                self._json(200, {"ok": True, "group": group})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/groups/update":
+            try:
+                url = (body.get("original_url") or body.get("url") or "").strip()
+                payload = body.get("group") or body
+                group = update_group(url, payload)
+                self._json(200, {"ok": True, "group": group})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
         if path == "/api/properties/save":
             try:
                 prop = save_new_property(body.get("property") or body)
@@ -547,13 +576,23 @@ class HubHandler(BaseHTTPRequestHandler):
             try:
                 name = (body.get("canonical_name") or body.get("name") or "").strip()
                 transit = body.get("transit_tags") or body.get("transit") or ""
-                project = create_project(name, transit)
+                zone = body.get("zone_tags") if "zone_tags" in body else body.get("zone")
+                aliases = body.get("aliases")
+                # Only pass zone_raw when caller explicitly sent zone fields (projects form).
+                kwargs: dict = {}
+                if "zone_tags" in body or "zone" in body:
+                    kwargs["zone_raw"] = zone if zone is not None else ""
+                if aliases is not None:
+                    kwargs["aliases"] = aliases
+                project = create_project(name, transit, **kwargs)
                 self._json(
                     200,
                     {
                         "ok": True,
                         "project": project,
-                        "transit_display": ", ".join(project.get("transit_unverified") or []),
+                        "transit_display": ", ".join(project_transit_display(project)),
+                        "zone_display": ", ".join(project_zone_display(project)),
+                        "location_display": project_location_label(project),
                     },
                 )
             except ValueError as exc:
@@ -594,6 +633,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     transit_raw=body.get("transit_tags") or body.get("transit"),
                     zone_raw=body.get("zone_tags") or body.get("zone") or "",
                     canonical_name=body.get("canonical_name"),
+                    aliases=body.get("aliases"),
                 )
                 tags = project_transit_display(project)
                 zones = project_zone_display(project)

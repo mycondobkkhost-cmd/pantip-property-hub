@@ -539,7 +539,13 @@ def find_project_by_bucket(projects: list[dict], bucket: str) -> dict | None:
     return None
 
 
-def create_project(canonical_name: str, transit_raw: str | list[str]) -> dict:
+def create_project(
+    canonical_name: str,
+    transit_raw: str | list[str] = "",
+    *,
+    zone_raw: str | list[str] | None = None,
+    aliases: str | list[str] | None = None,
+) -> dict:
     name = (canonical_name or "").strip()
     if not name:
         raise ValueError("กรุณาระบุชื่อโครงการ")
@@ -547,12 +553,18 @@ def create_project(canonical_name: str, transit_raw: str | list[str]) -> dict:
     if not bucket:
         raise ValueError("ชื่อโครงการสั้นเกินไป")
 
-    transit = parse_station_tags(transit_raw)
-    if not transit:
-        # allow zone-only create via free tags that aren't stations
-        transit = parse_tag_list(transit_raw)
-    if not transit:
+    transit = parse_station_tags(transit_raw) if transit_raw else []
+    zones = parse_tag_list(zone_raw) if zone_raw is not None else []
+    zones = [z for z in zones if not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I)]
+
+    if not transit and zone_raw is None:
+        # Legacy modal: free-text "ทำเล / BTS / MRT" in transit_raw only
+        transit = parse_station_tags(transit_raw) or parse_tag_list(transit_raw)
+
+    if not transit and not zones:
         raise ValueError("กรุณาระบุทำเล / BTS / MRT อย่างน้อย 1 รายการ")
+
+    alias_list = parse_tag_list(aliases) if aliases is not None else []
 
     projects = load_projects()
     existing = find_project_by_bucket(projects, bucket)
@@ -561,16 +573,18 @@ def create_project(canonical_name: str, transit_raw: str | list[str]) -> dict:
             f"โครงการนี้มีใน Master แล้ว: {existing['canonical_name']}"
         )
 
+    # Prefer verified master when caller split zone/transit (projects form).
+    use_verified = zone_raw is not None
     project = {
         "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, f"ptp-project-{bucket}")),
         "bucket_key": bucket,
         "canonical_name": name,
-        "aliases": [],
-        "transit_unverified": transit,
-        "zone_unverified": [],
-        "transit_verified": [],
-        "zone_verified": [],
-        "location_status": "pending_verification",
+        "aliases": alias_list,
+        "transit_unverified": [] if use_verified else transit,
+        "zone_unverified": [] if use_verified else [],
+        "transit_verified": transit if use_verified else [],
+        "zone_verified": zones if use_verified else [],
+        "location_status": "verified" if use_verified else "pending_verification",
         "is_thru_thonglor": bucket == "thru_thonglor",
         "listing_count": 0,
     }
@@ -592,6 +606,7 @@ def update_project_standard(
     transit_raw: str | list[str] | None = None,
     zone_raw: str | list[str] | None = None,
     canonical_name: str | None = None,
+    aliases: str | list[str] | None = None,
 ) -> tuple[dict, int]:
     """
     Update the project master form (ทำเล/BTS).
@@ -613,6 +628,9 @@ def update_project_standard(
         if not name:
             raise ValueError("กรุณาระบุชื่อโครงการ")
         proj["canonical_name"] = name
+
+    if aliases is not None:
+        proj["aliases"] = parse_tag_list(aliases)
 
     if transit_raw is not None:
         new_tags = parse_station_tags(transit_raw) or parse_tag_list(transit_raw)

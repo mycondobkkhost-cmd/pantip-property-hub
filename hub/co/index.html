@@ -523,7 +523,7 @@
     var drop = document.getElementById("stock-search-drop");
     var query = String(q || "").trim();
     if (!query) {
-      drop.innerHTML = '<div class="empty">พิมพ์รหัสหรือชื่อโครงการ</div>';
+      drop.innerHTML = "";
       return;
     }
     var qSoft = soft(query);
@@ -579,16 +579,15 @@
     var drop = document.getElementById(key + "-drop");
     var state = P[key];
     var query = String(q || "").trim();
-    var opts = (state.opts || []).filter(function (label) { return labelMatches(label, query); }).slice(0, 80);
-    if (!query && !state.selected.length) {
-      drop.innerHTML = '<div class="empty">พิมพ์เพื่อค้นหา แล้วเลือกได้มากกว่า 1 รายการ</div>';
+    if (!query) {
+      drop.innerHTML = "";
       return;
     }
-    if (!opts.length && query) {
+    var opts = (state.opts || []).filter(function (label) { return labelMatches(label, query); }).slice(0, 80);
+    if (!opts.length) {
       drop.innerHTML = '<div class="empty">ไม่พบรายการ</div>';
       return;
     }
-    if (!query) opts = state.selected.slice();
     drop.innerHTML = opts.map(function (label) {
       var on = state.selected.indexOf(label) >= 0;
       return '<label class="check-item"><input type="checkbox" value="' + esc(label) + '"' + (on ? " checked" : "") + " /><span>" + esc(label) + "</span></label>";
@@ -599,8 +598,12 @@
     var drop = document.getElementById(key + "-drop");
     var state = P[key];
     var query = String(q || "").trim();
+    if (!query) {
+      drop.innerHTML = "";
+      return;
+    }
     var opts = (state.opts || []).filter(function (o) {
-      return !query || labelMatches(o.name, query) || soft(o.id).indexOf(soft(query)) >= 0;
+      return labelMatches(o.name, query) || soft(o.id).indexOf(soft(query)) >= 0;
     });
     if (!opts.length) {
       drop.innerHTML = '<div class="empty">ไม่พบรายการ</div>';
@@ -616,23 +619,16 @@
     var drop = document.getElementById("m-project-drop");
     var state = P["m-project"];
     var query = String(q || "").trim();
-    var opts = [];
     if (!query) {
-      opts = state.selected.map(function (id) {
-        return state.opts.find(function (o) { return o.id === id; }) || { id: id, name: projectLabel(id), aliases: [] };
-      });
-    } else {
-      opts = state.opts.filter(function (o) { return projectMatches(o, query); }).slice(0, 80);
-      state.selected.forEach(function (id) {
-        if (opts.some(function (o) { return o.id === id; })) return;
-        var found = state.opts.find(function (o) { return o.id === id; });
-        if (found) opts.unshift(found);
-      });
-    }
-    if (!query && !opts.length) {
-      drop.innerHTML = '<div class="empty">พิมพ์ชื่อโครงการแล้วเลือกได้มากกว่า 1 รายการ</div>';
+      drop.innerHTML = "";
       return;
     }
+    var opts = state.opts.filter(function (o) { return projectMatches(o, query); }).slice(0, 80);
+    state.selected.forEach(function (id) {
+      if (opts.some(function (o) { return o.id === id; })) return;
+      var found = state.opts.find(function (o) { return o.id === id; });
+      if (found) opts.unshift(found);
+    });
     if (!opts.length) {
       drop.innerHTML = '<div class="empty">ไม่พบโครงการ</div>';
       return;
@@ -885,18 +881,17 @@
   function wirePick(wrapId, inputId, onFocusFill, onTick) {
     var wrap = document.getElementById(wrapId);
     var input = document.getElementById(inputId);
-    input.addEventListener("focus", function () {
-      openPick(wrapId);
+    function refreshDrop() {
+      var q = String(input.value || "").trim();
       onFocusFill(input.value);
-    });
-    input.addEventListener("click", function () {
-      openPick(wrapId);
-      onFocusFill(input.value);
-    });
-    input.addEventListener("input", function () {
-      openPick(wrapId);
-      onFocusFill(input.value);
-    });
+      if (q) openPick(wrapId);
+      else {
+        wrap.classList.remove("open");
+      }
+    }
+    input.addEventListener("focus", refreshDrop);
+    input.addEventListener("click", refreshDrop);
+    input.addEventListener("input", refreshDrop);
     wrap.querySelector(".drop").addEventListener("mousedown", function (e) { e.preventDefault(); });
     wrap.querySelector(".drop").addEventListener("change", function (e) {
       var inp = e.target.closest('input[type="checkbox"]');

@@ -553,16 +553,9 @@
       border-radius: var(--radius); padding: 16px; margin: 0 0 12px;
       box-shadow: var(--shadow);
     }
-    .fu-due { color: #b45309; font-weight: 600; }
-    .fu-overdue { color: #b91c1c; font-weight: 700; }
-    .fu-status {
-      display: inline-block; padding: 2px 7px; border-radius: 999px;
-      font-size: 10px; font-weight: 600; background: #f4f4f5; color: #3f3f46;
-    }
-    .fu-status.due { background: #fef3c7; color: #92400e; }
-    .fu-status.high { background: #fee2e2; color: #991b1b; }
     .fu-recommend-box {
-      margin-top: 10px; padding: 12px; border: 1px solid #e4e4e7; border-radius: 10px; background: #fafafa;
+      margin-top: 0; margin-bottom: 12px; padding: 12px; border: 1px solid var(--line);
+      border-radius: var(--radius); background: #fafbfc;
     }
     .fu-rec-item {
       display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start;
@@ -601,13 +594,191 @@
       max-height: 180px; overflow: auto; margin-top: 4px;
       border-top: 1px solid #f0f0f0; padding-top: 4px;
     }
+    .fu-picker-panel.is-search-hidden {
+      display: none !important;
+      margin: 0; padding: 0; border: 0; max-height: 0; overflow: hidden;
+    }
     .fu-picker-panel .check-item { font-size: 12px; padding: 3px 0; }
     .fu-picker-panel .check-item .fu-opt-meta {
       display: block; font-size: 10px; color: #71717a; font-weight: 400; margin-left: 24px; margin-top: -2px;
     }
     .fu-picker-hint { font-size: 10px; color: #a1a1aa; margin-top: 2px; }
-    @media (max-width: 700px) {
+    .fu-board-bar {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 14px 16px; margin: 0 0 12px;
+      box-shadow: var(--shadow);
+    }
+    .fu-board-bar .fu-board-intro {
+      font-size: 12px; color: var(--muted); margin: 0 0 10px; line-height: 1.5;
+    }
+    .fu-stats-strip {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; align-items: stretch;
+    }
+    .fu-stat-chip {
+      display: inline-flex; flex-direction: column; justify-content: center;
+      min-width: 88px; padding: 8px 12px; border-radius: 10px;
+      border: 1px solid var(--line); background: #f8fafb;
+    }
+    .fu-stat-chip .n { font-size: 18px; font-weight: 700; line-height: 1.1; color: var(--ink); letter-spacing: -0.02em; }
+    .fu-stat-chip .l { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 500; }
+    .fu-stat-chip.is-overdue { background: #fef2f2; border-color: #fecaca; }
+    .fu-stat-chip.is-overdue .n { color: #b91c1c; }
+    .fu-stat-chip.is-today { background: #fffbeb; border-color: #fde68a; }
+    .fu-stat-chip.is-today .n { color: #b45309; }
+    .fu-stat-chip.is-open { background: var(--accent-soft); border-color: #ceead6; }
+    .fu-stat-chip.is-open .n { color: #137333; }
+    #fu-stats { font-size: 12px; color: var(--muted); }
+    .fu-board {
+      display: flex; flex-direction: column; gap: 10px; margin: 0 0 12px;
+    }
+    .fu-board-empty {
+      background: var(--surface); border: 1px dashed #c5ced8; border-radius: var(--radius);
+      padding: 36px 20px; text-align: center; color: var(--muted);
+    }
+    .fu-board-empty strong { display: block; color: var(--ink); font-size: 15px; margin-bottom: 6px; }
+    .fu-board-empty p { font-size: 13px; line-height: 1.5; margin: 0 0 14px; }
+    .fu-card {
+      position: relative;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden;
+      border-left: 4px solid #94a3b8;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .fu-card.is-overdue {
+      border-left-color: #dc2626;
+      background: linear-gradient(90deg, #fef2f2 0%, #fff 48px);
+      box-shadow: 0 8px 24px rgba(185, 28, 28, 0.1);
+    }
+    .fu-card.is-today {
+      border-left-color: #d97706;
+      background: linear-gradient(90deg, #fffbeb 0%, #fff 48px);
+    }
+    .fu-card.is-soon { border-left-color: #ea580c; }
+    .fu-card.is-ok { border-left-color: #16a34a; }
+    .fu-card.is-closed { border-left-color: #94a3b8; opacity: .92; }
+    .fu-card.is-high:not(.is-closed) { border-left-width: 5px; }
+    .fu-card-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) auto minmax(110px, auto);
+      gap: 10px 14px;
+      align-items: start;
+      padding: 14px 14px 10px;
+      cursor: pointer;
+    }
+    .fu-card-id {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      letter-spacing: 0.02em; margin-bottom: 2px;
+    }
+    .fu-card-name {
+      font-size: 16px; font-weight: 700; color: var(--ink);
+      letter-spacing: -0.02em; line-height: 1.25;
+    }
+    .fu-card-brief {
+      margin-top: 6px; font-size: 12px; color: #52525b; line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .fu-card-flags {
+      display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; align-items: center;
+    }
+    .fu-pri {
+      display: inline-flex; align-items: center; padding: 2px 8px;
+      border-radius: 6px; font-size: 11px; font-weight: 700;
+      background: #f4f4f5; color: #52525b;
+    }
+    .fu-pri.is-high {
+      background: #fee2e2; color: #991b1b;
+      box-shadow: 0 0 0 1px #fecaca;
+    }
+    .fu-pri.is-low { background: #f4f4f5; color: #71717a; font-weight: 600; }
+    .fu-meta-pill {
+      display: inline-flex; align-items: center; padding: 2px 7px;
+      border-radius: 6px; font-size: 10px; font-weight: 600;
+      background: #f3f5f7; color: #5f6368;
+    }
+    .fu-status-lg {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 7px 12px; border-radius: 10px;
+      font-size: 13px; font-weight: 800; letter-spacing: -0.01em;
+      line-height: 1.2; white-space: nowrap;
+      border: 1px solid transparent;
+    }
+    .fu-st-new { background: #e8f0fe; color: #174ea6; border-color: #d2e3fc; }
+    .fu-st-waiting_info { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .fu-st-offered { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .fu-st-viewing { background: #ede9fe; color: #5b21b6; border-color: #ddd6fe; }
+    .fu-st-deciding { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
+    .fu-st-reserved { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .fu-st-paused { background: #f4f4f5; color: #52525b; border-color: #e4e4e7; }
+    .fu-st-closed_won { background: #e6f4ea; color: #137333; border-color: #ceead6; }
+    .fu-st-closed_lost { background: #fce8e6; color: #c5221f; border-color: #f5c2c0; }
+    .fu-timing {
+      text-align: right; min-width: 110px;
+    }
+    .fu-timing-rel {
+      display: block; font-size: 15px; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.2; color: #3f3f46;
+    }
+    .fu-timing-date {
+      display: block; margin-top: 3px; font-size: 11px; color: var(--muted); font-weight: 500;
+    }
+    .fu-timing.is-overdue .fu-timing-rel { color: #b91c1c; font-size: 16px; }
+    .fu-timing.is-today .fu-timing-rel { color: #b45309; font-size: 16px; }
+    .fu-timing.is-soon .fu-timing-rel { color: #c2410c; }
+    .fu-timing.is-ok .fu-timing-rel { color: #15803d; font-weight: 700; font-size: 14px; }
+    .fu-timing.is-none .fu-timing-rel { color: #a1a1aa; font-weight: 600; font-size: 13px; }
+    .fu-card-actions {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      padding: 0 14px 12px;
+      border-top: 0;
+    }
+    .fu-card-actions .btn-xs { font-size: 11px; }
+    .fu-expand-btn {
+      margin-left: auto;
+      background: transparent; border: 0; color: #5f6368;
+      font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+      padding: 4px 2px;
+    }
+    .fu-expand-btn:hover { color: var(--ink); }
+    .fu-card-detail {
+      display: none;
+      padding: 0 14px 14px;
+      border-top: 1px solid var(--line);
+      background: #fafbfc;
+    }
+    .fu-card.is-open .fu-card-detail { display: block; }
+    .fu-card.is-open .fu-card-brief {
+      -webkit-line-clamp: 4;
+    }
+    .fu-detail-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 16px; padding-top: 12px; font-size: 12px;
+    }
+    .fu-detail-grid dt {
+      font-size: 10px; font-weight: 600; color: var(--muted);
+      text-transform: none; margin: 0 0 2px;
+    }
+    .fu-detail-grid dd { margin: 0; color: var(--ink); line-height: 1.4; word-break: break-word; }
+    .fu-detail-grid .fu-wide { grid-column: 1 / -1; }
+    .fu-form-section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .fu-form-section-head strong { font-size: 14px; color: #202124; }
+    @media (max-width: 720px) {
       .fu-form-grid { grid-template-columns: 1fr; }
+      .fu-card-main {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "who status"
+          "who timing";
+      }
+      .fu-card-who { grid-area: who; }
+      .fu-card-status-wrap { grid-area: status; justify-self: end; }
+      .fu-timing { grid-area: timing; text-align: left; margin-top: 4px; }
+      .fu-detail-grid { grid-template-columns: 1fr; }
+      .fu-expand-btn { margin-left: 0; }
     }
     .add-panel { max-width: none; }
     .phase-banner {
@@ -1056,8 +1227,8 @@
 
         <div class="active-filter-chips" id="active-filter-chips"></div>
 
-        <div class="filters-drawer" id="filters-drawer">
-          <div class="advanced-filters-body" id="advanced-filters-body" style="display:block">
+        <div class="filters-drawer hidden" id="filters-drawer">
+          <div class="advanced-filters-body" id="advanced-filters-body">
             <div class="filter-grid co-like">
               <div class="filter-field span-all">
                 <span>โครงการ · เลือกได้มากกว่า 1 รายการ</span>
@@ -1294,11 +1465,34 @@
       </div>
 
       <div class="hidden" id="followup-panel">
-        <div class="queue-add">
-          <p style="font-size:12px;color:#71717a;margin-bottom:10px;line-height:1.5">
-            เคสลูกค้าที่ต้องฟอโล่ว — กรอกโจทย์แล้วกด<strong>แนะนำทรัพย์</strong>ให้ระบบดึงจากลิสต์ใน Hub ที่ตรงงบ/ทำเล/BTS/ห้องนอน<br/>
-            บันทึกรหัสที่เสนอ / นัดดู ในเคสเดียวกัน · ส่งออก CSV ได้สำหรับวางในชีททดลอง
+        <div class="fu-board-bar">
+          <p class="fu-board-intro">
+            บอร์ดเคสที่ต้องฟอโล่ว — ดูความเร่งด่วนและสถานะได้ทันที · กดการ์ดเพื่อดูรายละเอียด · ฟอร์มเพิ่ม/แก้ไขอยู่ด้านล่าง
           </p>
+          <div class="toolbar-row" style="flex-wrap:wrap;gap:8px">
+            <button type="button" class="btn-sm primary" id="fu-add-case-btn">+ เพิ่มเคส</button>
+            <button type="button" class="btn-sm" id="fu-export-btn">ส่งออก CSV ชีท</button>
+            <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#52525b">
+              <input type="checkbox" id="fu-show-closed" style="width:auto" />
+              แสดงที่ปิดแล้ว
+            </label>
+            <span id="fu-stats" style="margin-left:auto"></span>
+          </div>
+          <div class="fu-stats-strip" id="fu-stats-strip" aria-live="polite"></div>
+        </div>
+        <div id="fu-recommend-box" class="fu-recommend-box hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <strong style="font-size:13px" id="fu-recommend-title">ทรัพย์แนะนำ</strong>
+            <button type="button" class="btn-sm" id="fu-recommend-close">ปิด</button>
+          </div>
+          <div id="fu-recommend-list" style="margin-top:8px;max-height:420px;overflow:auto">—</div>
+        </div>
+        <div class="fu-board" id="followup-board" role="list"></div>
+        <div class="queue-add hidden" id="fu-form-section" style="margin-top:4px">
+          <div class="fu-form-section-head">
+            <strong id="fu-form-heading">เพิ่มเคสใหม่</strong>
+            <button type="button" class="btn-sm" id="fu-close-form-btn">ปิดฟอร์ม</button>
+          </div>
           <input type="hidden" id="fu-edit-id" value="" />
           <div class="fu-form-grid" id="fu-form">
             <label><span>ชื่อในแชท *</span><input id="fu-chat-name" placeholder="ชื่อไลน์ / เฟส" /></label>
@@ -1334,7 +1528,7 @@
               <div class="fu-picker" data-fu-picker="inquiry">
                 <div class="fu-picker-chips" id="fu-inquiry-chips"></div>
                 <input type="search" class="fu-picker-q" id="fu-inquiry-q" placeholder="พิมพ์รหัสหรือโครงการที่ลูกค้าทักมา เช่น PTP8123" autocomplete="off" />
-                <div class="fu-picker-panel"><div class="check-group short" id="fu-inquiry-list"></div></div>
+                <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-inquiry-list"></div></div>
               </div>
               <div class="fu-picker-hint">ห้องต้นทางที่ลูกค้าสนใจก่อนเสนอเพิ่ม</div>
             </label>
@@ -1344,7 +1538,7 @@
               <div class="fu-picker" data-fu-picker="zones">
                 <div class="fu-picker-chips" id="fu-zones-chips"></div>
                 <input type="search" class="fu-picker-q" id="fu-zones-q" placeholder="พิมพ์ค้นทำเล เช่น ทองหล่อ แล้วติ๊ก" autocomplete="off" />
-                <div class="fu-picker-panel"><div class="check-group short" id="fu-zones-list"></div></div>
+                <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-zones-list"></div></div>
               </div>
               <div class="fu-picker-hint">ติ๊กได้หลายอัน · ใช้จับคู่แนะนำทรัพย์</div>
             </label>
@@ -1352,7 +1546,7 @@
               <div class="fu-picker" data-fu-picker="transits">
                 <div class="fu-picker-chips" id="fu-transits-chips"></div>
                 <input type="search" class="fu-picker-q" id="fu-transits-q" placeholder="พิมพ์ค้นสถานี เช่น BTS ทองหล่อ" autocomplete="off" />
-                <div class="fu-picker-panel"><div class="check-group short" id="fu-transits-list"></div></div>
+                <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-transits-list"></div></div>
               </div>
             </label>
             <label class="fu-wide"><span>ห้องนอน</span>
@@ -1369,7 +1563,7 @@
               <div class="fu-picker" data-fu-picker="types">
                 <div class="fu-picker-chips" id="fu-types-chips"></div>
                 <input type="search" class="fu-picker-q" id="fu-types-q" placeholder="พิมพ์ค้นประเภท" autocomplete="off" />
-                <div class="fu-picker-panel"><div class="check-group short" id="fu-types-list"></div></div>
+                <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-types-list"></div></div>
               </div>
             </label>
             <label><span>ทักซ้ำในอีกกี่วัน</span><input id="fu-follow-days" type="number" min="0" value="3" /></label>
@@ -1404,7 +1598,7 @@
               <div class="fu-picker" data-fu-picker="offered">
                 <div class="fu-picker-chips" id="fu-offered-chips"></div>
                 <input type="search" class="fu-picker-q" id="fu-offered-q" placeholder="พิมพ์รหัสหรือชื่อโครงการ เช่น PTP8123 / Thru" autocomplete="off" />
-                <div class="fu-picker-panel"><div class="check-group short" id="fu-offered-list"></div></div>
+                <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-offered-list"></div></div>
               </div>
               <div class="fu-picker-hint">ติ๊กจากฐานทรัพย์ · หรือกด「+ เสนอแล้ว」หลังแนะนำ</div>
             </label>
@@ -1412,14 +1606,14 @@
               <div class="fu-picker" data-fu-picker="viewing">
                 <div class="fu-picker-chips" id="fu-viewing-chips"></div>
                 <input type="search" class="fu-picker-q" id="fu-viewing-q" placeholder="พิมพ์รหัสหรือโครงการแล้วติ๊ก" autocomplete="off" />
-                <div class="fu-picker-panel"><div class="check-group short" id="fu-viewing-list"></div></div>
+                <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-viewing-list"></div></div>
               </div>
             </label>
             <label class="fu-wide"><span>รหัสจอง / มัดจำ</span>
               <div class="fu-picker" data-fu-picker="reserved">
                 <div class="fu-picker-chips" id="fu-reserved-chips"></div>
                 <input type="search" class="fu-picker-q" id="fu-reserved-q" placeholder="พิมพ์รหัสแล้วติ๊ก" autocomplete="off" />
-                <div class="fu-picker-panel"><div class="check-group short" id="fu-reserved-list"></div></div>
+                <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-reserved-list"></div></div>
               </div>
             </label>
             <label class="fu-wide"><span>โน้ตฟอโล่วล่าสุด</span><input id="fu-note" /></label>
@@ -1429,51 +1623,23 @@
             <button type="button" class="btn-sm primary" id="fu-save-btn">+ บันทึกเคส</button>
             <button type="button" class="btn-sm" id="fu-clear-btn">ล้างฟอร์ม</button>
             <button type="button" class="btn-sm primary" id="fu-recommend-form-btn" title="ใช้โจทย์ในฟอร์มแม้ยังไม่บันทึก">แนะนำทรัพย์จากโจทย์</button>
-            <button type="button" class="btn-sm" id="fu-export-btn">ส่งออก CSV ชีท</button>
-            <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#52525b">
-              <input type="checkbox" id="fu-show-closed" style="width:auto" />
-              แสดงที่ปิดแล้ว
-            </label>
-            <span id="fu-stats" style="font-size:12px;color:#71717a;margin-left:auto"></span>
-          </div>
-          <div id="fu-recommend-box" class="fu-recommend-box hidden">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-              <strong style="font-size:13px" id="fu-recommend-title">ทรัพย์แนะนำ</strong>
-              <button type="button" class="btn-sm" id="fu-recommend-close">ปิด</button>
-            </div>
-            <div id="fu-recommend-list" style="margin-top:8px;max-height:420px;overflow:auto">—</div>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <div class="scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:88px">เคส</th>
-                  <th>ลูกค้า · โจทย์</th>
-                  <th style="width:100px">งบ</th>
-                  <th style="width:88px">ฟอโล่ว</th>
-                  <th style="width:72px">สถานะ</th>
-                  <th>เสนอ / นัดดู</th>
-                  <th style="min-width:200px">ทำอะไร</th>
-                </tr>
-              </thead>
-              <tbody id="followup-rows"></tbody>
-            </table>
           </div>
         </div>
       </div>
 
       <div class="table-wrap hidden" id="projects-panel">
-        <div style="padding:10px 12px;border-bottom:1px solid #e4e4e7">
-          <label style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">ค้นหาโครงการ · TH หรือ EN</label>
-          <input type="search" id="project-master-search" placeholder="ศรีวรา, Life Asoke, ลาดพร้าว…" style="width:100%;max-width:420px;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px" />
-          <p style="font-size:12px;color:#80868b;margin-top:8px">กด「แก้ไขมาตรฐาน」เพื่อตั้งทำเล/BTS ของทั้งโครงการ · ห้องใหม่จะยึดค่านี้ด้วย</p>
+        <div style="padding:10px 12px;border-bottom:1px solid #e4e4e7;display:flex;flex-wrap:wrap;gap:10px;align-items:end">
+          <label style="flex:1;min-width:200px">
+            <span style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">ค้นหาโครงการ · TH หรือ EN</span>
+            <input type="search" id="project-master-search" placeholder="ศรีวรา, Life Asoke, ลาดพร้าว…" style="width:100%;max-width:420px;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px" />
+          </label>
+          <button type="button" class="btn-sm primary" id="project-add-btn">+ เพิ่มโครงการ</button>
+          <p style="flex:1 1 100%;font-size:12px;color:#80868b;margin:0">กด「แก้ไข」เพื่อตั้งชื่อ/ทำเล/BTS · หรือ「+ เพิ่มโครงการ」สำหรับโครงการใหม่</p>
         </div>
 
         <div id="project-standard-form" class="project-standard-form hidden">
           <div class="project-standard-head">
-            <strong>ฟอร์มมาตรฐานโครงการ</strong>
+            <strong id="project-form-heading">ฟอร์มมาตรฐานโครงการ</strong>
             <span id="project-form-meta" style="font-size:12px;color:#5f6368"></span>
           </div>
           <input type="hidden" id="project-form-id" />
@@ -1481,6 +1647,10 @@
             <label class="add-wide">
               <span>ชื่อโครงการ</span>
               <input type="text" id="project-form-name" placeholder="ชื่อหลักใน Master" />
+            </label>
+            <label class="add-wide">
+              <span>ชื่ออื่น / Aliases (คั่นด้วยจุลภาค)</span>
+              <input type="text" id="project-form-aliases" placeholder="Life Asoke, ไลฟ์ อโศก…" />
             </label>
             <label class="add-wide">
               <span>ทำเล / โซน</span>
@@ -1542,8 +1712,51 @@
               <option value="">ทั้งหมด</option>
             </select>
           </label>
+          <button type="button" class="btn-sm primary" id="groups-add-btn">+ เพิ่มกลุ่ม</button>
           <button type="button" class="btn-sm" id="groups-retag-btn">รีแท็กจากชื่อ</button>
           <span id="groups-book-stats" style="font-size:11px;color:#71717a;align-self:center"></span>
+        </div>
+        <div id="groups-form" class="project-standard-form hidden">
+          <div class="project-standard-head">
+            <strong id="groups-form-heading">เพิ่มกลุ่ม Facebook</strong>
+            <button type="button" class="btn-sm" id="groups-form-close">ปิดฟอร์ม</button>
+          </div>
+          <input type="hidden" id="groups-form-original-url" value="" />
+          <div class="add-grid" style="margin-top:8px">
+            <label class="add-wide">
+              <span>ชื่อกลุ่ม *</span>
+              <input type="text" id="groups-form-name" placeholder="เช่น Condo Ladprao For Rent" />
+            </label>
+            <label class="add-wide">
+              <span>ลิงก์กลุ่ม Facebook *</span>
+              <input type="url" id="groups-form-url" placeholder="https://www.facebook.com/groups/…" />
+            </label>
+            <label>
+              <span>โซน (คั่นด้วยจุลภาค)</span>
+              <input type="text" id="groups-form-zones" placeholder="ladprao, thonglor" />
+            </label>
+            <label>
+              <span>ประเภท / offer (คั่นด้วยจุลภาค)</span>
+              <input type="text" id="groups-form-offers" placeholder="rent, sale, condo" />
+            </label>
+            <label>
+              <span>บทบาท / role (คั่นด้วยจุลภาค)</span>
+              <input type="text" id="groups-form-roles" placeholder="mass, core, citywide" />
+            </label>
+            <label>
+              <span>ราคา / สมาชิก (ถ้ามี)</span>
+              <input type="text" id="groups-form-bands" placeholder="price_band · member_band เช่น mid · L" />
+            </label>
+            <label class="add-wide">
+              <span>โน้ต</span>
+              <input type="text" id="groups-form-notes" placeholder="หมายเหตุ เช่น ห้ามเอเจนท์ / โพสต์เช้า" />
+            </label>
+          </div>
+          <div class="toolbar-row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+            <button type="button" class="btn-sm primary" id="groups-form-save">บันทึกกลุ่ม</button>
+            <button type="button" class="btn-sm" id="groups-form-clear">ล้างฟอร์ม</button>
+          </div>
+          <p id="groups-form-status" class="project-match-note hidden" style="margin-top:8px"></p>
         </div>
         <div class="scroll">
           <table>
@@ -1552,7 +1765,7 @@
                 <th>กลุ่ม</th>
                 <th style="width:120px">โซน</th>
                 <th style="width:100px">ประเภท</th>
-                <th style="width:150px">ลิงก์</th>
+                <th style="width:200px">จัดการ</th>
               </tr>
             </thead>
             <tbody id="groups-book-rows"></tbody>
@@ -4717,11 +4930,46 @@
       initLocationTagFields();
       document.getElementById("project-form-id").value = proj.id;
       document.getElementById("project-form-name").value = proj.canonical_name || "";
+      var aliasesEl = document.getElementById("project-form-aliases");
+      if (aliasesEl) aliasesEl.value = (proj.aliases || []).join(", ");
       renderTagField("project-zone-field", masterZoneAll(proj), { editing: true });
       renderTagField("project-transit-field", masterTransitAll(proj), { editing: true });
+      var heading = document.getElementById("project-form-heading");
+      if (heading) heading.textContent = "แก้ไขโครงการ";
       document.getElementById("project-form-meta").textContent =
         (proj.listing_count || 0) + " ห้อง · " +
         ((proj.location_status === "verified") ? "มาตรฐาน verified" : "รอตั้งมาตรฐาน");
+      var roomsBtn = document.getElementById("project-form-rooms");
+      if (roomsBtn) roomsBtn.classList.remove("hidden");
+      var saveBtn = document.getElementById("project-form-save");
+      if (saveBtn) saveBtn.textContent = "บันทึกมาตรฐาน";
+      var st = document.getElementById("project-form-status");
+      if (st) {
+        st.classList.add("hidden");
+        st.textContent = "";
+      }
+      form.classList.remove("hidden");
+      form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      document.getElementById("project-form-name").focus();
+    }
+
+    function openNewProjectForm() {
+      var form = document.getElementById("project-standard-form");
+      if (!form) return;
+      initLocationTagFields();
+      document.getElementById("project-form-id").value = "";
+      document.getElementById("project-form-name").value = "";
+      var aliasesEl = document.getElementById("project-form-aliases");
+      if (aliasesEl) aliasesEl.value = "";
+      renderTagField("project-zone-field", [], { editing: true });
+      renderTagField("project-transit-field", [], { editing: true });
+      var heading = document.getElementById("project-form-heading");
+      if (heading) heading.textContent = "เพิ่มโครงการใหม่";
+      document.getElementById("project-form-meta").textContent = "โครงการใหม่ใน Master";
+      var roomsBtn = document.getElementById("project-form-rooms");
+      if (roomsBtn) roomsBtn.classList.add("hidden");
+      var saveBtn = document.getElementById("project-form-save");
+      if (saveBtn) saveBtn.textContent = "บันทึกโครงการ";
       var st = document.getElementById("project-form-status");
       if (st) {
         st.classList.add("hidden");
@@ -4741,29 +4989,48 @@
     async function saveProjectStandardForm() {
       var pid = document.getElementById("project-form-id").value;
       var name = document.getElementById("project-form-name").value.trim();
+      var aliases = (document.getElementById("project-form-aliases") || {}).value || "";
       var zone = readTagChips("project-zone-field").join(", ");
       var transit = readTagChips("project-transit-field").join(", ");
-      if (!pid) { alert("ไม่พบโครงการ"); return; }
       if (!name) { alert("กรอกชื่อโครงการ"); return; }
       if (!transit && !zone) { alert("ต้องมีทำเล หรือ BTS / MRT อย่างน้อย 1 รายการ"); return; }
       var btn = document.getElementById("project-form-save");
       var st = document.getElementById("project-form-status");
       btn.disabled = true;
+      var prevLabel = btn.textContent;
       btn.textContent = "กำลังบันทึก…";
       try {
-        var data = await apiPost("/api/projects/update", {
-          project_id: pid,
-          canonical_name: name,
-          zone_tags: zone,
-          transit_tags: transit,
-        });
-        mergeProjectIntoData(data.project, data.listings_updated || 0);
-        openProjectStandardForm(data.project.id);
-        if (st) {
-          st.textContent = "✓ บันทึกมาตรฐานแล้ว · อัปเดต " + (data.listings_updated || 0) +
-            " ห้องในโครงการ · ห้องใหม่จะยึดค่านี้ด้วย";
-          st.classList.remove("hidden", "warn");
+        var data;
+        if (!pid) {
+          data = await apiPost("/api/projects/create", {
+            canonical_name: name,
+            zone_tags: zone,
+            transit_tags: transit,
+            aliases: aliases,
+          });
+          mergeProjectIntoData(data.project, 0);
+          openProjectStandardForm(data.project.id);
+          if (st) {
+            st.textContent = "✓ เพิ่มโครงการแล้ว · ตั้งเป็นมาตรฐาน verified";
+            st.classList.remove("hidden", "warn");
+          }
+        } else {
+          data = await apiPost("/api/projects/update", {
+            project_id: pid,
+            canonical_name: name,
+            zone_tags: zone,
+            transit_tags: transit,
+            aliases: aliases,
+          });
+          mergeProjectIntoData(data.project, data.listings_updated || 0);
+          openProjectStandardForm(data.project.id);
+          if (st) {
+            st.textContent = "✓ บันทึกมาตรฐานแล้ว · อัปเดต " + (data.listings_updated || 0) +
+              " ห้องในโครงการ · ห้องใหม่จะยึดค่านี้ด้วย";
+            st.classList.remove("hidden", "warn");
+          }
         }
+        renderProjects();
       } catch (e) {
         if (st) {
           st.textContent = e.message || "บันทึกไม่สำเร็จ";
@@ -4774,7 +5041,7 @@
         }
       } finally {
         btn.disabled = false;
-        btn.textContent = "บันทึกมาตรฐาน";
+        btn.textContent = prevLabel || (pid ? "บันทึกมาตรฐาน" : "บันทึกโครงการ");
       }
     }
 
@@ -4805,7 +5072,7 @@
           '<td class="muted" title="' + esc(zones.join(", ")) + '">' + esc(zoneText) + "</td>" +
           '<td class="muted" title="' + esc(tags.join(", ")) + '">' + esc(transitText) + "</td>" +
           '<td><div class="project-actions">' +
-            '<button type="button" class="btn-sm" data-project-edit="' + esc(p.id) + '">แก้ไขมาตรฐาน</button>' +
+            '<button type="button" class="btn-sm" data-project-edit="' + esc(p.id) + '">แก้ไข</button>' +
             '<button type="button" class="btn-sm" data-project-rooms="' + esc(p.id) + '">ดูห้อง</button>' +
           "</div></td>" +
           "</tr>";
@@ -4851,16 +5118,23 @@
       if (infoCards) infoCards.classList.add("hidden");
       if (view === "queue") loadQueue();
       else if (view === "followup") {
+        hideFollowupFormSection();
         buildFuPickers(true);
         loadFollowups();
       }
-      else if (view === "groups") loadGroupsBook();
+      else if (view === "groups") {
+        hideGroupsForm();
+        loadGroupsBook();
+      }
       else if (view === "add") {
         initLinkFields();
         lockAllLinkFields();
         checkServer();
       }
-      else if (view === "projects") renderProjects();
+      else if (view === "projects") {
+        closeProjectStandardForm();
+        renderProjects();
+      }
       updateSubmenuBar();
     }
 
@@ -5124,7 +5398,7 @@
         "แสดง " + rows.length + " / " + groupsBookCache.length + " กลุ่ม";
       var tbody = document.getElementById("groups-book-rows");
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty"><p>ไม่พบกลุ่ม</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="empty"><p>ไม่พบกลุ่ม — กด + เพิ่มกลุ่ม เพื่อเพิ่มรายการ</p></td></tr>';
         return;
       }
       tbody.innerHTML = rows.slice(0, 300).map(function (g) {
@@ -5133,12 +5407,13 @@
         var nameHtml = hasUrl
           ? '<a class="group-name-link" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" title="เปิดกลุ่มในแท็บใหม่">' + esc(g.name) + "</a>"
           : "<strong style=\"font-size:12px\">" + esc(g.name) + "</strong>";
-        var actions = hasUrl
-          ? '<div class="group-actions">' +
-              '<a class="btn-sm primary" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">เปิด</a>' +
-              '<button type="button" class="btn-sm" data-copy-group="' + esc(url) + '">คัดลอก</button>' +
-            "</div>"
-          : '<span class="muted">ไม่มีลิงก์</span>';
+        var actions = '<div class="group-actions">' +
+          (hasUrl
+            ? '<a class="btn-sm primary" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">เปิด</a>' +
+              '<button type="button" class="btn-sm" data-copy-group="' + esc(url) + '">คัดลอก</button>'
+            : '<span class="muted">ไม่มีลิงก์</span>') +
+          '<button type="button" class="btn-sm" data-group-edit="' + esc(url) + '">แก้ไข</button>' +
+          "</div>";
         return "<tr>" +
           '<td class="group-name-cell">' + nameHtml +
             (g.notes ? '<div style="font-size:10px;color:#a1a1aa;margin-top:2px">' + esc(g.notes) + "</div>" : "") +
@@ -5156,6 +5431,132 @@
           "<td>" + actions + "</td>" +
           "</tr>";
       }).join("");
+    }
+
+    function clearGroupsForm() {
+      document.getElementById("groups-form-original-url").value = "";
+      document.getElementById("groups-form-name").value = "";
+      document.getElementById("groups-form-url").value = "";
+      document.getElementById("groups-form-zones").value = "";
+      document.getElementById("groups-form-offers").value = "";
+      document.getElementById("groups-form-roles").value = "";
+      document.getElementById("groups-form-bands").value = "";
+      document.getElementById("groups-form-notes").value = "";
+      var heading = document.getElementById("groups-form-heading");
+      if (heading) heading.textContent = "เพิ่มกลุ่ม Facebook";
+      var saveBtn = document.getElementById("groups-form-save");
+      if (saveBtn) saveBtn.textContent = "บันทึกกลุ่ม";
+      var st = document.getElementById("groups-form-status");
+      if (st) {
+        st.classList.add("hidden");
+        st.textContent = "";
+        st.classList.remove("warn");
+      }
+    }
+
+    function showGroupsForm(mode) {
+      var form = document.getElementById("groups-form");
+      if (!form) return;
+      form.classList.remove("hidden");
+      var heading = document.getElementById("groups-form-heading");
+      if (heading) heading.textContent = mode === "edit" ? "แก้ไขกลุ่ม" : "เพิ่มกลุ่ม Facebook";
+      try {
+        form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (e) { /* ignore */ }
+      var nameEl = document.getElementById("groups-form-name");
+      if (nameEl) setTimeout(function () { nameEl.focus(); }, 60);
+    }
+
+    function hideGroupsForm() {
+      var form = document.getElementById("groups-form");
+      if (form) form.classList.add("hidden");
+      clearGroupsForm();
+    }
+
+    function openNewGroupsForm() {
+      clearGroupsForm();
+      showGroupsForm("new");
+    }
+
+    function openEditGroupsForm(url) {
+      var key = (url || "").trim();
+      var g = groupsBookCache.find(function (x) {
+        return (x.url || "").trim() === key;
+      });
+      if (!g) {
+        alert("ไม่พบกลุ่ม");
+        return;
+      }
+      clearGroupsForm();
+      document.getElementById("groups-form-original-url").value = g.url || "";
+      document.getElementById("groups-form-name").value = g.name || "";
+      document.getElementById("groups-form-url").value = g.url || "";
+      document.getElementById("groups-form-zones").value = (g.zone_tags || []).join(", ");
+      document.getElementById("groups-form-offers").value = (g.offer_tags || []).join(", ");
+      document.getElementById("groups-form-roles").value = (g.role_tags || []).join(", ");
+      var bands = [g.price_band || "", g.member_band || ""].filter(Boolean).join(" · ");
+      document.getElementById("groups-form-bands").value = bands;
+      document.getElementById("groups-form-notes").value = g.notes || "";
+      var saveBtn = document.getElementById("groups-form-save");
+      if (saveBtn) saveBtn.textContent = "อัปเดตกลุ่ม";
+      showGroupsForm("edit");
+    }
+
+    function groupsFormPayload() {
+      var bandsRaw = (document.getElementById("groups-form-bands").value || "").trim();
+      var priceBand = "";
+      var memberBand = "";
+      if (bandsRaw) {
+        var parts = bandsRaw.split(/[·|,/]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+        priceBand = parts[0] || "";
+        memberBand = parts[1] || "";
+      }
+      return {
+        name: document.getElementById("groups-form-name").value.trim(),
+        url: document.getElementById("groups-form-url").value.trim(),
+        zone_tags: document.getElementById("groups-form-zones").value.trim(),
+        offer_tags: document.getElementById("groups-form-offers").value.trim(),
+        role_tags: document.getElementById("groups-form-roles").value.trim(),
+        price_band: priceBand,
+        member_band: memberBand,
+        notes: document.getElementById("groups-form-notes").value.trim(),
+      };
+    }
+
+    async function saveGroupsForm() {
+      var payload = groupsFormPayload();
+      if (!payload.name) { alert("กรอกชื่อกลุ่ม"); return; }
+      if (!payload.url) { alert("กรอกลิงก์กลุ่ม"); return; }
+      var originalUrl = document.getElementById("groups-form-original-url").value.trim();
+      var btn = document.getElementById("groups-form-save");
+      var st = document.getElementById("groups-form-status");
+      btn.disabled = true;
+      var prev = btn.textContent;
+      btn.textContent = "กำลังบันทึก…";
+      try {
+        if (originalUrl) {
+          await apiPost("/api/groups/update", Object.assign({}, payload, { original_url: originalUrl }));
+        } else {
+          await apiPost("/api/groups/create", payload);
+        }
+        hideGroupsForm();
+        await loadGroupsBook();
+        if (st) {
+          st.textContent = "✓ บันทึกแล้ว";
+          st.classList.remove("hidden", "warn");
+        }
+      } catch (e) {
+        if (st) {
+          st.textContent = e.message || "บันทึกไม่สำเร็จ";
+          st.classList.remove("hidden");
+          st.classList.add("warn");
+        } else {
+          alert(e.message);
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = prev || "บันทึกกลุ่ม";
+      }
     }
 
     function copyGroupUrl(url, btn) {
@@ -5422,9 +5823,94 @@
       });
       var st = document.getElementById("fu-stats");
       if (st && stats) {
-        st.textContent = "เปิด " + (stats.open || 0) + " · ถึงกำหนดทัก " + due + " · ทั้งหมด " + (stats.total || 0);
+        st.textContent = "ทั้งหมด " + (stats.total || 0);
       }
+      renderFollowupStatsStrip(stats || {});
     }
+
+    function fuDaysUntil(dateStr) {
+      var nxt = String(dateStr || "").slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(nxt)) return null;
+      var parts = nxt.split("-").map(Number);
+      var target = new Date(parts[0], parts[1] - 1, parts[2]);
+      var now = new Date();
+      var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return Math.round((target - today) / 86400000);
+    }
+
+    function fuIsClosedStatus(status) {
+      return status === "closed_won" || status === "closed_lost";
+    }
+
+    /** @returns {{urgency:string, rel:string, date:string, days:number|null}} */
+    function fuTimingInfo(it) {
+      var date = (it.next_followup_at || "").slice(0, 10);
+      var days = fuDaysUntil(date);
+      if (days == null) {
+        return { urgency: "none", rel: "ยังไม่ตั้งวัน", date: "", days: null };
+      }
+      var rel;
+      var urgency;
+      if (days < 0) {
+        urgency = "overdue";
+        rel = days === -1 ? "เลยกำหนด 1 วัน" : ("เลยกำหนด " + Math.abs(days) + " วัน");
+      } else if (days === 0) {
+        urgency = "today";
+        rel = "วันนี้";
+      } else if (days === 1) {
+        urgency = "soon";
+        rel = "อีก 1 วัน";
+      } else if (days <= 2) {
+        urgency = "soon";
+        rel = "อีก " + days + " วัน";
+      } else {
+        urgency = "ok";
+        rel = "อีก " + days + " วัน";
+      }
+      return { urgency: urgency, rel: rel, date: date, days: days };
+    }
+
+    function fuFollowClass(it) {
+      var info = fuTimingInfo(it);
+      if (info.urgency === "overdue") return "fu-overdue";
+      if (info.urgency === "today") return "fu-due";
+      return "";
+    }
+
+    function fuStatusClass(status) {
+      var key = String(status || "new").replace(/[^a-z0-9_]/gi, "");
+      return "fu-status-lg fu-st-" + (key || "new");
+    }
+
+    function fuDealLabel(deal) {
+      if (deal === "sale") return "ซื้อ";
+      if (deal === "both") return "เช่า+ซื้อ";
+      return "เช่า";
+    }
+
+    function renderFollowupStatsStrip(stats) {
+      var strip = document.getElementById("fu-stats-strip");
+      if (!strip) return;
+      var overdue = 0;
+      var todayN = 0;
+      followupItems.forEach(function (it) {
+        if (fuIsClosedStatus(it.status)) return;
+        var u = fuTimingInfo(it).urgency;
+        if (u === "overdue") overdue += 1;
+        else if (u === "today") todayN += 1;
+      });
+      var openN = (stats && stats.open != null) ? stats.open : followupItems.filter(function (it) {
+        return !fuIsClosedStatus(it.status);
+      }).length;
+      var dueN = (stats && stats.due != null) ? stats.due : (overdue + todayN);
+      strip.innerHTML =
+        '<div class="fu-stat-chip is-overdue"><span class="n">' + overdue + '</span><span class="l">เลยกำหนด</span></div>' +
+        '<div class="fu-stat-chip is-today"><span class="n">' + todayN + '</span><span class="l">ทักวันนี้</span></div>' +
+        '<div class="fu-stat-chip is-open"><span class="n">' + openN + '</span><span class="l">เคสเปิด</span></div>' +
+        '<div class="fu-stat-chip"><span class="n">' + dueN + '</span><span class="l">ถึงกำหนดทัก</span></div>';
+    }
+
+    var fuOpenCardIds = {};
 
     function fuSplitList(s) {
       return String(s || "").split(/[,，|/]+/).map(function (x) { return x.trim(); }).filter(Boolean);
@@ -5585,26 +6071,36 @@
     function fuFilterPickerList(listId, q) {
       var box = document.getElementById(listId);
       if (!box) return;
+      var panel = box.closest(".fu-picker-panel");
       var key = fuPickKeyFromListId(listId);
       var selected = key ? fuGetPick(key) : [];
       var selectedMap = {};
       selected.forEach(function (v) { selectedMap[v] = true; });
       var needles = expandSearchNeedles(q || "");
+      var hasQuery = needles.length > 0;
+      if (panel) panel.classList.toggle("is-search-hidden", !hasQuery);
+      var empty = box.querySelector(".fu-opt-empty");
+      if (!hasQuery) {
+        Array.prototype.forEach.call(box.querySelectorAll(".check-item"), function (lab) {
+          var inp = lab.querySelector("input");
+          var val = inp ? inp.value : "";
+          if (inp) inp.checked = !!selectedMap[val];
+          lab.classList.add("is-filtered-out");
+        });
+        if (empty) empty.remove();
+        return;
+      }
       var shown = 0;
       Array.prototype.forEach.call(box.querySelectorAll(".check-item"), function (lab) {
         var inp = lab.querySelector("input");
         var val = inp ? inp.value : "";
         if (inp) inp.checked = !!selectedMap[val];
         var blob = lab.getAttribute("data-search") || softNormText(lab.textContent || "");
-        var ok = !needles.length || needles.some(function (n) { return blob.indexOf(n) >= 0; });
+        var ok = needles.some(function (n) { return blob.indexOf(n) >= 0; });
         if (selectedMap[val]) ok = true;
-        if (!needles.length && fuIsPropPick(key)) {
-          if (!selectedMap[val]) ok = false;
-        }
         lab.classList.toggle("is-filtered-out", !ok);
         if (ok) shown += 1;
       });
-      var empty = box.querySelector(".fu-opt-empty");
       if (!shown) {
         if (!empty) {
           empty = document.createElement("div");
@@ -5612,9 +6108,7 @@
           empty.style.cssText = "font-size:11px;color:#a1a1aa;padding:6px 2px";
           box.appendChild(empty);
         }
-        empty.textContent = needles.length
-          ? "ไม่พบในฐานข้อมูล — ลองพิมพ์รหัส/ชื่อโครงการ"
-          : (fuIsPropPick(key) ? "พิมพ์ค้นหาแล้วติ๊กเลือกจากรายการ" : "ไม่พบรายการ");
+        empty.textContent = "ไม่พบในฐานข้อมูล — ลองพิมพ์รหัส/ชื่อโครงการ";
         empty.classList.remove("is-filtered-out");
       } else if (empty) {
         empty.remove();
@@ -5824,9 +6318,41 @@
       };
     }
 
+    function showFollowupFormSection(mode) {
+      var section = document.getElementById("fu-form-section");
+      if (!section) return;
+      section.classList.remove("hidden");
+      var heading = document.getElementById("fu-form-heading");
+      if (heading) heading.textContent = mode === "edit" ? "แก้ไขเคส" : "เพิ่มเคสใหม่";
+      try {
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (e) { /* ignore */ }
+      var nameEl = document.getElementById("fu-chat-name");
+      if (nameEl) setTimeout(function () { nameEl.focus(); }, 80);
+    }
+
+    function hideFollowupFormSection() {
+      var section = document.getElementById("fu-form-section");
+      if (section) section.classList.add("hidden");
+    }
+
+    function openNewFollowupForm() {
+      clearFollowupForm();
+      showFollowupFormSection("new");
+    }
+
+    function closeFollowupForm() {
+      clearFollowupForm();
+      hideFollowupFormSection();
+      var box = document.getElementById("fu-recommend-box");
+      if (box) box.classList.add("hidden");
+    }
+
     function clearFollowupForm() {
       document.getElementById("fu-edit-id").value = "";
       document.getElementById("fu-chat-name").value = "";
+      var chEl = document.getElementById("fu-channel");
+      if (chEl) chEl.value = "LINE OA";
       document.getElementById("fu-customer-kind").value = "direct";
       document.getElementById("fu-phone").value = "";
       document.getElementById("fu-line-id").value = "";
@@ -5850,6 +6376,8 @@
       fuSetChecks("fu-beds-list", []);
       buildFuPickers(false);
       document.getElementById("fu-save-btn").textContent = "+ บันทึกเคส";
+      var heading = document.getElementById("fu-form-heading");
+      if (heading) heading.textContent = "เพิ่มเคสใหม่";
     }
 
     function fillFollowupForm(it) {
@@ -5909,6 +6437,7 @@
       fuSetPick("reserved", it.reserved_codes || []);
       buildFuPickers(true);
       document.getElementById("fu-save-btn").textContent = "อัปเดตเคส";
+      showFollowupFormSection("edit");
     }
 
     function fuBudgetText(it) {
@@ -5919,50 +6448,102 @@
       return "≤ " + b.toLocaleString("th-TH");
     }
 
-    function fuFollowClass(it) {
-      var nxt = (it.next_followup_at || "").slice(0, 10);
-      if (!nxt) return "";
-      var today = new Date();
-      var t = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
-      if (nxt < t) return "fu-overdue";
-      if (nxt === t) return "fu-due";
-      return "";
+    function fuDetailRow(label, value, wide) {
+      var v = (value == null || value === "") ? "—" : String(value);
+      return '<div' + (wide ? ' class="fu-wide"' : "") + "><dt>" + esc(label) + "</dt><dd>" + esc(v) + "</dd></div>";
     }
 
     function renderFollowups() {
-      var tbody = document.getElementById("followup-rows");
+      var board = document.getElementById("followup-board");
+      if (!board) return;
+      renderFollowupStatsStrip({});
       if (!followupItems.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty"><p>ยังไม่มีเคส — กรอกด้านบนแล้วบันทึก</p></td></tr>';
+        board.innerHTML =
+          '<div class="fu-board-empty">' +
+            "<strong>ยังไม่มีเคสฟอโล่ว</strong>" +
+            "<p>เริ่มเก็บเคสลูกค้าที่ต้องทักซ้ำ — กดปุ่มด้านบนเพื่อเพิ่มเคสแรก</p>" +
+            '<button type="button" class="btn-sm primary" id="fu-empty-add-btn">+ เพิ่มเคส</button>' +
+          "</div>";
+        var emptyBtn = document.getElementById("fu-empty-add-btn");
+        if (emptyBtn) emptyBtn.addEventListener("click", openNewFollowupForm);
         return;
       }
-      tbody.innerHTML = followupItems.map(function (it) {
+      board.innerHTML = followupItems.map(function (it) {
         var stLabel = FU_STATUS[it.status] || it.status;
-        var dueCls = fuFollowClass(it);
-        var stCls = "fu-status" + (dueCls ? " due" : "") + (it.priority === "high" ? " high" : "");
+        var timing = fuTimingInfo(it);
+        var closed = fuIsClosedStatus(it.status);
+        var urgency = closed ? "closed" : timing.urgency;
+        if (urgency === "none") urgency = "ok";
+        var cardCls = "fu-card is-" + urgency;
+        if (it.priority === "high" && !closed) cardCls += " is-high";
+        if (fuOpenCardIds[it.id]) cardCls += " is-open";
+
+        var kindLabel = it.customer_kind === "co_agent" ? "โคเอเจนต์" : "ลูกค้าตรง";
+        var brief = it.brief || [it.locations, (it.transits || []).join(" / ")].filter(Boolean).join(" · ") || "—";
         var offered = (it.offered_codes || []).join(", ") || "—";
         var viewing = (it.viewing_codes || []).join(", ") || "—";
+        var reserved = (it.reserved_codes || []).join(", ") || "—";
         var inquiry = (it.inquiry_codes || []).join(", ") || "—";
-        var kindLabel = it.customer_kind === "co_agent" ? "โคเอเจนต์" : "ลูกค้าตรง";
-        var brief = it.brief || [it.locations, (it.transits || []).join("/")].filter(Boolean).join(" · ") || "—";
-        return "<tr>" +
-          '<td><strong>' + esc(it.case_code || "") + "</strong><div style='font-size:10px;color:#a1a1aa'>" + esc(it.channel || "") + "</div></td>" +
-          "<td><strong>" + esc(it.chat_name || "—") + "</strong>" +
-            '<div style="font-size:11px;color:#52525b;margin-top:2px">' + esc(kindLabel) +
-            (it.customer_kind === "co_agent" && it.co_agent ? (" · " + esc(it.co_agent)) : "") +
-            " · ทักมา: " + esc(inquiry) + "</div>" +
-            '<div style="font-size:11px;color:#52525b;margin-top:2px">' + esc(brief) + "</div></td>" +
-          "<td style='font-size:11px'>" + esc(fuBudgetText(it)) +
-            '<div style="color:#71717a">' + esc(it.deal_type === "sale" ? "ซื้อ" : it.deal_type === "both" ? "เช่า+ซื้อ" : "เช่า") + "</div></td>" +
-          '<td class="' + dueCls + '">' + esc((it.next_followup_at || "").slice(0, 10) || "—") +
-            '<div style="font-size:10px;color:#a1a1aa">ทุก ' + esc(String(it.followup_in_days || 3)) + " วัน</div></td>" +
-          '<td><span class="' + stCls + '">' + esc(stLabel) + "</span></td>" +
-          '<td style="font-size:11px"><div>เสนอ: ' + esc(offered) + "</div><div>นัดดู: " + esc(viewing) + "</div></td>" +
-          '<td><div class="queue-actions">' +
+        var beds = (it.bedrooms || []).join(", ") || "—";
+        var types = (it.property_types || []).join(", ") || "—";
+        var transits = (it.transits || []).join(", ") || "—";
+        var priCls = "fu-pri" + (it.priority === "high" ? " is-high" : it.priority === "low" ? " is-low" : "");
+        var priLabel = it.priority === "high" ? "สำคัญสูง" : it.priority === "low" ? "ต่ำ" : "กลาง";
+        var expandLabel = fuOpenCardIds[it.id] ? "ย่อ ▲" : "ดูเต็ม ▼";
+
+        return '<article class="' + cardCls + '" data-fu-card="' + esc(it.id) + '" role="listitem">' +
+          '<div class="fu-card-main" data-fu-toggle="' + esc(it.id) + '">' +
+            '<div class="fu-card-who">' +
+              '<div class="fu-card-id">' + esc(it.case_code || "—") +
+                (it.channel ? " · " + esc(it.channel) : "") + "</div>" +
+              '<div class="fu-card-name">' + esc(it.chat_name || "—") + "</div>" +
+              '<div class="fu-card-brief">' + esc(brief) + "</div>" +
+              '<div class="fu-card-flags">' +
+                '<span class="' + priCls + '">' + esc(priLabel) + "</span>" +
+                '<span class="fu-meta-pill">' + esc(kindLabel) + "</span>" +
+                '<span class="fu-meta-pill">' + esc(fuDealLabel(it.deal_type)) + " · " + esc(fuBudgetText(it)) + "</span>" +
+              "</div>" +
+            "</div>" +
+            '<div class="fu-card-status-wrap">' +
+              '<span class="' + fuStatusClass(it.status) + '">' + esc(stLabel) + "</span>" +
+            "</div>" +
+            '<div class="fu-timing is-' + esc(timing.urgency) + '">' +
+              '<span class="fu-timing-rel">' + esc(timing.rel) + "</span>" +
+              '<span class="fu-timing-date">' +
+                (timing.date ? esc(timing.date) : "—") +
+                " · ทุก " + esc(String(it.followup_in_days != null ? it.followup_in_days : 3)) + " วัน" +
+              "</span>" +
+            "</div>" +
+          "</div>" +
+          '<div class="fu-card-actions">' +
             '<button type="button" class="btn-xs primary" data-fu-rec="' + esc(it.id) + '">แนะนำทรัพย์</button>' +
             '<button type="button" class="btn-xs" data-fu-edit="' + esc(it.id) + '">แก้ไข</button>' +
             '<button type="button" class="btn-xs" data-fu-contact="' + esc(it.id) + '">ทักแล้ว</button>' +
             '<button type="button" class="btn-xs danger" data-fu-del="' + esc(it.id) + '">ลบ</button>' +
-          "</div></td></tr>";
+            '<button type="button" class="fu-expand-btn" data-fu-toggle="' + esc(it.id) + '">' + expandLabel + "</button>" +
+          "</div>" +
+          '<div class="fu-card-detail">' +
+            '<dl class="fu-detail-grid">' +
+              fuDetailRow("เบอร์", it.phone || "—") +
+              fuDetailRow("LINE ID", it.line_id || "—") +
+              fuDetailRow("ผู้รับผิดชอบ", it.owner || "—") +
+              fuDetailRow("โคเอเจนต์", it.co_agent || "—") +
+              fuDetailRow("ทำเล", it.locations || "—", true) +
+              fuDetailRow("BTS / MRT", transits, true) +
+              fuDetailRow("ห้องนอน", beds) +
+              fuDetailRow("ประเภททรัพย์", types) +
+              fuDetailRow("ทักมาเรื่องรหัส", inquiry, true) +
+              fuDetailRow("เสนอแล้ว", offered, true) +
+              fuDetailRow("นัดดู", viewing) +
+              fuDetailRow("จอง/มัดจำ", reserved) +
+              fuDetailRow("เข้าอยู่ได้เมื่อ", it.move_in || "—") +
+              fuDetailRow("ทักล่าสุด", (it.last_contact_at || "").slice(0, 16) || "—") +
+              fuDetailRow("ข้อจำกัด", it.constraints || "—", true) +
+              fuDetailRow("โน้ตล่าสุด", it.last_note || "—", true) +
+              (it.lost_reason ? fuDetailRow("เหตุผลหลุด", it.lost_reason, true) : "") +
+            "</dl>" +
+          "</div>" +
+        "</article>";
       }).join("");
     }
 
@@ -5978,8 +6559,11 @@
         if (activeView === "followup") renderFollowups();
       } catch (e) {
         if (activeView === "followup") {
-          document.getElementById("followup-rows").innerHTML =
-            '<tr><td colspan="7" class="empty"><p>' + esc(e.message) + "</p></td></tr>";
+          var board = document.getElementById("followup-board");
+          if (board) {
+            board.innerHTML =
+              '<div class="fu-board-empty"><strong>โหลดไม่สำเร็จ</strong><p>' + esc(e.message) + "</p></div>";
+          }
         }
       }
     }
@@ -5995,6 +6579,7 @@
           await apiPost("/api/customers/add", payload);
         }
         clearFollowupForm();
+        hideFollowupFormSection();
         await loadFollowups();
       } catch (e) {
         alert(e.message);
@@ -6007,6 +6592,7 @@
       var list = document.getElementById("fu-recommend-list");
       var title = document.getElementById("fu-recommend-title");
       box.classList.remove("hidden");
+      try { box.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (e) { /* ignore */ }
       title.textContent = "ทรัพย์แนะนำ · " + (data.count || 0) + " จากที่ตรง " + (data.matched || 0) +
         (data.case_code ? " · " + data.case_code : "");
       var items = data.items || [];
@@ -6436,6 +7022,8 @@
     if (projectFormSave) projectFormSave.addEventListener("click", saveProjectStandardForm);
     var projectFormClose = document.getElementById("project-form-close");
     if (projectFormClose) projectFormClose.addEventListener("click", closeProjectStandardForm);
+    var projectAddBtn = document.getElementById("project-add-btn");
+    if (projectAddBtn) projectAddBtn.addEventListener("click", openNewProjectForm);
     var projectFormRooms = document.getElementById("project-form-rooms");
     if (projectFormRooms) {
       projectFormRooms.addEventListener("click", function () {
@@ -6530,13 +7118,17 @@
       document.getElementById("toggle-filters").classList.toggle("active-filter-btn", open);
       document.getElementById("toggle-filters").textContent = open ? "ซ่อนตัวกรอง" : "ตัวกรอง";
     });
-    // Default: filters open like Co-Agent
+    // Default: filters collapsed — open via「ตัวกรอง」only
     (function () {
       var drawer = document.getElementById("filters-drawer");
       var btn = document.getElementById("toggle-filters");
-      if (drawer && btn && !drawer.classList.contains("hidden")) {
+      if (!drawer || !btn) return;
+      if (!drawer.classList.contains("hidden")) {
         btn.classList.add("active-filter-btn");
         btn.textContent = "ซ่อนตัวกรอง";
+      } else {
+        btn.classList.remove("active-filter-btn");
+        btn.textContent = "ตัวกรอง";
       }
     })();
     document.getElementById("active-filter-chips").addEventListener("click", function (e) {
@@ -6704,6 +7296,12 @@
       }).catch(function () { /* ignore */ });
     });
     document.getElementById("groups-book-rows").addEventListener("click", function (e) {
+      var editBtn = e.target.closest("[data-group-edit]");
+      if (editBtn) {
+        e.preventDefault();
+        openEditGroupsForm(editBtn.getAttribute("data-group-edit"));
+        return;
+      }
       var btn = e.target.closest("[data-copy-group]");
       if (!btn) return;
       e.preventDefault();
@@ -6711,6 +7309,14 @@
     });
     document.getElementById("groups-book-search").addEventListener("input", renderGroupsBook);
     document.getElementById("groups-book-zone").addEventListener("change", renderGroupsBook);
+    var groupsAddBtn = document.getElementById("groups-add-btn");
+    if (groupsAddBtn) groupsAddBtn.addEventListener("click", openNewGroupsForm);
+    var groupsFormClose = document.getElementById("groups-form-close");
+    if (groupsFormClose) groupsFormClose.addEventListener("click", hideGroupsForm);
+    var groupsFormClear = document.getElementById("groups-form-clear");
+    if (groupsFormClear) groupsFormClear.addEventListener("click", clearGroupsForm);
+    var groupsFormSave = document.getElementById("groups-form-save");
+    if (groupsFormSave) groupsFormSave.addEventListener("click", saveGroupsForm);
     document.getElementById("groups-retag-btn").addEventListener("click", async function () {
       try {
         var data = await apiPost("/api/groups/retag", {});
@@ -6727,6 +7333,8 @@
     document.getElementById("queue-show-done").addEventListener("change", loadQueue);
     document.getElementById("fu-save-btn").addEventListener("click", saveFollowup);
     document.getElementById("fu-clear-btn").addEventListener("click", clearFollowupForm);
+    document.getElementById("fu-add-case-btn").addEventListener("click", openNewFollowupForm);
+    document.getElementById("fu-close-form-btn").addEventListener("click", closeFollowupForm);
     document.getElementById("fu-recommend-form-btn").addEventListener("click", recommendFromForm);
     document.getElementById("fu-recommend-close").addEventListener("click", function () {
       document.getElementById("fu-recommend-box").classList.add("hidden");
@@ -6821,11 +7429,12 @@
         alert(e.message);
       }
     });
-    document.getElementById("followup-rows").addEventListener("click", async function (e) {
+    document.getElementById("followup-board").addEventListener("click", async function (e) {
       var rec = e.target.closest("[data-fu-rec]");
       var edit = e.target.closest("[data-fu-edit]");
       var contact = e.target.closest("[data-fu-contact]");
       var del = e.target.closest("[data-fu-del]");
+      var toggle = e.target.closest("[data-fu-toggle]");
       if (rec) {
         await recommendForCaseId(rec.getAttribute("data-fu-rec"));
         return;
@@ -6833,10 +7442,7 @@
       if (edit) {
         var id = edit.getAttribute("data-fu-edit");
         var it = followupItems.find(function (x) { return x.id === id; });
-        if (it) {
-          fillFollowupForm(it);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
+        if (it) fillFollowupForm(it);
         return;
       }
       if (contact) {
@@ -6858,6 +7464,18 @@
           await loadFollowups();
         } catch (err) {
           alert(err.message);
+        }
+        return;
+      }
+      if (toggle) {
+        var tid = toggle.getAttribute("data-fu-toggle");
+        if (!tid) return;
+        fuOpenCardIds[tid] = !fuOpenCardIds[tid];
+        var card = e.currentTarget.querySelector('[data-fu-card="' + fuCssEscape(tid) + '"]');
+        if (card) {
+          card.classList.toggle("is-open", !!fuOpenCardIds[tid]);
+          var expBtn = card.querySelector(".fu-expand-btn");
+          if (expBtn) expBtn.textContent = fuOpenCardIds[tid] ? "ย่อ ▲" : "ดูเต็ม ▼";
         }
       }
     });

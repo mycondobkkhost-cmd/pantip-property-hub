@@ -290,6 +290,92 @@ def save_groups(groups: list[dict]) -> None:
     )
 
 
+def _parse_group_tags(raw: str | list[str] | None) -> list[str]:
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        return [str(x).strip() for x in raw if str(x).strip()]
+    return [x.strip() for x in re.split(r"[,|/\n]+", str(raw)) if x.strip()]
+
+
+def _normalize_group_url(url: str) -> str:
+    u = (url or "").strip()
+    if not u:
+        return ""
+    if re.match(r"^https?://", u, re.I):
+        return u
+    if re.match(r"^(www\.|facebook\.com|fb\.com|m\.facebook\.com)", u, re.I):
+        return "https://" + u
+    return u
+
+
+def _group_from_payload(payload: dict, *, base: dict | None = None) -> dict:
+    g = dict(base or {})
+    name = (payload.get("name") if "name" in payload else g.get("name") or "").strip()
+    url = _normalize_group_url(
+        payload.get("url") if "url" in payload else g.get("url") or ""
+    )
+    if not name:
+        raise ValueError("กรุณาระบุชื่อกลุ่ม")
+    if not url:
+        raise ValueError("กรุณาระบุลิงก์กลุ่ม Facebook")
+    g["name"] = name
+    g["url"] = url
+    if "notes" in payload:
+        g["notes"] = (payload.get("notes") or "").strip()
+    else:
+        g.setdefault("notes", "")
+    if "zone_tags" in payload:
+        g["zone_tags"] = _parse_group_tags(payload.get("zone_tags"))
+    if "offer_tags" in payload:
+        g["offer_tags"] = _parse_group_tags(payload.get("offer_tags"))
+    if "role_tags" in payload:
+        g["role_tags"] = _parse_group_tags(payload.get("role_tags"))
+    if "price_band" in payload:
+        g["price_band"] = (payload.get("price_band") or "").strip()
+    if "member_band" in payload:
+        g["member_band"] = (payload.get("member_band") or "").strip()
+    if "core_reach" in payload:
+        g["core_reach"] = bool(payload.get("core_reach"))
+    # Auto-fill empty tag fields from name/url; keep explicit user tags.
+    return auto_tag_group(g, force=False)
+
+
+def create_group(payload: dict) -> dict:
+    """Append a Facebook group to facebook_groups.json."""
+    groups = load_groups()
+    group = _group_from_payload(payload)
+    url = group["url"]
+    if any((g.get("url") or "").strip() == url for g in groups):
+        raise ValueError("มีกลุ่มนี้อยู่แล้ว (URL ซ้ำ)")
+    groups.append(group)
+    save_groups(groups)
+    return group
+
+
+def update_group(url: str, payload: dict) -> dict:
+    """Update an existing group identified by current URL."""
+    key = _normalize_group_url(url)
+    if not key:
+        raise ValueError("ไม่พบกลุ่ม")
+    groups = load_groups()
+    idx = next(
+        (i for i, g in enumerate(groups) if (g.get("url") or "").strip() == key),
+        None,
+    )
+    if idx is None:
+        raise ValueError("ไม่พบกลุ่ม")
+    group = _group_from_payload(payload, base=groups[idx])
+    new_url = group["url"]
+    if new_url != key and any(
+        (g.get("url") or "").strip() == new_url for i, g in enumerate(groups) if i != idx
+    ):
+        raise ValueError("URL ใหม่ซ้ำกับกลุ่มอื่น")
+    groups[idx] = group
+    save_groups(groups)
+    return group
+
+
 def retag_all() -> dict:
     groups = load_groups(retag=True)
     save_groups(groups)

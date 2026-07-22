@@ -14,3 +14,12 @@ services:
         value: 0.0.0.0
       - key: PYTHONUNBUFFERED
         value: "1"
+      # ตั้งค่าใน Render Dashboard (อย่า commit URL ลง git ถ้าชีทเป็นส่วนตัว)
+      - key: MAIN_SHEET_CSV_URL
+        sync: false
+      - key: SOURCE_GOOGLE_SHEETS_ID
+        sync: false
+      - key: MAIN_SHEET_GID
+        sync: false
+      - key: WAIT_POST_SHEET_CSV_URL
+        sync: false

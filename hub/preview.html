@@ -200,32 +200,36 @@
 
     .filter-panel {
       background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 14px; margin: 0 0 12px; box-shadow: var(--shadow);
+      padding: 10px; margin: 0 0 10px; box-shadow: var(--shadow);
+    }
+    .filter-hint-bar {
+      font-size: 11px; color: #5f6368; line-height: 1.4; margin-bottom: 8px;
+      padding: 6px 8px; background: #f8faf9; border: 1px dashed #e0e0e0; border-radius: 8px;
     }
 
     .sheet-search-row {
       display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;
     }
     .sheet-search-fields {
-      flex: 1; display: grid; gap: 8px; min-width: 0;
+      flex: 1; display: grid; gap: 6px; min-width: 0;
       grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
     }
     .sheet-search-actions {
       display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
     }
     .search-field-label {
-      display: block; font-size: 11px; font-weight: 600; color: #5f6368;
-      margin-bottom: 4px;
+      display: block; font-size: 10px; font-weight: 600; color: #5f6368;
+      margin-bottom: 2px;
     }
     .sheet-search-row .search-suggest-wrap,
     .sheet-search-row .search-loc-wrap {
       margin: 0; position: relative; min-width: 0;
     }
     .filters-drawer {
-      margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f3f4;
+      margin-top: 8px; padding-top: 8px; border-top: 1px solid #f1f3f4;
     }
     .advanced-filters-body {
-      margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f3f4;
+      margin-top: 0; padding-top: 0; border-top: 0;
     }
 
     .smart-search {
@@ -278,18 +282,20 @@
       background: #188038; color: #fff; font-size: 11px; font-weight: 600;
       padding: 2px 7px; border-radius: 999px; min-width: 18px; text-align: center;
     }
-    .filter-grid { display: grid; gap: 12px; margin-top: 4px; grid-template-columns: 1fr; }
+    .filter-grid { display: grid; gap: 8px; margin-top: 4px; grid-template-columns: 1fr; }
     @media (min-width: 560px) { .filter-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 900px) { .filter-grid.co-like { grid-template-columns: 1.2fr 1fr 1fr; } }
     .filter-grid label, .filter-grid .filter-field { margin: 0; }
     .filter-grid label span, .filter-field > span {
-      display: block; font-size: 12px; color: #5f6368; margin-bottom: 6px; font-weight: 500;
+      display: block; font-size: 10px; color: #5f6368; margin-bottom: 3px; font-weight: 600;
     }
-    .price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .filter-grid .filter-field.span-all { grid-column: 1 / -1; }
+    .price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .check-group {
       display: flex; flex-direction: column; gap: 2px;
-      max-height: 180px; overflow: auto;
-      border: 1px solid #e8eaed; border-radius: 10px;
-      padding: 8px 10px; background: #fafafa;
+      max-height: 160px; overflow: auto;
+      border: 1px solid #e8eaed; border-radius: 8px;
+      padding: 6px 8px; background: #fafafa;
     }
     .check-group.short { max-height: none; }
     .check-group.is-search-hidden { display: none !important; }
@@ -1019,23 +1025,29 @@
       </div>
 
 <div class="filter-panel" id="filter-panel">
+        <div class="filter-hint-bar">
+          ไม่ต้องกรอกครบทุกช่อง — เลือกเท่าที่ต้องการแล้วกด <strong>ค้นหา</strong>
+          · ช่องกรอง<strong>เลือกได้มากกว่า 1 รายการ</strong>
+          · รายละเอียดทรัพย์ยังแน่นเหมือนเดิม
+        </div>
         <div class="sheet-search-row">
           <div class="sheet-search-fields">
             <div class="search-suggest-wrap">
-              <span class="search-field-label">ค้นหาทั่วไป</span>
+              <span class="search-field-label">ค้นหาทั่วไป (รหัส / โครงการ)</span>
               <input type="search" id="search-box" class="smart-search" autocomplete="off"
-                placeholder="รหัส / โครงการ เช่น PTP8088, Thru, ทรู" />
+                placeholder="พิมพ์แล้วเลือกจากรายการ หรือกดค้นหา เช่น PTP8088, Thru" />
               <ul class="search-suggest hidden" id="search-suggest" role="listbox"></ul>
             </div>
             <div class="search-loc-wrap">
-              <span class="search-field-label">ค้นหาทำเล/BTS</span>
+              <span class="search-field-label">ค้นหาทำเล/BTS (ข้อความอิสระ)</span>
               <input type="search" id="location-search" class="smart-search" autocomplete="off"
-                placeholder="ทำเล / สถานี เช่น ทองหล่อ, BTS อโศก" />
+                placeholder="เช่น ทองหล่อ, BTS อโศก — แล้วกดค้นหา" />
             </div>
           </div>
           <div class="sheet-search-actions">
-            <button type="button" class="btn-sm" id="toggle-filters">ตัวกรอง</button>
+            <button type="button" class="btn-sm primary" id="apply-filter-btn">ค้นหา</button>
             <button type="button" class="btn-sm" id="reset-filter">ล้าง</button>
+            <button type="button" class="btn-sm" id="toggle-filters">ตัวกรอง</button>
             <button type="button" class="btn-sm primary" id="refresh-sheet-btn" title="ดึงชีทหลักแล้วอัปเดต PTP (เก็บ RXT จาก Hub ไว้)">รีเฟรชชีท</button>
             <button type="button" class="btn-sm" id="sync-hub-sheet-btn" title="เขียนรายการ Hub (RXT) กลับแท็บทรัพย์ Hub">ซิงค์ไปชีท Hub</button>
             <span class="filter-badge hidden" id="filter-badge">0</span>
@@ -1044,19 +1056,39 @@
 
         <div class="active-filter-chips" id="active-filter-chips"></div>
 
-        <div class="filters-drawer hidden" id="filters-drawer">
+        <div class="filters-drawer" id="filters-drawer">
           <div class="advanced-filters-body" id="advanced-filters-body" style="display:block">
-            <div class="filter-grid">
-              <div class="filter-field" style="grid-column:1/-1">
-                <span>แหล่ง</span>
-                <div class="check-group inline-row short" id="f-origin">
-                  <label class="check-item"><input type="checkbox" value="sheet" /> ชีทหลัก (PTP)</label>
-                  <label class="check-item"><input type="checkbox" value="hub" /> จาก Hub (RXT)</label>
-                </div>
+            <div class="filter-grid co-like">
+              <div class="filter-field span-all">
+                <span>โครงการ · เลือกได้มากกว่า 1 รายการ</span>
+                <input type="search" id="f-project-q" class="filter-list-search" placeholder="พิมพ์แล้วเลือก เช่น Thru, Life Asoke…" autocomplete="off" />
+                <div class="filter-selected-strip" id="f-project-picked" hidden></div>
+                <div class="check-group is-search-hidden" id="f-project"></div>
+              </div>
+              <div class="filter-field span-all">
+                <span>BTS / MRT · เลือกได้มากกว่า 1 รายการ</span>
+                <input type="search" id="f-transit-q" class="filter-list-search" placeholder="พิมพ์แล้วเลือกสถานี…" autocomplete="off" />
+                <div class="filter-selected-strip" id="f-transit-picked" hidden></div>
+                <div class="check-group is-search-hidden" id="f-transit"></div>
+              </div>
+              <div class="filter-field span-all">
+                <span>ทำเล / โซน · เลือกได้มากกว่า 1 รายการ</span>
+                <input type="search" id="f-zone-q" class="filter-list-search" placeholder="พิมพ์แล้วเลือกทำเล…" autocomplete="off" />
+                <div class="filter-selected-strip" id="f-zone-picked" hidden></div>
+                <div class="check-group is-search-hidden" id="f-zone"></div>
               </div>
 
               <div class="filter-field">
-                <span>เช่า / ขาย</span>
+                <span>ช่วงเวลา</span>
+                <select id="f-days">
+                  <option value="30">1 เดือนล่าสุด</option>
+                  <option value="90">3 เดือนล่าสุด</option>
+                  <option value="180">6 เดือนล่าสุด</option>
+                  <option value="" selected>ทั้งหมด</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <span>เช่า / ขาย · เลือกได้มากกว่า 1</span>
                 <div class="filter-dropdown" data-dropdown="offer">
                   <button type="button" class="filter-dropdown-toggle" data-dropdown-toggle>
                     <span>เลือกประเภท</span><span class="dd-meta" data-dd-meta>—</span>
@@ -1072,9 +1104,8 @@
                   </div>
                 </div>
               </div>
-
               <div class="filter-field">
-                <span>จำนวนห้อง</span>
+                <span>จำนวนห้อง · เลือกได้มากกว่า 1</span>
                 <div class="filter-dropdown" data-dropdown="beds">
                   <button type="button" class="filter-dropdown-toggle" data-dropdown-toggle>
                     <span>เลือกจำนวนห้อง</span><span class="dd-meta" data-dd-meta>—</span>
@@ -1103,9 +1134,8 @@
                   </div>
                 </div>
               </div>
-
               <div class="filter-field">
-                <span>แหล่งโพสต์</span>
+                <span>แหล่งโพสต์ · เลือกได้มากกว่า 1</span>
                 <div class="filter-dropdown" data-dropdown="source">
                   <button type="button" class="filter-dropdown-toggle" data-dropdown-toggle>
                     <span>เลือกแหล่ง</span><span class="dd-meta" data-dd-meta>—</span>
@@ -1120,50 +1150,46 @@
                   </div>
                 </div>
               </div>
-
-              <div class="filter-field" style="grid-column:1/-1">
-                <span>งบเช่า (บาท/เดือน)</span>
-                <div class="price-row">
-                  <input type="number" id="f-rent-min" placeholder="ต่ำสุด" min="0" step="500" />
-                  <input type="number" id="f-rent-max" placeholder="สูงสุด" min="0" step="500" />
+              <div class="filter-field">
+                <span>แหล่งข้อมูล · เลือกได้มากกว่า 1</span>
+                <div class="check-group inline-row short" id="f-origin">
+                  <label class="check-item"><input type="checkbox" value="sheet" /> ชีทหลัก (PTP)</label>
+                  <label class="check-item"><input type="checkbox" value="hub" /> จาก Hub (RXT)</label>
                 </div>
               </div>
-              <div class="filter-field" style="grid-column:1/-1">
-                <span>งบขาย (บาท)</span>
-                <div class="price-row">
-                  <input type="number" id="f-sale-min" placeholder="ต่ำสุด" min="0" step="100000" />
-                  <input type="number" id="f-sale-max" placeholder="สูงสุด" min="0" step="100000" />
-                </div>
+
+              <div class="filter-field">
+                <span>ราคาเช่าเริ่มต้น</span>
+                <input type="number" id="f-rent-min" placeholder="ต่ำสุด" min="0" step="500" />
               </div>
               <div class="filter-field">
-                <span>ขนาด (ตร.ม.)</span>
-                <div class="price-row">
-                  <input type="number" id="f-size-min" placeholder="ต่ำสุด" min="0" step="1" />
-                  <input type="number" id="f-size-max" placeholder="สูงสุด" min="0" step="1" />
-                </div>
+                <span>ราคาเช่าสูงสุด</span>
+                <input type="number" id="f-rent-max" placeholder="สูงสุด" min="0" step="500" />
+              </div>
+              <div class="filter-field">
+                <span>ราคาขายเริ่มต้น</span>
+                <input type="number" id="f-sale-min" placeholder="ต่ำสุด" min="0" step="100000" />
+              </div>
+              <div class="filter-field">
+                <span>ราคาขายสูงสุด</span>
+                <input type="number" id="f-sale-max" placeholder="สูงสุด" min="0" step="100000" />
+              </div>
+              <div class="filter-field">
+                <span>ขนาดขั้นต่ำ (ตร.ม.)</span>
+                <input type="number" id="f-size-min" placeholder="ต่ำสุด" min="0" step="1" />
+              </div>
+              <div class="filter-field">
+                <span>ขนาดสูงสุด (ตร.ม.)</span>
+                <input type="number" id="f-size-max" placeholder="สูงสุด" min="0" step="1" />
               </div>
               <div class="filter-field">
                 <span>ชั้น</span>
                 <input type="text" id="f-floor" placeholder="เช่น 12 หรือ 5-15" />
               </div>
-              <div class="filter-field" style="grid-column:1/-1">
-                <span>ทำเล / โซน</span>
-                <input type="search" id="f-zone-q" class="filter-list-search" placeholder="ค้นหาทำเล เช่น ทองหล่อ, RCA, พร้อมพงษ์…" autocomplete="off" />
-                <div class="filter-selected-strip" id="f-zone-picked" hidden></div>
-                <div class="check-group is-search-hidden" id="f-zone"></div>
-              </div>
-              <div class="filter-field" style="grid-column:1/-1">
-                <span>BTS / MRT</span>
-                <input type="search" id="f-transit-q" class="filter-list-search" placeholder="ค้นหาสถานี เช่น BTS ทองหล่อ, MRT เพชรบุรี…" autocomplete="off" />
-                <div class="filter-selected-strip" id="f-transit-picked" hidden></div>
-                <div class="check-group is-search-hidden" id="f-transit"></div>
-              </div>
-              <div class="filter-field" style="grid-column:1/-1">
-                <span>โครงการ</span>
-                <input type="search" id="f-project-q" class="filter-list-search" placeholder="ค้นหาโครงการ TH/EN เช่น ศรีวรา, Life Asoke…" autocomplete="off" />
-                <div class="filter-selected-strip" id="f-project-picked" hidden></div>
-                <div class="check-group is-search-hidden" id="f-project"></div>
-              </div>
+            </div>
+            <div class="sheet-search-actions" style="margin-top:8px">
+              <button type="button" class="btn-sm primary" id="apply-filter-btn-2">ค้นหา</button>
+              <button type="button" class="btn-sm" id="reset-filter-2">ล้าง</button>
             </div>
           </div>
         </div>
@@ -1172,7 +1198,6 @@
         <div id="power-filters" class="hidden" aria-hidden="true">
           <select id="f-era"><option value=""></option><option value="active"></option><option value="archived"></option><option value="needs_review"></option></select>
           <select id="f-dup"><option value=""></option><option value="any"></option><option value="code"></option><option value="url"></option><option value="relist"></option></select>
-          <select id="f-days"><option value=""></option><option value="7"></option><option value="30"></option><option value="60"></option><option value="90"></option></select>
           <select id="f-media"><option value=""></option><option value="has_link"></option><option value="none"></option></select>
           <div id="smart-hints">
             <button type="button" id="preset-rama9"></button>
@@ -6488,15 +6513,32 @@
     });
 
     document.getElementById("reset-filter").addEventListener("click", resetFilters);
+    var resetFilter2 = document.getElementById("reset-filter-2");
+    if (resetFilter2) resetFilter2.addEventListener("click", resetFilters);
+    function runSearchFilter() {
+      applyFilter();
+    }
+    var applyBtn = document.getElementById("apply-filter-btn");
+    if (applyBtn) applyBtn.addEventListener("click", runSearchFilter);
+    var applyBtn2 = document.getElementById("apply-filter-btn-2");
+    if (applyBtn2) applyBtn2.addEventListener("click", runSearchFilter);
     document.getElementById("toggle-filters").addEventListener("click", function () {
       var drawer = document.getElementById("filters-drawer");
       if (!drawer) return;
       drawer.classList.toggle("hidden");
-      document.getElementById("toggle-filters").classList.toggle(
-        "active-filter-btn",
-        !drawer.classList.contains("hidden")
-      );
+      var open = !drawer.classList.contains("hidden");
+      document.getElementById("toggle-filters").classList.toggle("active-filter-btn", open);
+      document.getElementById("toggle-filters").textContent = open ? "ซ่อนตัวกรอง" : "ตัวกรอง";
     });
+    // Default: filters open like Co-Agent
+    (function () {
+      var drawer = document.getElementById("filters-drawer");
+      var btn = document.getElementById("toggle-filters");
+      if (drawer && btn && !drawer.classList.contains("hidden")) {
+        btn.classList.add("active-filter-btn");
+        btn.textContent = "ซ่อนตัวกรอง";
+      }
+    })();
     document.getElementById("active-filter-chips").addEventListener("click", function (e) {
       var btn = e.target.closest("[data-clear-filter]");
       if (!btn) return;
@@ -6557,28 +6599,18 @@
     document.getElementById("search-box").addEventListener("input", function () {
       var q = this.value;
       clearTimeout(searchSuggestTimer);
-      clearTimeout(searchFilterTimer);
       searchSuggestTimer = setTimeout(function () {
         renderSearchSuggest(q);
       }, 80);
-      searchFilterTimer = setTimeout(function () {
-        applyFilter();
-      }, 200);
+      // ไม่กรองทันที — กดค้นหา / Enter เท่านั้น (แบบ Co-Agent)
     });
     document.getElementById("search-box").addEventListener("focus", function () {
       if (this.value.trim()) renderSearchSuggest(this.value);
     });
     var locationSearch = document.getElementById("location-search");
     if (locationSearch) {
-      locationSearch.addEventListener("input", function () {
-        clearTimeout(locationFilterTimer);
-        locationFilterTimer = setTimeout(function () {
-          applyFilter();
-        }, 200);
-      });
       locationSearch.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
-          clearTimeout(locationFilterTimer);
           applyFilter();
         }
       });
@@ -6626,10 +6658,10 @@
       fZoneBox.addEventListener("change", function () {
         activeZones = selectedValues(fZoneBox);
         syncFilterPickedStrip("f-zone");
-        applyFilter();
+        // draft only — กดค้นหาถึงจะกรอง
       });
     }
-    ["f-era","f-dup","f-project","f-offer","f-type","f-beds","f-zone","f-transit","f-days","f-source","f-origin","f-media","f-sort"].forEach(function (id) {
+    ["f-era","f-dup","f-project","f-offer","f-type","f-beds","f-zone","f-transit","f-days","f-source","f-origin","f-media"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.addEventListener("change", function () {
         if (id === "f-offer" || id === "f-beds" || id === "f-type" || id === "f-source") syncFilterDropdownMetas();
@@ -6638,12 +6670,17 @@
           var origins = selectedValues(el);
           originFilter = !origins.length || origins.length === 2 ? "all" : origins[0];
         }
-        applyFilter();
+        // ไม่ applyFilter ทันที — รอปุ่มค้นหา
       });
     });
+    // เรียงผลเปลี่ยนได้ทันที (ไม่ใช่เงื่อนไขค้นหา)
+    var sortEl = document.getElementById("f-sort");
+    if (sortEl) sortEl.addEventListener("change", applyFilter);
     ["f-rent-min","f-rent-max","f-sale-min","f-sale-max","f-size-min","f-size-max","f-floor"].forEach(function (id) {
       var el = document.getElementById(id);
-      if (el) el.addEventListener("input", applyFilter);
+      if (el) el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") applyFilter();
+      });
     });
     document.getElementById("prev-page").addEventListener("click", function () {
       if (page > 0) { page--; renderRows(); }

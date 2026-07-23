@@ -253,10 +253,13 @@ def _inject_users_into_preview(html: str) -> str:
     )
 
 
-def next_rxt_code() -> str:
+def next_rxt_code(prefix: str = "RXT") -> str:
+    p = (prefix or "RXT").strip().upper() or "RXT"
+    if p not in {"RXT", "COA", "PTP"}:
+        p = "RXT"
     return next_hub_code(
         load_properties(),
-        prefix="RXT",
+        prefix=p,
         main_csv=BASE_DIR / "data" / "main_sheet.csv",
         hub_csv=BASE_DIR / "data" / "hub_sheet_export.csv",
     )
@@ -293,6 +296,10 @@ class HubHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         path = unquote(urlparse(self.path).path)
         if path == "/api/health":
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            prefix = ((qs.get("prefix") or ["RXT"])[0] or "RXT").strip().upper()
             stats = queue_stats()
             self._json(
                 200,
@@ -300,7 +307,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "phase": 2,
                     "scraper": SCRAPER_VERSION,
-                    "next_code": next_rxt_code(),
+                    "next_code": next_rxt_code(prefix),
                     "queue_pending": stats["pending"] + stats["working"],
                 },
             )
@@ -538,7 +545,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     {
                         "ok": True,
                         "property": prop,
-                        "next_code": next_rxt_code(),
+                        "next_code": next_rxt_code(prop.get("code_prefix") or "RXT"),
                     },
                 )
             except ValueError as exc:

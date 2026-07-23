@@ -4737,8 +4737,47 @@
       setAddLocTags([], [], { asMaster: true });
       setLocEditMode(false);
       document.getElementById("add-warnings").innerHTML = "";
-      if (nextCode) document.getElementById("add-code").value = nextCode;
+      // Always clear code first — otherwise a stale RXT after save never advances
+      var codeEl = document.getElementById("add-code");
+      if (codeEl) codeEl.value = nextCode || "";
       lockAllLinkFields();
+    }
+
+    function selectedAddPrefix() {
+      var el = document.getElementById("add-prefix");
+      return (el && el.value) ? el.value : "RXT";
+    }
+
+    function applyCodePrefix(code, prefix) {
+      var p = (prefix || "RXT").toUpperCase();
+      var m = String(code || "").toUpperCase().match(/^(PTP|RXT|COA)(\d+)$/);
+      if (m) return p + m[2];
+      return code || "";
+    }
+
+    async function refreshNextCode(opts) {
+      var force = !!(opts && opts.force);
+      var prefix = (opts && opts.prefix) || selectedAddPrefix();
+      var codeEl = document.getElementById("add-code");
+      var el = document.getElementById("server-status");
+      if (editingPropertyId && !force) return;
+      try {
+        var res = await fetch(API_BASE + "/api/health?prefix=" + encodeURIComponent(prefix));
+        var data = await res.json();
+        if (!data.ok) return;
+        var via = window.location.protocol === "file:" ? "" : " · เปิดผ่านเซิร์ฟเวอร์แล้ว";
+        var ver = data.scraper ? " · scraper " + data.scraper : "";
+        if (el) {
+          el.innerHTML = "✅ Phase 2 พร้อมใช้" + via + ver + " · รหัสถัดไป <strong>" + esc(data.next_code) + "</strong>";
+        }
+        if (codeEl && (force || !codeEl.value || !editingPropertyId)) {
+          codeEl.value = data.next_code || applyCodePrefix(codeEl.value, prefix);
+        }
+      } catch (e) {
+        if (el) {
+          el.innerHTML = "⚠ เปิดเซิร์ฟเวอร์ก่อน: ดับเบิลคลิก <strong>hub/เปิดดู.command</strong> แล้ว refresh";
+        }
+      }
     }
 
     function setEditMode(on, prop) {
@@ -5241,24 +5280,15 @@
     }
 
     async function checkServer() {
-      var el = document.getElementById("server-status");
       if (window.location.protocol === "file:") {
-        el.innerHTML = "⚠ เปิดผ่าน <strong>hub/เปิดดู.command</strong> (http://127.0.0.1:8765) — file:// อาจดึงลิงก์ FB ไม่ได้";
-      }
-      try {
-        var res = await fetch(API_BASE + "/api/health");
-        var data = await res.json();
-        if (data.ok) {
-          var via = window.location.protocol === "file:" ? "" : " · เปิดผ่านเซิร์ฟเวอร์แล้ว";
-          var ver = data.scraper ? " · scraper " + data.scraper : "";
-          el.innerHTML = "✅ Phase 2 พร้อมใช้" + via + ver + " · รหัสถัดไป <strong>" + esc(data.next_code) + "</strong>";
-          if (!document.getElementById("add-code").value) {
-            document.getElementById("add-code").value = data.next_code;
-          }
+        var el0 = document.getElementById("server-status");
+        if (el0) {
+          el0.innerHTML = "⚠ เปิดผ่าน <strong>hub/เปิดดู.command</strong> (http://127.0.0.1:8765) — file:// อาจดึงลิงก์ FB ไม่ได้";
         }
-      } catch (e) {
-        el.innerHTML = "⚠ เปิดเซิร์ฟเวอร์ก่อน: ดับเบิลคลิก <strong>hub/เปิดดู.command</strong> แล้ว refresh";
       }
+      // Always refresh next code when opening add (not only when empty) —
+      // otherwise a leftover RXT after the first save never advances.
+      await refreshNextCode({ force: !editingPropertyId });
     }
 
     async function doScrape() {
@@ -6810,6 +6840,8 @@
           pendingOwnerPhone = "";
           clearAddFormFields(data.next_code || "");
           document.getElementById("add-warnings").innerHTML = "";
+          // Force-refresh from server so status + field always advance (RXT/COA)
+          await refreshNextCode({ force: true, prefix: selectedAddPrefix() });
           await loadQueue();
           reloadPreviewData();
         }
@@ -7498,6 +7530,17 @@
     document.getElementById("refresh-sheet-btn").addEventListener("click", refreshFromSheet);
     document.getElementById("sync-hub-sheet-btn").addEventListener("click", syncHubToSheet);
     document.getElementById("queue-rows").addEventListener("click", onQueueAction);
+    var addPrefixEl = document.getElementById("add-prefix");
+    if (addPrefixEl) {
+      addPrefixEl.addEventListener("change", function () {
+        if (editingPropertyId) return;
+        var codeEl = document.getElementById("add-code");
+        if (codeEl && codeEl.value) {
+          codeEl.value = applyCodePrefix(codeEl.value, addPrefixEl.value);
+        }
+        refreshNextCode({ force: true, prefix: addPrefixEl.value });
+      });
+    }
     initLocationTagFields();
     initFilterDropdowns();
     checkServer();

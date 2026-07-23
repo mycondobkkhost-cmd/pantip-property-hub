@@ -296,12 +296,12 @@ def persist(projects: list[dict], properties: list[dict]) -> None:
     write_preview_js(projects, properties)
 
 
-def _next_rxt_from_list(properties: list[dict]) -> str:
+def _next_code_from_list(properties: list[dict], prefix: str = "RXT") -> str:
     from src.hub.codes import next_hub_code
 
     return next_hub_code(
         properties,
-        prefix="RXT",
+        prefix=prefix or "RXT",
         main_csv=BASE_DIR / "data" / "main_sheet.csv",
         hub_csv=BASE_DIR / "data" / "hub_sheet_export.csv",
     )
@@ -310,6 +310,8 @@ def _next_rxt_from_list(properties: list[dict]) -> str:
 def save_new_property(payload: dict) -> dict:
     """Append a new listing from เพิ่มทรัพย์ form → properties.json + sqlite + preview."""
     from datetime import datetime
+
+    from src.hub.codes import code_number, format_code
 
     projects = load_projects()
     properties = load_properties()
@@ -321,10 +323,22 @@ def save_new_property(payload: dict) -> dict:
     if not proj:
         raise ValueError("ไม่พบโครงการใน Master")
 
-    code = (payload.get("code") or "").strip().upper()
-    if not code:
-        code = _next_rxt_from_list(properties)
-    if any((p.get("code") or "").upper() == code for p in properties):
+    prefix = (payload.get("code_prefix") or "RXT").strip().upper() or "RXT"
+    raw_code = (payload.get("code") or "").strip().upper().replace(" ", "")
+    # Align prefix letters with the selected type (RXT/COA) when number is present
+    num = code_number(raw_code)
+    if num is not None:
+        code = format_code(prefix, num)
+    elif raw_code:
+        code = raw_code
+    else:
+        code = ""
+
+    taken = {(p.get("code") or "").strip().upper() for p in properties}
+    if not code or code in taken:
+        # Stale form code after first save → allocate next free instead of failing
+        code = _next_code_from_list(properties, prefix=prefix)
+    if code in taken:
         raise ValueError(f"รหัส {code} มีอยู่แล้ว — รีเฟรชแล้วลองใหม่")
 
     owner_phones = payload.get("owner_phones") or []
@@ -340,8 +354,6 @@ def save_new_property(payload: dict) -> dict:
     # Always inherit location from project master form (ทำเล + BTS)
     transit = project_transit_display(proj)
     location_ref = project_location_label(proj)
-
-    prefix = (payload.get("code_prefix") or "RXT").strip().upper() or "RXT"
     listing_kind = "co_agent" if prefix == "COA" else "direct"
     today = datetime.now().strftime("%d/%m/%Y")
 

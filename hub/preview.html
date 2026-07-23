@@ -433,20 +433,19 @@
     .prop-list .empty span { display: block; font-weight: 600; color: #15202b; margin-bottom: 4px; }
 
     .prop-sheet-thumb {
-      flex-shrink: 0; align-self: stretch; position: relative; min-height: 96px;
+      flex-shrink: 0; width: 96px; aspect-ratio: 1 / 1;
     }
     .prop-thumb {
-      position: absolute; inset: 0; width: 100%; height: 100%;
+      width: 100%; height: 100%; aspect-ratio: 1 / 1;
       border-radius: 12px; object-fit: cover; object-position: center;
       background: #eef1f4; border: 1px solid #e3e8ee; display: block;
     }
     .prop-thumb-ph {
-      position: absolute; inset: 0; width: 100%; height: 100%;
+      width: 100%; height: 100%; aspect-ratio: 1 / 1; box-sizing: border-box;
       border-radius: 12px;
       background: linear-gradient(135deg, #eef1f4, #e3e8ee);
       border: 1px solid #e3e8ee; color: #9aa0a6; font-size: 11px;
       display: grid; place-items: center; line-height: 1.2; text-align: center; padding: 6px;
-      box-sizing: border-box;
     }
     .price-stack { display: flex; flex-direction: column; gap: 1px; line-height: 1.2; }
 
@@ -1048,9 +1047,7 @@
         grid-template-columns: 80px minmax(0, 1fr);
         gap: 10px; padding: 10px;
       }
-      .prop-sheet-thumb {
-        grid-row: 1 / -1; min-height: 80px;
-      }
+      .prop-sheet-thumb { width: 80px; }
       .prop-sheet-side {
         grid-column: 2; flex-direction: row; flex-wrap: wrap;
         justify-content: flex-start; align-items: center; gap: 8px;

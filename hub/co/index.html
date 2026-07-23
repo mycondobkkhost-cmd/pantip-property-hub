@@ -144,9 +144,13 @@
     }
     .prop-row:nth-child(even) { background: #fbfafe; }
     .prop-row:hover { background: #f3e8ff; }
+    .thumb-wrap {
+      align-self: stretch; min-height: 64px; position: relative;
+    }
     .thumb, .thumb-ph {
-      width: 64px; height: 64px; border-radius: 8px;
-      border: 1px solid var(--line); background: #f3f0f8; display: block; object-fit: cover;
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border-radius: 8px; border: 1px solid var(--line); background: #f3f0f8;
+      display: block; object-fit: cover; object-position: center;
     }
     .thumb-ph {
       color: var(--muted); font-size: 9px; display: grid; place-items: center;
@@ -200,10 +204,9 @@
         grid-template-columns: 56px minmax(0, 1fr);
         grid-template-areas: "thumb main" "thumb side";
       }
-      .prop-row .thumb-wrap { grid-area: thumb; }
+      .prop-row .thumb-wrap { grid-area: thumb; min-height: 56px; }
       .prop-row .main { grid-area: main; }
       .prop-row .side { grid-area: side; align-items: flex-start; text-align: left; }
-      .thumb, .thumb-ph { width: 56px; height: 56px; }
       .brand .sub { display: none; }
       .topbar-inner { flex-wrap: wrap; }
       .line-cta { width: 100%; justify-content: center; }

@@ -1,3 +1,6 @@
 # Minimal deps for Property Hub cloud server (no Playwright / Sheets bot)
 requests>=2.32.0
 python-dotenv>=1.0.1
+# Required for「ซิงค์ไปชีท Hub」→ Google Sheets write
+gspread>=6.1.0
+google-auth>=2.36.0

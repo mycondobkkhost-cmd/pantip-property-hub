@@ -435,19 +435,29 @@
     }
     .prop-sheet-top .code { font-weight: 700; font-size: 13px; color: var(--ink); }
     .prop-sheet-top .date { font-size: 12px; color: #6b7785; font-variant-numeric: tabular-nums; }
-    .focus-pin {
+    .focus-add-bar {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin: 0 0 12px;
+    }
+    .focus-add-bar input {
+      flex: 1 1 180px; min-width: 0; margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: 0.02em; text-transform: uppercase;
+    }
+    .focus-add-bar .btn-sm { flex: 0 0 auto; }
+    .focus-add-msg {
+      font-size: 12px; color: #71717a; margin: -4px 0 10px; min-height: 1.2em;
+    }
+    .focus-add-msg.is-error { color: #b42318; }
+    .focus-add-msg.is-ok { color: #137333; }
+    .focus-remove-btn {
       appearance: none; border: 1px solid #e3e8ee; background: #fff;
-      width: 28px; height: 28px; border-radius: 8px; padding: 0;
-      display: inline-grid; place-items: center; cursor: pointer;
-      color: #9aa0a6; font-size: 14px; line-height: 1; flex-shrink: 0;
-      margin-left: auto;
+      color: #5f6368; font-size: 11px; font-weight: 600; line-height: 1;
+      padding: 5px 8px; border-radius: 8px; cursor: pointer;
+      margin-left: auto; flex-shrink: 0; white-space: nowrap;
     }
-    .focus-pin:hover { border-color: #d4af37; color: #b8860b; background: #fffbeb; }
-    .focus-pin.is-on {
-      border-color: #d4af37; background: #fff8e1; color: #9a7418;
-      box-shadow: inset 0 0 0 1px rgba(212,175,55,.25);
-    }
-    .focus-pin:disabled { opacity: .55; cursor: wait; }
+    .focus-remove-btn:hover { border-color: #f0b4b0; color: #b42318; background: #fef3f2; }
+    .focus-remove-btn:disabled { opacity: .55; cursor: wait; }
     .focus-panel-intro {
       font-size: 12px; color: #71717a; margin: 0 0 10px; line-height: 1.5;
     }
@@ -1264,7 +1274,7 @@
                 <span class="ta-label">รีเฟรช<span class="ta-label-long">ชีท</span></span>
               </button>
               <button type="button" class="topbar-action" id="sync-hub-sheet-btn"
-                title="เขียนรายการ Hub (RXT) กลับแท็บทรัพย์ Hub">
+                title="เขียนรายการจากแอปขึ้นแท็บทรัพย์รวมใน Google Sheet (ใหม่→เก่า)">
                 <svg class="ta-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                   <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 19h14"/>
                 </svg>
@@ -1510,8 +1520,13 @@
 
       <div class="hidden" id="focus-panel">
         <p class="focus-panel-intro">
-          ทรัพย์ที่ทีมกำลัง Focus (ปักหมุด) — กดดาวจากลิสต์ทรัพย์หรือที่นี่เพื่อเพิ่ม/เอาออก · ไม่ผูกคอลัมน์ชีท
+          ทรัพย์ที่ทีมกำลัง Focus — พิมพ์รหัสทรัพย์แล้วกดเพิ่ม · ไม่ผูกคอลัมน์ชีท
         </p>
+        <div class="focus-add-bar">
+          <input type="text" id="focus-code-input" placeholder="เช่น PTP8212 หรือ RXT1234, PTP9999" autocomplete="off" spellcheck="false" />
+          <button type="button" class="btn-sm primary" id="focus-add-btn">เพิ่มรหัส</button>
+        </div>
+        <div class="focus-add-msg" id="focus-add-msg" aria-live="polite"></div>
         <div class="table-wrap">
           <div class="prop-list-head">
             <span>รูป</span>
@@ -4787,7 +4802,16 @@
       });
     }
 
-    function propCardHtml(p) {
+    function setFocusAddMsg(text, kind) {
+      var el = document.getElementById("focus-add-msg");
+      if (!el) return;
+      el.textContent = text || "";
+      el.classList.toggle("is-error", kind === "error");
+      el.classList.toggle("is-ok", kind === "ok");
+    }
+
+    function propCardHtml(p, opts) {
+      opts = opts || {};
       const proj = window.PTP_DATA.project_map[p.project_id] || {};
       const name = proj.canonical_name || p.project_name || "—";
       var locText = propLocText(p, proj);
@@ -4810,15 +4834,10 @@
       var projectBtn = p.project_id
         ? '<button type="button" class="prop-project-link" data-open-project="' + esc(p.project_id) + '">' + esc(name) + "</button>"
         : esc(name);
-      var focused = isPropertyFocused(p.id);
-      var pinBtn =
-        '<button type="button" class="focus-pin' + (focused ? " is-on" : "") + '"' +
-        ' data-focus-toggle="' + esc(p.id) + '"' +
-        ' data-focus-code="' + esc(p.code || "") + '"' +
-        ' aria-pressed="' + (focused ? "true" : "false") + '"' +
-        ' title="' + (focused ? "เอาออกจาก Focus" : "ปักหมุดเป็น Focus") + '">' +
-        (focused ? "★" : "☆") +
-        "</button>";
+      var removeBtn = opts.showFocusRemove
+        ? '<button type="button" class="focus-remove-btn" data-focus-remove="' + esc(p.id) + '"' +
+          ' data-focus-code="' + esc(p.code || "") + '" title="เอาออกจาก Focus">เอาออก</button>'
+        : "";
       return '<article class="prop-sheet-row" data-prop-id="' + esc(p.id) + '">' +
         '<div class="prop-sheet-thumb">' + thumbCellHtml(p, previewUrl) + "</div>" +
         '<div class="prop-sheet-main">' +
@@ -4826,7 +4845,7 @@
             '<span class="code">' + esc(p.code) + "</span>" +
             '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + reviewBadge +
             '<span class="date">' + esc(p.last_listed_at || "—") + "</span>" +
-            pinBtn +
+            removeBtn +
           "</div>" +
           '<div class="prop-sheet-project" title="' + esc(name) + '">' + projectBtn + "</div>" +
           '<div class="prop-sheet-meta">' +
@@ -4900,11 +4919,13 @@
       }).filter(Boolean);
       if (!ordered.length) {
         list.innerHTML =
-          '<div class="empty"><span>ยังไม่มีทรัพย์ Focus</span>กดปักหมุดจากลิสต์ทรัพย์</div>';
+          '<div class="empty"><span>ยังไม่มีทรัพย์ Focus — พิมพ์รหัสแล้วกดเพิ่ม</span></div>';
         return;
       }
       ensureSearchCaches();
-      list.innerHTML = ordered.map(propCardHtml).join("");
+      list.innerHTML = ordered.map(function (p) {
+        return propCardHtml(p, { showFocusRemove: true });
+      }).join("");
       scheduleThumbLoadsIn("#focus-rows");
     }
 
@@ -4922,7 +4943,6 @@
         });
         updateFocusBadge(data.stats || { total: focusItems.length });
         if (activeView === "focus") renderFocusRows();
-        else if (activeView === "properties") renderRows();
       } catch (e) {
         console.warn("loadFocus", e);
         if (activeView === "focus") {
@@ -4934,29 +4954,69 @@
       }
     }
 
-    async function toggleFocusPin(propertyId, code, btn) {
-      if (!propertyId) return;
+    async function addFocusByCode(rawCodes) {
+      var text = (rawCodes || "").trim();
+      if (!text) {
+        setFocusAddMsg("กรุณาระบุรหัสทรัพย์", "error");
+        return;
+      }
+      var btn = document.getElementById("focus-add-btn");
+      if (btn) btn.disabled = true;
+      setFocusAddMsg("กำลังเพิ่ม…", "");
+      try {
+        var data = await apiPost("/api/focus/add", { code: text });
+        focusItems = data.items || focusItems;
+        FOCUS_ID_SET = {};
+        focusItems.forEach(function (it) {
+          if (it && it.id) FOCUS_ID_SET[it.id] = true;
+        });
+        updateFocusBadge(data.stats || { total: focusItems.length });
+        renderFocusRows();
+        var addedN = (data.added && data.added.length) || 0;
+        var skippedN = (data.skipped && data.skipped.length) || 0;
+        var errN = (data.errors && data.errors.length) || 0;
+        var parts = [];
+        if (addedN) parts.push("เพิ่ม " + addedN + " รายการ");
+        if (skippedN) parts.push("มีอยู่แล้ว " + skippedN);
+        if (errN) {
+          var firstErr = data.errors[0] && data.errors[0].error;
+          parts.push(firstErr || ("ไม่พบ " + errN + " รหัส"));
+        }
+        setFocusAddMsg(parts.join(" · ") || "บันทึกแล้ว", errN && !addedN ? "error" : "ok");
+        var input = document.getElementById("focus-code-input");
+        if (input && addedN) {
+          input.value = "";
+          try { input.focus(); } catch (e) { /* ignore */ }
+        }
+      } catch (e) {
+        setFocusAddMsg((e && e.message) || "เพิ่ม Focus ไม่สำเร็จ", "error");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function removeFocusItem(propertyId, code, btn) {
+      var ref = propertyId || code;
+      if (!ref) return;
       if (btn) btn.disabled = true;
       try {
-        var data = await apiPost("/api/focus/toggle", { id: propertyId, code: code || "" });
+        var data = await apiPost("/api/focus/remove", {
+          id: propertyId || "",
+          code: code || ""
+        });
         if (!data || data.error) {
-          alert((data && data.error) || "บันทึก Focus ไม่สำเร็จ");
+          alert((data && data.error) || "เอาออกไม่สำเร็จ");
           return;
         }
-        if (data.focused) {
-          FOCUS_ID_SET[propertyId] = true;
-          if (!focusItems.some(function (x) { return x.id === propertyId; })) {
-            focusItems.unshift(data.item || { id: propertyId, code: code || "" });
-          }
-        } else {
-          delete FOCUS_ID_SET[propertyId];
-          focusItems = focusItems.filter(function (x) { return x.id !== propertyId; });
-        }
+        delete FOCUS_ID_SET[propertyId];
+        focusItems = focusItems.filter(function (x) {
+          return x.id !== propertyId && (!code || x.code !== String(code).toUpperCase());
+        });
         updateFocusBadge(data.stats || { total: focusItems.length });
-        if (activeView === "focus") renderFocusRows();
-        else if (activeView === "properties") renderRows();
+        renderFocusRows();
+        setFocusAddMsg("เอาออกแล้ว" + (code ? (" · " + code) : ""), "ok");
       } catch (e) {
-        alert("บันทึก Focus ไม่สำเร็จ");
+        alert((e && e.message) || "เอาออกไม่สำเร็จ");
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -7358,23 +7418,43 @@
     async function syncHubToSheet() {
       var btn = document.getElementById("sync-hub-sheet-btn");
       if (!btn) return;
-      if (!confirm("ซิงค์รายการ Hub (RXT) ไปแท็บ「ทรัพย์ Hub」ใน Google Sheet?\nทำเล + BTS/MRT จะถูกเขียนใหม่จาก master โครงการในแอปทุกครั้ง\n(ถ้ายังไม่มี Web App / Service Account จะได้ไฟล์ export ในเซิร์ฟเวอร์)")) return;
+      if (!confirm(
+        "ซิงค์รายการจากแอปขึ้นแท็บ「ทรัพย์รวม」ใน Google Sheet?\n" +
+        "• เขียนทุกรายการที่ใช้งาน (เรียงใหม่→เก่า) ให้เห็นบนสุดเหมือนแอป\n" +
+        "• ทำเล + BTS/MRT จาก master โครงการในแอป\n" +
+        "• ไม่แตะแท็บ Focus\n" +
+        "(ต้องมี Service Account บนเซิร์ฟเวอร์)"
+      )) return;
       var label = btn.querySelector(".ta-label") || btn;
       var oldHtml = label.innerHTML;
       btn.disabled = true;
       label.textContent = "กำลังซิงค์…";
       try {
         var data = await apiPost("/api/properties/sync-to-sheet", {});
-        var msg = "รายการ Hub " + (data.hub_count || 0) + " · ";
-        if (data.pushed) msg += "เขียนขึ้นชีทแล้ว (ทำเล+BTS จากแอป)";
-        else msg += "บันทึกไฟล์ " + (data.export_csv || "hub_sheet_export.csv") + " แล้ว";
-        if (data.location_refreshed) msg += "\nรีเฟรชทำเล/BTS จาก master: " + data.location_refreshed + " รายการ";
-        if (data.push_warning) msg += "\n\n" + data.push_warning;
-        if (data.pushed) msg += "\n\nจากนั้นที่ชีท: เมนู Property Hub → รีเฟรชหน้าทรัพย์รวม";
-        if (data.spreadsheet_url) msg += "\n" + data.spreadsheet_url;
+        if (!data.pushed) {
+          throw new Error(
+            (data.error || data.push_warning || "ซิงค์ชีทไม่สำเร็จ") +
+            (data.export_csv ? "\n(เซิร์ฟเวอร์เก็บไฟล์ " + data.export_csv + " ไว้ แต่ยังไม่ได้เขียนขึ้น Google Sheet)" : "")
+          );
+        }
+        var tab = data.sheet_title || "ทรัพย์รวม";
+        var n = data.written_count || data.overview_count || 0;
+        var msg =
+          "เขียนขึ้นชีทแล้ว\n" +
+          "• แท็บ「" + tab + "」· " + n.toLocaleString("th-TH") + " รายการ (ใหม่→เก่า)\n" +
+          "• เวลา " + (data.synced_at || "—");
+        if (data.hub_sheet_title) {
+          msg += "\n• แท็บ「" + data.hub_sheet_title + "」· Hub/RXT " +
+            (data.hub_rows_written != null ? data.hub_rows_written : (data.hub_count || 0)) + " แถว";
+        }
+        if (data.data_start_row && data.data_start_row > 1) {
+          msg += "\n• ดูข้อมูลตั้งแต่แถว " + data.data_start_row + " (หัวตาราง/ช่องค้นหาด้านบนถูกเก็บไว้)";
+        }
+        if (data.push_warning) msg += "\n\nหมายเหตุ: " + data.push_warning;
+        if (data.spreadsheet_url) msg += "\n\n" + data.spreadsheet_url;
         alert(msg);
       } catch (e) {
-        alert(e.message || String(e));
+        alert("ซิงค์ชีทไม่สำเร็จ\n" + (e.message || String(e)));
       }
       btn.disabled = false;
       label.innerHTML = oldHtml;

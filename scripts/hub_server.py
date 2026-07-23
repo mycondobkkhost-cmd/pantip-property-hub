@@ -60,8 +60,10 @@ from src.hub.customer_store import (  # noqa: E402
     write_followup_export_csv,
 )
 from src.hub.focus_store import (  # noqa: E402
+    add_focus_codes,
     focus_stats,
     list_focus,
+    remove_focus_ref,
     toggle_focus,
 )
 from src.hub.customer_match import recommend_for_case  # noqa: E402
@@ -980,7 +982,35 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"error": str(exc)})
             return
 
+        if path == "/api/focus/add":
+            try:
+                raw = body.get("code") or body.get("codes") or body.get("text") or ""
+                result = add_focus_codes(raw, load_properties())
+                self._json(200, {"ok": True, **result})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/focus/remove":
+            try:
+                ref = (
+                    body.get("code")
+                    or body.get("id")
+                    or body.get("property_id")
+                    or ""
+                ).strip()
+                result = remove_focus_ref(ref)
+                self._json(200, {"ok": True, **result})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
         if path == "/api/focus/toggle":
+            # Legacy pin toggle — prefer /api/focus/add and /api/focus/remove
             try:
                 result = toggle_focus(
                     (body.get("id") or body.get("property_id") or "").strip(),
@@ -1148,6 +1178,22 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/properties/sync-to-sheet":
             try:
                 result = push_hub_properties_to_sheet()
+                if not result.get("pushed"):
+                    warn = result.get("push_warning") or "ซิงค์ชีทไม่สำเร็จ"
+                    self._json(
+                        502,
+                        {
+                            "error": warn,
+                            "ok": False,
+                            "pushed": False,
+                            "hub_count": result.get("hub_count", 0),
+                            "overview_count": result.get("overview_count", 0),
+                            "export_csv": result.get("export_csv"),
+                            "synced_at": result.get("synced_at"),
+                            "push_warning": warn,
+                        },
+                    )
+                    return
                 self._json(200, result)
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})

@@ -49,6 +49,16 @@ gh repo create pantip-property-hub --private --source=. --remote=origin --push
 
 - `HUB_SESSION_SECRET` — สตริงสุ่มยาวสำหรับเซ็น cookie session (ถ้าไม่ตั้ง ใช้ค่า default ชั่วคราว)
 
+#### สำหรับปุ่ม「ซิงค์ไปชีท Hub」(จำเป็นถ้าต้องการเขียน Google Sheet)
+
+- `HUB_GOOGLE_SHEETS_ID` (หรือ `GOOGLE_SHEETS_ID`) — ID ชีททดลอง เช่น `14U1y4dsebeuudTSK_...`
+- `GOOGLE_SERVICE_ACCOUNT_JSON` — JSON ทั้งก้อนของ Service Account (บรรทัดเดียวใน Render env)
+- แชร์ชีททดลองให้ email ของ SA เป็น **Editor**
+- (แนะนำ) `HUB_OVERVIEW_SHEET_NAME=ทรัพย์รวม` — แท็บที่แอดมินเปิดดู (ห้ามตั้งเป็น Focus)
+- (ทางเลือก) `HUB_SHEET_NAME=ทรัพย์ Hub` + `HUB_SHEET_GID` สำหรับแท็บ RXT รอง
+
+ถ้าไม่มี `gspread` หรือไม่มี credentials ปุ่มซิงค์จะขึ้น error ชัดเจน (ไม่โชว์สำเร็จปลอม)
+
 รหัสผ่าน preset เดิมใน client ถูกลบแล้ว — ถ้าไม่ตั้ง `HUB_USERS_JSON` บน Render จะล็อกอินไม่ได้
 
 5. Create Web Service แล้วรอ build (~5–10 นาที)

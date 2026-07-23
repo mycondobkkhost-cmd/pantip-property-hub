@@ -23,6 +23,19 @@ services:
         sync: false
       - key: WAIT_POST_SHEET_CSV_URL
         sync: false
+      # ซิงค์กลับชีททดลอง (ต้องแชร์ชีทให้ SA เป็น Editor)
+      - key: HUB_GOOGLE_SHEETS_ID
+        sync: false
+      - key: GOOGLE_SHEETS_ID
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: HUB_OVERVIEW_SHEET_NAME
+        value: ทรัพย์รวม
+      - key: HUB_SHEET_NAME
+        value: ทรัพย์ Hub
+      - key: HUB_SHEET_GID
+        sync: false
       # ตั้งใน Dashboard / API — ห้าม commit รหัสผ่านจริง
       - key: HUB_USERS_JSON
         sync: false

@@ -15,6 +15,7 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
       # ตั้งค่าใน Render Dashboard (อย่า commit URL ลง git ถ้าชีทเป็นส่วนตัว)
+      # หลังทุก deploy เซิร์ฟจะดึงชีทอัตโนมัติตอนบูตถ้ามี URL/ID เหล่านี้
       - key: MAIN_SHEET_CSV_URL
         sync: false
       - key: SOURCE_GOOGLE_SHEETS_ID
@@ -23,6 +24,8 @@ services:
         sync: false
       - key: WAIT_POST_SHEET_CSV_URL
         sync: false
+      - key: HUB_STARTUP_SHEET_SYNC
+        value: "1"
       # ซิงค์กลับชีททดลอง (ต้องแชร์ชีทให้ SA เป็น Editor)
       - key: HUB_GOOGLE_SHEETS_ID
         sync: false

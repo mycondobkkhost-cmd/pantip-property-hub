@@ -142,6 +142,22 @@ def _env(*keys: str) -> str:
     return ""
 
 
+def remote_sheet_source_configured() -> bool:
+    """True when MAIN_SHEET_CSV_URL / SOURCE sheet id can resolve to a download URL."""
+    source_id = _env(
+        "SOURCE_GOOGLE_SHEETS_ID",
+        "MAIN_GOOGLE_SHEETS_ID",
+        "HUB_SOURCE_GOOGLE_SHEETS_ID",
+    )
+    url = resolve_csv_export_url(
+        explicit_url=_env("MAIN_SHEET_CSV_URL", "HUB_MAIN_SHEET_CSV_URL"),
+        spreadsheet_id=source_id,
+        sheet_name=_env("MAIN_SHEET_NAME", "HUB_MAIN_SHEET_NAME") or "ชีตสำหรับทำงาน",
+        gid=_env("MAIN_SHEET_GID", "HUB_MAIN_SHEET_GID") or "0",
+    )
+    return bool(url)
+
+
 def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
     """Download main sheet CSV, rebuild PTP master, preserve Hub-owned (RXT/COA) rows."""
     import json

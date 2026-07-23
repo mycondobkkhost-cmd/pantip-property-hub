@@ -69,7 +69,11 @@ from src.hub.focus_store import (  # noqa: E402
 from src.hub.customer_match import recommend_for_case  # noqa: E402
 from src.hub.co_catalog import build_co_catalog, match_co_brief  # noqa: E402
 from src.hub.scraper import scrape_url, fetch_preview_image, fetch_image_bytes  # noqa: E402
-from src.hub.sheet_sync import refresh_main_sheet, refresh_wait_post_sheet  # noqa: E402
+from src.hub.sheet_sync import (  # noqa: E402
+    refresh_main_sheet,
+    refresh_wait_post_sheet,
+    remote_sheet_source_configured,
+)
 from src.hub.sheet_write import push_hub_properties_to_sheet  # noqa: E402
 from src.hub.text_gen import generate_text  # noqa: E402
 
@@ -78,6 +82,12 @@ SCRAPER_VERSION = "mobile-ua-proxy-bypass-v4"
 THUMB_CACHE_DIR = BASE_DIR / "data" / "thumb_cache"
 _PREVIEW_OG_CACHE: dict[str, str] = {}
 _PREVIEW_BYTES_CACHE: dict[str, tuple[bytes, str]] = {}
+# Render disk is ephemeral — startup sync re-hydrates from Google Sheet after each deploy.
+_STARTUP_SHEET_SYNC: dict = {
+    "status": "idle",  # idle | skipped | running | ok | error
+    "properties_total": 0,
+    "message": "",
+}
 _CO_CATALOG_CACHE: dict = {"mtime": 0.0, "data": None}
 _PREVIEW_CACHE_MAX = 400
 _THUMB_FETCH_LOCK = __import__("threading").Semaphore(1)
@@ -505,6 +515,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     "data_version": meta.get("data_version") or "",
                     "properties_total": meta.get("properties_total") or 0,
                     "generated_at": meta.get("generated_at") or "",
+                    "startup_sheet_sync": dict(_STARTUP_SHEET_SYNC),
                 },
             )
             return
@@ -1144,28 +1155,10 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/properties/refresh-sheet":
             try:
-                result = refresh_main_sheet(
+                result = _run_sheet_refresh(
                     csv_url=(body.get("csv_url") or "").strip(),
-                    rebuild=True,
+                    wait_csv_url=(body.get("wait_csv_url") or "").strip(),
                 )
-                # Also pull รอโพสต์ tab → queue (same refresh action users expect)
-                wait_meta: dict = {}
-                wait_import: dict = {}
-                try:
-                    wait_meta = refresh_wait_post_sheet(
-                        csv_url=(body.get("wait_csv_url") or "").strip()
-                    )
-                    wait_import = import_from_sheet_csv(replace=True)
-                except Exception as wait_exc:  # noqa: BLE001
-                    wait_meta = {
-                        "ok": False,
-                        "download_warning": str(wait_exc),
-                    }
-                result["wait_post"] = {
-                    **wait_meta,
-                    **wait_import,
-                    "stats": queue_stats(),
-                }
                 self._json(200, result)
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})
@@ -1208,6 +1201,101 @@ class ReuseThreadingHTTPServer(ThreadingHTTPServer):
     allow_reuse_address = True
 
 
+def _run_sheet_refresh(*, csv_url: str = "", wait_csv_url: str = "") -> dict:
+    """Same path as POST /api/properties/refresh-sheet (main + wait-post queue)."""
+    result = refresh_main_sheet(csv_url=csv_url, rebuild=True)
+    wait_meta: dict = {}
+    wait_import: dict = {}
+    try:
+        wait_meta = refresh_wait_post_sheet(csv_url=wait_csv_url)
+        wait_import = import_from_sheet_csv(replace=True)
+    except Exception as wait_exc:  # noqa: BLE001
+        wait_meta = {
+            "ok": False,
+            "download_warning": str(wait_exc),
+        }
+    result["wait_post"] = {
+        **wait_meta,
+        **wait_import,
+        "stats": queue_stats(),
+    }
+    return result
+
+
+def _startup_sheet_sync_enabled() -> bool:
+    import os
+
+    flag = (os.environ.get("HUB_STARTUP_SHEET_SYNC") or "1").strip().lower()
+    return flag not in ("0", "false", "no", "off")
+
+
+def _startup_sheet_sync_worker() -> None:
+    """Re-hydrate catalog from Google Sheet after deploy (Render disk is ephemeral)."""
+    if not _startup_sheet_sync_enabled():
+        _STARTUP_SHEET_SYNC.update(
+            {
+                "status": "skipped",
+                "message": "HUB_STARTUP_SHEET_SYNC disabled",
+            }
+        )
+        print("[hub] startup sheet sync skipped (HUB_STARTUP_SHEET_SYNC=0)")
+        return
+    if not remote_sheet_source_configured():
+        _STARTUP_SHEET_SYNC.update(
+            {
+                "status": "skipped",
+                "message": "MAIN_SHEET_CSV_URL / SOURCE_GOOGLE_SHEETS_ID not set",
+            }
+        )
+        print(
+            "[hub] startup sheet sync skipped "
+            "(set MAIN_SHEET_CSV_URL or SOURCE_GOOGLE_SHEETS_ID)"
+        )
+        return
+
+    _STARTUP_SHEET_SYNC.update({"status": "running", "message": "pulling sheet…"})
+    print("[hub] startup sheet sync starting…")
+    try:
+        result = _run_sheet_refresh()
+        stats = result.get("stats") or {}
+        n = int(
+            stats.get("properties_total")
+            or len(load_properties())
+            or 0
+        )
+        warn = (result.get("download_warning") or "").strip()
+        msg = f"startup sheet sync ok, {n} properties"
+        if warn:
+            msg = f"{msg} (download_warning: {warn})"
+        _STARTUP_SHEET_SYNC.update(
+            {
+                "status": "ok",
+                "properties_total": n,
+                "message": msg,
+                "downloaded": bool(result.get("downloaded")),
+                "source": result.get("source") or "",
+            }
+        )
+        print(f"[hub] {msg}")
+    except Exception as exc:  # noqa: BLE001
+        # Never crash the server — keep baked-in image data.
+        try:
+            n = len(load_properties())
+        except Exception:
+            n = 0
+        _STARTUP_SHEET_SYNC.update(
+            {
+                "status": "error",
+                "properties_total": n,
+                "message": str(exc),
+            }
+        )
+        print(
+            f"[hub] startup sheet sync failed — using bundled data "
+            f"({n} properties): {exc}"
+        )
+
+
 def main() -> None:
     import os
     import threading
@@ -1240,6 +1328,9 @@ def main() -> None:
             enqueue_preview_thumb(u)
         print(f"[hub] queued {len(candidates)} page thumbs for background warm")
 
+    # Background: pull sheet so redeploys restore catalog without manual 「รีเฟรชชีท」.
+    # Server listens first so Render health checks pass during the sync window.
+    threading.Thread(target=_startup_sheet_sync_worker, daemon=True).start()
     threading.Thread(target=_warm_recent_thumbs, daemon=True).start()
 
     print("=== Property Hub Server (Phase 2) ===")

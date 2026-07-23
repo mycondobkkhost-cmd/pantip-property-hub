@@ -82,8 +82,17 @@ Render จะให้ URL แบบ:
 | เรื่อง | รายละเอียด |
 |--------|------------|
 | หลับ | ไม่มีคนใช้สักพัก → เปิดครั้งถัดไปรอนานหน่อย |
-| ข้อมูลใหม่ | บันทึกบนเซิร์ฟเวอร์ได้ตอนเครื่องตื่น — ถ้า **redeploy** อาจกลับไปชุดใน Git (ควร push ข้อมูลสำคัญขึ้น repo เป็นระยะ หรืออัปเกรด Disk ทีหลัง) |
+| Disk ชั่วคราว | ไฟล์ที่เขียนตอนรัน (`properties.json`, `preview-data.js`, Focus, คิวรอโพสต์) **หายเมื่อ redeploy** — แผนฟรีไม่มี Persistent Disk |
+| ดึงชีทตอนบูต | ถ้าตั้ง `MAIN_SHEET_CSV_URL` (หรือ `SOURCE_GOOGLE_SHEETS_ID`) เซิร์ฟจะ **รีเฟรชจาก Google Sheet อัตโนมัติตอนสตาร์ท** หลังทุก deploy — ไม่ต้องกด「รีเฟรชชีท」เอง |
+| Focus / คิว | ปักหมุด Focus และแก้คิวบนเซิร์ฟยัง ephemeral (ยังไม่ดึงกลับจากชีทตอนบูต) — ข้อมูลสำคัญให้ซิงค์ไปชีทหรือบันทึกใน Sheet เป็นหลัก |
 | ความปลอดภัย | เปลี่ยนรหัสผ่านก่อนแชร์ URL สาธารณะ |
+
+### Env สำหรับดึงชีทเข้าแอป (แนะนำบน Render)
+
+- `MAIN_SHEET_CSV_URL` — ลิงก์ export CSV ของชีทหลัก (Anyone with the link can view)
+- หรือ `SOURCE_GOOGLE_SHEETS_ID` + `MAIN_SHEET_GID`
+- `WAIT_POST_SHEET_CSV_URL` — แท็บ「รอโพสต์」(optional)
+- `HUB_STARTUP_SHEET_SYNC=0` — ปิด sync ตอนบูต (ค่าเริ่มต้นเปิด)
 
 ## ทดสอบบนเครื่องก่อน push
 

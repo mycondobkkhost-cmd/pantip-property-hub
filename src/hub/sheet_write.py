@@ -294,14 +294,29 @@ def hub_properties_from_disk() -> list[dict]:
     return [p for p in props if is_hub_owned(p)]
 
 
+def _load_properties_for_export() -> list[dict]:
+    """Load properties.json safely (empty/partial file during startup sync → [])."""
+    if not PROPERTIES_JSON.exists():
+        return []
+    try:
+        raw = PROPERTIES_JSON.read_text(encoding="utf-8").strip()
+    except OSError:
+        return []
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    return data if isinstance(data, list) else []
+
+
 def active_properties_for_overview(
     properties: list[dict] | None = None,
 ) -> list[dict]:
     """Active listings only, newest-first (same mental model as Hub「ใหม่ล่าสุด」)."""
     if properties is None:
-        if not PROPERTIES_JSON.exists():
-            return []
-        properties = json.loads(PROPERTIES_JSON.read_text(encoding="utf-8"))
+        properties = _load_properties_for_export()
     active = [p for p in properties if _is_active_listing(p)]
     active.sort(key=_listed_sort_key, reverse=True)
     return active

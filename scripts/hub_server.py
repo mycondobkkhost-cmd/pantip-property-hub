@@ -553,8 +553,29 @@ class HubHandler(BaseHTTPRequestHandler):
             "/api/properties/hub-overview-export.csv",
         }:
             try:
-                out = write_overview_export_csv()
-                data = out.read_bytes()
+                from src.hub.sheet_write import (
+                    active_properties_for_overview,
+                    write_overview_export_csv as _write_ov,
+                )
+
+                props = active_properties_for_overview()
+                if not props and OVERVIEW_EXPORT_CSV.exists() and OVERVIEW_EXPORT_CSV.stat().st_size > 32:
+                    data = OVERVIEW_EXPORT_CSV.read_bytes()
+                else:
+                    out = _write_ov(props if props else None)
+                    data = out.read_bytes()
+                if len(data) < 32:
+                    self._json(
+                        503,
+                        {
+                            "ok": False,
+                            "error": (
+                                "ยังไม่มีข้อมูลสำหรับ export — รอเซิร์ฟดึงชีทให้จบ "
+                                "หรือกด「รีเฟรชชีท」ก่อน แล้วลองดาวน์โหลดอีกครั้ง"
+                            ),
+                        },
+                    )
+                    return
                 self._send_bytes(
                     200,
                     data,
@@ -562,6 +583,17 @@ class HubHandler(BaseHTTPRequestHandler):
                     filename=OVERVIEW_EXPORT_CSV.name,
                 )
             except Exception as exc:  # noqa: BLE001
+                try:
+                    if OVERVIEW_EXPORT_CSV.exists() and OVERVIEW_EXPORT_CSV.stat().st_size > 32:
+                        self._send_bytes(
+                            200,
+                            OVERVIEW_EXPORT_CSV.read_bytes(),
+                            content_type="text/csv; charset=utf-8",
+                            filename=OVERVIEW_EXPORT_CSV.name,
+                        )
+                        return
+                except Exception:
+                    pass
                 self._json(500, {"ok": False, "error": str(exc)})
             return
         if path == "/api/queue":

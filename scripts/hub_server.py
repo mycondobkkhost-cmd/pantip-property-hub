@@ -74,7 +74,11 @@ from src.hub.sheet_sync import (  # noqa: E402
     refresh_wait_post_sheet,
     remote_sheet_source_configured,
 )
-from src.hub.sheet_write import push_hub_properties_to_sheet  # noqa: E402
+from src.hub.sheet_write import (  # noqa: E402
+    OVERVIEW_EXPORT_CSV,
+    push_hub_properties_to_sheet,
+    write_overview_export_csv,
+)
 from src.hub.text_gen import generate_text  # noqa: E402
 
 PORT = 8765
@@ -474,6 +478,28 @@ class HubHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_bytes(
+        self,
+        status: int,
+        data: bytes,
+        *,
+        content_type: str,
+        filename: str | None = None,
+        cache_control: str = "no-store",
+    ) -> None:
+        self.send_response(status)
+        self._cors()
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", cache_control)
+        if filename:
+            self.send_header(
+                "Content-Disposition",
+                f'attachment; filename="{filename}"',
+            )
+        self.end_headers()
+        self.wfile.write(data)
+
     def _read_json(self) -> dict:
         length = int(self.headers.get("Content-Length", 0))
         raw = self.rfile.read(length) if length else b"{}"
@@ -521,6 +547,22 @@ class HubHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/data-meta":
             self._json(200, _preview_data_meta())
+            return
+        if path in {
+            "/api/properties/overview-export.csv",
+            "/api/properties/hub-overview-export.csv",
+        }:
+            try:
+                out = write_overview_export_csv()
+                data = out.read_bytes()
+                self._send_bytes(
+                    200,
+                    data,
+                    content_type="text/csv; charset=utf-8",
+                    filename=OVERVIEW_EXPORT_CSV.name,
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
             return
         if path == "/api/queue":
             include_done = "done=1" in (urlparse(self.path).query or "")
@@ -1173,19 +1215,26 @@ class HubHandler(BaseHTTPRequestHandler):
                 result = push_hub_properties_to_sheet()
                 if not result.get("pushed"):
                     warn = result.get("push_warning") or "ซิงค์ชีทไม่สำเร็จ"
-                    self._json(
-                        502,
-                        {
-                            "error": warn,
-                            "ok": False,
-                            "pushed": False,
-                            "hub_count": result.get("hub_count", 0),
-                            "overview_count": result.get("overview_count", 0),
-                            "export_csv": result.get("export_csv"),
-                            "synced_at": result.get("synced_at"),
-                            "push_warning": warn,
-                        },
-                    )
+                    payload = {
+                        "error": warn,
+                        "ok": False,
+                        "pushed": False,
+                        "hub_count": result.get("hub_count", 0),
+                        "overview_count": result.get("overview_count", 0),
+                        "export_csv": result.get("export_csv"),
+                        "synced_at": result.get("synced_at"),
+                        "push_warning": warn,
+                        "download_url": result.get("download_url")
+                        or "/api/properties/overview-export.csv",
+                    }
+                    for key in (
+                        "need_service_account",
+                        "setup_steps",
+                        "setup_hint",
+                    ):
+                        if key in result:
+                            payload[key] = result[key]
+                    self._json(502, payload)
                     return
                 self._json(200, result)
             except ValueError as exc:

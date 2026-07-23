@@ -7411,6 +7411,46 @@
       label.innerHTML = oldHtml;
     }
 
+    async function downloadOverviewExportCsv() {
+      var url = (API_BASE || "") + "/api/properties/overview-export.csv";
+      var res;
+      try {
+        res = await fetch(url, { credentials: "same-origin", cache: "no-store" });
+      } catch (err) {
+        throw new Error("ดาวน์โหลดไม่ได้ — เซิร์ฟเวอร์หลุด (" + ((err && err.message) || "network") + ")");
+      }
+      if (!res.ok) {
+        var errMsg = "ดาวน์โหลด CSV ไม่สำเร็จ (HTTP " + res.status + ")";
+        try {
+          var j = await res.json();
+          if (j && j.error) errMsg = j.error;
+        } catch (_e) {}
+        throw new Error(errMsg);
+      }
+      var blob = await res.blob();
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "hub_overview_export.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
+    }
+
+    function formatSheetSetupSteps(steps) {
+      if (!steps || !steps.length) {
+        steps = [
+          "เปิด Google Cloud Console → สร้าง/เลือกโปรเจกต์",
+          "Enable「Google Sheets API」+「Google Drive API」",
+          "สร้าง Service Account → สร้างคีย์ JSON แล้วดาวน์โหลด",
+          "วาง JSON ทั้งก้อนใน Render env: GOOGLE_SERVICE_ACCOUNT_JSON",
+          "แชร์ชีทให้ client_email เป็น Editor",
+          "รอ restart แล้วกดซิงค์อีกครั้ง"
+        ];
+      }
+      return steps.map(function (s, i) { return (i + 1) + ") " + s; }).join("\n");
+    }
+
     async function syncHubToSheet() {
       var btn = document.getElementById("sync-hub-sheet-btn");
       if (!btn) return;
@@ -7426,29 +7466,69 @@
       btn.disabled = true;
       label.textContent = "กำลังซิงค์…";
       try {
-        var data = await apiPost("/api/properties/sync-to-sheet", {});
-        if (!data.pushed) {
+        var res;
+        try {
+          res = await fetch((API_BASE || "") + "/api/properties/sync-to-sheet", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+          });
+        } catch (err) {
           throw new Error(
-            (data.error || data.push_warning || "ซิงค์ชีทไม่สำเร็จ") +
-            (data.export_csv ? "\n(เซิร์ฟเวอร์เก็บไฟล์ " + data.export_csv + " ไว้ แต่ยังไม่ได้เขียนขึ้น Google Sheet)" : "")
+            "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เปิด hub/เปิดดู.command แล้วลองใหม่\n(" +
+              ((err && err.message) || "Load failed") + ")"
           );
         }
-        var tab = data.sheet_title || "ทรัพย์รวม";
-        var n = data.written_count || data.overview_count || 0;
-        var msg =
-          "เขียนขึ้นชีทแล้ว\n" +
-          "• แท็บ「" + tab + "」· " + n.toLocaleString("th-TH") + " รายการ (ใหม่→เก่า)\n" +
-          "• เวลา " + (data.synced_at || "—");
-        if (data.hub_sheet_title) {
-          msg += "\n• แท็บ「" + data.hub_sheet_title + "」· Hub/RXT " +
-            (data.hub_rows_written != null ? data.hub_rows_written : (data.hub_count || 0)) + " แถว";
+        var data;
+        try {
+          data = await res.json();
+        } catch (_e) {
+          throw new Error("เซิร์ฟเวอร์ตอบไม่ถูกต้อง (HTTP " + res.status + ")");
         }
-        if (data.data_start_row && data.data_start_row > 1) {
-          msg += "\n• ดูข้อมูลตั้งแต่แถว " + data.data_start_row + " (หัวตาราง/ช่องค้นหาด้านบนถูกเก็บไว้)";
+        if (!res.ok || !data.pushed) {
+          var warn = data.error || data.push_warning || "ซิงค์ชีทไม่สำเร็จ";
+          var steps = data.setup_steps || null;
+          var hint = data.setup_hint || "";
+          var msg =
+            "ซิงค์ชีทไม่สำเร็จ\n" + warn +
+            (data.overview_count != null ? "\n(เตรียม " + Number(data.overview_count).toLocaleString("th-TH") + " รายการแล้ว แต่ยังไม่ได้เขียนขึ้น Google Sheet)" : "");
+          if (hint) msg += "\n\n" + hint;
+          if (steps && steps.length) {
+            msg += "\n\nวิธีตั้ง Service Account:\n" + formatSheetSetupSteps(steps);
+          }
+          msg += "\n\nกด OK เพื่อดาวน์โหลด hub_overview_export.csv ไปวางในชีทเองชั่วคราว\n(Cancel = ปิด)";
+          if (confirm(msg)) {
+            try {
+              label.textContent = "กำลังดาวน์โหลด…";
+              await downloadOverviewExportCsv();
+              alert(
+                "ดาวน์โหลด hub_overview_export.csv แล้ว\n" +
+                "เปิดแท็บ「ทรัพย์รวม」ใน Google Sheet → File → Import → Upload → Replace current sheet\n" +
+                "หรือเปิด CSV แล้วคัดลอกวางทับช่วงข้อมูล"
+              );
+            } catch (dlErr) {
+              alert("ดาวน์โหลดไม่สำเร็จ\n" + (dlErr.message || String(dlErr)));
+            }
+          }
+        } else {
+          var tab = data.sheet_title || "ทรัพย์รวม";
+          var n = data.written_count || data.overview_count || 0;
+          var okMsg =
+            "เขียนขึ้นชีทแล้ว\n" +
+            "• แท็บ「" + tab + "」· " + n.toLocaleString("th-TH") + " รายการ (ใหม่→เก่า)\n" +
+            "• เวลา " + (data.synced_at || "—");
+          if (data.hub_sheet_title) {
+            okMsg += "\n• แท็บ「" + data.hub_sheet_title + "」· Hub/RXT " +
+              (data.hub_rows_written != null ? data.hub_rows_written : (data.hub_count || 0)) + " แถว";
+          }
+          if (data.data_start_row && data.data_start_row > 1) {
+            okMsg += "\n• ดูข้อมูลตั้งแต่แถว " + data.data_start_row + " (หัวตาราง/ช่องค้นหาด้านบนถูกเก็บไว้)";
+          }
+          if (data.push_warning) okMsg += "\n\nหมายเหตุ: " + data.push_warning;
+          if (data.spreadsheet_url) okMsg += "\n\n" + data.spreadsheet_url;
+          alert(okMsg);
         }
-        if (data.push_warning) msg += "\n\nหมายเหตุ: " + data.push_warning;
-        if (data.spreadsheet_url) msg += "\n\n" + data.spreadsheet_url;
-        alert(msg);
       } catch (e) {
         alert("ซิงค์ชีทไม่สำเร็จ\n" + (e.message || String(e)));
       }

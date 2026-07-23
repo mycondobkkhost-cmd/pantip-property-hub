@@ -57,7 +57,21 @@ gh repo create pantip-property-hub --private --source=. --remote=origin --push
 - (แนะนำ) `HUB_OVERVIEW_SHEET_NAME=ทรัพย์รวม` — แท็บที่แอดมินเปิดดู (ห้ามตั้งเป็น Focus)
 - (ทางเลือก) `HUB_SHEET_NAME=ทรัพย์ Hub` + `HUB_SHEET_GID` สำหรับแท็บ RXT รอง
 
-ถ้าไม่มี `gspread` หรือไม่มี credentials ปุ่มซิงค์จะขึ้น error ชัดเจน (ไม่โชว์สำเร็จปลอม)
+ถ้าไม่มี credentials ปุ่มซิงค์จะขึ้น error ชัดเจน + เสนอ**ดาวน์โหลด `hub_overview_export.csv`** ให้วางในชีทเองชั่วคราว  
+ดาวน์โหลดตรง: `GET /api/properties/overview-export.csv`
+
+##### เช็คลิสต์สร้าง Service Account (ครั้งเดียว)
+
+1. เปิด [Google Cloud Console](https://console.cloud.google.com) → สร้าง/เลือกโปรเจกต์
+2. **APIs & Services → Enable APIs** → เปิด **Google Sheets API** และ **Google Drive API**
+3. **IAM & Admin → Service Accounts → Create** → สร้างคีย์ประเภท **JSON** แล้วดาวน์โหลดไฟล์
+4. เปิดไฟล์ JSON → คัดลอก**ทั้งก้อน** → Render → service `property-hub` → **Environment** → เพิ่ม  
+   `GOOGLE_SERVICE_ACCOUNT_JSON` = วาง JSON ทั้งก้อน (บรรทัดเดียวได้)
+5. ในไฟล์ JSON หาฟิลด์ `client_email` (ลงท้าย `@....iam.gserviceaccount.com`)  
+   → เปิดชีทเป้าหมาย → **Share** → ใส่ email นั้นเป็น **Editor**
+6. Save env (Render จะ restart) → กลับมาแอป → กด「ซิงค์ไปชีท Hub」อีกครั้ง ต้องได้ `pushed: true`
+
+อย่า commit ไฟล์ JSON เข้า git — ใช้แค่ Render env (หรือ `credentials/service_account.json` บนเครื่อง local ที่อยู่ใน `.gitignore`)
 
 รหัสผ่าน preset เดิมใน client ถูกลบแล้ว — ถ้าไม่ตั้ง `HUB_USERS_JSON` บน Render จะล็อกอินไม่ได้
 

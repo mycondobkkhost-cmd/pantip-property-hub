@@ -342,6 +342,39 @@ def write_overview_export_csv(
     return OVERVIEW_EXPORT_CSV
 
 
+# Thai checklist shown when sync cannot write Sheets (no SA / bad env).
+SERVICE_ACCOUNT_SETUP_STEPS_TH = [
+    "เปิด https://console.cloud.google.com แล้วสร้าง/เลือกโปรเจกต์",
+    "APIs & Services → Enable API → เปิด「Google Sheets API」และ「Google Drive API」",
+    "IAM & Admin → Service Accounts → Create service account → สร้างคีย์ประเภท JSON แล้วดาวน์โหลด",
+    "เปิดไฟล์ JSON → คัดลอกทั้งก้อน (มี client_email + private_key) → วางใน Render → Environment เป็นตัวแปร GOOGLE_SERVICE_ACCOUNT_JSON (ค่าเป็น JSON ทั้งก้อน บรรทัดเดียว)",
+    "เปิดชีทเป้าหมาย → Share → ใส่ email จากฟิลด์ client_email ใน JSON เป็น Editor",
+    "Save env แล้วรอ service restart (หรือ Manual Deploy) → กด「ซิงค์ไปชีท Hub」อีกครั้ง",
+]
+
+OVERVIEW_EXPORT_DOWNLOAD_PATH = "/api/properties/overview-export.csv"
+
+
+def service_account_setup_payload(*, warning: str = "") -> dict:
+    """Extra fields for API/UI when sheet write needs a Service Account."""
+    return {
+        "need_service_account": True,
+        "download_url": OVERVIEW_EXPORT_DOWNLOAD_PATH,
+        "setup_steps": list(SERVICE_ACCOUNT_SETUP_STEPS_TH),
+        "setup_hint": (
+            "ยังเขียนชีทอัตโนมัติไม่ได้ — ต้องมี Service Account บน Render "
+            "ชั่วคราวดาวน์โหลด CSV แล้ววางในแท็บ「ทรัพย์รวม」เองได้"
+        ),
+        "push_warning": warning
+        or (
+            "ยังไม่มี Service Account สำหรับเขียนชีท — "
+            "ตั้ง GOOGLE_SERVICE_ACCOUNT_JSON บน Render แล้วแชร์ชีทให้ "
+            "client_email เป็น Editor "
+            f"(ชั่วคราวดาวน์โหลดได้ที่ {OVERVIEW_EXPORT_DOWNLOAD_PATH})"
+        ),
+    }
+
+
 def _gspread_client():
     """Authorize via service account JSON path or inline env JSON."""
     import gspread
@@ -365,9 +398,9 @@ def _gspread_client():
     if not path.exists():
         raise FileNotFoundError(
             "ยังไม่มี Service Account สำหรับเขียนชีท — "
-            "วางไฟล์ credentials/service_account.json หรือตั้ง GOOGLE_SERVICE_ACCOUNT_JSON "
-            "แล้วแชร์ชีทให้ email ของ service account เป็น Editor "
-            f"(ตอนนี้ export ไว้ที่ {OVERVIEW_EXPORT_CSV.name} แทน)"
+            "ตั้ง GOOGLE_SERVICE_ACCOUNT_JSON บน Render (หรือวางไฟล์ "
+            "credentials/service_account.json) แล้วแชร์ชีทให้ client_email เป็น Editor "
+            f"— ชั่วคราวดาวน์โหลด CSV ได้ที่ {OVERVIEW_EXPORT_DOWNLOAD_PATH}"
         )
     creds = Credentials.from_service_account_file(str(path), scopes=scopes)
     return gspread.authorize(creds)
@@ -726,8 +759,19 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
         except Exception as exc:  # noqa: BLE001
             warnings.append(f"Apps Script: {exc}")
 
-    result["push_warning"] = " · ".join(warnings) if warnings else (
+    warn = " · ".join(warnings) if warnings else (
         "ซิงค์ชีทไม่สำเร็จ — ตรวจ Service Account / HUB_GOOGLE_SHEETS_ID"
     )
+    result["push_warning"] = warn
     result["ok"] = False
+    need_sa = any(
+        "Service Account" in w
+        or "GOOGLE_SERVICE_ACCOUNT_JSON" in w
+        or "credentials/service_account" in w
+        for w in warnings
+    ) or "Service Account" in warn
+    if need_sa:
+        result.update(service_account_setup_payload(warning=warn))
+    else:
+        result["download_url"] = OVERVIEW_EXPORT_DOWNLOAD_PATH
     return result

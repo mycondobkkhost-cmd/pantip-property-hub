@@ -59,6 +59,11 @@ from src.hub.customer_store import (  # noqa: E402
     update_case,
     write_followup_export_csv,
 )
+from src.hub.focus_store import (  # noqa: E402
+    focus_stats,
+    list_focus,
+    toggle_focus,
+)
 from src.hub.customer_match import recommend_for_case  # noqa: E402
 from src.hub.co_catalog import build_co_catalog, match_co_brief  # noqa: E402
 from src.hub.scraper import scrape_url, fetch_preview_image, fetch_image_bytes  # noqa: E402
@@ -521,6 +526,17 @@ class HubHandler(BaseHTTPRequestHandler):
                 },
             )
             return
+        if path == "/api/focus":
+            items = list_focus()
+            self._json(
+                200,
+                {
+                    "items": items,
+                    "ids": [x["id"] for x in items],
+                    "stats": focus_stats(),
+                },
+            )
+            return
         if path == "/api/preview-image":
             from urllib.parse import parse_qs
 
@@ -958,6 +974,19 @@ class HubHandler(BaseHTTPRequestHandler):
                         "stats": queue_stats(),
                     },
                 )
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/focus/toggle":
+            try:
+                result = toggle_focus(
+                    (body.get("id") or body.get("property_id") or "").strip(),
+                    code=(body.get("code") or "").strip(),
+                )
+                self._json(200, {"ok": True, **result})
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})
             except Exception as exc:  # noqa: BLE001

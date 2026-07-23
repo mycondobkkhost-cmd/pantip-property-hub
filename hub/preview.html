@@ -435,6 +435,24 @@
     }
     .prop-sheet-top .code { font-weight: 700; font-size: 13px; color: var(--ink); }
     .prop-sheet-top .date { font-size: 12px; color: #6b7785; font-variant-numeric: tabular-nums; }
+    .focus-pin {
+      appearance: none; border: 1px solid #e3e8ee; background: #fff;
+      width: 28px; height: 28px; border-radius: 8px; padding: 0;
+      display: inline-grid; place-items: center; cursor: pointer;
+      color: #9aa0a6; font-size: 14px; line-height: 1; flex-shrink: 0;
+      margin-left: auto;
+    }
+    .focus-pin:hover { border-color: #d4af37; color: #b8860b; background: #fffbeb; }
+    .focus-pin.is-on {
+      border-color: #d4af37; background: #fff8e1; color: #9a7418;
+      box-shadow: inset 0 0 0 1px rgba(212,175,55,.25);
+    }
+    .focus-pin:disabled { opacity: .55; cursor: wait; }
+    .focus-panel-intro {
+      font-size: 12px; color: #71717a; margin: 0 0 10px; line-height: 1.5;
+    }
+    #focus-panel .prop-list-head { border-radius: 12px 12px 0 0; }
+    #focus-panel .table-wrap { margin-top: 0; }
     .prop-sheet-project {
       font-size: 14px; font-weight: 600; color: #15202b; line-height: 1.35;
       word-break: break-word;
@@ -1107,7 +1125,7 @@
       .btn-sm.primary { flex: 1 1 40%; }
       /* Mobile bottom nav — mirror of sidebar tabs */
       .mobile-nav {
-        display: grid; grid-template-columns: repeat(6, 1fr);
+        display: grid; grid-template-columns: repeat(7, 1fr);
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
         background: #15202b; border-top: 1px solid rgba(255,255,255,.08);
         padding: 6px 2px calc(6px + var(--safe-b));
@@ -1188,6 +1206,10 @@
           <button type="button" class="tab active" data-view="properties">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
             ทรัพย์
+          </button>
+          <button type="button" class="tab" data-view="focus">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5 14.2 9h5.8l-4.7 3.4 1.8 5.6L12 14.8 7 18l1.8-5.6L4 9h5.8L12 3.5Z"/></svg>
+            Focus<span class="tab-badge hidden" id="focus-badge">0</span>
           </button>
           <button type="button" class="tab" data-view="queue">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
@@ -1483,6 +1505,22 @@
         </div>
         <div class="scroll props-table-scroll">
           <div id="property-rows" class="prop-list"></div>
+        </div>
+      </div>
+
+      <div class="hidden" id="focus-panel">
+        <p class="focus-panel-intro">
+          ทรัพย์ที่ทีมกำลัง Focus (ปักหมุด) — กดดาวจากลิสต์ทรัพย์หรือที่นี่เพื่อเพิ่ม/เอาออก · ไม่ผูกคอลัมน์ชีท
+        </p>
+        <div class="table-wrap">
+          <div class="prop-list-head">
+            <span>รูป</span>
+            <span>รหัส · วันที่ · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล</span>
+            <span class="head-side">ราคา</span>
+          </div>
+          <div class="scroll props-table-scroll">
+            <div id="focus-rows" class="prop-list"></div>
+          </div>
         </div>
       </div>
 
@@ -2065,6 +2103,10 @@
           <button type="button" data-view="properties" class="active">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
             ทรัพย์
+          </button>
+          <button type="button" data-view="focus">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5 14.2 9h5.8l-4.7 3.4 1.8 5.6L12 14.8 7 18l1.8-5.6L4 9h5.8L12 3.5Z"/></svg>
+            Focus<span class="nav-badge" id="mobile-focus-badge">0</span>
           </button>
           <button type="button" data-view="queue">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
@@ -3667,6 +3709,7 @@
       initAddProjectPicker();
       initLocationTagFields();
       loadQueue();
+      loadFocus();
       // สร้าง cache ค้นหาหลังวาดหน้าแรก — กันค้างตอนเปิดแอป
       setTimeout(function () {
         try { ensureSearchCaches(); } catch (e) { console.warn(e); }
@@ -4729,6 +4772,97 @@
       return !hasProject && !hasBeds && !hasSize && !hasPrice && !hasLoc;
     }
 
+    function isPropertyFocused(propertyId) {
+      return !!(propertyId && FOCUS_ID_SET[propertyId]);
+    }
+
+    function updateFocusBadge(stats) {
+      var n = (stats && stats.total != null) ? stats.total : Object.keys(FOCUS_ID_SET).length;
+      ["focus-badge", "mobile-focus-badge"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = String(n);
+        el.classList.toggle("hidden", !n);
+        el.classList.toggle("show", !!n);
+      });
+    }
+
+    function propCardHtml(p) {
+      const proj = window.PTP_DATA.project_map[p.project_id] || {};
+      const name = proj.canonical_name || p.project_name || "—";
+      var locText = propLocText(p, proj);
+      var origin = propertyOrigin(p);
+      var originLabel = origin === "hub" ? "Hub" : "ชีท";
+      var num = codeNumericPart(p.code);
+      var collisions = CODE_COLLISIONS_CACHE || {};
+      var warn = (num && collisions[num]) ? ' <span class="prop-card-warn" title="เลขซ้ำคนละรหัส">⚠</span>' : "";
+      var reviewBadge = "";
+      if (isIncompleteReviewShell(p)) {
+        reviewBadge = ' <span class="prop-card-warn" title="needs_review · ข้อมูลยังไม่ครบ">รอตรวจ</span>';
+      } else if ((p.import_status || "") === "needs_review") {
+        reviewBadge = ' <span class="prop-card-warn" title="needs_review">ตรวจ</span>';
+      }
+      var previewUrl = propertyPreviewSourceUrl(p);
+      var typeLabel = propertyTypeLabel(p.property_type) || "—";
+      var beds = p.bedrooms || "—";
+      var size = formatSizeCell(p.size_sqm);
+      var floor = p.floor || "—";
+      var projectBtn = p.project_id
+        ? '<button type="button" class="prop-project-link" data-open-project="' + esc(p.project_id) + '">' + esc(name) + "</button>"
+        : esc(name);
+      var focused = isPropertyFocused(p.id);
+      var pinBtn =
+        '<button type="button" class="focus-pin' + (focused ? " is-on" : "") + '"' +
+        ' data-focus-toggle="' + esc(p.id) + '"' +
+        ' data-focus-code="' + esc(p.code || "") + '"' +
+        ' aria-pressed="' + (focused ? "true" : "false") + '"' +
+        ' title="' + (focused ? "เอาออกจาก Focus" : "ปักหมุดเป็น Focus") + '">' +
+        (focused ? "★" : "☆") +
+        "</button>";
+      return '<article class="prop-sheet-row" data-prop-id="' + esc(p.id) + '">' +
+        '<div class="prop-sheet-thumb">' + thumbCellHtml(p, previewUrl) + "</div>" +
+        '<div class="prop-sheet-main">' +
+          '<div class="prop-sheet-top">' +
+            '<span class="code">' + esc(p.code) + "</span>" +
+            '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + reviewBadge +
+            '<span class="date">' + esc(p.last_listed_at || "—") + "</span>" +
+            pinBtn +
+          "</div>" +
+          '<div class="prop-sheet-project" title="' + esc(name) + '">' + projectBtn + "</div>" +
+          '<div class="prop-sheet-meta">' +
+            '<span class="meta-chip"><strong>ห้อง</strong> ' + esc(beds) + "</span>" +
+            '<span class="meta-chip"><strong>ขนาด</strong> ' + (size === "—" ? "—" : size + " ตร.ม.") + "</span>" +
+            '<span class="meta-chip"><strong>ชั้น</strong> ' + esc(floor) + "</span>" +
+            '<span class="meta-chip"><strong>ประเภท</strong> ' + esc(typeLabel) + "</span>" +
+            (locText ? '<span class="meta-chip loc" title="' + esc(locText) + '"><strong>ทำเล</strong> ' + esc(locText) + "</span>" : "") +
+          "</div>" +
+        "</div>" +
+        '<div class="prop-sheet-side">' +
+          priceStackHtml(p) +
+          '<span class="side-note">กดเพื่อแก้ไข</span>' +
+        "</div>" +
+        "</article>";
+    }
+
+    function scheduleThumbLoadsIn(rootSel) {
+      var nodes = document.querySelectorAll((rootSel || "#property-rows") + " [data-thumb-url]");
+      if (!nodes.length) return;
+      var scrollRoot = document.querySelector(rootSel === "#focus-rows" ? "#focus-panel .scroll" : "#props-panel .scroll");
+      if (!thumbObserver || thumbObserverRoot !== scrollRoot) {
+        if (thumbObserver) thumbObserver.disconnect();
+        thumbObserverRoot = scrollRoot || null;
+        thumbObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var el = entry.target;
+            thumbObserver.unobserve(el);
+            enqueueThumb(el);
+          });
+        }, { root: scrollRoot, rootMargin: "180px", threshold: 0.01 });
+      }
+      nodes.forEach(function (el) { thumbObserver.observe(el); });
+    }
+
     function renderRows() {
       const list = document.getElementById("property-rows");
       const total = filteredProps.length;
@@ -4750,53 +4884,82 @@
         return;
       }
 
-      var collisions = CODE_COLLISIONS_CACHE || (ensureSearchCaches(), CODE_COLLISIONS_CACHE) || {};
-      list.innerHTML = slice.map(function (p) {
-        const proj = window.PTP_DATA.project_map[p.project_id] || {};
-        const name = proj.canonical_name || p.project_name || "—";
-        var locText = propLocText(p, proj);
-        var origin = propertyOrigin(p);
-        var originLabel = origin === "hub" ? "Hub" : "ชีท";
-        var num = codeNumericPart(p.code);
-        var warn = (num && collisions[num]) ? ' <span class="prop-card-warn" title="เลขซ้ำคนละรหัส">⚠</span>' : "";
-        var reviewBadge = "";
-        if (isIncompleteReviewShell(p)) {
-          reviewBadge = ' <span class="prop-card-warn" title="needs_review · ข้อมูลยังไม่ครบ">รอตรวจ</span>';
-        } else if ((p.import_status || "") === "needs_review") {
-          reviewBadge = ' <span class="prop-card-warn" title="needs_review">ตรวจ</span>';
+      ensureSearchCaches();
+      list.innerHTML = slice.map(propCardHtml).join("");
+      scheduleThumbLoadsIn("#property-rows");
+    }
+
+    function renderFocusRows() {
+      var list = document.getElementById("focus-rows");
+      if (!list) return;
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      var byId = {};
+      props.forEach(function (p) { byId[p.id] = p; });
+      var ordered = (focusItems || []).map(function (it) {
+        return byId[it.id] || null;
+      }).filter(Boolean);
+      if (!ordered.length) {
+        list.innerHTML =
+          '<div class="empty"><span>ยังไม่มีทรัพย์ Focus</span>กดปักหมุดจากลิสต์ทรัพย์</div>';
+        return;
+      }
+      ensureSearchCaches();
+      list.innerHTML = ordered.map(propCardHtml).join("");
+      scheduleThumbLoadsIn("#focus-rows");
+    }
+
+    var focusItems = [];
+    var FOCUS_ID_SET = {};
+
+    async function loadFocus() {
+      try {
+        var res = await fetch(API_BASE + "/api/focus", { cache: "no-store", credentials: "same-origin" });
+        var data = await res.json();
+        focusItems = data.items || [];
+        FOCUS_ID_SET = {};
+        (data.ids || focusItems.map(function (x) { return x.id; })).forEach(function (id) {
+          if (id) FOCUS_ID_SET[id] = true;
+        });
+        updateFocusBadge(data.stats || { total: focusItems.length });
+        if (activeView === "focus") renderFocusRows();
+        else if (activeView === "properties") renderRows();
+      } catch (e) {
+        console.warn("loadFocus", e);
+        if (activeView === "focus") {
+          var board = document.getElementById("focus-rows");
+          if (board) {
+            board.innerHTML = '<div class="empty"><span>โหลด Focus ไม่ได้</span>เช็คเซิร์ฟเวอร์ Hub</div>';
+          }
         }
-        var previewUrl = propertyPreviewSourceUrl(p);
-        var typeLabel = propertyTypeLabel(p.property_type) || "—";
-        var beds = p.bedrooms || "—";
-        var size = formatSizeCell(p.size_sqm);
-        var floor = p.floor || "—";
-        var projectBtn = p.project_id
-          ? '<button type="button" class="prop-project-link" data-open-project="' + esc(p.project_id) + '">' + esc(name) + "</button>"
-          : esc(name);
-        return '<article class="prop-sheet-row" data-prop-id="' + esc(p.id) + '">' +
-          '<div class="prop-sheet-thumb">' + thumbCellHtml(p, previewUrl) + "</div>" +
-          '<div class="prop-sheet-main">' +
-            '<div class="prop-sheet-top">' +
-              '<span class="code">' + esc(p.code) + "</span>" +
-              '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + reviewBadge +
-              '<span class="date">' + esc(p.last_listed_at || "—") + "</span>" +
-            "</div>" +
-            '<div class="prop-sheet-project" title="' + esc(name) + '">' + projectBtn + "</div>" +
-            '<div class="prop-sheet-meta">' +
-              '<span class="meta-chip"><strong>ห้อง</strong> ' + esc(beds) + "</span>" +
-              '<span class="meta-chip"><strong>ขนาด</strong> ' + (size === "—" ? "—" : size + " ตร.ม.") + "</span>" +
-              '<span class="meta-chip"><strong>ชั้น</strong> ' + esc(floor) + "</span>" +
-              '<span class="meta-chip"><strong>ประเภท</strong> ' + esc(typeLabel) + "</span>" +
-              (locText ? '<span class="meta-chip loc" title="' + esc(locText) + '"><strong>ทำเล</strong> ' + esc(locText) + "</span>" : "") +
-            "</div>" +
-          "</div>" +
-          '<div class="prop-sheet-side">' +
-            priceStackHtml(p) +
-            '<span class="side-note">กดเพื่อแก้ไข</span>' +
-          "</div>" +
-          "</article>";
-      }).join("");
-      scheduleThumbLoads();
+      }
+    }
+
+    async function toggleFocusPin(propertyId, code, btn) {
+      if (!propertyId) return;
+      if (btn) btn.disabled = true;
+      try {
+        var data = await apiPost("/api/focus/toggle", { id: propertyId, code: code || "" });
+        if (!data || data.error) {
+          alert((data && data.error) || "บันทึก Focus ไม่สำเร็จ");
+          return;
+        }
+        if (data.focused) {
+          FOCUS_ID_SET[propertyId] = true;
+          if (!focusItems.some(function (x) { return x.id === propertyId; })) {
+            focusItems.unshift(data.item || { id: propertyId, code: code || "" });
+          }
+        } else {
+          delete FOCUS_ID_SET[propertyId];
+          focusItems = focusItems.filter(function (x) { return x.id !== propertyId; });
+        }
+        updateFocusBadge(data.stats || { total: focusItems.length });
+        if (activeView === "focus") renderFocusRows();
+        else if (activeView === "properties") renderRows();
+      } catch (e) {
+        alert("บันทึก Focus ไม่สำเร็จ");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     function propertyPreviewSourceUrl(p) {
@@ -4834,24 +4997,13 @@
 
     var THUMB_CACHE = {};
     var thumbObserver = null;
+    var thumbObserverRoot = undefined;
     var thumbQueue = [];
     var thumbActive = 0;
     var THUMB_MAX_PARALLEL = 3;
 
     function scheduleThumbLoads() {
-      var nodes = document.querySelectorAll("#property-rows [data-thumb-url]");
-      if (!nodes.length) return;
-      if (!thumbObserver) {
-        thumbObserver = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            var el = entry.target;
-            thumbObserver.unobserve(el);
-            enqueueThumb(el);
-          });
-        }, { root: document.querySelector("#props-panel .scroll"), rootMargin: "180px", threshold: 0.01 });
-      }
-      nodes.forEach(function (el) { thumbObserver.observe(el); });
+      scheduleThumbLoadsIn("#property-rows");
     }
 
     function enqueueThumb(el) {
@@ -5023,7 +5175,7 @@
       var inProjectDrill = activeView === "properties" &&
         !!(f && ((f.projectIds && f.projectIds.length === 1) || f.projectId));
       var show = activeView === "add" || activeView === "queue" || activeView === "followup" ||
-        activeView === "projects" || activeView === "groups" || inProjectDrill;
+        activeView === "projects" || activeView === "groups" || activeView === "focus" || inProjectDrill;
       bar.classList.toggle("hidden", !show);
       saveBtn.classList.toggle("hidden", activeView !== "add");
 
@@ -5048,6 +5200,9 @@
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "followup") {
         title.textContent = "ฟอโล่วเคส";
+        if (backBtn) backBtn.textContent = "← กลับทรัพย์";
+      } else if (activeView === "focus") {
+        title.textContent = "ทรัพย์ Focus";
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "projects") {
         title.textContent = "โครงการ";
@@ -5345,6 +5500,7 @@
       var mainEl = document.querySelector("#app-screen main");
       if (mainEl) mainEl.classList.add("main-wide");
       document.getElementById("props-panel").classList.toggle("hidden", view !== "properties");
+      document.getElementById("focus-panel").classList.toggle("hidden", view !== "focus");
       document.getElementById("projects-panel").classList.toggle("hidden", view !== "projects");
       document.getElementById("queue-panel").classList.toggle("hidden", view !== "queue");
       document.getElementById("followup-panel").classList.toggle("hidden", view !== "followup");
@@ -5354,6 +5510,7 @@
       document.getElementById("filter-panel").classList.toggle("hidden", view !== "properties");
       var titles = {
         properties: ["ภาพรวมทรัพย์", "ค้นหา · กรอง · จัดการรายการจากชีทและ Hub"],
+        focus: ["ทรัพย์ Focus", "ห้องที่ทีมกำลังโฟกัส · ปักหมุดจากลิสต์ทรัพย์"],
         queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
         followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
         projects: ["โครงการ", "Master โครงการ · ทำเล · สถานี"],
@@ -5375,6 +5532,10 @@
       var infoCards = document.getElementById("info-cards");
       if (infoCards) infoCards.classList.add("hidden");
       if (view === "queue") loadQueue();
+      else if (view === "focus") {
+        loadFocus();
+        renderFocusRows();
+      }
       else if (view === "followup") {
         hideFollowupFormSection();
         buildFuPickers(true);
@@ -7344,6 +7505,13 @@
     }
 
     document.getElementById("property-rows").addEventListener("click", function (e) {
+      var pin = e.target.closest("[data-focus-toggle]");
+      if (pin) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFocusPin(pin.getAttribute("data-focus-toggle"), pin.getAttribute("data-focus-code"), pin);
+        return;
+      }
       var retry = e.target.closest("[data-thumb-retry]");
       if (retry) {
         e.preventDefault();
@@ -7389,6 +7557,47 @@
       if (!row) return;
       openPropertyEdit(row.getAttribute("data-prop-id"));
     });
+    var focusRowsEl = document.getElementById("focus-rows");
+    if (focusRowsEl) {
+      focusRowsEl.addEventListener("click", function (e) {
+        var pin = e.target.closest("[data-focus-toggle]");
+        if (pin) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleFocusPin(pin.getAttribute("data-focus-toggle"), pin.getAttribute("data-focus-code"), pin);
+          return;
+        }
+        var retry = e.target.closest("[data-thumb-retry]");
+        if (retry) {
+          e.preventDefault();
+          e.stopPropagation();
+          var u = retry.getAttribute("data-thumb-retry") || "";
+          delete THUMB_CACHE[u];
+          var ph = document.createElement("div");
+          ph.className = "prop-thumb-ph";
+          ph.setAttribute("data-thumb-url", u);
+          ph.textContent = "…";
+          var wrap = retry.closest(".prop-sheet-thumb") || retry.parentElement;
+          if (wrap) {
+            wrap.innerHTML = "";
+            wrap.appendChild(ph);
+            enqueueThumb(ph);
+          }
+          return;
+        }
+        var projectLink = e.target.closest("[data-open-project]");
+        if (projectLink) {
+          e.preventDefault();
+          e.stopPropagation();
+          openProjectListings(projectLink.getAttribute("data-open-project"));
+          return;
+        }
+        if (e.target.closest("a, button, input")) return;
+        var row = e.target.closest("[data-prop-id]");
+        if (!row) return;
+        openPropertyEdit(row.getAttribute("data-prop-id"));
+      });
+    }
     var cancelEditBtn = document.getElementById("cancel-edit");
     if (cancelEditBtn) cancelEditBtn.addEventListener("click", cancelPropertyEdit);
     document.getElementById("submenu-back").addEventListener("click", submenuGoBack);
@@ -7835,6 +8044,7 @@
     checkServer();
     loadQueue();
     loadFollowups();
+    loadFocus();
   </script>
   <script src="preview-data.js"></script>
   <script>initData();</script>

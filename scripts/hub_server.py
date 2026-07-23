@@ -25,6 +25,8 @@ from src.hub.group_store import (  # noqa: E402
     update_group,
 )
 from src.hub.project_store import (  # noqa: E402
+    PREVIEW_JS,
+    PREVIEW_META,
     create_project,
     load_properties,
     project_location_label,
@@ -356,6 +358,52 @@ def _cookie_value(headers: dict | None, name: str) -> str:
     return ""
 
 
+def _preview_data_meta() -> dict:
+    """Lightweight fingerprint of the embedded catalog (for cache-bust + freshness)."""
+    if PREVIEW_META.is_file():
+        try:
+            data = json.loads(PREVIEW_META.read_text(encoding="utf-8"))
+            if isinstance(data, dict) and data.get("data_version"):
+                return {
+                    "ok": True,
+                    "data_version": str(data.get("data_version") or ""),
+                    "generated_at": str(data.get("generated_at") or ""),
+                    "properties_total": int(data.get("properties_total") or 0),
+                    "projects": int(data.get("projects") or 0),
+                }
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            pass
+    version = ""
+    generated_at = ""
+    if PREVIEW_JS.is_file():
+        try:
+            st = PREVIEW_JS.stat()
+            version = f"mtime-{int(st.st_mtime)}-{st.st_size}"
+            from datetime import datetime, timezone
+
+            generated_at = (
+                datetime.fromtimestamp(st.st_mtime, tz=timezone.utc)
+                .astimezone()
+                .isoformat(timespec="seconds")
+            )
+        except OSError:
+            version = "unknown"
+    return {
+        "ok": True,
+        "data_version": version,
+        "generated_at": generated_at,
+        "properties_total": 0,
+        "projects": 0,
+    }
+
+
+def _no_store_headers(handler: "HubHandler") -> None:
+    handler.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+    handler.send_header("Pragma", "no-cache")
+    handler.send_header("Expires", "0")
+    handler.send_header("Surrogate-Control", "no-store")
+
+
 def next_rxt_code(prefix: str = "RXT") -> str:
     p = (prefix or "RXT").strip().upper() or "RXT"
     if p not in {"RXT", "COA", "PTP"}:
@@ -394,6 +442,7 @@ class HubHandler(BaseHTTPRequestHandler):
         self._cors()
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        _no_store_headers(self)
         secure = "; Secure" if (os.environ.get("RENDER") or "").strip() else ""
         if set_cookie:
             self.send_header(
@@ -437,6 +486,7 @@ class HubHandler(BaseHTTPRequestHandler):
             qs = parse_qs(urlparse(self.path).query or "")
             prefix = ((qs.get("prefix") or ["RXT"])[0] or "RXT").strip().upper()
             stats = queue_stats()
+            meta = _preview_data_meta()
             self._json(
                 200,
                 {
@@ -445,8 +495,14 @@ class HubHandler(BaseHTTPRequestHandler):
                     "scraper": SCRAPER_VERSION,
                     "next_code": next_rxt_code(prefix),
                     "queue_pending": stats["pending"] + stats["working"],
+                    "data_version": meta.get("data_version") or "",
+                    "properties_total": meta.get("properties_total") or 0,
+                    "generated_at": meta.get("generated_at") or "",
                 },
             )
+            return
+        if path == "/api/data-meta":
+            self._json(200, _preview_data_meta())
             return
         if path == "/api/queue":
             include_done = "done=1" in (urlparse(self.path).query or "")
@@ -559,14 +615,24 @@ class HubHandler(BaseHTTPRequestHandler):
         ctype = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
         if file_path.suffix == ".html":
             ctype = "text/html; charset=utf-8"
+        # Cache-bust embedded catalog so Safari/mobile cannot keep a stale preview-data.js
+        if file_path.name == "preview.html":
+            meta = _preview_data_meta()
+            ver = meta.get("data_version") or str(int(__import__("time").time()))
+            text = content.decode("utf-8", errors="replace")
+            text = text.replace(
+                'src="preview-data.js"',
+                f'src="preview-data.js?v={ver}"',
+                1,
+            )
+            content = text.encode("utf-8")
         self.send_response(200)
         self._cors()
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(content)))
-        # Avoid stale UI after hub updates
-        if file_path.suffix in {".html", ".js", ".css"}:
-            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
-            self.send_header("Pragma", "no-cache")
+        # Avoid stale UI/data after sheet refresh — never long-cache HTML/JS/CSS/JSON
+        if file_path.suffix in {".html", ".js", ".css", ".json"} or file_path.name.endswith(".meta.json"):
+            _no_store_headers(self)
         self.end_headers()
         self.wfile.write(content)
 

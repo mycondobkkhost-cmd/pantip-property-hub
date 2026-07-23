@@ -6,6 +6,7 @@ import json
 import re
 import sqlite3
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -13,6 +14,7 @@ PROJECTS_JSON = BASE_DIR / "data" / "projects.json"
 PROPERTIES_JSON = BASE_DIR / "data" / "properties.json"
 DB_PATH = BASE_DIR / "data" / "hub.db"
 PREVIEW_JS = BASE_DIR / "hub" / "preview-data.js"
+PREVIEW_META = BASE_DIR / "hub" / "preview-data.meta.json"
 
 
 from src.hub.project_identity import resolve_bucket as _resolve_bucket
@@ -259,28 +261,47 @@ def write_sqlite(projects: list[dict], properties: list[dict]) -> None:
 def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
     project_map = {p["id"]: p for p in projects}
     flagged = sum(1 for p in properties if p.get("duplicate_flags"))
+    generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    data_version = datetime.now().astimezone().strftime("%Y%m%d%H%M%S")
+    stats = {
+        "projects": len(projects),
+        "properties_total": len(properties),
+        "properties_active": sum(
+            1 for p in properties if p.get("import_status") == "active"
+        ),
+        "properties_archived": sum(
+            1 for p in properties if p.get("import_status") == "archived"
+        ),
+        "properties_needs_review": sum(
+            1 for p in properties if p.get("import_status") == "needs_review"
+        ),
+        "properties_flagged_duplicate": flagged,
+    }
     payload = {
         "projects": projects,
         "properties": properties,
         "project_map": project_map,
-        "stats": {
-            "projects": len(projects),
-            "properties_total": len(properties),
-            "properties_active": sum(
-                1 for p in properties if p.get("import_status") == "active"
-            ),
-            "properties_archived": sum(
-                1 for p in properties if p.get("import_status") == "archived"
-            ),
-            "properties_needs_review": sum(
-                1 for p in properties if p.get("import_status") == "needs_review"
-            ),
-            "properties_flagged_duplicate": flagged,
-        },
+        "stats": stats,
+        "generated_at": generated_at,
+        "data_version": data_version,
     }
     PREVIEW_JS.write_text(
         "// Auto-generated — do not edit\n"
         f"window.PTP_DATA = {json.dumps(payload, ensure_ascii=False, indent=2)};\n",
+        encoding="utf-8",
+    )
+    PREVIEW_META.write_text(
+        json.dumps(
+            {
+                "data_version": data_version,
+                "generated_at": generated_at,
+                "properties_total": stats["properties_total"],
+                "projects": stats["projects"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
         encoding="utf-8",
     )
 

@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
   <title>Property Hub — PTP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,6 +35,22 @@
       font-size: 14px;
     }
     .hidden { display: none !important; }
+
+    #stale-data-banner {
+      position: sticky; top: 0; z-index: 80;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      padding: 10px 14px;
+      background: #fff6e5; border-bottom: 1px solid #f0d9a8; color: #7a4e00;
+      font-size: 13px; font-weight: 500;
+    }
+    #stale-data-banner.hidden { display: none !important; }
+    #stale-data-banner button {
+      border: 1px solid #d4a017; background: #fff; color: #7a4e00;
+      border-radius: 8px; padding: 6px 12px; font: inherit; font-weight: 600; cursor: pointer;
+    }
+    #data-freshness {
+      display: block; margin-top: 4px; font-size: 12px; color: var(--muted); font-weight: 500;
+    }
 
     #login-screen {
       min-height: 100dvh;
@@ -1175,11 +1193,16 @@
       </aside>
 
       <div class="app-main">
+        <div id="stale-data-banner" class="hidden" role="status">
+          <span id="stale-data-msg">ข้อมูลบนเครื่องนี้อาจเก่ากว่าเซิร์ฟเวอร์</span>
+          <button type="button" id="stale-reload-btn">รีเฟรชข้อมูล</button>
+        </div>
         <header class="topbar">
           <button type="button" class="menu-toggle" id="menu-toggle" aria-label="เปิดเมนู"><span></span></button>
           <div class="page-title">
             <h2 id="panel-title">ภาพรวมทรัพย์</h2>
             <p id="panel-sub">ค้นหา · กรอง · จัดการรายการจากชีทและ Hub</p>
+            <span id="data-freshness" class="hidden"></span>
           </div>
           <div class="topbar-meta">
             <span class="topbar-chip" id="topbar-date">—</span>
@@ -3594,6 +3617,7 @@
       var saleCount = props.filter(function (p) { return hasPrice(p.sale_price); }).length;
       document.getElementById("stat-rent").textContent = rentCount;
       document.getElementById("stat-sale").textContent = saleCount;
+      updateDataFreshnessLabel();
       buildFilterOptions();
       buildFuPickers(false);
       applyFilter();
@@ -3605,6 +3629,80 @@
       setTimeout(function () {
         try { ensureSearchCaches(); } catch (e) { console.warn(e); }
       }, 50);
+      setTimeout(checkDataFreshness, 800);
+    }
+
+    function formatGeneratedAt(iso) {
+      if (!iso) return "";
+      try {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return String(iso);
+        var dd = String(d.getDate()).padStart(2, "0");
+        var mm = String(d.getMonth() + 1).padStart(2, "0");
+        var yy = d.getFullYear();
+        var hh = String(d.getHours()).padStart(2, "0");
+        var mi = String(d.getMinutes()).padStart(2, "0");
+        return dd + "/" + mm + "/" + yy + " " + hh + ":" + mi;
+      } catch (e) {
+        return String(iso);
+      }
+    }
+
+    function updateDataFreshnessLabel() {
+      var el = document.getElementById("data-freshness");
+      if (!el || !window.PTP_DATA) return;
+      var gen = window.PTP_DATA.generated_at || "";
+      var total = (window.PTP_DATA.stats && window.PTP_DATA.stats.properties_total) || 0;
+      if (!gen && !total) {
+        el.classList.add("hidden");
+        el.textContent = "";
+        return;
+      }
+      var parts = [];
+      if (total) parts.push(Number(total).toLocaleString("th-TH") + " รายการบนเครื่องนี้");
+      if (gen) parts.push("อัปเดต " + formatGeneratedAt(gen));
+      el.textContent = parts.join(" · ");
+      el.classList.remove("hidden");
+    }
+
+    function showStaleBanner(meta) {
+      var ban = document.getElementById("stale-data-banner");
+      var msg = document.getElementById("stale-data-msg");
+      if (!ban) return;
+      var serverTotal = meta && meta.properties_total ? Number(meta.properties_total) : 0;
+      var localTotal = (window.PTP_DATA && window.PTP_DATA.stats && window.PTP_DATA.stats.properties_total) || 0;
+      var text = "ข้อมูลอาจเก่า — เซิร์ฟเวอร์มีชุดใหม่กว่า";
+      if (serverTotal && localTotal && serverTotal !== localTotal) {
+        text = "ข้อมูลอาจเก่า — เครื่องนี้ " + Number(localTotal).toLocaleString("th-TH") +
+          " รายการ / เซิร์ฟเวอร์ " + Number(serverTotal).toLocaleString("th-TH") + " รายการ";
+      }
+      if (msg) msg.textContent = text;
+      ban.classList.remove("hidden");
+    }
+
+    function hideStaleBanner() {
+      var ban = document.getElementById("stale-data-banner");
+      if (ban) ban.classList.add("hidden");
+    }
+
+    async function checkDataFreshness() {
+      try {
+        var res = await fetch("/api/data-meta", { cache: "no-store", credentials: "same-origin" });
+        if (!res.ok) return;
+        var meta = await res.json();
+        if (!meta || !meta.ok) return;
+        var localVer = (window.PTP_DATA && window.PTP_DATA.data_version) || "";
+        var serverVer = meta.data_version || "";
+        var localTotal = (window.PTP_DATA && window.PTP_DATA.stats && window.PTP_DATA.stats.properties_total) || 0;
+        var serverTotal = meta.properties_total || 0;
+        var mismatch = false;
+        if (localVer && serverVer && String(localVer) !== String(serverVer)) mismatch = true;
+        else if (!localVer && serverTotal && localTotal && Number(serverTotal) !== Number(localTotal)) mismatch = true;
+        if (mismatch) showStaleBanner(meta);
+        else hideStaleBanner();
+      } catch (e) {
+        /* ignore offline / old server without endpoint */
+      }
     }
 
     var PROJECT_INDEX = [];
@@ -6968,20 +7066,28 @@
 
     function reloadPreviewData() {
       return new Promise(function (resolve, reject) {
-        var s = document.createElement("script");
-        s.src = "preview-data.js?t=" + Date.now();
-        s.onload = function () {
-          try {
-            initData();
-            resolve();
-          } catch (err) {
-            reject(err);
-          }
-        };
-        s.onerror = function () {
-          reject(new Error("โหลดข้อมูลทรัพย์หลังดึงชีทไม่สำเร็จ — รีเฟรชหน้าเว็บแล้วลองใหม่"));
-        };
-        document.body.appendChild(s);
+        var bust = Date.now();
+        fetch("/api/data-meta", { cache: "no-store", credentials: "same-origin" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; })
+          .then(function (meta) {
+            if (meta && meta.data_version) bust = encodeURIComponent(String(meta.data_version)) + "-" + Date.now();
+            var s = document.createElement("script");
+            s.src = "preview-data.js?v=" + bust;
+            s.onload = function () {
+              try {
+                initData();
+                hideStaleBanner();
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
+            };
+            s.onerror = function () {
+              reject(new Error("โหลดข้อมูลทรัพย์หลังดึงชีทไม่สำเร็จ — รีเฟรชหน้าเว็บแล้วลองใหม่"));
+            };
+            document.body.appendChild(s);
+          });
       });
     }
 
@@ -7643,6 +7749,31 @@
     });
     document.getElementById("refresh-sheet-btn").addEventListener("click", refreshFromSheet);
     document.getElementById("sync-hub-sheet-btn").addEventListener("click", syncHubToSheet);
+    var staleReloadBtn = document.getElementById("stale-reload-btn");
+    if (staleReloadBtn) {
+      staleReloadBtn.addEventListener("click", async function () {
+        staleReloadBtn.disabled = true;
+        staleReloadBtn.textContent = "กำลังโหลด…";
+        try {
+          await reloadPreviewData();
+          await loadQueue();
+          hideStaleBanner();
+        } catch (e) {
+          location.reload();
+        }
+        staleReloadBtn.disabled = false;
+        staleReloadBtn.textContent = "รีเฟรชข้อมูล";
+      });
+    }
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") checkDataFreshness();
+    });
+    window.addEventListener("pageshow", function (ev) {
+      if (ev.persisted) checkDataFreshness();
+    });
+    window.addEventListener("focus", function () {
+      checkDataFreshness();
+    });
     document.getElementById("queue-rows").addEventListener("click", onQueueAction);
     var addPrefixEl = document.getElementById("add-prefix");
     if (addPrefixEl) {

@@ -4787,10 +4787,6 @@
       return !hasProject && !hasBeds && !hasSize && !hasPrice && !hasLoc;
     }
 
-    function isPropertyFocused(propertyId) {
-      return !!(propertyId && FOCUS_ID_SET[propertyId]);
-    }
-
     function updateFocusBadge(stats) {
       var n = (stats && stats.total != null) ? stats.total : Object.keys(FOCUS_ID_SET).length;
       ["focus-badge", "mobile-focus-badge"].forEach(function (id) {
@@ -5570,7 +5566,7 @@
       document.getElementById("filter-panel").classList.toggle("hidden", view !== "properties");
       var titles = {
         properties: ["ภาพรวมทรัพย์", "ค้นหา · กรอง · จัดการรายการจากชีทและ Hub"],
-        focus: ["ทรัพย์ Focus", "ห้องที่ทีมกำลังโฟกัส · ปักหมุดจากลิสต์ทรัพย์"],
+        focus: ["ทรัพย์ Focus", "พิมพ์รหัสทรัพย์เพื่อเพิ่มรายการที่ทีมกำลังโฟกัส"],
         queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
         followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
         projects: ["โครงการ", "Master โครงการ · ทำเล · สถานี"],
@@ -7585,13 +7581,6 @@
     }
 
     document.getElementById("property-rows").addEventListener("click", function (e) {
-      var pin = e.target.closest("[data-focus-toggle]");
-      if (pin) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleFocusPin(pin.getAttribute("data-focus-toggle"), pin.getAttribute("data-focus-code"), pin);
-        return;
-      }
       var retry = e.target.closest("[data-thumb-retry]");
       if (retry) {
         e.preventDefault();
@@ -7640,11 +7629,15 @@
     var focusRowsEl = document.getElementById("focus-rows");
     if (focusRowsEl) {
       focusRowsEl.addEventListener("click", function (e) {
-        var pin = e.target.closest("[data-focus-toggle]");
-        if (pin) {
+        var removeBtn = e.target.closest("[data-focus-remove]");
+        if (removeBtn) {
           e.preventDefault();
           e.stopPropagation();
-          toggleFocusPin(pin.getAttribute("data-focus-toggle"), pin.getAttribute("data-focus-code"), pin);
+          removeFocusItem(
+            removeBtn.getAttribute("data-focus-remove"),
+            removeBtn.getAttribute("data-focus-code"),
+            removeBtn
+          );
           return;
         }
         var retry = e.target.closest("[data-thumb-retry]");
@@ -7678,6 +7671,23 @@
         openPropertyEdit(row.getAttribute("data-prop-id"));
       });
     }
+    (function wireFocusAdd() {
+      var addBtn = document.getElementById("focus-add-btn");
+      var input = document.getElementById("focus-code-input");
+      if (addBtn) {
+        addBtn.addEventListener("click", function () {
+          addFocusByCode(input ? input.value : "");
+        });
+      }
+      if (input) {
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addFocusByCode(input.value);
+          }
+        });
+      }
+    })();
     var cancelEditBtn = document.getElementById("cancel-edit");
     if (cancelEditBtn) cancelEditBtn.addEventListener("click", cancelPropertyEdit);
     document.getElementById("submenu-back").addEventListener("click", submenuGoBack);

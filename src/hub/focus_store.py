@@ -1,21 +1,52 @@
-"""Hub Focus properties — pinned shortlist for ops (ไม่ผูกคอลัมน์ชีท).
+"""Hub Focus properties — shortlist for ops (ไม่ผูกคอลัมน์ชีท).
 
 Store: data/focus_properties.json
 Each item: property id (+ code snapshot) that the team is actively pushing.
+Add/remove by property code (resolved against Hub properties).
 """
 
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FOCUS_PATH = BASE_DIR / "data" / "focus_properties.json"
 
+_CODE_SPLIT_RE = re.compile(r"[,;\s]+")
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
+
+
+def _normalize_code(code: str) -> str:
+    return str(code or "").strip().upper().replace(" ", "")
+
+
+def parse_focus_codes(raw: str | list | None) -> list[str]:
+    """Split one or many codes from a string / list (comma/space/semicolon)."""
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        parts: list[str] = []
+        for item in raw:
+            parts.extend(parse_focus_codes(str(item)))
+        return parts
+    text = str(raw).strip()
+    if not text:
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for part in _CODE_SPLIT_RE.split(text):
+        code = _normalize_code(part)
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        out.append(code)
+    return out
 
 
 def _normalize_item(item: dict) -> dict | None:
@@ -24,7 +55,7 @@ def _normalize_item(item: dict) -> dict | None:
         return None
     return {
         "id": pid,
-        "code": str(item.get("code") or "").strip().upper(),
+        "code": _normalize_code(item.get("code") or ""),
         "pinned_at": str(item.get("pinned_at") or "").strip() or _now(),
     }
 
@@ -97,6 +128,28 @@ def is_focused(property_id: str) -> bool:
     return bool(pid) and pid in focus_ids()
 
 
+def find_property_by_code(properties: list[dict], code: str) -> dict | None:
+    want = _normalize_code(code)
+    if not want:
+        return None
+    for prop in properties or []:
+        if _normalize_code(prop.get("code") or "") == want:
+            return prop
+    return None
+
+
+def find_focus_item(ref: str) -> dict | None:
+    """Find a focus entry by property id or code."""
+    key = (ref or "").strip()
+    if not key:
+        return None
+    code = _normalize_code(key)
+    for item in load_focus():
+        if item["id"] == key or item.get("code") == code:
+            return item
+    return None
+
+
 def add_focus(property_id: str, code: str = "") -> dict:
     pid = (property_id or "").strip()
     if not pid:
@@ -105,17 +158,69 @@ def add_focus(property_id: str, code: str = "") -> dict:
     for it in items:
         if it["id"] == pid:
             if code and not it.get("code"):
-                it["code"] = str(code).strip().upper()
+                it["code"] = _normalize_code(code)
                 save_focus(items)
             return it
     item = {
         "id": pid,
-        "code": str(code or "").strip().upper(),
+        "code": _normalize_code(code),
         "pinned_at": _now(),
     }
     items.append(item)
     save_focus(items)
     return item
+
+
+def add_focus_by_code(code: str, properties: list[dict]) -> dict:
+    """Resolve code → property, then add. Raises ValueError if not found."""
+    codes = parse_focus_codes(code)
+    if not codes:
+        raise ValueError("กรุณาระบุรหัสทรัพย์")
+    want = codes[0]
+    prop = find_property_by_code(properties, want)
+    if not prop:
+        raise ValueError(f"ไม่พบรหัส {want}")
+    pid = str(prop.get("id") or "").strip()
+    if not pid:
+        raise ValueError(f"ไม่พบรหัส {want}")
+    return add_focus(pid, code=_normalize_code(prop.get("code") or want))
+
+
+def add_focus_codes(raw_codes: str | list, properties: list[dict]) -> dict:
+    """Add one or many codes. Returns {added, skipped, errors, items, stats}."""
+    codes = parse_focus_codes(raw_codes)
+    if not codes:
+        raise ValueError("กรุณาระบุรหัสทรัพย์")
+    added: list[dict] = []
+    skipped: list[str] = []
+    errors: list[dict] = []
+    for code in codes:
+        try:
+            prop = find_property_by_code(properties, code)
+            if not prop:
+                errors.append({"code": code, "error": f"ไม่พบรหัส {code}"})
+                continue
+            pid = str(prop.get("id") or "").strip()
+            if not pid:
+                errors.append({"code": code, "error": f"ไม่พบรหัส {code}"})
+                continue
+            if is_focused(pid):
+                skipped.append(code)
+                continue
+            item = add_focus(pid, code=_normalize_code(prop.get("code") or code))
+            added.append(item)
+        except ValueError as exc:
+            errors.append({"code": code, "error": str(exc)})
+    if not added and errors and not skipped:
+        # all failed — surface first error as ValueError for simple clients
+        raise ValueError(errors[0]["error"])
+    return {
+        "added": added,
+        "skipped": skipped,
+        "errors": errors,
+        "items": list_focus(),
+        "stats": focus_stats(),
+    }
 
 
 def remove_focus(property_id: str) -> bool:
@@ -130,8 +235,20 @@ def remove_focus(property_id: str) -> bool:
     return True
 
 
+def remove_focus_ref(ref: str) -> dict:
+    """Remove by property id or code. Returns {removed, item, stats}."""
+    key = (ref or "").strip()
+    if not key:
+        raise ValueError("กรุณาระบุรหัสหรือ id")
+    item = find_focus_item(key)
+    if not item:
+        raise ValueError(f"ไม่พบใน Focus: {key}")
+    remove_focus(item["id"])
+    return {"removed": True, "item": item, "stats": focus_stats()}
+
+
 def toggle_focus(property_id: str, code: str = "") -> dict:
-    """Toggle pin. Returns {focused, item, stats}."""
+    """Toggle pin. Returns {focused, item, stats}. Kept for compatibility."""
     pid = (property_id or "").strip()
     if not pid:
         raise ValueError("missing property id")

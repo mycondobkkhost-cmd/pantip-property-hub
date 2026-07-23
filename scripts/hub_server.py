@@ -996,9 +996,9 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/focus/remove":
             try:
                 ref = (
-                    body.get("code")
-                    or body.get("id")
+                    body.get("id")
                     or body.get("property_id")
+                    or body.get("code")
                     or ""
                 ).strip()
                 result = remove_focus_ref(ref)

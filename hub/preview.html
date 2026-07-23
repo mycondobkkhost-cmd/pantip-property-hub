@@ -1880,6 +1880,7 @@
             <span>ประเภทรหัส</span>
             <select id="add-prefix">
               <option value="RXT">RXT — ทรัพย์ใหม่</option>
+              <option value="PTP">PTP — จากชีท / นำเข้า</option>
               <option value="COA">COA — โคเอเจนต์</option>
             </select>
           </label>
@@ -2040,14 +2041,6 @@
   </div>
 
   <script>
-    const USERS = {
-      angkarn1996: { password: "angkarn2539", name: "เจ้าของ" },
-      ptp2: { password: "ptp2026b", name: "แอดมิน 1" },
-      ptp3: { password: "ptp2026c", name: "แอดมิน 2" },
-      ptp4: { password: "ptp2026d", name: "ทีม 4" },
-      ptp5: { password: "ptp2026e", name: "ทีม 5" },
-    };
-
     const loginScreen = document.getElementById("login-screen");
     const appScreen = document.getElementById("app-screen");
     const loginForm = document.getElementById("login-form");
@@ -2071,18 +2064,30 @@
           dateEl.textContent = new Date().toLocaleDateString("th-TH");
         }
       }
-      sessionStorage.setItem("ptp_logged_in", name);
+      try { sessionStorage.setItem("ptp_display_name", name || ""); } catch (e) { /* ignore */ }
     }
 
     function showLogin() {
       appScreen.classList.add("hidden");
       loginScreen.classList.remove("hidden");
-      sessionStorage.removeItem("ptp_logged_in");
+      try { sessionStorage.removeItem("ptp_display_name"); } catch (e) { /* ignore */ }
     }
 
-    if (sessionStorage.getItem("ptp_logged_in")) {
-      showApp(sessionStorage.getItem("ptp_logged_in"));
+    async function restoreSession() {
+      if (window.location.protocol === "file:") {
+        // file:// cannot use HttpOnly cookie session — show login; user should open via server
+        return;
+      }
+      try {
+        var res = await fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" });
+        if (!res.ok) return;
+        var data = await res.json();
+        if (data && data.ok && data.logged_in) {
+          showApp(data.name || data.username || "ผู้ใช้");
+        }
+      } catch (e) { /* stay on login */ }
     }
+    restoreSession();
 
     if (window.location.protocol === "file:") {
       document.getElementById("file-mode-banner").classList.remove("hidden");
@@ -2091,21 +2096,48 @@
       window.location.href = "http://127.0.0.1:8765/";
     });
 
-    loginForm.addEventListener("submit", function (e) {
+    loginForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       const u = document.getElementById("username").value.trim().toLowerCase();
       const p = document.getElementById("password").value;
-      const user = USERS[u];
-      if (!user || user.password !== p) {
-        loginError.textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+      loginError.classList.add("hidden");
+      if (window.location.protocol === "file:") {
+        loginError.textContent = "เปิดผ่านเซิร์ฟเวอร์ (hub/เปิดดู.command) เพื่อเข้าสู่ระบบ";
         loginError.classList.remove("hidden");
         return;
       }
-      loginError.classList.add("hidden");
-      showApp(user.name);
+      try {
+        var res = await fetch("/api/auth/login", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: u, password: p }),
+        });
+        var data = {};
+        try { data = await res.json(); } catch (err) { data = {}; }
+        if (!res.ok || !data.ok) {
+          loginError.textContent = data.error || "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+          loginError.classList.remove("hidden");
+          return;
+        }
+        showApp(data.name || u);
+      } catch (err) {
+        loginError.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เปิด hub/เปิดดู.command";
+        loginError.classList.remove("hidden");
+      }
     });
 
-    logoutBtn.addEventListener("click", showLogin);
+    logoutBtn.addEventListener("click", async function () {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+      } catch (e) { /* ignore */ }
+      showLogin();
+    });
 
     (function initAppShell() {
       var sidebar = document.getElementById("app-sidebar");
@@ -4065,9 +4097,17 @@
       document.getElementById("add-project").classList.add("unmatched");
       updateLocEditChrome();
       showProjectNote(
-        "⚠ ไม่พบ「" + esc(name) + "」ใน Master — เลือกจากรายการ หรือกด <strong>+ โครงการใหม่</strong>",
+        "⚠ ไม่พบ「" + esc(name) + "」ใน Master — " +
+          '<button type="button" class="btn-sm" id="add-create-project-hint" style="margin-left:4px">+ สร้าง「' +
+          esc(name) + "」ตอนนี้</button>",
         true
       );
+      var hintBtn = document.getElementById("add-create-project-hint");
+      if (hintBtn) {
+        hintBtn.addEventListener("click", function () {
+          openNewProjectModal(name);
+        });
+      }
     }
 
     function filterProjectOptions(q) {
@@ -4465,6 +4505,9 @@
       });
 
       filteredProps.sort(function (a, b) {
+        var shellA = isIncompleteReviewShell(a) ? 1 : 0;
+        var shellB = isIncompleteReviewShell(b) ? 1 : 0;
+        if (shellA !== shellB) return shellA - shellB;
         var pa = pmap[a.project_id] || {};
         var pb = pmap[b.project_id] || {};
         if (f.sort === "rent_asc") return parsePrice(a.rent_price) - parsePrice(b.rent_price);
@@ -4530,6 +4573,17 @@
       applyFilter();
     }
 
+    function isIncompleteReviewShell(p) {
+      if (!p) return false;
+      if ((p.import_status || "") !== "needs_review") return false;
+      var hasProject = !!(p.project_id || String(p.project_name || "").trim());
+      var hasBeds = !!String(p.bedrooms || "").trim();
+      var hasSize = !!String(p.size_sqm || "").trim();
+      var hasPrice = !!(parsePrice(p.rent_price) || parsePrice(p.sale_price));
+      var hasLoc = !!String(p.location_ref || "").trim();
+      return !hasProject && !hasBeds && !hasSize && !hasPrice && !hasLoc;
+    }
+
     function renderRows() {
       const list = document.getElementById("property-rows");
       const total = filteredProps.length;
@@ -4560,6 +4614,12 @@
         var originLabel = origin === "hub" ? "Hub" : "ชีท";
         var num = codeNumericPart(p.code);
         var warn = (num && collisions[num]) ? ' <span class="prop-card-warn" title="เลขซ้ำคนละรหัส">⚠</span>' : "";
+        var reviewBadge = "";
+        if (isIncompleteReviewShell(p)) {
+          reviewBadge = ' <span class="prop-card-warn" title="needs_review · ข้อมูลยังไม่ครบ">รอตรวจ</span>';
+        } else if ((p.import_status || "") === "needs_review") {
+          reviewBadge = ' <span class="prop-card-warn" title="needs_review">ตรวจ</span>';
+        }
         var previewUrl = propertyPreviewSourceUrl(p);
         var typeLabel = propertyTypeLabel(p.property_type) || "—";
         var beds = p.bedrooms || "—";
@@ -4573,7 +4633,7 @@
           '<div class="prop-sheet-main">' +
             '<div class="prop-sheet-top">' +
               '<span class="code">' + esc(p.code) + "</span>" +
-              '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn +
+              '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + reviewBadge +
               '<span class="date">' + esc(p.last_listed_at || "—") + "</span>" +
             "</div>" +
             '<div class="prop-sheet-project" title="' + esc(name) + '">' + projectBtn + "</div>" +
@@ -4760,9 +4820,12 @@
       var prefix = (opts && opts.prefix) || selectedAddPrefix();
       var codeEl = document.getElementById("add-code");
       var el = document.getElementById("server-status");
-      if (editingPropertyId && !force) return;
+      // Never overwrite the code field while editing an existing property
+      var codeLocked = !!editingPropertyId || !!(codeEl && codeEl.readOnly);
       try {
-        var res = await fetch(API_BASE + "/api/health?prefix=" + encodeURIComponent(prefix));
+        var res = await fetch(API_BASE + "/api/health?prefix=" + encodeURIComponent(prefix), {
+          credentials: "same-origin",
+        });
         var data = await res.json();
         if (!data.ok) return;
         var via = window.location.protocol === "file:" ? "" : " · เปิดผ่านเซิร์ฟเวอร์แล้ว";
@@ -4770,7 +4833,7 @@
         if (el) {
           el.innerHTML = "✅ Phase 2 พร้อมใช้" + via + ver + " · รหัสถัดไป <strong>" + esc(data.next_code) + "</strong>";
         }
-        if (codeEl && (force || !codeEl.value || !editingPropertyId)) {
+        if (codeEl && !codeLocked && (force || !codeEl.value)) {
           codeEl.value = data.next_code || applyCodePrefix(codeEl.value, prefix);
         }
       } catch (e) {
@@ -4786,10 +4849,21 @@
       var bannerText = document.getElementById("edit-banner-text");
       var btn = document.getElementById("add-proceed");
       var codeEl = document.getElementById("add-code");
+      var prefixEl = document.getElementById("add-prefix");
       if (banner) banner.classList.toggle("hidden", !editingPropertyId);
       if (bannerText && prop) bannerText.textContent = "กำลังแก้ไข · " + (prop.code || "");
       if (btn) btn.textContent = editingPropertyId ? "บันทึกการแก้ไข" : "ดำเนินการต่อ — บันทึกทรัพย์";
       if (codeEl) codeEl.readOnly = !!editingPropertyId;
+      if (prefixEl) {
+        prefixEl.disabled = !!editingPropertyId;
+        if (editingPropertyId && prop) {
+          var pref = String(prop.code_prefix || "").toUpperCase();
+          if (!pref) {
+            pref = (String(prop.code || "").toUpperCase().match(/^(PTP|RXT|COA)/) || ["RXT"])[0];
+          }
+          if (pref) prefixEl.value = pref;
+        }
+      }
       updateSubmenuBar();
     }
 
@@ -4871,10 +4945,7 @@
         alert("ไม่พบทรัพย์");
         return;
       }
-      document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
-        t.classList.toggle("active", t.getAttribute("data-view") === "add");
-      });
-      switchView("add");
+      // Set edit lock + fill BEFORE switchView so checkServer/refreshNextCode cannot overwrite code
       clearAddFormFields();
       setEditMode(true, prop);
       fillAddForm({
@@ -4907,8 +4978,11 @@
         setLocEditMode(false);
       }
       lockAllLinkFields();
+      document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+        t.classList.toggle("active", t.getAttribute("data-view") === "add");
+      });
+      switchView("add");
       window.scrollTo(0, 0);
-      checkServer();
     }
 
     function cancelPropertyEdit() {
@@ -5181,9 +5255,15 @@
       var projectId = document.getElementById("add-project-id").value;
       var pmap = window.PTP_DATA.project_map || {};
       var proj = projectId ? pmap[projectId] : null;
+      var codeVal = document.getElementById("add-code").value;
+      var prefixEl = document.getElementById("add-prefix");
+      var prefix = (prefixEl && prefixEl.value) || "";
+      if (!prefix) {
+        prefix = (String(codeVal || "").toUpperCase().match(/^(PTP|RXT|COA)/) || ["RXT"])[0];
+      }
       return {
-        code: document.getElementById("add-code").value,
-        code_prefix: document.getElementById("add-prefix").value,
+        code: codeVal,
+        code_prefix: prefix,
         project_id: projectId,
         project_name: proj ? proj.canonical_name : document.getElementById("add-project").value,
         property_type: document.getElementById("add-type").value,
@@ -5208,7 +5288,15 @@
     function fillAddForm(data) {
       // Fill price/specs first so a project-match error never blocks ราคา
       if (data.code) document.getElementById("add-code").value = data.code;
-      if (data.code_prefix) document.getElementById("add-prefix").value = data.code_prefix;
+      var prefixEl = document.getElementById("add-prefix");
+      if (prefixEl) {
+        var pref = String(data.code_prefix || "").toUpperCase();
+        if (!pref && data.code) {
+          pref = (String(data.code).toUpperCase().match(/^(PTP|RXT|COA)/) || [""])[0];
+        }
+        if (data.is_co_agent) pref = "COA";
+        if (pref) prefixEl.value = pref;
+      }
       document.getElementById("add-type").value = data.property_type || (data.bedrooms ? "Condo" : "");
       document.getElementById("add-beds").value = data.bedrooms || "";
       document.getElementById("add-size").value = data.size_sqm || "";
@@ -5227,7 +5315,6 @@
         document.getElementById("add-raw").value = data.raw_text;
       }
       if (data.source_url) document.getElementById("add-url").value = data.source_url;
-      if (data.is_co_agent) document.getElementById("add-prefix").value = "COA";
 
       try {
         setAddProjectFromParse(data.project_name, data.project_id);
@@ -5260,6 +5347,7 @@
       try {
         res = await fetch(API_BASE + path, {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
@@ -5417,15 +5505,22 @@
       var q = (document.getElementById("groups-book-search").value || "").trim();
       var zone = document.getElementById("groups-book-zone").value;
       var rows = groupsBookCache.filter(function (g) {
-        if (zone && (g.zone_tags || []).indexOf(zone) < 0) return false;
+        var tags = g.zone_tags || [];
+        if (zone === "__untagged__") {
+          if (tags.length) return false;
+        } else if (zone && tags.indexOf(zone) < 0) return false;
         if (!q) return true;
         return keysMatchQuery(
           collectSearchKeys(g.name, g.url, g.zone_tags || [], g.offer_tags || [], g.notes || ""),
           q
         );
       });
+      var untagged = groupsBookCache.filter(function (g) {
+        return !(g.zone_tags || []).length;
+      }).length;
       document.getElementById("groups-book-stats").textContent =
-        "แสดง " + rows.length + " / " + groupsBookCache.length + " กลุ่ม";
+        "แสดง " + rows.length + " / " + groupsBookCache.length + " กลุ่ม" +
+        (untagged ? " · ยังไม่แท็ก " + untagged : "");
       var tbody = document.getElementById("groups-book-rows");
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="4" class="empty"><p>ไม่พบกลุ่ม — กด + เพิ่มกลุ่ม เพื่อเพิ่มรายการ</p></td></tr>';
@@ -5452,7 +5547,7 @@
             ? g.zone_tags.map(function (t) {
                 return '<span class="tag">' + esc(t) + "</span>";
               }).join(" ")
-            : '<span class="muted">—</span>') + "</td>" +
+            : '<span class="muted">ยังไม่แท็ก</span>') + "</td>" +
           "<td>" + ((g.offer_tags || []).length
             ? g.offer_tags.map(function (t) {
                 return '<span class="tag offer">' + esc(t) + "</span>";
@@ -5680,7 +5775,13 @@
         var zoneSel = document.getElementById("groups-book-zone");
         var cur = zoneSel.value;
         var zones = Object.keys(data.by_zone || {}).sort();
+        var untagged = groupsBookCache.filter(function (g) {
+          return !(g.zone_tags || []).length;
+        }).length;
         zoneSel.innerHTML = '<option value="">ทั้งหมด</option>' +
+          (untagged
+            ? '<option value="__untagged__">ยังไม่แท็ก (' + untagged + ")</option>"
+            : "") +
           zones.map(function (z) {
             return '<option value="' + esc(z) + '">' + esc(z) + " (" + data.by_zone[z] + ")</option>";
           }).join("");
@@ -6800,7 +6901,15 @@
 
     async function doProceed() {
       if (!document.getElementById("add-project-id").value) {
-        alert("เลือกโครงการจาก Master ก่อนบันทึก");
+        var typed = document.getElementById("add-project").value.trim();
+        if (typed) {
+          if (confirm("ไม่พบ「" + typed + "」ใน Master — สร้างโครงการใหม่ตอนนี้?")) {
+            openNewProjectModal(typed);
+            return;
+          }
+        } else {
+          alert("เลือกโครงการจาก Master ก่อนบันทึก");
+        }
         document.getElementById("add-project").focus();
         return;
       }

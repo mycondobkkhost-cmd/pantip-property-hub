@@ -23,3 +23,8 @@ services:
         sync: false
       - key: WAIT_POST_SHEET_CSV_URL
         sync: false
+      # ตั้งใน Dashboard / API — ห้าม commit รหัสผ่านจริง
+      - key: HUB_USERS_JSON
+        sync: false
+      - key: HUB_SESSION_SECRET
+        generateValue: true

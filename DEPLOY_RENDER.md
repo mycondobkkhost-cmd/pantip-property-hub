@@ -39,11 +39,17 @@ gh repo create pantip-property-hub --private --source=. --remote=origin --push
    - **Runtime:** Docker
    - **Instance type:** Free
    - **Health Check Path:** `/api/health`
-4. (แนะนำ) Environment → เพิ่ม `HUB_USERS_JSON` เป็น JSON รหัสผ่านของคุณเอง เช่น:
+4. (จำเป็นบน production) Environment → เพิ่ม:
+
+- `HUB_USERS_JSON` — JSON บัญชีเข้าสู่ระบบ (รหัสผ่านตรวจฝั่งเซิร์ฟเวอร์เท่านั้น ไม่ฝังใน HTML) เช่น:
 
 ```json
-{"angkarn1996":{"password":"รหัสใหม่","name":"เจ้าของ"},"ptp2":{"password":"รหัสแอดมิน","name":"แอดมิน 1"}}
+{"angkarn1996":{"password":"รหัสใหม่ที่แข็งแรง","name":"เจ้าของ"},"ptp2":{"password":"รหัสแอดมิน","name":"แอดมิน 1"}}
 ```
+
+- `HUB_SESSION_SECRET` — สตริงสุ่มยาวสำหรับเซ็น cookie session (ถ้าไม่ตั้ง ใช้ค่า default ชั่วคราว)
+
+รหัสผ่าน preset เดิมใน client ถูกลบแล้ว — ถ้าไม่ตั้ง `HUB_USERS_JSON` บน Render จะล็อกอินไม่ได้
 
 5. Create Web Service แล้วรอ build (~5–10 นาที)
 

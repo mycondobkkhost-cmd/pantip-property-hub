@@ -232,25 +232,128 @@ def _thumb_worker_loop() -> None:
             _THUMB_QUEUE.task_done()
 
 
-def _inject_users_into_preview(html: str) -> str:
-    """Optional HUB_USERS_JSON env overrides login users for cloud deploy."""
+def _hub_session_secret() -> str:
     import os
-    import re
+
+    return (os.environ.get("HUB_SESSION_SECRET") or "local-dev-hub-session-secret").strip()
+
+
+def _load_hub_users() -> dict:
+    """Login users from HUB_USERS_JSON only (never embed passwords in HTML).
+
+    Local fallback is intentional weak demo accounts — production on Render
+    must set HUB_USERS_JSON (and ideally HUB_SESSION_SECRET).
+    """
+    import os
 
     raw = (os.environ.get("HUB_USERS_JSON") or "").strip()
-    if not raw:
-        return html
-    try:
-        json.loads(raw)  # validate
-    except json.JSONDecodeError:
-        print("[hub] WARN: HUB_USERS_JSON invalid JSON — keeping default users")
-        return html
-    return re.sub(
-        r"const USERS = \{[\s\S]*?\n    \};",
-        f"const USERS = {raw};",
-        html,
-        count=1,
+    if raw:
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            print("[hub] WARN: HUB_USERS_JSON invalid JSON — login users empty")
+            return {}
+        if not isinstance(data, dict):
+            print("[hub] WARN: HUB_USERS_JSON must be a JSON object — login users empty")
+            return {}
+        users: dict = {}
+        for key, val in data.items():
+            username = str(key or "").strip().lower()
+            if not username or not isinstance(val, dict):
+                continue
+            password = str(val.get("password") or "")
+            name = str(val.get("name") or username)
+            if not password:
+                continue
+            users[username] = {"password": password, "name": name}
+        return users
+
+    if (os.environ.get("RENDER") or "").strip():
+        print("[hub] WARN: HUB_USERS_JSON not set on Render — login will fail until configured")
+        return {}
+
+    # Local-only demo accounts (not used in production HTML / view-source)
+    return {
+        "angkarn1996": {"password": "localdev", "name": "เจ้าของ"},
+        "ptp2": {"password": "localdev2", "name": "แอดมิน 1"},
+        "ptp3": {"password": "localdev3", "name": "แอดมิน 2"},
+        "ptp4": {"password": "localdev4", "name": "ทีม 4"},
+        "ptp5": {"password": "localdev5", "name": "ทีม 5"},
+    }
+
+
+def _b64url_encode(raw: bytes) -> str:
+    import base64
+
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _b64url_decode(text: str) -> bytes:
+    import base64
+
+    pad = "=" * (-len(text) % 4)
+    return base64.urlsafe_b64decode((text + pad).encode("ascii"))
+
+
+def _make_session_token(username: str, display_name: str) -> str:
+    import hashlib
+    import hmac
+    import time
+
+    payload = json.dumps(
+        {
+            "u": username,
+            "n": display_name,
+            "exp": int(time.time()) + 60 * 60 * 24 * 14,  # 14 days
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
     )
+    body = _b64url_encode(payload.encode("utf-8"))
+    sig = hmac.new(
+        _hub_session_secret().encode("utf-8"),
+        body.encode("ascii"),
+        hashlib.sha256,
+    ).hexdigest()[:32]
+    return f"{body}.{sig}"
+
+
+def _parse_session_token(token: str) -> dict | None:
+    import hashlib
+    import hmac
+    import time
+
+    if not token or "." not in token:
+        return None
+    body, sig = token.rsplit(".", 1)
+    expect = hmac.new(
+        _hub_session_secret().encode("utf-8"),
+        body.encode("ascii"),
+        hashlib.sha256,
+    ).hexdigest()[:32]
+    if not hmac.compare_digest(sig, expect):
+        return None
+    try:
+        data = json.loads(_b64url_decode(body).decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+        return None
+    if int(data.get("exp") or 0) < int(time.time()):
+        return None
+    username = str(data.get("u") or "").strip().lower()
+    if not username:
+        return None
+    return {"username": username, "name": str(data.get("n") or username)}
+
+
+def _cookie_value(headers: dict | None, name: str) -> str:
+    raw = ""
+    if headers:
+        raw = headers.get("Cookie") or headers.get("cookie") or ""
+    for part in raw.split(";"):
+        part = part.strip()
+        if part.startswith(name + "="):
+            return part[len(name) + 1 :].strip()
+    return ""
 
 
 def next_rxt_code(prefix: str = "RXT") -> str:
@@ -266,20 +369,42 @@ def next_rxt_code(prefix: str = "RXT") -> str:
 
 
 class HubHandler(BaseHTTPRequestHandler):
+    SESSION_COOKIE = "ptp_hub_session"
+
     def log_message(self, fmt: str, *args) -> None:
         print(f"[hub] {self.address_string()} {fmt % args}")
 
     def _cors(self) -> None:
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = (self.headers.get("Origin") or "").strip()
+        # Credentials + wildcard is invalid; echo known local origins for file:// / tunnel use.
+        if origin in {"http://127.0.0.1:8765", "http://localhost:8765"} or origin.startswith("http://127.0.0.1:"):
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Access-Control-Allow-Credentials", "true")
+        else:
+            self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Vary", "Origin")
 
-    def _json(self, status: int, payload: dict) -> None:
+    def _json(self, status: int, payload: dict, *, set_cookie: str | None = None, clear_cookie: bool = False) -> None:
+        import os
+
         body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         self.send_response(status)
         self._cors()
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        secure = "; Secure" if (os.environ.get("RENDER") or "").strip() else ""
+        if set_cookie:
+            self.send_header(
+                "Set-Cookie",
+                f"{self.SESSION_COOKIE}={set_cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age={60 * 60 * 24 * 14}{secure}",
+            )
+        if clear_cookie:
+            self.send_header(
+                "Set-Cookie",
+                f"{self.SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0{secure}",
+            )
         self.end_headers()
         self.wfile.write(body)
 
@@ -288,6 +413,10 @@ class HubHandler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length) if length else b"{}"
         return json.loads(raw.decode("utf-8"))
 
+    def _session_user(self) -> dict | None:
+        token = _cookie_value(self.headers, self.SESSION_COOKIE)  # type: ignore[arg-type]
+        return _parse_session_token(token)
+
     def do_OPTIONS(self) -> None:
         self.send_response(204)
         self._cors()
@@ -295,6 +424,13 @@ class HubHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = unquote(urlparse(self.path).path)
+        if path == "/api/auth/me":
+            user = self._session_user()
+            if not user:
+                self._json(401, {"ok": False, "logged_in": False})
+                return
+            self._json(200, {"ok": True, "logged_in": True, "username": user["username"], "name": user["name"]})
+            return
         if path == "/api/health":
             from urllib.parse import parse_qs
 
@@ -420,8 +556,6 @@ class HubHandler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         content = file_path.read_bytes()
-        if file_path.name == "preview.html":
-            content = _inject_users_into_preview(content.decode("utf-8")).encode("utf-8")
         ctype = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
         if file_path.suffix == ".html":
             ctype = "text/html; charset=utf-8"
@@ -442,6 +576,30 @@ class HubHandler(BaseHTTPRequestHandler):
             body = self._read_json()
         except json.JSONDecodeError:
             self._json(400, {"error": "JSON ไม่ถูกต้อง"})
+            return
+
+        if path == "/api/auth/login":
+            username = str(body.get("username") or "").strip().lower()
+            password = str(body.get("password") or "")
+            users = _load_hub_users()
+            user = users.get(username)
+            if not user or user.get("password") != password:
+                self._json(401, {"ok": False, "error": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"})
+                return
+            token = _make_session_token(username, user.get("name") or username)
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "username": username,
+                    "name": user.get("name") or username,
+                },
+                set_cookie=token,
+            )
+            return
+
+        if path == "/api/auth/logout":
+            self._json(200, {"ok": True}, clear_cookie=True)
             return
 
         if path == "/api/scrape":

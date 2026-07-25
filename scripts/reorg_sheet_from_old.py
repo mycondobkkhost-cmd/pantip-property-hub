@@ -1,15 +1,16 @@
-#!/usr/bin/env python3
 """Reorganize NEW「ชีตสำหรับทำงาน」from OLD using trust-column mapping.
 
 Read-only OLD → write NEW only. Never edits OLD.
 
 Rules:
-  - ลิ้งค์โพส / ลิ้งค์โพส Pages / ลิ้งค์ต้นโพสต์(Q) / หมายเหตุ → copy as-is
-  - เฟสเจ้าของ prefer existing; else take blank sub-col R beside ต้นโพสต์
-  - Clear R on NEW after move
-  - Do NOT run aggressive URL reclassify (Q posts stay in ต้นทาง)
+  - ลิ้งค์โพส / ลิ้งค์โพส Pages → copy as-is (trust 100%)
+  - ลิ้งค์ต้นโพสต์ Q: URL→ต้นทาง; non-URL text→หมายเหตุ (clear Q)
+  - blank R: URL→เฟสเจ้าของ if empty; else notes; text→หมายเหตุ (clear R)
+  - หมายเหตุ from OLD always merged with rescued Q/R/owner text
+  - Delete row when post OR pages is Google Drive/Docs URL
+  - Strip Drive from other fields without deleting when post/pages are real
   - Preserve NEW ทำเล (and enriched สถานี) by code when present
-  - Rebuild Hub + sync「ทรัพย์รวม」
+  - Rebuild Hub + sync「ทรัพย์รวม」(full stock, no archive cutoff)
 
 Usage:
   .venv/bin/python scripts/reorg_sheet_from_old.py
@@ -34,8 +35,10 @@ from src.hub.env_load import load_hub_env  # noqa: E402
 
 load_hub_env()
 
+from src.hub.link_classify import is_google_helper_url  # noqa: E402
 from src.hub.owner_facebook import adjacent_column_index, cell_has_value  # noqa: E402
 from src.hub.sheet_links import (  # noqa: E402
+    http_url_or_empty,
     link_col_indexes,
     merge_formula_and_formatted,
     unwrap_link_cell,
@@ -78,6 +81,10 @@ def _norm_code(raw: str) -> str:
     return (raw or "").upper().replace(" ", "").strip()
 
 
+def _is_drive(url: str) -> bool:
+    return is_google_helper_url(url or "")
+
+
 def _enrichment_by_code(new_rows: list[list[str]]) -> dict[str, dict[str, str]]:
     """Preserve NEW ทำเล / สถานี per code when already enriched."""
     if not new_rows:
@@ -98,11 +105,7 @@ def _enrichment_by_code(new_rows: list[list[str]]) -> dict[str, dict[str, str]]:
         code = _norm_code(row[0] if row else "")
         if not code.startswith("PTP"):
             continue
-        talea = (
-            unwrap_link_cell(row[talea_i] if talea_i is not None and talea_i < len(row) else "")
-            or ""
-        )
-        # ทำเล is plain text
+        talea = ""
         if talea_i is not None and talea_i < len(row):
             talea = str(row[talea_i] or "").strip()
         station = ""
@@ -120,8 +123,6 @@ def _ensure_header_structure(
 ) -> list[str]:
     """OLD headers through เฟสเจ้าของ; optionally insert ทำเล before สถานี."""
     out = list(headers)
-    # Drop trailing blank dump cols beyond เฟสเจ้าของ (keep one blank R beside source)
-    # Find owner index
     own_i = None
     src_i = None
     for i, h in enumerate(out):
@@ -132,15 +133,12 @@ def _ensure_header_structure(
             src_i = i
     if own_i is not None:
         out = out[: own_i + 1]
-    # Ensure blank adjacent col exists between source and owner
     if src_i is not None and own_i is not None:
-        # Recompute after trim
         src_i = next(i for i, h in enumerate(out) if (h or "").strip() == "ลิ้งค์ต้นโพสต์")
         own_i = next(i for i, h in enumerate(out) if (h or "").strip() == "เฟสเจ้าของ")
         if own_i == src_i + 1:
             out.insert(src_i + 1, "")
         elif own_i > src_i + 1:
-            # Keep first blank after source; drop extras between adj and owner
             mid = out[src_i + 1 : own_i]
             if not any((h or "").strip() for h in mid):
                 out = out[: src_i + 1] + [""] + out[own_i:]
@@ -155,12 +153,37 @@ def _ensure_header_structure(
     return out
 
 
+def _strip_drive_helpers(mapped: TrustMappedRow, stats: Counter) -> TrustMappedRow:
+    """Drop Drive URLs from source/owner; leave post/pages for junk detection."""
+    source = mapped.source
+    owner = mapped.owner
+    if source and _is_drive(source):
+        source = ""
+        stats["drive_stripped_source"] += 1
+    if owner and _is_drive(owner):
+        owner = ""
+        stats["drive_stripped_owner"] += 1
+    return TrustMappedRow(
+        code=mapped.code,
+        source=source,
+        owner=owner,
+        post=mapped.post,
+        pages=mapped.pages,
+        notes=mapped.notes,
+        adjacent="",
+        owner_action=mapped.owner_action if owner else "empty",
+        clear_adjacent=True,
+        clear_source_text=mapped.clear_source_text,
+        text_to_notes=list(mapped.text_to_notes),
+    )
+
+
 def build_cleaned_rows(
     old_rows: list[list[str]],
     *,
     enrich_by_code: dict[str, dict[str, str]] | None = None,
     want_talea: bool = False,
-) -> tuple[list[list[str]], dict[str, TrustMappedRow], Counter]:
+) -> tuple[list[list[str]], dict[str, TrustMappedRow], Counter, list[str]]:
     if not old_rows:
         raise RuntimeError("OLD sheet empty")
     old_headers = list(old_rows[0])
@@ -170,17 +193,27 @@ def build_cleaned_rows(
     payload: list[list[str]] = [list(new_headers)]
     by_code: dict[str, TrustMappedRow] = {}
     stats: Counter = Counter()
+    deleted_codes: list[str] = []
 
-    # Build index lookup for copying non-link business cols
     old_name_to_i = {(h or "").strip(): i for i, h in enumerate(old_headers) if (h or "").strip()}
     new_name_to_i = {(h or "").strip(): i for i, h in enumerate(new_headers) if (h or "").strip()}
 
     for row in old_rows[1:]:
         mapped = trust_map_row(old_headers, row)
         code = mapped.code
+
+        # Drive junk: post OR pages is Drive/Docs → drop entire row
+        if _is_drive(mapped.post) or _is_drive(mapped.pages):
+            stats["drive_deleted"] += 1
+            if code.startswith("PTP"):
+                deleted_codes.append(code)
+                stats["drive_deleted_ptp"] += 1
+            continue
+
+        mapped = _strip_drive_helpers(mapped, stats)
+
         cleaned = [""] * len(new_headers)
 
-        # Copy all named business columns from OLD by header
         for name, new_i in new_name_to_i.items():
             if name in ("ลิ้งค์โพส", "ลิ้งค์โพส Pages", "ลิ้งค์ต้นโพสต์", "เฟสเจ้าของ", "หมายเหตุ"):
                 continue
@@ -190,11 +223,9 @@ def build_cleaned_rows(
             val = row[old_i] if old_i < len(row) else ""
             cleaned[new_i] = str(val or "")
 
-        # Code / first col
         if new_headers and (new_headers[0] or "").strip() in ("", "รหัสทรัพย์"):
             cleaned[0] = row[0] if row else ""
 
-        # Apply trusted link fields
         new_cols = link_col_indexes(new_headers)
         new_adj = adjacent_column_index(new_headers)
         new_notes = notes_column_index(new_headers)
@@ -206,25 +237,27 @@ def build_cleaned_rows(
 
         _set(new_cols.get("post"), mapped.post)
         _set(new_cols.get("pages"), mapped.pages)
-        _set(new_cols.get("source"), mapped.source)
+        _set(new_cols.get("source"), mapped.source)  # URL only; text cleared
         _set(new_cols.get("owner"), mapped.owner)
         _set(new_notes, mapped.notes)
         if new_adj is not None:
-            cleaned[new_adj] = ""  # always clear R on NEW
+            cleaned[new_adj] = ""
 
-        # Preserve enrichment
         if code.startswith("PTP") and code in enrich_by_code:
             enr = enrich_by_code[code]
             if TALAE_HEADER in new_name_to_i and enr.get("ทำเล"):
                 cleaned[new_name_to_i[TALAE_HEADER]] = enr["ทำเล"]
                 stats["preserved_talea"] += 1
             if STATION_HEADER in new_name_to_i and enr.get("สถานีรถไฟฟ้า"):
-                # Prefer preserved NEW station only when it looks enriched (not empty)
                 cleaned[new_name_to_i[STATION_HEADER]] = enr["สถานีรถไฟฟ้า"]
                 stats["preserved_station"] += 1
 
         payload.append(cleaned)
         stats["rows_written"] += 1
+
+        if mapped.text_to_notes:
+            stats["text_to_notes_rows"] += 1
+            stats["text_to_notes_fragments"] += len(mapped.text_to_notes)
 
         if code.startswith("PTP"):
             stats["ptp_rows"] += 1
@@ -243,10 +276,12 @@ def build_cleaned_rows(
                 stats["has_pages"] += 1
             if mapped.owner:
                 stats["has_owner"] += 1
+            if mapped.notes:
+                stats["has_notes"] += 1
         else:
             stats["non_ptp"] += 1
 
-    return payload, by_code, stats
+    return payload, by_code, stats, deleted_codes
 
 
 def write_new_sheet(
@@ -274,7 +309,6 @@ def write_new_sheet(
         )
         time.sleep(1.0)
 
-    # Unmerge header cells in link zone so เฟสเจ้าของ / blank R are writable
     try:
         ss.batch_update(
             {
@@ -314,7 +348,6 @@ def write_new_sheet(
         print(f"  wrote rows {start}-{end} ({written}/{len(padded)})", flush=True)
         time.sleep(0.8)
 
-    # Ensure headers for link cols
     headers = padded[0]
     for idx, h in enumerate(headers):
         hs = (h or "").strip()
@@ -354,10 +387,15 @@ def fill_rates(stats: Counter) -> dict:
         "owner_from_fase": int(stats.get("owner_from_fase", 0)),
         "owner_from_r": int(stats.get("owner_from_r", 0)),
         "owner_empty": int(stats.get("owner_empty", 0)),
+        "text_to_notes_rows": int(stats.get("text_to_notes_rows", 0)),
+        "text_to_notes_fragments": int(stats.get("text_to_notes_fragments", 0)),
+        "drive_deleted": int(stats.get("drive_deleted", 0)),
+        "drive_deleted_ptp": int(stats.get("drive_deleted_ptp", 0)),
         "owner_fill": pct("has_owner"),
         "source_fill": pct("has_source"),
         "post_fill": pct("has_post"),
         "pages_fill": pct("has_pages"),
+        "notes_fill": pct("has_notes"),
     }
 
 
@@ -398,15 +436,34 @@ def main() -> None:
         flush=True,
     )
 
-    print("=== 3) Build cleaned rows (trust mapping) ===", flush=True)
-    payload, by_code, stats = build_cleaned_rows(
+    print("=== 3) Build cleaned rows (trust mapping + Drive delete) ===", flush=True)
+    payload, by_code, stats, deleted_codes = build_cleaned_rows(
         old_rows,
         enrich_by_code=enrich,
         want_talea=want_talea,
     )
     rates = fill_rates(stats)
     print(json.dumps({"stats": dict(stats), "rates": rates}, ensure_ascii=False, indent=2), flush=True)
-    report["mapping"] = {"stats": dict(stats), "rates": rates}
+    report["mapping"] = {
+        "stats": dict(stats),
+        "rates": rates,
+        "drive_deleted_sample": deleted_codes[:30],
+        "drive_deleted_total": len(deleted_codes),
+    }
+
+    spot = {}
+    for code in ("PTP8200", "PTP8201", "PTP8202"):
+        m = by_code.get(code)
+        if m:
+            spot[code] = {
+                "source": m.source,
+                "owner": m.owner,
+                "notes": m.notes,
+                "text_to_notes": m.text_to_notes,
+                "post": (m.post or "")[:60],
+            }
+    report["spot_check"] = spot
+    print(json.dumps({"spot_check": spot}, ensure_ascii=False, indent=2), flush=True)
 
     print("=== 4) Write NEW「ชีตสำหรับทำงาน」===")
     write_result = write_new_sheet(
@@ -426,7 +483,6 @@ def main() -> None:
         print(f"Wrote {report_path}", flush=True)
         return
 
-    # Point env at NEW for rebuild/overview/living
     os.environ["SOURCE_GOOGLE_SHEETS_ID"] = args.new_sheet_id
     os.environ["MAIN_GOOGLE_SHEETS_ID"] = args.new_sheet_id
     os.environ["HUB_GOOGLE_SHEETS_ID"] = args.new_sheet_id
@@ -474,40 +530,61 @@ def main() -> None:
         report["overview"] = {
             "ok": ov.get("ok"),
             "via": ov.get("via"),
-            "overview_rows": ov.get("overview_rows"),
+            "overview_rows": ov.get("overview_rows")
+            or ov.get("written_count")
+            or ov.get("overview_count"),
             "active_for_overview": active_n,
             "spreadsheet_url": ov.get("spreadsheet_url"),
             "warnings": ov.get("warnings"),
         }
         print(json.dumps(report["overview"], ensure_ascii=False, indent=2), flush=True)
 
-    # Final verify fill on NEW
     print("=== 8) Final verify NEW sheet ===", flush=True)
     final_rows = _pull_merged(args.new_sheet_id, args.tab)
     headers = final_rows[0]
     cols = link_col_indexes(headers)
     adj_i = adjacent_column_index(headers)
+    notes_i = notes_column_index(headers)
     verify = Counter()
     adj_still = 0
+    source_text_left = 0
+    spot_final = {}
     for row in final_rows[1:]:
         code = _norm_code(row[0] if row else "")
         if not code.startswith("PTP"):
             continue
         verify["ptp"] += 1
-        src = unwrap_link_cell(row[cols["source"]] if cols.get("source") is not None and cols["source"] < len(row) else "")
-        own = unwrap_link_cell(row[cols["owner"]] if cols.get("owner") is not None and cols["owner"] < len(row) else "")
-        post = unwrap_link_cell(row[cols["post"]] if cols.get("post") is not None and cols["post"] < len(row) else "")
-        pages = unwrap_link_cell(row[cols["pages"]] if cols.get("pages") is not None and cols["pages"] < len(row) else "")
+        src = unwrap_link_cell(
+            row[cols["source"]] if cols.get("source") is not None and cols["source"] < len(row) else ""
+        )
+        own = unwrap_link_cell(
+            row[cols["owner"]] if cols.get("owner") is not None and cols["owner"] < len(row) else ""
+        )
+        post = unwrap_link_cell(
+            row[cols["post"]] if cols.get("post") is not None and cols["post"] < len(row) else ""
+        )
+        pages = unwrap_link_cell(
+            row[cols["pages"]] if cols.get("pages") is not None and cols["pages"] < len(row) else ""
+        )
+        notes = ""
+        if notes_i is not None and notes_i < len(row):
+            notes = str(row[notes_i] or "").strip()
         if src:
             verify["source"] += 1
+            if not http_url_or_empty(src):
+                source_text_left += 1
         if own:
             verify["owner"] += 1
         if post:
             verify["post"] += 1
         if pages:
             verify["pages"] += 1
+        if notes:
+            verify["notes"] += 1
         if adj_i is not None and adj_i < len(row) and cell_has_value(row[adj_i]):
             adj_still += 1
+        if code in ("PTP8200", "PTP8201", "PTP8202"):
+            spot_final[code] = {"source": src, "owner": own, "notes": notes}
     n = max(verify["ptp"], 1)
     report["final_verify"] = {
         "ptp": verify["ptp"],
@@ -515,9 +592,14 @@ def main() -> None:
         "owner_pct": round(100.0 * verify["owner"] / n, 1),
         "post_pct": round(100.0 * verify["post"] / n, 1),
         "pages_pct": round(100.0 * verify["pages"] / n, 1),
+        "notes_pct": round(100.0 * verify["notes"] / n, 1),
+        "notes_filled": verify["notes"],
         "adjacent_r_still_filled": adj_still,
-        "owner_from_fase": rates["owner_from_fase"],
-        "owner_from_r": rates["owner_from_r"],
+        "source_non_url_left": source_text_left,
+        "text_to_notes_rows": rates["text_to_notes_rows"],
+        "text_to_notes_fragments": rates["text_to_notes_fragments"],
+        "drive_deleted": rates["drive_deleted"],
+        "spot_final": spot_final,
     }
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(report["final_verify"], ensure_ascii=False, indent=2), flush=True)

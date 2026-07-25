@@ -465,12 +465,20 @@ def prop_to_hub_row(
     # Main-sheet mapping: ลิ้งค์โพส / ลิ้งค์โพส Pages / ลิ้งค์ต้นโพสต์ / เฟสเจ้าของ
     post_url = http_url_or_empty(str(prop.get("post_url") or ""))
     pages_url = http_url_or_empty(str(prop.get("post_pages_url") or ""))
-    source_raw = str(prop.get("source_url") or "").strip()
-    source_url = http_url_or_empty(source_raw) or source_raw
+    source_url = http_url_or_empty(str(prop.get("source_url") or ""))
+    owner_url, owner_name = _owner_url_and_name(prop)
+    notes = _notes_for_sheet(prop.get("notes"))
+    # Non-URL owner names belong in หมายเหตุ, not HYPERLINK columns.
+    if owner_name and not owner_url:
+        notes = " | ".join(p for p in (notes, owner_name) if p)
+        owner_display = ""
+    else:
+        owner_display = owner_url
     if link_as_hyperlink:
         post_url = _hyperlink_cell(post_url, "โพสต์")
         pages_url = _hyperlink_cell(pages_url, "เพจ")
-        source_url = _hyperlink_cell(http_url_or_empty(source_raw), "ต้นทาง")
+        source_url = _hyperlink_cell(source_url, "ต้นทาง")
+        owner_display = _hyperlink_cell(owner_url, _owner_hyperlink_label(prop)) if owner_url else ""
     return [
         str(prop.get("code") or ""),
         str(prop.get("last_listed_at") or ""),
@@ -488,9 +496,9 @@ def prop_to_hub_row(
         "",
         post_url,
         pages_url,
-        _notes_for_sheet(prop.get("notes")),
+        notes,
         source_url,
-        _owner_display(prop),
+        owner_display,
         "Hub",
         str(prop.get("linked_ptp_code") or ""),
         synced_at or datetime.now().strftime("%d/%m/%Y %H:%M"),
@@ -508,19 +516,18 @@ def prop_to_overview_row(
 
     zone_s, transit_s = resolve_prop_location_for_sheet(prop, projects_by_id)
     source = "Hub" if is_hub_owned(prop) else "ชีท"
-    # Prefer URL in「เจ้าของ」so `_overview_src` + ARRAYFORMULA make a short link
-    owner_link = _owner_display(prop)
-    # Preferred mapping (do not drop pages/post when present):
-    # ต้นทาง←source_url(ลิ้งค์ต้นโพสต์/living), เจ้าของ←เฟสเจ้าของ,
-    # ที่โพสต์←post_url(ลิ้งค์โพส), เพจ←post_pages_url(ลิ้งค์โพส Pages)
+    # ต้นทาง / เจ้าของ: URLs only — non-URL text belongs in หมายเหตุ
+    owner_url, owner_name = _owner_url_and_name(prop)
+    owner_link = owner_url
     source_url = http_url_or_empty(str(prop.get("source_url") or ""))
     post_url = http_url_or_empty(str(prop.get("post_url") or ""))
     pages_url = http_url_or_empty(str(prop.get("post_pages_url") or ""))
+    notes = _notes_for_sheet(prop.get("notes"))
+    if owner_name and not owner_url:
+        notes = " | ".join(p for p in (notes, owner_name) if p)
     if link_as_hyperlink:
         source_url = _hyperlink_cell(source_url, "ต้นทาง")
-        owner_link = _maybe_hyperlink(
-            owner_link, _owner_hyperlink_label(prop), enabled=True
-        )
+        owner_link = _hyperlink_cell(owner_url, _owner_hyperlink_label(prop)) if owner_url else ""
         post_url = _hyperlink_cell(post_url, "โพสต์")
         pages_url = _hyperlink_cell(pages_url, "เพจ")
     return [
@@ -540,7 +547,7 @@ def prop_to_overview_row(
         owner_link,
         post_url,
         pages_url,
-        _notes_for_sheet(prop.get("notes")),
+        notes,
     ]
 
 

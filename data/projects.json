@@ -1044,6 +1044,42 @@
     "living_project_url": "https://www.livinginsider.com/living_project/10/2668/1/all/all/1/ไลฟ์-ลาดพร้าว.html"
   },
   {
+    "id": "a4c731a4-99e3-5da7-896f-eb3be3565136",
+    "bucket_key": "niabysansiri",
+    "canonical_name": "NIA by Sansiri (เนีย บาย แสนสิริ)",
+    "aliases": [
+      "Nia by Sansiri (เนีย บาย แสนสิริ)"
+    ],
+    "transit_unverified": [
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
+    "zone_unverified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
+    ],
+    "transit_verified": [
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
+    "zone_verified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 27,
+    "location_source": "livinginsider",
+    "living_zone": "อ่อนนุช อุดมสุข",
+    "living_project_url": "https://www.livinginsider.com/living_project/19/18941/1/all/all/1/เนีย-บาย-แสนสิริ.html"
+  },
+  {
     "id": "a91beeff-5702-5b63-a55f-ab2970d56815",
     "bucket_key": "nobleremix",
     "canonical_name": "Noble Remix (โนเบิล รีมิกซ์)",
@@ -1669,42 +1705,6 @@
     "location_source": "livinginsider",
     "living_zone": "คลองเตย กล้วยน้ำไท",
     "living_project_url": "https://www.livinginsider.com/living_project/23/55/1/all/all/1/แอสปาย-พระราม-4.html"
-  },
-  {
-    "id": "a4c731a4-99e3-5da7-896f-eb3be3565136",
-    "bucket_key": "niabysansiri",
-    "canonical_name": "NIA by Sansiri (เนีย บาย แสนสิริ)",
-    "aliases": [
-      "Nia by Sansiri (เนีย บาย แสนสิริ)"
-    ],
-    "transit_unverified": [
-      "BTS พระโขนง",
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
-    "zone_unverified": [
-      "อ่อนนุช",
-      "อุดมสุข",
-      "พระโขนง",
-      "เจริญนคร"
-    ],
-    "transit_verified": [
-      "BTS พระโขนง",
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
-    "zone_verified": [
-      "อ่อนนุช",
-      "อุดมสุข",
-      "พระโขนง",
-      "เจริญนคร"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 22,
-    "location_source": "livinginsider",
-    "living_zone": "อ่อนนุช อุดมสุข",
-    "living_project_url": "https://www.livinginsider.com/living_project/19/18941/1/all/all/1/เนีย-บาย-แสนสิริ.html"
   },
   {
     "id": "326d71f8-6e40-5061-8363-6368097a4a75",
@@ -7339,7 +7339,14 @@
       "BTS ราชเทวี",
       "BTS พญาไท"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "พร้อมพงษ์",
+      "นวมินทร์ รามอินทรา",
+      "เจริญนคร"
+    ],
     "transit_verified": [
       "BTS ราชเทวี",
       "BTS พญาไท"
@@ -9192,7 +9199,10 @@
       "ARL หัวหมาก",
       "MRT บางกะปิ"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "อ่อนนุช",
+      "อุดมสุข"
+    ],
     "transit_verified": [
       "ARL หัวหมาก",
       "MRT บางกะปิ"
@@ -11211,11 +11221,10 @@
   {
     "id": "e088c695-dbd6-501b-8bf7-ed3d03c77e8a",
     "bucket_key": "indy2bangnaramkhamhaeng2",
-    "canonical_name": "Indy 2 Bangna - Ramkhamhaeng 2 (อินดี้ 2 บางนา - รามคําแหง 2)",
+    "canonical_name": "Indy 2 Bangna–Ramkhamhaeng 2 (อินดี้ 2 บางนา–รามคำแหง 2)",
     "aliases": [
-      "Indy 2 Bangna–Ramkhamhaeng 2 (อินดี้ 2 บางนา–รามคำแหง 2)",
-      "Indy 2 Bangna – Ramkhamhaeng 2 (อินดี้ 2 บางนา – รามคำแหง 2)",
-      "Indy 2 Bangna-Ramkhamhaeng 2 : อินดี้ 2 บางนา-รามคําแหง2"
+      "Indy 2 Bangna - Ramkhamhaeng 2 (อินดี้ 2 บางนา - รามคําแหง 2)",
+      "Indy 2 Bangna – Ramkhamhaeng 2 (อินดี้ 2 บางนา – รามคำแหง 2)"
     ],
     "transit_unverified": [
       "BTS กรุงธนบุรี",
@@ -11301,9 +11310,9 @@
   {
     "id": "0a13d93f-9782-5d14-9729-538a428c5c4e",
     "bucket_key": "knightsbridgecollagesukhumvit107",
-    "canonical_name": "KnightsBridge Collage Sukhumvit 107 (ไนท์บริดจ์ คอลลาจ สุขุมวิท 107)",
+    "canonical_name": "Knights Bridge Collage Sukhumvit 107 (ไนท์บริดจ์ คอลลาจ สุขุมวิท 107)",
     "aliases": [
-      "Knights Bridge Collage Sukhumvit 107 (ไนท์บริดจ์ คอลลาจ สุขุมวิท 107)"
+      "KnightsBridge Collage Sukhumvit 107 (ไนท์บริดจ์ คอลลาจ สุขุมวิท 107)"
     ],
     "transit_unverified": [
       "BTS แบริ่ง",
@@ -12894,7 +12903,7 @@
   {
     "id": "709f59e1-3922-53cb-a5db-4fbe9cb4f6ec",
     "bucket_key": "aspacemesukhumvit77",
-    "canonical_name": "A Space Me Sukhumvit 77 (เอ สเปซ มี สุขุมวิท 77)",
+    "canonical_name": "A Space Me Sukhumvit 77 ( เอ สเปซ มี สุขุมวิท 77)",
     "aliases": [
       "A Space Me Sukhumvit 77 ( เอ สเปซ มี สุขุมวิท 77 )",
       "A Space Me Sukhumvit 77 ( เอ สเปซ มี สุขุมวิท 77)",
@@ -13542,9 +13551,7 @@
     "bucket_key": "burasirikrungthepkreethaบุราสิริกรุงเทพกรีฑา",
     "canonical_name": "Burasiri Krungthep Kreetha  บุราสิริ กรุงเทพ กรีฑา",
     "aliases": [],
-    "transit_unverified": [
-      "MRT แยกลำสาลี"
-    ],
+    "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [],
     "zone_verified": [],
@@ -14349,32 +14356,6 @@
     "listing_count": 3
   },
   {
-    "id": "193b6ac0-cb81-57e3-8901-bc6154c10aa4",
-    "bucket_key": "lifeladprao18",
-    "canonical_name": "Life @ Ladprao 18 (ไลฟ์ แอท ลาดพร้าว 18)",
-    "aliases": [
-      "Life Ladprao 18 (ไลฟ์ ลาดพร้าว 18)"
-    ],
-    "transit_unverified": [
-      "MRT ลาดพร้าว",
-      "BTS ห้าแยกลาดพร้าว"
-    ],
-    "zone_unverified": [
-      "ลาดพร้าว"
-    ],
-    "transit_verified": [
-      "MRT ลาดพร้าว",
-      "BTS ห้าแยกลาดพร้าว"
-    ],
-    "zone_verified": [
-      "ลาดพร้าว"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 3,
-    "location_source": "corridor:ladprao"
-  },
-  {
     "id": "e896e822-e072-5b5c-a3b3-e81c03954738",
     "bucket_key": "lifephahonari",
     "canonical_name": "Life @ Phahon - Ari (ไลฟ์ แอท พหลฯ - อารีย์)",
@@ -14404,6 +14385,32 @@
     "location_source": "livinginsider",
     "living_zone": "อารีย์ อนุสาวรีย์",
     "living_project_url": "https://www.livinginsider.com/living_project/8/980/1/all/all/1/Life-Phahon-Ari.html"
+  },
+  {
+    "id": "193b6ac0-cb81-57e3-8901-bc6154c10aa4",
+    "bucket_key": "lifeladprao18",
+    "canonical_name": "Life Ladprao 18 (ไลฟ์ ลาดพร้าว 18)",
+    "aliases": [
+      "Life @ Ladprao 18 (ไลฟ์ แอท ลาดพร้าว 18)"
+    ],
+    "transit_unverified": [
+      "MRT ลาดพร้าว",
+      "BTS ห้าแยกลาดพร้าว"
+    ],
+    "zone_unverified": [
+      "ลาดพร้าว"
+    ],
+    "transit_verified": [
+      "MRT ลาดพร้าว",
+      "BTS ห้าแยกลาดพร้าว"
+    ],
+    "zone_verified": [
+      "ลาดพร้าว"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 3,
+    "location_source": "corridor:ladprao"
   },
   {
     "id": "e1c3fba8-7496-5e6e-b3bd-3293638bb344",
@@ -14799,8 +14806,9 @@
   {
     "id": "26499603-df0e-5911-8480-29ac9390567f",
     "bucket_key": "nichemonosukhumvitbearing",
-    "canonical_name": "Niche Mono Sukhumvit - Bearing (นิช โมโน สุขุมวิท - แบริ่ง)",
+    "canonical_name": "Niche Mono Sukhumvit-Bearing (นิช โมโน สุขุมวิท-แบริ่ง)",
     "aliases": [
+      "Niche Mono Sukhumvit - Bearing (นิช โมโน สุขุมวิท - แบริ่ง)",
       "Niche Mono Sukhumvit Bearing (นิช โมโน สุขุมวิท แบริ่ง)",
       "Niche Mono Sukhumvit-Bearing (นิช โมโน สุขุมวิท-แบริ่ง)"
     ],
@@ -17127,32 +17135,6 @@
     "listing_count": 2
   },
   {
-    "id": "d08e3c18-5bfb-5d86-826f-2531a490f519",
-    "bucket_key": "bromptonpetfriendlysukhumvit107",
-    "canonical_name": "BROMPTON Pet Friendly Sukhumvit 107 (บรอมตัน เพ็ท เฟรนด์ลี่ สุขุมวิท 107)",
-    "aliases": [
-      "Brompton Pet Friendly Sukhumvit 107",
-      "Brompton Pet Friendly Sukhumvit 107 (บรอมตัน เพ็ท เฟรนด์ลี่ สุขุมวิท 107)"
-    ],
-    "transit_unverified": [
-      "BTS แบริ่ง"
-    ],
-    "zone_unverified": [
-      "แบริ่ง",
-      "สุขุมวิท"
-    ],
-    "transit_verified": [
-      "BTS แบริ่ง"
-    ],
-    "zone_verified": [
-      "แบริ่ง",
-      "สุขุมวิท"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 2
-  },
-  {
     "id": "1b09a7bf-8cc2-53d7-86b5-f94a329b2120",
     "bucket_key": "baanklangkrungresort",
     "canonical_name": "Baan Klang Krung Resort (บ้าน กลางกรุง รีสอร์ท)",
@@ -17329,38 +17311,6 @@
     "location_source": "corridor:sathorn"
   },
   {
-    "id": "60e3a503-8dfc-570e-b338-a05b6fea1ad5",
-    "bucket_key": "baansuansukhumvit",
-    "canonical_name": "Baan Suan Sukhumvit (บ้านสวนสุขุมวิท)",
-    "aliases": [
-      "BaanSuan Sukhumvit (บ้านสวนสุขุมวิท)"
-    ],
-    "transit_unverified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
-    "zone_unverified": [
-      "อ่อนนุช",
-      "อุดมสุข",
-      "เจริญนคร"
-    ],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
-    "zone_verified": [
-      "อ่อนนุช",
-      "อุดมสุข",
-      "เจริญนคร"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 2,
-    "location_source": "livinginsider",
-    "living_zone": "อ่อนนุช อุดมสุข",
-    "living_project_url": "https://www.livinginsider.com/living_project/19/4246/1/all/all/1/บ้านสวนสุขุมวิท.html"
-  },
-  {
     "id": "8f155cdf-a877-5b86-b079-f2db74b849eb",
     "bucket_key": "baansukhothairamkhamhaeng301",
     "canonical_name": "Baan Sukhothai Ramkhamhaeng 30/1 (บ้านสุโขทัย ราม 30/1)",
@@ -17390,6 +17340,39 @@
     "location_source": "livinginsider",
     "living_zone": "รามคำแหง หัวหมาก",
     "living_project_url": "https://www.livinginsider.com/living_project/31/3938/1/all/all/1/บ้านสุโขทัย-รามคำแหง.html"
+  },
+  {
+    "id": "60e3a503-8dfc-570e-b338-a05b6fea1ad5",
+    "bucket_key": "baansuansukhumvit",
+    "canonical_name": "BaanSuan Sukhumvit (บ้านสวนสุขุมวิท)",
+    "aliases": [
+      "Baan Suan Sukhumvit (บ้านสวนสุขุมวิท)",
+      "BaanSuan Sukhumvit (บ้านสวนสุขุมวิท)"
+    ],
+    "transit_unverified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
+    "zone_unverified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
+    ],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
+    "zone_verified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 2,
+    "location_source": "livinginsider",
+    "living_zone": "อ่อนนุช อุดมสุข",
+    "living_project_url": "https://www.livinginsider.com/living_project/19/4246/1/all/all/1/บ้านสวนสุขุมวิท.html"
   },
   {
     "id": "70b2d831-1fd8-599d-b676-fb29016d95c1",
@@ -17577,6 +17560,32 @@
     "location_source": "livinginsider",
     "living_zone": "สมุทรปราการ สำโรง",
     "living_project_url": "https://www.livinginsider.com/living_project/34/18981/1/all/all/1/บรอมป์ตัน-เพ็ท-เฟรนด์ลี่-สำโรง-สเตชั่น.html"
+  },
+  {
+    "id": "d08e3c18-5bfb-5d86-826f-2531a490f519",
+    "bucket_key": "bromptonpetfriendlysukhumvit107",
+    "canonical_name": "Brompton Pet Friendly Sukhumvit 107 (บรอมตัน เพ็ท เฟรนด์ลี่ สุขุมวิท 107)",
+    "aliases": [
+      "BROMPTON Pet Friendly Sukhumvit 107 (บรอมตัน เพ็ท เฟรนด์ลี่ สุขุมวิท 107)",
+      "Brompton Pet Friendly Sukhumvit 107 (บรอมตัน เพ็ท เฟรนด์ลี่ สุขุมวิท 107)"
+    ],
+    "transit_unverified": [
+      "BTS แบริ่ง"
+    ],
+    "zone_unverified": [
+      "แบริ่ง",
+      "สุขุมวิท"
+    ],
+    "transit_verified": [
+      "BTS แบริ่ง"
+    ],
+    "zone_verified": [
+      "แบริ่ง",
+      "สุขุมวิท"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 2
   },
   {
     "id": "29b6ff57-0403-51dd-bd27-c047b616760d",
@@ -17894,9 +17903,7 @@
     "id": "abe8a2b4-964e-5497-889e-5f2e1f7b4ec5",
     "bucket_key": "chewathairatchaprarop",
     "canonical_name": "Chewathai Ratchaprarop (ชีวาทัย ราชปรารภ)",
-    "aliases": [
-      "Chewathai Ratchaprarop (ชีวาทัย )"
-    ],
+    "aliases": [],
     "transit_unverified": [
       "BTS กรุงธนบุรี"
     ],
@@ -18056,7 +18063,8 @@
     "bucket_key": "dolceudomsuk",
     "canonical_name": "Dolce Udomsuk (โดว์เช่ อุดมสุข)",
     "aliases": [
-      "Dolce Udomsuk (โดล์เช่ อุดมสุข)"
+      "Dolce Udomsuk (โดล์เช่ อุดมสุข)",
+      "Dolce Udomsuk (โดว์เช่ อุดมสุข)"
     ],
     "transit_unverified": [
       "BTS อุดมสุข",
@@ -18407,8 +18415,9 @@
   {
     "id": "a9a056cb-8354-5e29-b9d8-f7c9888ba654",
     "bucket_key": "grooveratchadarama9",
-    "canonical_name": "Groove Ratchada - Rama 9 (กรู๊ฟ รัชดา - พระราม 9)",
+    "canonical_name": "Groove Ratchada-Rama 9 (กรูฟ รัชดา-พระราม 9)",
     "aliases": [
+      "Groove Ratchada - Rama 9 (กรู๊ฟ รัชดา - พระราม 9)",
       "Groove Ratchada-Rama 9 (กรูฟ รัชดา-พระราม 9)"
     ],
     "transit_unverified": [
@@ -19127,7 +19136,8 @@
     "bucket_key": "lifesathornsierra",
     "canonical_name": "Life Sathorn Sierra (ไลฟ์ สาทร เซียร์รา)",
     "aliases": [
-      "Life Sathorn Sierra (ไลฟ์ สาทร เซียร่า )"
+      "Life Sathorn Sierra (ไลฟ์ สาทร เซียร่า )",
+      "Life Sathorn Sierra (ไลฟ์ สาทร เซียร์รา)"
     ],
     "transit_unverified": [
       "BTS ช่องนนทรี",
@@ -19381,40 +19391,6 @@
     "living_project_url": "https://www.livinginsider.com/living_project/13/1068/1/all/all/1/ลุมพินี-วิลล์-ศูนย์วัฒนธรรม.html"
   },
   {
-    "id": "3a202f82-7220-5fc5-b173-2c378a6fc32b",
-    "bucket_key": "lumpinivilleonnut46",
-    "canonical_name": "Lumpini Ville On Nut 46 (ลุมพินี วิลล์ อ่อนนุช 46)",
-    "aliases": [
-      "Lumpini Ville On Nut 46 (ลุมพินี วิลล์ อ่อนนุช 46 )",
-      "Lumpini Ville On Nut 46 (ลุมพินี วิลล์ อ่อนนุช 46)",
-      "Lumpini ville Onnut 46 (ลุมพินี วิลล์ อ่อนนุช 46)"
-    ],
-    "transit_unverified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง",
-      "BTS บางจาก"
-    ],
-    "zone_unverified": [
-      "อ่อนนุช",
-      "พระโขนง",
-      "บางจาก"
-    ],
-    "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง",
-      "BTS บางจาก"
-    ],
-    "zone_verified": [
-      "อ่อนนุช",
-      "พระโขนง",
-      "บางจาก"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 2,
-    "location_source": "corridor:onnut"
-  },
-  {
     "id": "4c09f4bc-dcce-562d-a123-b84b45fb8f98",
     "bucket_key": "lumpinivilleramkhamhaeng44",
     "canonical_name": "Lumpini Ville Ramkhamhaeng 44 (ลุมพินี วิลล์ รามคำแหง 44)",
@@ -19442,6 +19418,39 @@
     "location_source": "livinginsider",
     "living_zone": "รามคำแหง หัวหมาก",
     "living_project_url": "https://www.livinginsider.com/living_project/31/1154/1/all/all/1/ลุมพินี-วิลล์-รามคำแหง-44.html"
+  },
+  {
+    "id": "3a202f82-7220-5fc5-b173-2c378a6fc32b",
+    "bucket_key": "lumpinivilleonnut46",
+    "canonical_name": "Lumpini ville Onnut 46 (ลุมพินี วิลล์ อ่อนนุช 46)",
+    "aliases": [
+      "Lumpini Ville On Nut 46 (ลุมพินี วิลล์ อ่อนนุช 46 )",
+      "Lumpini ville Onnut 46 (ลุมพินี วิลล์ อ่อนนุช 46)"
+    ],
+    "transit_unverified": [
+      "BTS อ่อนนุช",
+      "BTS พระโขนง",
+      "BTS บางจาก"
+    ],
+    "zone_unverified": [
+      "อ่อนนุช",
+      "พระโขนง",
+      "บางจาก"
+    ],
+    "transit_verified": [
+      "BTS อ่อนนุช",
+      "BTS พระโขนง",
+      "BTS บางจาก"
+    ],
+    "zone_verified": [
+      "อ่อนนุช",
+      "พระโขนง",
+      "บางจาก"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 2,
+    "location_source": "corridor:onnut"
   },
   {
     "id": "bc7b0116-36ec-51cf-9277-488b92642cf3",
@@ -21214,9 +21223,9 @@
   {
     "id": "08222e3e-3fa0-5871-80f6-baf8a5bd342c",
     "bucket_key": "royalresidencepark",
-    "canonical_name": "Royal Residence Park (รอยัล เรสสิเดนซ์ พาร์ค)",
+    "canonical_name": "Royal Residence Park (รอยัล เรสซิเดนท์ พาร์",
     "aliases": [
-      "Royal Residence Park (รอยัล เรสซิเดนท์ พาร์"
+      "Royal Residence Park (รอยัล เรสสิเดนซ์ พาร์ค)"
     ],
     "transit_unverified": [
       "MRT ลุมพินี"
@@ -21433,7 +21442,8 @@
     "bucket_key": "sensesukhumvit",
     "canonical_name": "Sense Sukhumvit (เซ้นส์ สุขุมวิท)",
     "aliases": [
-      "Sense Sukhumvit (เซนส์ สุขุมวิท)"
+      "Sense Sukhumvit (เซนส์ สุขุมวิท)",
+      "Sense Sukhumvit (เซ้นส์ สุขุมวิท)"
     ],
     "transit_unverified": [
       "BTS อุดมสุข",
@@ -21501,7 +21511,8 @@
     "bucket_key": "siameseexclusivesukhumvit42",
     "canonical_name": "Siamese Exclusive Sukhumvit 42 (ไซมิส เอ๊กซ์คลูซีพ สุขุมวิท 42)",
     "aliases": [
-      "Siamese Exclusive Sukhumvit 42 (ไซมิส เอ็กซ์คลูซีฟ สุขุมวิท 42)"
+      "Siamese Exclusive Sukhumvit 42 (ไซมิส เอ็กซ์คลูซีฟ สุขุมวิท 42)",
+      "Siamese Exclusive Sukhumvit 42 (ไซมิส เอ๊กซ์คลูซีพ สุขุมวิท 42)"
     ],
     "transit_unverified": [
       "BTS เอกมัย",
@@ -21845,35 +21856,36 @@
     "location_source": "corridor:bangsue"
   },
   {
-    "id": "cb7b578b-ec53-5df3-ad0c-191961262809",
-    "bucket_key": "tealsathorntaksin",
-    "canonical_name": "TEAL Sathorn - Taksin (ทีล สาทร - ตากสิน)",
+    "id": "2421b64a-58de-5241-a176-db94bdc9ecf9",
+    "bucket_key": "theaddresssiamratchathewi",
+    "canonical_name": "THE ADDRESS SIAM - RATCHATHEWI (ดิ แอดเดรส สยาม - ราชเทวี)",
     "aliases": [
-      "Teal Sathorn-Taksin (ทีล สาทร-ตากสิน)"
+      "The Address Siam Ratchathewi ( ดิ แอดเดรส สยาม-ราชเทวี )"
     ],
     "transit_unverified": [
-      "BTS วงเวียนใหญ่",
-      "BTS กรุงธนบุรี"
+      "BTS สยาม",
+      "BTS ราชเทวี",
+      "BTS ชิดลม"
     ],
     "zone_unverified": [
-      "เจริญนคร",
-      "วงเวียนใหญ่"
+      "สยาม",
+      "ปทุมวัน",
+      "ชิดลม"
     ],
     "transit_verified": [
-      "BTS วงเวียนใหญ่",
-      "BTS โพธิ์นิมิตร",
-      "BTS กรุงธนบุรี"
+      "BTS สยาม",
+      "BTS ราชเทวี",
+      "BTS ชิดลม"
     ],
     "zone_verified": [
-      "เจริญนคร",
-      "วงเวียนใหญ่"
+      "สยาม",
+      "ปทุมวัน",
+      "ชิดลม"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2,
-    "location_source": "livinginsider",
-    "living_zone": "วงเวียนใหญ่ เจริญนคร",
-    "living_project_url": "https://www.livinginsider.com/living_project/26/901/1/all/all/1/ทีล-สาทร-ตากสิน.html"
+    "location_source": "corridor:siam"
   },
   {
     "id": "0a4003a1-2c11-5911-b824-6e8045e38f51",
@@ -21985,6 +21997,38 @@
     "location_source": "corridor:ekamai"
   },
   {
+    "id": "cb7b578b-ec53-5df3-ad0c-191961262809",
+    "bucket_key": "tealsathorntaksin",
+    "canonical_name": "Teal Sathorn-Taksin (ทีล สาทร-ตากสิน)",
+    "aliases": [
+      "TEAL Sathorn - Taksin (ทีล สาทร - ตากสิน)",
+      "Teal Sathorn-Taksin (ทีล สาทร-ตากสิน)"
+    ],
+    "transit_unverified": [
+      "BTS วงเวียนใหญ่",
+      "BTS กรุงธนบุรี"
+    ],
+    "zone_unverified": [
+      "เจริญนคร",
+      "วงเวียนใหญ่"
+    ],
+    "transit_verified": [
+      "BTS วงเวียนใหญ่",
+      "BTS โพธิ์นิมิตร",
+      "BTS กรุงธนบุรี"
+    ],
+    "zone_verified": [
+      "เจริญนคร",
+      "วงเวียนใหญ่"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 2,
+    "location_source": "livinginsider",
+    "living_zone": "วงเวียนใหญ่ เจริญนคร",
+    "living_project_url": "https://www.livinginsider.com/living_project/26/901/1/all/all/1/ทีล-สาทร-ตากสิน.html"
+  },
+  {
     "id": "caff061e-9c33-52d6-9934-985ceb4ef7a0",
     "bucket_key": "telathonglor",
     "canonical_name": "Tela Thonglor (เทล่า ทองหล่อ)",
@@ -22030,40 +22074,6 @@
     "bucket_key": "theaddresssiam",
     "canonical_name": "The Address Siam (ดิ แอดเดรส สยาม)",
     "aliases": [],
-    "transit_unverified": [
-      "BTS สยาม",
-      "BTS ราชเทวี",
-      "BTS ชิดลม"
-    ],
-    "zone_unverified": [
-      "สยาม",
-      "ปทุมวัน",
-      "ชิดลม"
-    ],
-    "transit_verified": [
-      "BTS สยาม",
-      "BTS ราชเทวี",
-      "BTS ชิดลม"
-    ],
-    "zone_verified": [
-      "สยาม",
-      "ปทุมวัน",
-      "ชิดลม"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 2,
-    "location_source": "corridor:siam"
-  },
-  {
-    "id": "2421b64a-58de-5241-a176-db94bdc9ecf9",
-    "bucket_key": "theaddresssiamratchathewi",
-    "canonical_name": "The Address Siam-Ratchathewi (ดิ แอดเดรส สยาม - ราชเทวี)",
-    "aliases": [
-      "THE ADDRESS SIAM - RATCHATHEWI (ดิ แอดเดรส สยาม - ราชเทวี)",
-      "The Address Siam Ratchathewi ( ดิ แอดเดรส สยาม-ราชเทวี )",
-      "The Address Siam-Ratchathewi (ดิ แอดเดรส สยาม - ราชเทวี)"
-    ],
     "transit_unverified": [
       "BTS สยาม",
       "BTS ราชเทวี",
@@ -22331,9 +22341,17 @@
     "canonical_name": "The Four Wings Residence (เดอะ โฟร์ วิงส์ เรสสิเด้นส์)",
     "aliases": [],
     "transit_unverified": [
-      "BTS อโศก"
+      "MRT สุขุมวิท",
+      "MRT เพชรบุรี",
+      "BTS นานา"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "เพชรบุรีตัดใหม่",
+      "นานา"
+    ],
     "transit_verified": [],
     "zone_verified": [],
     "location_status": "pending_verification",
@@ -23583,9 +23601,7 @@
     "id": "50852e7f-30cd-53b5-8d39-d459b4632c7f",
     "bucket_key": "viverama9",
     "canonical_name": "VIVE Rama 9 (วีเว่ พระราม 9)",
-    "aliases": [
-      "VIVE Rama 9 : วีเว่ พระราม 9, กรุงเทพ"
-    ],
+    "aliases": [],
     "transit_unverified": [
       "MRT พระราม 9",
       "ARL มักกะสัน"
@@ -24865,11 +24881,8 @@
   {
     "id": "8963d45d-2aec-5906-82d4-b95a5445603c",
     "bucket_key": "amarantaresidence",
-    "canonical_name": "Amaranta Residence (อมรันทา เรสซิเด้นซ์)",
-    "aliases": [
-      "Amaranta Residence (อมรันทา เรสซิเดนซ์)",
-      "Amaranta Residence (อมรันทา เรสซิเด้นซ์)"
-    ],
+    "canonical_name": "Amaranta Residence (อมรันทา เรสซิเดนซ์)",
+    "aliases": [],
     "transit_unverified": [
       "MRT ห้วยขวาง"
     ],
@@ -25955,7 +25968,9 @@
     "transit_unverified": [
       "BTS ช่องนนทรี"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "พระราม 3 สาธุประดิษฐ์"
+    ],
     "transit_verified": [],
     "zone_verified": [],
     "location_status": "pending_verification",
@@ -26314,11 +26329,8 @@
   {
     "id": "083d30ff-8ae4-59d9-9cce-f94ce577a646",
     "bucket_key": "baanklangmuangurbanionsrinakarinบ้านกลางเมืองเออร์บาเนี่ยนศรีนครินทร์",
-    "canonical_name": "Baan Klang Muang Urbanion Srinakarin : บ้านกลางเมือง เออร์บาเนี่ยน ศรีนครินทร์",
-    "aliases": [
-      "Baan Klang Muang Urbanion Srinakarin (บ้านกลางเมือง เออร์บาเนี่ยน ศรีนครินทร์)",
-      "Baan Klang Muang Urbanion Srinakarin : บ้านกลางเมือง เออร์บาเนี่ยน ศรีนครินทร์"
-    ],
+    "canonical_name": "Baan Klang Muang Urbanion Srinakarin (บ้านกลางเมือง เออร์บาเนี่ยน ศรีนครินทร์)",
+    "aliases": [],
     "transit_unverified": [
       "BTS กรุงธนบุรี",
       "BTS เจริญนคร"
@@ -29070,7 +29082,6 @@
     "canonical_name": "Chewathai Kaset - Nawamin (ชีวาทัย เกษตร - นวมินทร์)",
     "aliases": [],
     "transit_unverified": [
-      "BTS มหาวิทยาลัยเกษตรศาสตร์",
       "BTS เสนา ม.เกษตร"
     ],
     "zone_unverified": [],
@@ -29763,10 +29774,8 @@
   {
     "id": "bc773911-3048-57ca-b79d-54a9055d3476",
     "bucket_key": "condolettelightconvent",
-    "canonical_name": "Condolette Light Convent (คอนโดเลต ไลท์ คอนแวนต์)",
-    "aliases": [
-      "Condolette Light Convent (คอนโดเลตไลต์ คอนแวนต์)"
-    ],
+    "canonical_name": "Condolette Light Convent (คอนโดเลตไลต์ คอนแวนต์)",
+    "aliases": [],
     "transit_unverified": [
       "BTS ศาลาแดง"
     ],
@@ -30748,7 +30757,12 @@
     "transit_unverified": [
       "BTS ห้าแยกลาดพร้าว"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เอกมัย",
+      "พระโขนง"
+    ],
     "transit_verified": [
       "BTS ห้าแยกลาดพร้าว"
     ],
@@ -31562,10 +31576,8 @@
   {
     "id": "56c9ac31-7cc0-5701-874b-4d3a9dda8720",
     "bucket_key": "grandbangkokboulevardratchadaramintra2",
-    "canonical_name": "Grand Bangkok Boulevard Ratchada-Ramintra 2(แกรนด์ บางกอก บูเลอวาร์ด รัชดา-รามอินทรา 2)",
-    "aliases": [
-      "Grand Bangkok Boulevard Ratchada–Ramintra 2 (แกรนด์บางกอก บูเลอวาร์ด รัชดา–รามอินทรา 2)"
-    ],
+    "canonical_name": "Grand Bangkok Boulevard Ratchada–Ramintra 2 (แกรนด์บางกอก บูเลอวาร์ด รัชดา–รามอินทรา 2)",
+    "aliases": [],
     "transit_unverified": [
       "MRT ห้วยขวาง",
       "MRT รัชดาภิเษก",
@@ -33438,37 +33450,6 @@
     "living_project_url": "https://www.livinginsider.com/living_project/27/919/1/all/all/1/ideo-สาทร-ท่าพระ.html"
   },
   {
-    "id": "6637458a-e5dc-5cd5-b1cb-fd7a28183421",
-    "bucket_key": "ideosukhumvit115",
-    "canonical_name": "IDEO Sukhumvit 115 (ไอดีโอ สุขุมวิท 115)",
-    "aliases": [
-      "Ideo Sukhumvit 115 (ไอดีโอ สุขุมวิท 115)"
-    ],
-    "transit_unverified": [
-      "BTS สำโรง",
-      "BTS กรุงธนบุรี"
-    ],
-    "zone_unverified": [
-      "สมุทรปราการ สำโรง",
-      "เจริญนคร"
-    ],
-    "transit_verified": [
-      "BTS ปู่เจ้าสมิงพราย",
-      "BTS สำโรง",
-      "BTS กรุงธนบุรี"
-    ],
-    "zone_verified": [
-      "สมุทรปราการ สำโรง",
-      "เจริญนคร"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 1,
-    "location_source": "livinginsider",
-    "living_zone": "สมุทรปราการ สำโรง",
-    "living_project_url": "https://www.livinginsider.com/living_project/34/60/1/all/all/1/ideo-สุขุมวิท-115.html"
-  },
-  {
     "id": "8560e9ae-2ff1-5806-9698-da36e0e96a64",
     "bucket_key": "ikon77onnut",
     "canonical_name": "IKON 77 Onnut (ไอคอน 77 อ่อนนุช)",
@@ -33773,6 +33754,35 @@
     "location_source": "livinginsider",
     "living_zone": "เสรีไทย-นิด้า",
     "living_project_url": "https://www.livinginsider.com/living_project/32/3181/1/all/all/1/ไอดีโอ-รามคำแหง-ลำสาลี-สเตชั่น.html"
+  },
+  {
+    "id": "6637458a-e5dc-5cd5-b1cb-fd7a28183421",
+    "bucket_key": "ideosukhumvit115",
+    "canonical_name": "Ideo Sukhumvit 115 (ไอดีโอ สุขุมวิท 115)",
+    "aliases": [],
+    "transit_unverified": [
+      "BTS สำโรง",
+      "BTS กรุงธนบุรี"
+    ],
+    "zone_unverified": [
+      "สมุทรปราการ สำโรง",
+      "เจริญนคร"
+    ],
+    "transit_verified": [
+      "BTS ปู่เจ้าสมิงพราย",
+      "BTS สำโรง",
+      "BTS กรุงธนบุรี"
+    ],
+    "zone_verified": [
+      "สมุทรปราการ สำโรง",
+      "เจริญนคร"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 1,
+    "location_source": "livinginsider",
+    "living_zone": "สมุทรปราการ สำโรง",
+    "living_project_url": "https://www.livinginsider.com/living_project/34/60/1/all/all/1/ideo-สุขุมวิท-115.html"
   },
   {
     "id": "5c5f3b5e-40a6-5c56-9a39-8674f6508229",
@@ -35686,10 +35696,8 @@
   {
     "id": "40ff3a36-d13a-50bc-9533-8b56e63c5ce9",
     "bucket_key": "lumpinimixxthepharaksrinakarin",
-    "canonical_name": "Lumpini Mixx Thepharak - Srinakarin (ลุมพินี มิกซ์ เทพารักษ์ - ศรีนครินทร์)",
-    "aliases": [
-      "Lumpini Mixx Thepharak–Srinakarin (ลุมพินี มิกซ์ เทพารักษ์–ศรีนครินทร์)"
-    ],
+    "canonical_name": "Lumpini Mixx Thepharak–Srinakarin (ลุมพินี มิกซ์ เทพารักษ์–ศรีนครินทร์)",
+    "aliases": [],
     "transit_unverified": [
       "BTS กรุงธนบุรี"
     ],
@@ -36731,7 +36739,9 @@
     "transit_unverified": [
       "BTS สะพานควาย"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "เจริญนคร"
+    ],
     "transit_verified": [
       "BTS สะพานควาย"
     ],
@@ -38214,6 +38224,30 @@
     "listing_count": 1
   },
   {
+    "id": "5c60d291-3af1-5192-95d3-34d3a773d9d1",
+    "bucket_key": "nuenoblefaichaiwanglang",
+    "canonical_name": "NUE Noble Fai Chai–Wang Lang (นิว โนเบิล ไฟฉาย–วังหลัง)",
+    "aliases": [],
+    "transit_unverified": [
+      "BTS เจริญนคร",
+      "BTS กรุงธนบุรี"
+    ],
+    "zone_unverified": [
+      "เจริญนคร"
+    ],
+    "transit_verified": [
+      "BTS เจริญนคร",
+      "BTS กรุงธนบุรี"
+    ],
+    "zone_verified": [
+      "เจริญนคร"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 1,
+    "location_source": "corridor:riverside"
+  },
+  {
     "id": "621b0c93-da4d-5f4d-808d-e7698a9b4c6e",
     "bucket_key": "narevacharoennakhon",
     "canonical_name": "Na Reva Charoennakhon (ณ รีวา เจริญนคร)",
@@ -38775,9 +38809,16 @@
     "canonical_name": "Noble Ambience Sarasin (โนเบิล แอมเบียนส์ สารสิน)",
     "aliases": [],
     "transit_unverified": [
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS อ่อนนุช"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "บางจาก",
+      "พระโขนง",
+      "สุขุมวิท",
+      "อ่อนนุช",
+      "อุดมสุข"
+    ],
     "transit_verified": [],
     "zone_verified": [],
     "location_status": "pending_verification",
@@ -39226,32 +39267,6 @@
     "location_source": "corridor:rama9"
   },
   {
-    "id": "5c60d291-3af1-5192-95d3-34d3a773d9d1",
-    "bucket_key": "nuenoblefaichaiwanglang",
-    "canonical_name": "Nue Noble Faichai - Wanglang (นิว โนเบิล ไฟฉาย - วังหลัง)",
-    "aliases": [
-      "NUE Noble Fai Chai–Wang Lang (นิว โนเบิล ไฟฉาย–วังหลัง)"
-    ],
-    "transit_unverified": [
-      "BTS เจริญนคร",
-      "BTS กรุงธนบุรี"
-    ],
-    "zone_unverified": [
-      "เจริญนคร"
-    ],
-    "transit_verified": [
-      "BTS เจริญนคร",
-      "BTS กรุงธนบุรี"
-    ],
-    "zone_verified": [
-      "เจริญนคร"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 1,
-    "location_source": "corridor:riverside"
-  },
-  {
     "id": "ba9f0419-022a-5a7d-92c5-4dee0e96f2aa",
     "bucket_key": "nuenoblengamwongwan",
     "canonical_name": "Nue Noble Ngamwongwan (นิว โนเบิล งามวงศ์วาน)",
@@ -39557,7 +39572,12 @@
     "transit_unverified": [
       "BTS เอกมัย"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "เอกมัย"
+    ],
     "transit_verified": [],
     "zone_verified": [],
     "location_status": "pending_verification",
@@ -41583,9 +41603,13 @@
     "canonical_name": "Prestige Future รังสิต (เพรสทีจ ฟิวเจอร์ - รังสิต)",
     "aliases": [],
     "transit_unverified": [
-      "BTS คูคต"
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "บางนา",
+      "เจริญนคร"
+    ],
     "transit_verified": [],
     "zone_verified": [],
     "location_status": "pending_verification",
@@ -42623,11 +42647,8 @@
   {
     "id": "3a0a62fe-50ea-535c-9f2b-65b82c7006fa",
     "bucket_key": "resortayenakat",
-    "canonical_name": "Resorta Yen-akat (รีสอร์ทต้า เย็นอากาศ)",
-    "aliases": [
-      "Resorta Yen-Akat ( รีสอร์ทต้า เย็นอากาศ )",
-      "Resorta Yen-akat (รีสอร์ทต้า เย็นอากาศ)"
-    ],
+    "canonical_name": "Resorta Yen-Akat ( รีสอร์ทต้า เย็นอากาศ )",
+    "aliases": [],
     "transit_unverified": [
       "BTS ช่องนนทรี"
     ],
@@ -42714,7 +42735,6 @@
     "canonical_name": "Rich Park @ Triple Station (ริชพาร์ค @ ทริปเปิ้ล สเตชั่น)",
     "aliases": [],
     "transit_unverified": [
-      "MRT พัฒนาการ",
       "MRT พัฒนา"
     ],
     "zone_unverified": [],
@@ -42780,9 +42800,15 @@
     "canonical_name": "Richpark Chaopraya (ริชพาร์ค เจ้าพระยา)",
     "aliases": [],
     "transit_unverified": [
-      "ARL รามคำแหง"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "พระราม 9",
+      "มักกะสัน"
+    ],
     "transit_verified": [],
     "zone_verified": [],
     "location_status": "pending_verification",
@@ -42925,38 +42951,6 @@
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1
-  },
-  {
-    "id": "468d144b-9921-56cd-8825-03ef1b797c3b",
-    "bucket_key": "scopepromsri",
-    "canonical_name": "SCOPE PROMSRI (สโคป พร้อมศรี)",
-    "aliases": [
-      "Scope Promsri (สโคป พร้อมศรี)"
-    ],
-    "transit_unverified": [
-      "BTS พร้อมพงษ์"
-    ],
-    "zone_unverified": [
-      "ทองหล่อ",
-      "อโศก",
-      "สุขุมวิท",
-      "พร้อมพงษ์"
-    ],
-    "transit_verified": [
-      "BTS พร้อมพงษ์"
-    ],
-    "zone_verified": [
-      "ทองหล่อ",
-      "อโศก",
-      "สุขุมวิท",
-      "พร้อมพงษ์"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 1,
-    "location_source": "livinginsider",
-    "living_zone": "สุขุมวิท อโศก ทองหล่อ",
-    "living_project_url": "https://www.livinginsider.com/living_project/18/4027/1/all/all/1/สโคป-พร้อมศรี.html"
   },
   {
     "id": "4871342d-d32e-50ba-860d-3b171c2f70b7",
@@ -43380,10 +43374,8 @@
   {
     "id": "972d0583-29e6-5dca-a4d5-39005498fed7",
     "bucket_key": "sathorngardens",
-    "canonical_name": "Sathorn Gardens (สาทร การ์เด้นส์)",
-    "aliases": [
-      "Sathorn Gardens (สาธร การ์เด้นส์)"
-    ],
+    "canonical_name": "Sathorn Gardens (สาธร การ์เด้นส์)",
+    "aliases": [],
     "transit_unverified": [
       "MRT ลุมพินี",
       "MRT สีลม",
@@ -43608,10 +43600,8 @@
   {
     "id": "d7087f96-7b30-5526-bc61-f58f2ef6f111",
     "bucket_key": "savviphahol2",
-    "canonical_name": "Savvi Phahol 2 (แซฟวี่ พหล 2)",
-    "aliases": [
-      "Savvi Phahol 2 (แซฟวี่ พหล2)"
-    ],
+    "canonical_name": "Savvi Phahol 2 (แซฟวี่ พหล2)",
+    "aliases": [],
     "transit_unverified": [
       "BTS อารีย์"
     ],
@@ -43627,6 +43617,36 @@
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1
+  },
+  {
+    "id": "468d144b-9921-56cd-8825-03ef1b797c3b",
+    "bucket_key": "scopepromsri",
+    "canonical_name": "Scope Promsri (สโคป พร้อมศรี)",
+    "aliases": [],
+    "transit_unverified": [
+      "BTS พร้อมพงษ์"
+    ],
+    "zone_unverified": [
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "พร้อมพงษ์"
+    ],
+    "transit_verified": [
+      "BTS พร้อมพงษ์"
+    ],
+    "zone_verified": [
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "พร้อมพงษ์"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 1,
+    "location_source": "livinginsider",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/4027/1/all/all/1/สโคป-พร้อมศรี.html"
   },
   {
     "id": "0952d6be-9f53-52ea-a1aa-03d1fbedf965",
@@ -44736,11 +44756,8 @@
   {
     "id": "844e82ec-bba2-5068-b793-a1e06489e5b9",
     "bucket_key": "stlouisgrandterrace",
-    "canonical_name": "St. Louis Grand Terrace (เซ็นต์หลุยส์ แกรนด์ เทอเรส)",
-    "aliases": [
-      "St. Louis Grand Terrace (เซ็นต์ห ลุยส์ แกรนด์ เทอเรส)",
-      "St. Louis Grand Terrace (เซ็นต์หลุยส์ แกรนด์ เทอเรส)"
-    ],
+    "canonical_name": "St. Louis Grand Terrace (เซ็นต์ห ลุยส์ แกรนด์ เทอเรส)",
+    "aliases": [],
     "transit_unverified": [
       "BTS เซนต์หลุยส์"
     ],
@@ -46454,12 +46471,9 @@
   {
     "id": "17b7cade-fe1f-5f54-ba32-14cddb724237",
     "bucket_key": "thebasephetkasem",
-    "canonical_name": "The Base Phetkasem (เดอะ เบส เพชรเกษม)",
-    "aliases": [
-      "The Base Phetkasem (เดอะเบส เพชรเกษม)"
-    ],
+    "canonical_name": "The Base Phetkasem (เดอะเบส เพชรเกษม)",
+    "aliases": [],
     "transit_unverified": [
-      "MRT เพชรเกษม 48",
       "MRTสถานีเพชรเกษม48"
     ],
     "zone_unverified": [],
@@ -46879,6 +46893,34 @@
     "location_source": "livinginsider",
     "living_zone": "บางนา แบริ่ง ลาซาล",
     "living_project_url": "https://www.livinginsider.com/living_project/20/544/1/all/all/1/เดอะ-โคสต์-แบงค็อก-สุขุมวิท-บางนา.html"
+  },
+  {
+    "id": "88852af4-9dd4-5b4f-9f7f-51328dc78e59",
+    "bucket_key": "theconnect15onnutเดอะคอนเนค15อ่อนนุช",
+    "canonical_name": "The Connect 15 Onnut (เดอะ คอนเนค 15 อ่อนนุช)",
+    "aliases": [],
+    "transit_unverified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
+    "zone_unverified": [
+      "ลาดกระบัง สุวรรณภูมิ",
+      "เจริญนคร"
+    ],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
+    "zone_verified": [
+      "ลาดกระบัง สุวรรณภูมิ",
+      "เจริญนคร"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 1,
+    "location_source": "livinginsider",
+    "living_zone": "ลาดกระบัง สุวรรณภูมิ",
+    "living_project_url": "https://www.livinginsider.com/living_project/57/16604/6/all/all/1/เดอะคอนเนค-15-อ่อนนุช.html"
   },
   {
     "id": "c365f9ad-e703-583a-8963-7082976af447",
@@ -47459,10 +47501,8 @@
   {
     "id": "1163f476-bc2b-5b37-aa58-f663d4c6e36e",
     "bucket_key": "thekeyprachachuen",
-    "canonical_name": "The Key Pracha Chuen (เดอะ คีย์ ประชาชื่น)",
-    "aliases": [
-      "The Key Prachachuen (เดอะ คีย์ ประชาชื่น)"
-    ],
+    "canonical_name": "The Key Prachachuen (เดอะ คีย์ ประชาชื่น)",
+    "aliases": [],
     "transit_unverified": [
       "BTS กรุงธนบุรี",
       "BTS เจริญนคร"
@@ -48602,7 +48642,6 @@
     "canonical_name": "The Origin Phahol - Saphanmai (ดิ ออริจิ้น พหลฯ - สะพานใหม่)",
     "aliases": [],
     "transit_unverified": [
-      "BTS วัดพระศรีมหาธาตุ",
       "BTS สะพานใหม่"
     ],
     "zone_unverified": [],
@@ -49193,10 +49232,8 @@
   {
     "id": "0119b452-3df0-57c0-842d-ea215ca5a02e",
     "bucket_key": "theroomsathorntaksin",
-    "canonical_name": "The Room Sathorn - Taksin (เดอะ รูม สาทร - ตากสิน)",
-    "aliases": [
-      "The Room Sathorn–Taksin (เดอะ รูม สาทร–ตากสิน)"
-    ],
+    "canonical_name": "The Room Sathorn–Taksin (เดอะ รูม สาทร–ตากสิน)",
+    "aliases": [],
     "transit_unverified": [
       "BTS ช่องนนทรี",
       "BTS สุรศักดิ์",
@@ -49399,10 +49436,8 @@
   {
     "id": "569ccc4a-9a5e-50dc-859b-e4d320aa2688",
     "bucket_key": "thesignaturebyurbano",
-    "canonical_name": "The Signature by URBANO (เดอะ ซิกเนเจอร์ บาย เออร์บาโน่)",
-    "aliases": [
-      "The Signature by Urbano (เดอะ ซิกเนเจอร์ บาย เออร์บาโน่)"
-    ],
+    "canonical_name": "The Signature by Urbano (เดอะ ซิกเนเจอร์ บาย เออร์บาโน่)",
+    "aliases": [],
     "transit_unverified": [
       "BTS สะพานควาย",
       "BTS กรุงธนบุรี"
@@ -49990,10 +50025,8 @@
   {
     "id": "4cb711fd-fee4-565f-a117-3f941c637396",
     "bucket_key": "theuniquesukhumvit621",
-    "canonical_name": "The Unique Sukhumvit 62/1 (ดิ ยูนิค สุขุมวิท 62/1)",
-    "aliases": [
-      "The Unique Sukhumvit 62/1 (ดิ ยูนีค สุขุมวิท 62/1)"
-    ],
+    "canonical_name": "The Unique Sukhumvit 62/1 (ดิ ยูนีค สุขุมวิท 62/1)",
+    "aliases": [],
     "transit_unverified": [
       "BTS เอกมัย",
       "BTS ทองหล่อ"
@@ -50395,37 +50428,6 @@
     "living_project_url": "https://www.livinginsider.com/living_project/10/133/1/all/all/1/เดอะ-เซสท-คอนโด.html"
   },
   {
-    "id": "88852af4-9dd4-5b4f-9f7f-51328dc78e59",
-    "bucket_key": "theconnect15onnutเดอะคอนเนค15อ่อนนุช",
-    "canonical_name": "The connect 15 onnut : เดอะคอนเนค 15 อ่อนนุช",
-    "aliases": [
-      "The Connect 15 Onnut (เดอะ คอนเนค 15 อ่อนนุช)",
-      "The connect 15 onnut : เดอะคอนเนค 15 อ่อนนุช"
-    ],
-    "transit_unverified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
-    "zone_unverified": [
-      "ลาดกระบัง สุวรรณภูมิ",
-      "เจริญนคร"
-    ],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
-    "zone_verified": [
-      "ลาดกระบัง สุวรรณภูมิ",
-      "เจริญนคร"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 1,
-    "location_source": "livinginsider",
-    "living_zone": "ลาดกระบัง สุวรรณภูมิ",
-    "living_project_url": "https://www.livinginsider.com/living_project/57/16604/6/all/all/1/เดอะคอนเนค-15-อ่อนนุช.html"
-  },
-  {
     "id": "0ed718ff-c176-510d-a5b6-fbe743d89d99",
     "bucket_key": "theexcel50",
     "canonical_name": "The excel 50 (ดิ เอ็กเซล 50)",
@@ -50577,11 +50579,8 @@
   {
     "id": "df4ef99f-9c6c-5b16-901a-722973cfe0e4",
     "bucket_key": "tonsononeresidence",
-    "canonical_name": "Tonson One Residence (ต้นสน วัน เรสซิเดนซ์)",
-    "aliases": [
-      "Tonson One Residence (ต้นสน วัน เรสซิเดนซ์ )",
-      "Tonson One Residence (ต้นสน วัน เรสซิเดนซ์)"
-    ],
+    "canonical_name": "Tonson One Residence (ต้นสน วัน เรสซิเดนซ์ )",
+    "aliases": [],
     "transit_unverified": [
       "BTS ชิดลม"
     ],
@@ -50963,6 +50962,36 @@
     "location_status": "pending_verification",
     "is_thru_thonglor": false,
     "listing_count": 1
+  },
+  {
+    "id": "65734aab-a953-5f55-872f-6f6cf9bfe390",
+    "bucket_key": "townplusonnutทาวน์พลัสอ่อนนุช",
+    "canonical_name": "Town Plus Onnut (ทาวน์พลัส อ่อนนุช)",
+    "aliases": [],
+    "transit_unverified": [
+      "BTS อ่อนนุช",
+      "BTS พระโขนง",
+      "BTS บางจาก"
+    ],
+    "zone_unverified": [
+      "อ่อนนุช",
+      "พระโขนง",
+      "บางจาก"
+    ],
+    "transit_verified": [
+      "BTS อ่อนนุช",
+      "BTS พระโขนง",
+      "BTS บางจาก"
+    ],
+    "zone_verified": [
+      "อ่อนนุช",
+      "พระโขนง",
+      "บางจาก"
+    ],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 1,
+    "location_source": "corridor:onnut"
   },
   {
     "id": "84dd5567-f40d-5ccd-9849-a584b7b15239",
@@ -52769,39 +52798,6 @@
     "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
-    "id": "65734aab-a953-5f55-872f-6f6cf9bfe390",
-    "bucket_key": "townplusonnutทาวน์พลัสอ่อนนุช",
-    "canonical_name": "Townplus On Nut : ทาวน์พลัส อ่อนนุช",
-    "aliases": [
-      "Town Plus Onnut (ทาวน์พลัส อ่อนนุช)",
-      "Townplus On Nut : ทาวน์พลัส อ่อนนุช"
-    ],
-    "transit_unverified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง",
-      "BTS บางจาก"
-    ],
-    "zone_unverified": [
-      "อ่อนนุช",
-      "พระโขนง",
-      "บางจาก"
-    ],
-    "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง",
-      "BTS บางจาก"
-    ],
-    "zone_verified": [
-      "อ่อนนุช",
-      "พระโขนง",
-      "บางจาก"
-    ],
-    "location_status": "verified",
-    "is_thru_thonglor": false,
-    "listing_count": 1,
-    "location_source": "corridor:onnut"
-  },
-  {
     "id": "46f8aa57-f527-5419-ae57-d363028f212f",
     "bucket_key": "townplussuvarnabhumi",
     "canonical_name": "Townplus Suvarnabhumi (ทาวน์พลัส สุวรรณภูมิ)",
@@ -53042,9 +53038,17 @@
     "canonical_name": "U Delight Residence (ยู ดีไลท์ เรสซิเดนซ์)",
     "aliases": [],
     "transit_unverified": [
-      "MRT เพชรบุรี"
+      "MRT เพชรบุรี",
+      "ARL มักกะสัน",
+      "MRT สุขุมวิท"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "เพชรบุรีตัดใหม่",
+      "มักกะสัน"
+    ],
     "transit_verified": [],
     "zone_verified": [],
     "location_status": "pending_verification",
@@ -53263,10 +53267,8 @@
   {
     "id": "8cc3332b-598b-5119-94a7-66715b1b118f",
     "bucket_key": "urbanoabsolutesathontaksin",
-    "canonical_name": "Urbano Absolute Sathon - Taksin (เออบาโน่ แอบโซลูท สาทร - ตากสิน)",
-    "aliases": [
-      "Urbano Absolute Sathon - Taksin (เออบาโน่ แอบโซลูท สาทร-ตากสิน)"
-    ],
+    "canonical_name": "Urbano Absolute Sathon - Taksin (เออบาโน่ แอบโซลูท สาทร-ตากสิน)",
+    "aliases": [],
     "transit_unverified": [
       "BTS กรุงธนบุรี",
       "BTS เจริญนคร",
@@ -54530,7 +54532,9 @@
     "transit_unverified": [
       "BTS ห้าแยกลาดพร้าว"
     ],
-    "zone_unverified": [],
+    "zone_unverified": [
+      "เจริญนคร"
+    ],
     "transit_verified": [
       "BTS ห้าแยกลาดพร้าว"
     ],
@@ -59357,7 +59361,7 @@
     "canonical_name": "โครงการบุราสิริ กรุงเทพกรีฑา(Burasiri Krungthepkreetha)",
     "aliases": [],
     "transit_unverified": [
-      "BTS อนุสาวรีย์ชัยสมรภูมิ"
+      "BTS สะพานควาย"
     ],
     "zone_unverified": [],
     "transit_verified": [],
@@ -59525,3000 +59529,5 @@
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1
-  },
-  {
-    "id": "70c1be4d-2ea0-53f3-a3f0-da6370eadcc1",
-    "bucket_key": "33tower",
-    "canonical_name": "33 Tower (33 ทาวเวอร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS พร้อมพงษ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6925cf66-bc3b-5287-a2c7-a74f16de1778",
-    "bucket_key": "aspacemerattanathibet",
-    "canonical_name": "A Space Me Rattanathibet (เอ สเปซ มี รัตนาธิเบศร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT แยกนนทบุรี 1"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d11c1125-9f4e-5079-b7c6-4826928040bf",
-    "bucket_key": "arq10krungthepkreetha",
-    "canonical_name": "ARQ10 Krungthep Kreetha (อาร์ค-เท็น กรุงเทพกรีฑา)",
-    "aliases": [],
-    "transit_unverified": [
-      "ARL หัวหมาก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "94ce988a-e328-58f1-b048-effd4a4280f8",
-    "bucket_key": "altitudeunicornsathornthapra",
-    "canonical_name": "Altitude Unicorn Sathorn - Thapra (อัลติจูด ยูนิคอร์น สาทร - ท่าพระ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ตลาดพลู"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1356b0a0-8d09-503b-a072-b3c2a976d997",
-    "bucket_key": "areeyamandarinasukhumvit77อารียาแมนดารีนาสุขุมวิท77",
-    "canonical_name": "Areeya Mandarina Sukhumvit 77  อารียา แมนดารีนา สุขุมวิท 77",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "b61a9255-c96c-5e3a-ba1e-3b90cc2b2cc3",
-    "bucket_key": "arnaekkamaiอาณาเอกมัยกรุงเทพ",
-    "canonical_name": "Arna Ekkamai  อาณา เอกมัย กรุงเทพ",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS เอกมัย"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "8e0e055f-582c-536d-8fdd-2d16b7fb760c",
-    "bucket_key": "aspireerawan",
-    "canonical_name": "Aspire Erawan (แอสปาย เอราวัณ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ช้างเอราวัณ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "14c21087-f13b-503a-beac-fb9a8e8624cd",
-    "bucket_key": "aspirepinklaoarunammarin",
-    "canonical_name": "Aspire Pinklao - Arunammarin (แอสปาย ปิ่นเกล้า - อรุณอมรินทร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางขุนนนท์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3d23db84-217e-53b7-8b4a-232886de67ac",
-    "bucket_key": "aspiresathornratchapruek",
-    "canonical_name": "Aspire Sathorn - Ratchapruek (แอสปาย สาทร - ราชพฤกษ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางหว้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "652f9bf8-9cd6-51b9-95e3-f74cca05f1f7",
-    "bucket_key": "atmozflowminburi",
-    "canonical_name": "Atmoz Flow Minburi (แอทโมซ โฟลว์ มีนบุรี )",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT เศรษฐบุตรบำเพ็ญ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "563f7ea1-83d2-56f0-9f59-d9dab0fbc465",
-    "bucket_key": "bloftsukhumvit107",
-    "canonical_name": "B - Loft Sukhumvit 107 (บี ลอฟท์ สุขุมวิท 107)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สำโรง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "9012cfaf-d97e-5d55-809f-9fac5d1a9dd5",
-    "bucket_key": "baannavatara",
-    "canonical_name": "Baan Navatara (บ้าน นวธารา)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d13afcde-b2c4-56bd-8bf3-8fbd05ac271a",
-    "bucket_key": "baansamsen",
-    "canonical_name": "Baan Samsen (บ้าน สามเสน)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางอ้อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "a12b1fea-8049-5660-993f-ce360808c45e",
-    "bucket_key": "baansirisukhumvit10",
-    "canonical_name": "Baan Siri Sukhumvit 10 (บ้าน สิริ สุขุมวิท 10)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS นานา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "763e2522-d44f-5703-888a-0b871d3c5cc8",
-    "bucket_key": "bangkokhorizonratchadathapra",
-    "canonical_name": "Bangkok Horizon Ratchada - Thapra (แบงค์คอก ฮอไรซอน รัชดา - ท่าพระ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ตลาดพลู"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3f7f1f9d-cfcf-5ee7-8fbd-0aa119d2a0d3",
-    "bucket_key": "bangkokhorizonsathornnarathiwas",
-    "canonical_name": "Bangkok Horizon Sathorn - Narathiwas (แบงค์คอก ฮอไรซอน สาทร - นราธิวาส)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สุรศักดิ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "ece4ba90-7e2f-52b7-bfe2-863ae5e3ad7e",
-    "bucket_key": "blizcondominiumrama9huamak",
-    "canonical_name": "Bliz Condominium Rama 9 - Hua Mak (บลิซ คอนโดมิเนียม พระราม 9 - หัวหมาก)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT พัฒนาการ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c364fde7-95f2-598d-be03-90ce8e2596d5",
-    "bucket_key": "blossomcondofashion",
-    "canonical_name": "Blossom Condo @ Fashion (บลอสซั่ม คอนโด แอท แฟชั่น)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT แฟชั่นไอส์แลนด์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e986a2d8-870f-5aba-8e51-e85dfb75e050",
-    "bucket_key": "bridgesathornnarathiwas",
-    "canonical_name": "Bridge Sathorn - Narathiwas (บริดจ์ สาทร - นราธิวาส)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ช่องนนทรี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "bfdee587-9c3d-50e5-8a46-38988c89f8bf",
-    "bucket_key": "brixcondominium",
-    "canonical_name": "Brix Condominium (บริกซ์ คอนโดมิเนียม)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สิรินธร"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6561e1d0-bf85-5ed5-ab21-ec7a525af119",
-    "bucket_key": "bugaankrungthepkreetha",
-    "canonical_name": "BuGaan Krungthep Kreetha : บูก้าน กรุงเทพ กรีฑา",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "542c5cd1-bc1d-5ba3-bf7e-8a3af0866dac",
-    "bucket_key": "buathongthaniparkville2",
-    "canonical_name": "Buathong Thani Park Ville 2 (บัวทองธานี พาร์ควิลล์ 2)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางใหญ่"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "8d878c3f-254f-5841-86ee-f4a3c8bc2be4",
-    "bucket_key": "casacondoratchadaratchaphruek",
-    "canonical_name": "Casa Condo Ratchada - Ratchaphruek (คาซ่า คอนโด รัชดา - ราชพฤกษ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ตลาดพลู"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5ed14629-1c79-5b7e-8fb8-9f05b202e0dc",
-    "bucket_key": "centricratchadasuthisan",
-    "canonical_name": "Centric Ratchada - Suthisan (เซ็นทริค รัชดา - สุทธิสาร)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สุทธิสาร"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5b49045c-f726-582e-bb49-a594e8b0a45b",
-    "bucket_key": "chapteroneshinebangpo",
-    "canonical_name": "Chapter One Shine Bangpo (แชปเตอร์ วัน ชายน์ บางโพ)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT เตาปูน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "11625979-853a-5742-8d15-a6713b719dc6",
-    "bucket_key": "chapteronethecampusladprao1",
-    "canonical_name": "Chapter one The campus Ladprao 1 (แชปเตอร์ วัน เดอะ แคมปัส ลาดพร้าว 1)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT พหลโยธิน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "dd0a2c92-2308-5161-9e7f-6b66273518d0",
-    "bucket_key": "charoennakhonriverside",
-    "canonical_name": "Charoennakhon - Riverside (แชปเตอร์ เจริญนคร - ริเวอร์ไซต์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS กรุงธนบุรี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "37f00be3-7a38-5bb6-9b11-ae693b7589db",
-    "bucket_key": "chateauintownsukhumvit641",
-    "canonical_name": "Chateau In Town Sukhumvit 64/1 (ชาโตว์ อินทาวน์ สุขุมวิท 64/1)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ปุณณวิถี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6f196eaa-404d-5cb9-bc59-418251aa5a7d",
-    "bucket_key": "chateauintownsukhumvit64skymoon",
-    "canonical_name": "Chateau in Town Sukhumvit 64 Skymoon (ชาโตว์ อินทาวน์ สุขุมวิท 64 สกายมูน)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ปุณณวิถี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d5651654-f2f7-556d-bb5b-13f23ad4be03",
-    "bucket_key": "chewathaipinklao",
-    "canonical_name": "Chewathai PinKlao (ชีวาทัย ปิ่นเกล้า)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางยี่ขัน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "de757731-eefa-53ad-aaca-cef21c07d881",
-    "bucket_key": "cityhomeratchadapinklao",
-    "canonical_name": "City Home Ratchada - Pinklao (ซิตี้ โฮม รัชดา - ปิ่นเกล้า)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อุดมสุข",
-      "MRT บางอ้อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e3790643-b9fd-5b5e-b384-0cc16283fceb",
-    "bucket_key": "cityhomesrinakarin",
-    "canonical_name": "City Home Srinakarin (ซิตี้ โฮม ศรีนครินทร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ศรีลาซาล"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6570c3ab-0f17-5d23-a246-846f84740d75",
-    "bucket_key": "cityhomethaphraintersection",
-    "canonical_name": "City Home Tha Phra Intersection (ซิตี้ โฮม สี่แยกท่าพระ)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ท่าพระ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6644e008-817a-51b8-a817-859044c7d743",
-    "bucket_key": "cityvilla",
-    "canonical_name": "City Villa (ซิตี้ วิลล่า)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ลาดพร้าว 101"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c2a14f38-e583-5856-a3bb-23670b291e50",
-    "bucket_key": "comoprimobangna",
-    "canonical_name": "Como Primo Bangna : โคโม่ พรีโม่ บางนา",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS วัดศรีเอี่ยม"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "dfb4049f-9271-535d-b5d7-a4d6d108e03a",
-    "bucket_key": "condomeonnutrama9",
-    "canonical_name": "Condo Me Onnut - Rama 9 (คอนโด มี อ่อนนุช - พระราม 9)",
-    "aliases": [],
-    "transit_unverified": [
-      "ARL ทับช้าง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "acb8e73d-aebe-5e61-908b-9ede3909be91",
-    "bucket_key": "coolcondorama7",
-    "canonical_name": "Cool Condo Rama 7 (คูล คอนโด พระราม 7)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางอ้อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "07b47dcc-7796-5753-a98c-a755ccb138d6",
-    "bucket_key": "easerama2",
-    "canonical_name": "Ease Rama 2 (อีส พระราม 2)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ภาษีเจริญ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "14f086e9-f897-51ad-8064-d6aacf48600f",
-    "bucket_key": "establiss",
-    "canonical_name": "Esta Bliss (เอสต้า บลิซ)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT เศรษฐบุตรบำเพ็ญ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "daf5ba08-a10b-5aaf-b3bb-274e23bce39d",
-    "bucket_key": "fiftyfifthtower",
-    "canonical_name": "Fifty Fifth Tower (ฟิฟตี้ ฟิฟท์ ทาวเวอร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "102fa951-9fdf-5d8b-bc06-e4c579429ed9",
-    "bucket_key": "grandeplenoราชพฤกษ์",
-    "canonical_name": "GRANDE PLENO ราชพฤกษ์",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางรักใหญ่"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1b783b76-e520-51f6-96cb-a250fb48da94",
-    "bucket_key": "grandbangkokboulevardsathornkanlapaphruek",
-    "canonical_name": "Grand Bangkok Boulevard Sathorn-Kanlapaphruek : แกรนด์ บางกอก บูเลอวาร์ด สาทร-กัลปพฤกษ์",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางหว้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "196dfe78-b7b1-537f-8517-2b94ced16b76",
-    "bucket_key": "grandioramintrawongwaen",
-    "canonical_name": "Grandio Ramintra-Wongwaen : แกรนดิโอ รามอินทรา-วงแหวน",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT คู้บอน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "636e3f5f-f553-5824-9654-6fd8348755e6",
-    "bucket_key": "hofudomsukhomeofficeซอยสุขุมวิท1011วชิรธรรมสาธิต51",
-    "canonical_name": "HOF Udomsuk Home Office  ซอย สุขุมวิท 101/1 วชิรธรรมสาธิต 51",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อุดมสุข"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "b3a77e08-21ce-5f8f-9655-9624b38f9c8f",
-    "bucket_key": "homeofficeสุขุมวิท4",
-    "canonical_name": "HOME  OFFICE สุขุมวิท4",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1a35f6ec-5c3e-5a3f-9356-1e3dfed7d93e",
-    "bucket_key": "hansarrajdamri",
-    "canonical_name": "Hansar Rajdamri (หรรษา ราชดำริ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ราชดำริ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "bec8beb2-25c7-5c0d-b9b7-2531c2ab339b",
-    "bucket_key": "hisukhumvit93",
-    "canonical_name": "Hi Sukhumvit 93 (ไฮ สุขุมวิท 93)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางจาก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e50bde73-adeb-5eb5-ab70-cd7d3a07dd00",
-    "bucket_key": "hydesukhumvit",
-    "canonical_name": "Hyde Sukhumvit (ไฮด์ สุขุมวิท)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS นานา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e4a43cf5-d35e-5fda-b9bf-ebd9dbeb66c2",
-    "bucket_key": "jwboulevardsrivara",
-    "canonical_name": "J.W. Boulevard Srivara (เจ ดับบลิว บูเลอวาร์ด ศรีวรา)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ลาดพร้าว"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "35e38ce3-1771-5565-ba38-bf7fdba4cef0",
-    "bucket_key": "jwcityratchada32",
-    "canonical_name": "J.W. City Ratchada 32 (เจ ดับบลิว ซิตี้ รัชดาภิเษก 32)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ลาดพร้าว"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "73e25626-757e-56f7-8387-d0818f21a56b",
-    "bucket_key": "jwcondo",
-    "canonical_name": "JW Condo (เจ ดับบลิว คอนโด)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ดอนเมือง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "a24831b6-f3c4-5d45-92d7-8362a7c65543",
-    "bucket_key": "kavetownspace",
-    "canonical_name": "KAVE Town Space (เคฟ ทาวน์ สเปซ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS รังสิต"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "30a8f3cf-d82d-5015-a270-2197709d29a1",
-    "bucket_key": "kensingtonkasetcampus",
-    "canonical_name": "Kensington Kaset Campus (เคนซิงตัน เกษตร แคมปัส)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางบัว"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "0aba81ff-0113-55eb-ab8b-061bdccc9017",
-    "bucket_key": "kiartithaneecitymansion",
-    "canonical_name": "Kiarti Thanee City Mansion (เกียรติธานี ซิตี้แมนชั่น)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT เพชรบุรี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "116b4b55-3bce-5d7b-9874-76792f8c01a9",
-    "bucket_key": "knightsbridgeskyriverocean",
-    "canonical_name": "KnightsBridge Sky River Ocean (ไนท์บริดจ์ สกาย ริเวอร์ โอเชี่ยน)",
-    "aliases": [
-      "KnightsBridge Sky River Ocean",
-      "KnightsBridge Sky River Ocean (ไนท์บริดจ์ สกาย ริเวอร์ โอเชี่ยน)"
-    ],
-    "transit_unverified": [
-      "BTS ปากน้ำ",
-      "BTS โรงเรียนนายเรือ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "71d08381-528e-5287-b987-966750a8058b",
-    "bucket_key": "knightsbridgeduplextiwanon",
-    "canonical_name": "Knightsbridge Duplex Tiwanon (ไนท์บริดจ์ ดูเพล็กซ์ ติวานนท์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT กระทรวงสาธารณสุข"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "0933ae72-305a-5ef1-9f93-f0e699091ce5",
-    "bucket_key": "knightsbridgesukhumvitthepharak",
-    "canonical_name": "Knightsbridge Sukhumvit - Thepharak (ไนท์บริดจ์ สุขุมวิท - เทพารักษ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ทิพวัล"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "313de191-cc37-55ec-af3e-375ddb5bd622",
-    "bucket_key": "knightsridgebearing",
-    "canonical_name": "Knightsridge Bearing (ไนท์บริดจ์ แบริ่ง)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สำโรง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "04f7042a-a73b-5185-b52f-b1ce4c2df538",
-    "bucket_key": "kraamsukhumvit26",
-    "canonical_name": "Kraam Sukhumvit 26 (คราม สุขุมวิท 26)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS พร้อมพงษ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "995321dd-32a4-5acc-a8dd-818de5d239b0",
-    "bucket_key": "landmarkekamairamindra",
-    "canonical_name": "Landmark Ekamai-Ramindra : แลนด์มาร์ค เอกมัย-รามอินทรา",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT มัยลาภ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "f1d2b050-e52e-57db-b340-b2364d08ddf5",
-    "bucket_key": "lumpinicondotownbodindecharamkhamhaeng",
-    "canonical_name": "Lumpini Condo Town Bodindecha - Ramkhamhaeng (ลุมพินี คอนโดทาวน์ บดินทรเดชา - รามคำแหง)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT รามคำแหง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "01b3bbfa-3f69-5bad-8ed8-0f124c5321dc",
-    "bucket_key": "lumpinicondotownraminthranawamin",
-    "canonical_name": "Lumpini Condo Town Raminthra - Nawamin (ลุมพินี คอนโดทาวน์ รามอินทรา - นวมินทร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT รามอินทรา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "16a2934a-3116-5ccc-abec-e3bf5b5065c0",
-    "bucket_key": "lumpiniplacenarathiwas24",
-    "canonical_name": "Lumpini Place Narathiwas 24 (ลุมพินี เพลส นราธิวาส 24)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c97687db-94f7-541b-ab73-0780455796ee",
-    "bucket_key": "lumpiniplacepinklao1",
-    "canonical_name": "Lumpini Place Pinklao 1 (ลุมพินี เพลส ปิ่นเกล้า 1)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางยี่ขัน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "2d637a14-adc6-5449-9b65-1a607e12f19c",
-    "bucket_key": "lumpiniplaceratchadasathu",
-    "canonical_name": "Lumpini Place Ratchada - Sathu (ลุมพินี เพลส รัชดา - สาธุ )",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS เซนต์หลุยส์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "31ae2c7c-94fc-5d1d-b955-c8cde3cccb89",
-    "bucket_key": "lumpiniplacesrinakarinhuamarkstation",
-    "canonical_name": "Lumpini Place Srinakarin - Huamark Station (ลุมพินี เพลส ศรีนครินทร์ - หัวหมาก สเตชัน)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT หัวหมาก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "37e65a9e-caff-5dad-aa74-5158794bd84a",
-    "bucket_key": "lumpinivilleonnut46v",
-    "canonical_name": "Lumpini Ville On Nut 46 (ลุมพินี วิลล์ อ่อนนุช 46)v",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1efe3fdc-646c-5afd-b437-86b93938b596",
-    "bucket_key": "lumpinivillephatanakansrinakarin",
-    "canonical_name": "Lumpini Ville Phatanakan - Srinakarin (ลุมพินี วิลล์ พัฒนาการ - ศรีนครินทร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT หัวหมาก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5d1c77aa-61fe-5ed9-aacb-ad745bf5f067",
-    "bucket_key": "lumpinivilleprachachuenphongphet2",
-    "canonical_name": "Lumpini Ville Prachachuen - Phongphet 2 (ลุมพินี วิลล์ ประชาชื่น - พงษ์เพชร 2)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางซื่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "90f57484-8920-5160-95c1-9be6658cdc14",
-    "bucket_key": "lumpinivilleramintralaksi",
-    "canonical_name": "Lumpini Ville Ramintra - Laksi (ลุมพินี วิลล์ รามอินทรา - หลักสี่)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS วัดพระศรีมหาธาตุ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "fdd5431f-98c3-5aa1-8368-f1079249d1f2",
-    "bucket_key": "lumpinivilleramkhamhaeng602",
-    "canonical_name": "Lumpini Ville Ramkhamhaeng 60/2 (ลุมพินี วิลล์ รามคำแหง 60/2)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT แยกลำสาลี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "2cabc23c-23ae-583a-b06e-0c91942ba6f3",
-    "bucket_key": "marquesukhumvit",
-    "canonical_name": "MARQUE Sukhumvit (มาร์ค สุขุมวิท)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS พร้อมพงษ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "be4c727b-a54f-54b8-92ec-254bf16de48d",
-    "bucket_key": "manthanaonnutwongwaen4",
-    "canonical_name": "Manthana Onnut–Wongwaen 4 : มัณฑนา อ่อนนุช-วงแหวน 4",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ศรีนครินทร์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3a91d13f-0d03-5c0c-ba45-44fa0c3a2a98",
-    "bucket_key": "merlintower",
-    "canonical_name": "Merlin Tower (เมอร์ลิน ทาวเวอร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สุรศักดิ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e080e56e-c90f-5aa1-b684-fdfc27cd174a",
-    "bucket_key": "metroskybangsueprachachuen",
-    "canonical_name": "Metro Sky Bangsue - Prachachuen (เมโทร สกาย บางซ่อน อินเตอร์เชนจ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางซ่อน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e99df0d1-9463-5ea2-b8e7-98e9510e189f",
-    "bucket_key": "moontower",
-    "canonical_name": "Moon Tower (มูน ทาวเวอร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e36e6897-17a0-538f-be76-cab9e75a923f",
-    "bucket_key": "motifcondo",
-    "canonical_name": "Motif Condo (โมทีฟ คอนโด)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS วงเวียนใหญ่"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "b88a290b-9792-51cc-b0d8-d922b54e7b7e",
-    "bucket_key": "nichepridetaopooninterchange",
-    "canonical_name": "Niche Pride Taopoon - Interchange (นิช ไพรด์ เตาปูน - อินเตอร์เชนจ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT เตาปูน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "37ae641a-3892-51a5-809c-0fa10e86caf0",
-    "bucket_key": "nirvanadefinesrinakarinrama9เนอวานาดีฟายน์ศรีนครินทร์พระราม9",
-    "canonical_name": "Nirvana Define Srinakarin-Rama9 เนอวานา ดีฟายน์ ศรีนครินทร์-พระราม 9",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ศรีกรีฑา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d2c82cf0-11b7-5857-8618-9146625accbc",
-    "bucket_key": "noblereflex",
-    "canonical_name": "Noble Reflex (โนเบิล รีเฟลกซ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อารีย์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "ff9f109f-960e-50f0-a62e-2b909bec4a8c",
-    "bucket_key": "nobleresidencepattanakarnโนเบิลเรสซิเดนซ์พัฒนาการ",
-    "canonical_name": "Noble Residence Pattanakarn  โนเบิล เรสซิเดนซ์ พัฒนาการ",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "830af037-7824-5a75-9202-075eca3d393d",
-    "bucket_key": "nottinghi2theexclusivecharoenkrung",
-    "canonical_name": "Notting Hill The Exclusive Charoen Krung (น็อตติ้ง ฮิลล์ ดิ เอ็กซ์คลูซีฟ เจริญกรุง)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สะพานตากสิน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "328ffaf6-ee1b-5438-a7ac-bd16f6ea9bc1",
-    "bucket_key": "nuenoblesrinakarinlasalle",
-    "canonical_name": "Nue Noble Srinakarin - Lasalle (นิว โนเบิล ศรีนครินทร์ - ลาซาล)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ศรีลาซาล"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1aad2e86-ab8e-56cf-ae27-977f3adc6216",
-    "bucket_key": "origincourtyardthonglor",
-    "canonical_name": "ORIGIN COURTYARD Thonglor (ออริจิ้น คอร์ทยาร์ด ทองหล่อ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "a129df5a-8d88-51da-b325-defa8d86e562",
-    "bucket_key": "onyxphaholyothin",
-    "canonical_name": "Onyx Phaholyothin (ออนเน็กซ์ พหลโยธิน)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สะพานควาย"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "b761ba12-c051-569d-ba29-0b4a3da34f2d",
-    "bucket_key": "orientalresidence",
-    "canonical_name": "Oriental Residence (โอเรียนเต็ล เรสซิเด็นซ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS เพลินจิต"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "402958e9-93f4-52e1-91c4-5f8b7fd796ed",
-    "bucket_key": "prhome2พีอาร์โฮม2",
-    "canonical_name": "P.R. Home II พีอาร์โฮม2",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5590b154-1fdf-577d-92b6-73641891798c",
-    "bucket_key": "perfectmasterpiececenturyrattanathibet",
-    "canonical_name": "Perfect Masterpiece Century Rattanathibet : เพอร์เฟค มาสเตอร์พีซ เซนจูรี่ รัตนาธิเบศร์",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ไทรม้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "df77c8b1-1d23-558e-bb4e-b039aac0771d",
-    "bucket_key": "perfectplacerama9krungthepkreethaเพอร์เฟคเพลสพระราม9กรุงเทพกรีฑา",
-    "canonical_name": "Perfect Place Rama 9 - Krungthep Kreetha  เพอร์เฟค เพลส พระราม 9-กรุงเทพกรีฑา",
-    "aliases": [],
-    "transit_unverified": [
-      "ARL ลาดกระบัง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "f95add58-a837-573d-bf38-8d589443f168",
-    "bucket_key": "ploenploencondominiumtiwanonpakkred5",
-    "canonical_name": "Ploen Ploen Condominium Tiwanon - Pakkred 5 (เพลิน เพลิน คอนโดมิเนียม ติวานนท์ - ปากเกร็ด 5)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6d6c00a2-0d6c-5b8b-9525-79b76cfebc17",
-    "bucket_key": "plumcondopinklaostation",
-    "canonical_name": "Plum Condo Pinklao Station (พลัม คอนโด ปิ่นเกล้า สเตชั่น)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางยี่ขัน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "43b8fa69-2d69-5ea5-a9ff-2e46a51a28ea",
-    "bucket_key": "plumcondoram60interchange",
-    "canonical_name": "Plum Condo Ram 60 Interchange (พลัม คอนโด ราม 60 อินเตอร์เชนจ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT แยกลำสาลี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "25e79fb3-204a-56b8-b1cb-0537599a7bbe",
-    "bucket_key": "prueksathanififthcondotel",
-    "canonical_name": "Prueksa Thani Fifth Condotel (พฤกษาธานี ฟิฟ คอนโดเทล)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "deef39d1-b15c-53ee-9001-016f0ac8317e",
-    "bucket_key": "regentorchidtaladplu",
-    "canonical_name": "Regent Orchid Talad Plu (รีเจนท์ ออร์คิด ตลาดพลู)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ตลาดพลู"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1c8b4f0c-ec67-56f6-8e1e-061225e2a6ef",
-    "bucket_key": "rivieraup",
-    "canonical_name": "Riviera up (ริเวียร่า อัพ )",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT แจ้งวัฒนะ-ปากเกร็ด 28"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "4b695256-bd69-539a-9aa0-a014b1a4e693",
-    "bucket_key": "rommconvent",
-    "canonical_name": "Romm Convent (รมย์ คอนแวนต์ )",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ศาลาแดง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c293ae40-ef23-577a-b538-2c0699983c5b",
-    "bucket_key": "roomsathornstlouis",
-    "canonical_name": "Room Sathorn - St.Louis (เดอะ รูม สาทร - เซนหลุยส์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สุรศักดิ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "0cc99303-81e8-51b4-97b2-668825b55ca0",
-    "bucket_key": "sgatepremiumkanchanpisek",
-    "canonical_name": "S-Gate Premium Kanchanpisek : เอสเกต พรีเมียม กาญจนาภิเษก",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1d3efb24-1f65-539d-a88a-2071d203ee0a",
-    "bucket_key": "sccresidence",
-    "canonical_name": "S.C.C. Residence (เอส.ซี.ซี เรสซิเดนซ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS พร้อมพงษ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5c2a7257-9a88-5223-800d-63ca3e4ca9a6",
-    "bucket_key": "sailomcondominium",
-    "canonical_name": "Sailom Condominium (สายลม คอนโดมิเนียม)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อารีย์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "72e996dc-6773-51ff-bf6d-fba9261091a0",
-    "bucket_key": "sawitsuites",
-    "canonical_name": "Sawit Suites (สาวิทย์ สวีท )",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "ba7cfebe-8fa0-5998-a333-5e9ad08c1d68",
-    "bucket_key": "silomsurawong",
-    "canonical_name": "Silom Surawong (สีลม สุรวงศ์ คอนโดมิเนียม)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ศาลาแดง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "9ae58eec-9cad-5779-8a11-12e7aea122c2",
-    "bucket_key": "sunshine",
-    "canonical_name": "Sunshine (ซันชายน์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางนา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5435a904-1a9f-5bad-b76a-397a2bd579dc",
-    "bucket_key": "supalaiprimarivaพระราม3",
-    "canonical_name": "Supalai PRIMA RIVA พระราม 3 (ศุภาลัย พรีมา ริวา พระราม 3 - นราธิวาส)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "03bb2894-1a22-5141-bc89-48c400abeddc",
-    "bucket_key": "supalaiparkekkamaiศุภาลัยปาร์คเอกมัย",
-    "canonical_name": "Supalai Park Ekkamai - ศุภาลัย ปาร์ค เอกมัย",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS เอกมัย"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3a807bdc-775c-59a0-ae9c-fef02b68329d",
-    "bucket_key": "supalaiparkratchayothin",
-    "canonical_name": "Supalai Park Ratchayothin (ศุภาลัย ปาร์ค รัชโยธิน)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS พหลโยธิน 24"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "76b5a0a4-3943-52b0-9fc2-abc405aec942",
-    "bucket_key": "supalaiprimowongwaenpinklaorama5ศุภาลัยพรีโม่วงแหวนปิ่นเกล้าพระราม5",
-    "canonical_name": "Supalai Primo Wongwaen Pinklao-Rama 5  ศุภาลัย พรีโม่ วงแหวน ปิ่นเกล้า-พระราม 5",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "aa66d84c-dcf2-5eb3-b5f0-610a20fd8b2a",
-    "bucket_key": "supalaiverandarattanathibet",
-    "canonical_name": "Supalai Veranda Rattanathibet (ศุภาลัย เวอเรนด้า รัตนาธิเบศร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางกระสอ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "beab7a68-dbc1-5f2e-8897-a36128498fac",
-    "bucket_key": "theaddressสยามราชเทวี",
-    "canonical_name": "THE ADDRESS สยาม-ราชเทวี",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ราชเทวี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "72bc6865-b292-5e6c-881d-387eb8bf1f63",
-    "bucket_key": "thecityสุขุมวิทอ่อนนุช2",
-    "canonical_name": "THE CITY สุขุมวิท-อ่อนนุช 2",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c10d0581-616f-5c17-917f-3c72a38434ad",
-    "bucket_key": "thecityเอกมัยลาดพร้าว",
-    "canonical_name": "THE CITY เอกมัย-ลาดพร้าว",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ศูนย์วัฒนธรรมแห่งประเทศไทย"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "70911d38-30d7-545a-bf57-3e0646fbfb01",
-    "bucket_key": "thecubeloftsrinakarintheppharak",
-    "canonical_name": "THE CUBE LOFT Srinakarin - Theppharak (เดอะคิวบ์ ลอฟท์ ศรีนครินทร์ - เทพารักษ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS แบริ่ง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "de880d3c-e4a5-54af-86e0-66a82883de0f",
-    "bucket_key": "tejahotel",
-    "canonical_name": "Teja Hotel (เตยา โฮเทล)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อโศก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3888ac09-ab3f-506c-a6c0-92843f9b14b2",
-    "bucket_key": "thebangkoksathorntaksin",
-    "canonical_name": "The Bangkok Sathorn - Taksin (เดอะ แบงค็อก สาทร - ตากสิน)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS กรุงธนบุรี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "94c91d6c-589e-567b-b293-b2f6b4362fdc",
-    "bucket_key": "thebangkokthanonsub",
-    "canonical_name": "The Bangkok Thanon Sub (เดอะ แบงค็อก ถนนทรัพย์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สามย่าน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "46e1bd4f-785b-54e7-b9aa-775283018129",
-    "bucket_key": "thecompletenarathiwat",
-    "canonical_name": "The Complete Narathiwat (เดอะ คอมพลีท นราธิวาส)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "8e9de13b-8d8e-5373-b1ad-56aa0d58204f",
-    "bucket_key": "thecrestsukhumvit49",
-    "canonical_name": "The Crest Sukhumvit 49 (เดอะ เครสท์ สุขุมวิท 49)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "cc3f0b19-843e-5479-a28d-bf2feb5c7ff9",
-    "bucket_key": "thediplomatsathorn",
-    "canonical_name": "The Diplomat Sathorn (เดอะ ดิโพลแมท สาทร)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สุรศักดิ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "21771b87-c242-59cb-977c-80e1868c59c5",
-    "bucket_key": "theescapesukhumvit1011",
-    "canonical_name": "The Escape Sukhumvit 101/1 (ดิ เอสเคป สุขุมวิท 101/1)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ปุณณวิถี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "94e90def-452f-5f83-a93b-bdd1a7e64ed1",
-    "bucket_key": "thefinebyfinehomeari4paholyothin",
-    "canonical_name": "The Fine by Fine Home Ari 4 - Paholyothin (เดอะ ฟายน์ บาย ฟายน์ โฮม อารีย์ - พหลโยธิน)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อารีย์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "92b0fccb-8406-55e6-a9a0-8003635b0ea0",
-    "bucket_key": "thegallerybearing",
-    "canonical_name": "The Gallery Bearing (เดอะ แกลเลอรี่ แบริ่ง )",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สำโรง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c063e164-d310-5d78-bbb4-3958eb209b4a",
-    "bucket_key": "thekaze34hotelandservicedresidenceสุขุมวิท24",
-    "canonical_name": "The Kaze 34 Hotel and Serviced Residence สุขุมวิท 24",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "587f1191-33e7-5969-b239-7a6d47891de7",
-    "bucket_key": "thekeysathornratchapruek",
-    "canonical_name": "The Key Sathorn - Ratchapruek (เดอะ คีย์ สาทร - ราชพฤกษ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS วุฒากาศ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "85fca4db-2fae-5630-886c-8fb0defd20cc",
-    "bucket_key": "thekeywutthakat",
-    "canonical_name": "The Key Wutthakat (เดอะ คีย์ วุฒากาศ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS วุฒากาศ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "a2d6677b-862c-5258-a96c-5c1a4653107b",
-    "bucket_key": "thelivinphetkasem",
-    "canonical_name": "The LIVIN Phetkasem (เดอะ ลิฟวิ่น เพชรเกษม)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ภาษีเจริญ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "540c5230-acb1-5026-9d6f-96ff814ac732",
-    "bucket_key": "thelightnewyork",
-    "canonical_name": "The Light New York (เดอะ ไลท์ นิวยอร์ค)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ปุณณวิถี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d65f4eac-6a98-5687-b73a-5717635b1d0a",
-    "bucket_key": "thelinkadvance",
-    "canonical_name": "The Link Advance (เดอะ ลิงค์ แอดวานซ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "7c0b4aee-5f53-5389-8438-cfadb8917976",
-    "bucket_key": "themetropolissamronginterchange",
-    "canonical_name": "The Metropolis Samrong Interchange",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สำโรง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "7fc91f42-cf5c-5a9d-98ed-9dae3d5c2c8a",
-    "bucket_key": "thenicheidladprao130",
-    "canonical_name": "The Niche ID Ladprao 130 (เดอะ นิช ไอดี ลาดพร้าว 130)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ลาดพร้าว"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "0b0a70f7-352f-5321-984b-d1d119734b2d",
-    "bucket_key": "thenichemonobangnaphase1",
-    "canonical_name": "The Niche Mono Bangna Phase 1 (เดอะ นิช โมโน บางนา เฟส 1)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางนา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6c797af3-1100-5996-9309-0f5d92d20dd0",
-    "bucket_key": "theoriginsukhumvit105",
-    "canonical_name": "The Origin Sukhumvit 105 (ดิ ออริจิ้น สุขุมวิท 105)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ลาซาล"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "26f65fce-438a-51d9-b0be-23732a406b83",
-    "bucket_key": "thepresidentsathornratchaphruek2",
-    "canonical_name": "The President Sathorn - Ratchaphruek 2 (เดอะ เพรสซิเดนท์ สาทร - ราชพฤกษ์ 2)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางหว้า",
-      "MRT บางหว้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "43997533-7f72-576b-8982-82338df4d217",
-    "bucket_key": "thepresidentsathornratchaphruek3",
-    "canonical_name": "The President Sathorn - Ratchaphruek 3 (เดอะ เพรสซิเดนท์ สาทร - ราชพฤกษ์ 3)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางหว้า",
-      "BTS บางหว้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c9e719f2-678b-551f-a2ae-bc02ebea21c6",
-    "bucket_key": "theprivacythaphrainterchange",
-    "canonical_name": "The Privacy Thaphra Interchange (เดอะ ไพรเวซี่ ท่าพระ อินเตอร์เชนจ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ท่าพระ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "f314ec0c-78fa-5e5e-9c03-6d24e94e1587",
-    "bucket_key": "theprivateresidencerajdamri",
-    "canonical_name": "The Private Residence Rajdamri (เดอะ ไพรเวท เรสซิเด้นซ์ ราชดำริ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ราชดำริ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "f474409c-54ae-5133-81bf-20ce827878ef",
-    "bucket_key": "therichploenchitnana",
-    "canonical_name": "The Rich Ploenchit - Nana (เดอะริช เพลินจิต - นานา)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS นานา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "9cd627cf-f09f-5370-9e6b-ad64c230c641",
-    "bucket_key": "theriver",
-    "canonical_name": "The River (เดอะ ริเวอร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS เจริญนคร"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "671a91eb-26fb-50df-976c-6712b1742669",
-    "bucket_key": "theroomsukhumvit64",
-    "canonical_name": "The Room Sukhumvit 64 (เดอะ รูม สุขุมวิท 64)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ปุณณวิถี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "e8c3e70d-4ee2-5800-bbbf-52a9ff2dca48",
-    "bucket_key": "theroyalnavintower",
-    "canonical_name": "The Royal Navin Tower (เดอะ รอยัล นาวิน ทาวเวอร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT คลองเตย"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "af167edd-d14c-54f9-9074-315a65b5603a",
-    "bucket_key": "theseedmingle",
-    "canonical_name": "The Seed Mingle (เดอะ ซี้ด มิงเกิล)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ลุมพินี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "8e8ddb7e-4d03-5d65-b766-15db7e065864",
-    "bucket_key": "thestagetaopooninterchange",
-    "canonical_name": "The Stage Taopoon Interchange (เดอะ สเตจ เตาปูน - อินเตอร์เชนจ์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT เตาปูน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "58607fb0-ea23-5df2-abd2-f6cf0e0c178e",
-    "bucket_key": "thetreeladprao15",
-    "canonical_name": "The Tree Ladprao 15 (เดอะ ทรี ลาดพร้าว 15)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ลาดพร้าว"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "b24eb54d-6004-5374-b614-02c52d8c347d",
-    "bucket_key": "thetrustcondobtserawan",
-    "canonical_name": "The Trust Condo @BTS Erawan (เดอะ ทรัสต์ คอนโด @บีทีเอส เอราวัณ)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ช้างเอราวัณ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3250d41b-5d74-52d6-b30e-4471ccab8729",
-    "bucket_key": "townavenuesrinagarindra",
-    "canonical_name": "Town Avenue Srinagarindra : ทาวน์ อเวนิว ศรีนครินทร์",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ศรีนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "84bf98d3-fc3c-567c-b6a6-e9a761cdaa33",
-    "bucket_key": "townhomesukhumvit31asokphromphongกรุงเทพ",
-    "canonical_name": "Townhome Sukhumvit31 Asok-Phromphong, กรุงเทพ",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สุขุมวิท"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "f3a97814-8837-532b-8f6f-0e72bce1a6fc",
-    "bucket_key": "udelightrattanathibet",
-    "canonical_name": "U Delight Rattanathibet (ยู ดีไลท์ รัตนาธิเบศร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ศูนย์ราชการนนทบุรี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "0be2af68-84bc-5a8d-a141-85573da30e44",
-    "bucket_key": "ukasetnawamin",
-    "canonical_name": "U Kaset - Nawamin (ยู เกษตร - นวมินทร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ลาดปลาเค้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "ca47cc15-03e9-5860-ad98-0fe53aad09d8",
-    "bucket_key": "uvibhaladprao",
-    "canonical_name": "U Vibha-Ladprao (ยู วิภา-ลาดพร้าว)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT พหลโยธิน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "905f2978-7919-54e1-a98b-cd8650aecbb1",
-    "bucket_key": "urbansathornสาทรราชพฤกษ์",
-    "canonical_name": "URBAN SATHORN สาทร ราชพฤกษ์",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางหว้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3ab799b2-118f-5b07-9c85-09e084f7a2dc",
-    "bucket_key": "vanilamoonถนนจันทน์",
-    "canonical_name": "Vanila Moon ถนนจันทน์",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สะพานตากสิน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "7bb70c25-8256-57cd-adb2-4284d81862a8",
-    "bucket_key": "vantageratchavipa",
-    "canonical_name": "Vantage Ratchavipa (แวนเทจ รัชวิภา)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS รัชโยธิน"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "23983d80-da37-51a0-aa6e-c136f947839b",
-    "bucket_key": "vinoratchada32",
-    "canonical_name": "Vino Ratchada 32 (วีโน่ รัชดา 32)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ลาดพร้าว"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c50d434e-af62-50f1-a36a-d8e11e6f776c",
-    "bucket_key": "vonnapasukhumvit38",
-    "canonical_name": "Von Napa Sukhumvit 38 (วอน นภา สุขุมวิท 38)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "3f8d6e7d-c09f-5399-972e-975b7f4bb0ef",
-    "bucket_key": "voquesukhumvit31",
-    "canonical_name": "Voque Sukhumvit 31 (โว๊ค สุขุมวิท 31)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สุขุมวิท"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c3bb1fd4-1b9a-53b5-bf75-a0fdbb31b17e",
-    "bucket_key": "windratchayothin",
-    "canonical_name": "Wind Ratchayothin (วินด์ รัชโยธิน)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS พหลโยธิน 24"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c0b98284-83f8-5f18-978c-e76cbce340ed",
-    "bucket_key": "you3condoyakkaset",
-    "canonical_name": "You 3 Condo @ Yak Kaset (ยู ทรี คอนโด @ แยกเกษตร)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS เกษตรศาสตร์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "912e1268-9362-54cc-bcf0-76d29d14e5c7",
-    "bucket_key": "zenithplacehuaykhwang",
-    "canonical_name": "Zenith Place @ Huay Kwang (ซีนิธ เพลส แอท ห้วยขวาง)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "dd4a4a13-2c31-5368-988c-dfe19a2971ed",
-    "bucket_key": "dcondorattanathibet",
-    "canonical_name": "dcondo Rattanathibet (ดีคอนโด รัตนาธิเบศร์)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ไทรม้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "7b09ee85-6b81-5bf4-8556-93d1e9c77e75",
-    "bucket_key": "dcondopanaa",
-    "canonical_name": "dcondo panaa (ดีคอนโด พนา)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางขุนนท์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "4575413e-92ed-59e3-b655-3d21637b863a",
-    "bucket_key": "icondosalaya",
-    "canonical_name": "icondo Salaya (ไอ คอนโด ศาลายา)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "249860ce-f6ef-56f9-8174-bad05bac7ce6",
-    "bucket_key": "คอนโดชั้น16โรงแรมเอวาน่า",
-    "canonical_name": "คอนโด ชั้น 16 โรงแรมเอวาน่า",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางนา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "850fea94-1676-54ad-a0ae-e0b4183f402c",
-    "bucket_key": "ชวนชื่นทาวน์แก้วอินทร์บางใหญ่",
-    "canonical_name": "ชวนชื่น ทาวน์ แก้วอินทร์-บางใหญ่",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สามแยกบางใหญ่"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c91d30f0-8200-5ad8-8076-6eb74074bc31",
-    "bucket_key": "ชิเซนพัฒนาการ32",
-    "canonical_name": "ชิเซน พัฒนาการ 32 (Shizen Phatthanakan 32)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d0c7ef43-5645-59f2-9527-17eb1961ea31",
-    "bucket_key": "ตึก3ชั้นและพื้นที่ด้านข้างเนื้อที่ตึกพหลโยธินซอย2331",
-    "canonical_name": "ตึก 3 ชั้น และพื้นที่ด้านข้างเนื้อที่ตึก พหลโยธิน ซอย2 33/1",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อารีย์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "8f36db71-fa91-5bc0-97a8-87221b8302ea",
-    "bucket_key": "ทาวน์เฮาส์3ชั้น",
-    "canonical_name": "ทาวน์เฮาส์ 3 ชั้น",
-    "aliases": [
-      "ทาวน์เฮาส์3ชั้น"
-    ],
-    "transit_unverified": [
-      "BTS บางจาก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "ab3b50a8-ca46-5ab5-84f2-c9a6abdbd8f3",
-    "bucket_key": "ทาวน์เฮาส์4ชั้นมรวิภาซอุดมสุข41ถสุขุมวิท103",
-    "canonical_name": "ทาวน์เฮาส์ 4 ชั้น ม.รวิภา ซ.อุดมสุข41 ถ.สุขุมวิท103",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อุดมสุข"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "322f05c2-b877-58e8-a4f0-aa4812cd252a",
-    "bucket_key": "ทาวน์เฮาส์4ชั้นโครงการบ้านรวิภาสุขุมวิท103กรุงเทพ",
-    "canonical_name": "ทาวน์เฮาส์ 4 ชั้น โครงการ บ้านรวิภา สุขุมวิท 103 (BANN RAVIPA SUKHUMVIT 103), กรุงเทพ",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ปุณณวิถี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "a3c63e7d-0f76-55ee-a0e8-088a5b542523",
-    "bucket_key": "ทาวน์เฮาส์5ชั้นสุขุมวิท36",
-    "canonical_name": "ทาวน์เฮาส์ 5 ชั้น สุขุมวิท 36",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "aba625c0-5a06-5716-b1f1-3d8559357829",
-    "bucket_key": "ทาวน์เฮาส์ซสุขุมวิท971",
-    "canonical_name": "ทาวน์เฮาส์ ซ.สุขุมวิท97/1",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางจาก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1f4e6b3e-65dd-57a0-9e21-343596f8e01e",
-    "bucket_key": "ทาวน์เฮ้าส์ตึกติดbtsบางจาก",
-    "canonical_name": "ทาวน์เฮ้าส์ ตึกติด BTS บางจาก",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางจาก"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "85403427-80f3-53c5-bcd3-9dcbc66d2d8f",
-    "bucket_key": "ทาวน์โฮม3ชั้นลาดพร้าวนาคนิวาส",
-    "canonical_name": "ทาวน์โฮม 3 ชั้น ลาดพร้าว - นาคนิวาส",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c9287623-6272-5dc4-9431-3ccd5654adbf",
-    "bucket_key": "ทาวน์โฮมซอยโปร่งใจ",
-    "canonical_name": "ทาวน์โฮม ซอยโปร่งใจ",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1adc4f4b-fdda-57e6-a404-0803f82a5bd8",
-    "bucket_key": "ทาวน์โฮมแบริ่ง68",
-    "canonical_name": "ทาวน์โฮม แบริ่ง 68",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS แบริ่ง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "60479ae7-8ec1-51d2-9fd6-d0fc85efc823",
-    "bucket_key": "ที่ดินพร้อมอาคารริมแม่น้ำเจ้าพระยาถนนพระรามสาม",
-    "canonical_name": "ที่ดินพร้อมอาคาร ริมแม่น้ำเจ้าพระยาถนนพระรามสาม",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "900f0e48-101f-53da-ac64-2798a9a913d9",
-    "bucket_key": "นลินแกรนด์อเวนิว",
-    "canonical_name": "นลิน แกรนด์ อเวนิว (Nalin Grand Avenue)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5715b096-0646-50a6-be3b-fbe138cd6207",
-    "bucket_key": "บางกอกบูเลอวาร์ดแจ้งวัฒนะ2",
-    "canonical_name": "บางกอก บูเลอวาร์ด แจ้งวัฒนะ 2 (Bangkok Boulevard Changwattana 2)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สะพานพระนั่งเกล้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5f2f41cd-6fa3-5646-8bc1-53164e71e7e1",
-    "bucket_key": "บ้านกลางเมืองพระราม9",
-    "canonical_name": "บ้านกลางเมือง พระราม 9 (กรุงเทพกรีฑาตัดใหม่)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "ddd5efef-6ac0-5065-bc68-b5b62193bce7",
-    "bucket_key": "บ้านทาวน์เฮ้าส์ซอยสุขุมวิท1011",
-    "canonical_name": "บ้านทาวน์เฮ้าส์ ซอยสุขุมวิท 101/1",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ปุณณวิถี"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "299cbcaf-aea0-5c70-a685-d6abfaf0dab1",
-    "bucket_key": "บ้านหรูทองหล่อซอย4",
-    "canonical_name": "บ้านหรูทองหล่อ ซอย4",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "5ddc7c5a-059d-5186-9697-9ed3796e1bd0",
-    "bucket_key": "บ้านเดี่ยว2ชั้นทองหล่อ23",
-    "canonical_name": "บ้านเดี่ยว 2 ชั้น ทองหล่อ 23",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "338c30eb-8ba0-59e4-9615-f55af256ecc0",
-    "bucket_key": "บ้านเดี่ยว2ชั้นพร้อมดาดฟ้าลาดพร้าว48",
-    "canonical_name": "บ้านเดี่ยว 2 ชั้น พร้อมดาดฟ้า  ลาดพร้าว 48",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ลาดพร้าว"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c456e596-9191-58df-816e-129903b90fea",
-    "bucket_key": "บ้านเดี่ยว2ชั้นวงเวียนบางเขน",
-    "canonical_name": "บ้านเดี่ยว 2 ชั้น วงเวียนบางเขน",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT รามอินทรา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "1b83a4a7-103e-5262-90d3-44b295fa2173",
-    "bucket_key": "บ้านเดี่ยวพัฒนาการ65",
-    "canonical_name": "บ้านเดี่ยว พัฒนาการ 65",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d747ad42-c0fe-5bbf-9921-6ddd36a04d0a",
-    "bucket_key": "บ้านเดี่ยวสุขุมวิท4",
-    "canonical_name": "บ้านเดี่ยว สุขุมวิท 4",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS นานา"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "96700cdb-5ef2-5229-aae6-737a09f70407",
-    "bucket_key": "บ้านแกรนดิโอบางนากม5",
-    "canonical_name": "บ้านแกรนดิโอ บางนา กม. 5 (Grandio Bangna KM.5)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สวนหลวง ร.9"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c4033e3d-b94e-5b62-a778-76c947bbd060",
-    "bucket_key": "บ้านให้เช่า2ชั้นซอยสุขุมวิท50",
-    "canonical_name": "บ้านให้เช่า 2 ชั้น ซอยสุขุมวิท 50",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "7ea20354-72f5-592a-b71f-48947daccc1f",
-    "bucket_key": "พื้นที่ให้เช่าอยู่ในห้างถนนจันทน์",
-    "canonical_name": "พื้นที่ให้เช่า อยู่ในห้าง ถนนจันทน์",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สุรศักดิ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "b89d0862-4c54-5d95-bee4-31e2d6abf401",
-    "bucket_key": "พื้นที่ให้เช่าใจกลางถนนจันทน์",
-    "canonical_name": "พื้นที่ให้เช่าใจกลางถนนจันทน์",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS สุรศักดิ์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "059d200a-c859-500b-836a-d482402ad442",
-    "bucket_key": "หมbiztownrama3suksawat",
-    "canonical_name": "หมBiztown Rama 3 - Suksawat (บิสทาวน์ พระราม 3-สุขสวัสดิ์)",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "359fa45c-f32c-563a-928a-ded90168941a",
-    "bucket_key": "หมู่บ้านชิเซนshizenphatthanakan",
-    "canonical_name": "หมู่บ้านชิเซน Shizen Phatthanakan",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อ่อนนุช"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "afbb293f-5043-5f6f-ad37-f55626444b44",
-    "bucket_key": "หมู่บ้านธารดีราชพฤกษ์",
-    "canonical_name": "หมู่บ้านธารดี ราชพฤกษ์",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT บางรักน้อยท่าอิฐ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "7ec69015-a549-52cf-9ef0-5b18a40b0875",
-    "bucket_key": "ออฟฟิศซอยอารีย์5",
-    "canonical_name": "ออฟฟิศ ซอย อารีย์ 5",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อารีย์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "7bef3359-5551-5735-9843-ebf8334bc323",
-    "bucket_key": "ออฟฟิศให้เช่าซอยพหลโยธิน7",
-    "canonical_name": "ออฟฟิศให้เช่า  ซอยพหลโยธิน 7 ( ซอยอารีย์ 5 )",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS อารีย์"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "981d18e7-5c00-5ba1-be2a-5f5ebb089153",
-    "bucket_key": "ออฟฟิศให้เช่าใจกลางถนนจันทน์",
-    "canonical_name": "ออฟฟิศให้เช่า ใจกลางถนนจันทน์",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "6f199443-b66e-5f82-ad2e-38bce7e5d306",
-    "bucket_key": "อาคารขนาดใหญ่ซอยเอกมัย12",
-    "canonical_name": "อาคารขนาดใหญ่ ซอยเอกมัย 12",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS เอกมัย"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "726b3c59-fe25-5b64-8d0b-432f5ad89887",
-    "bucket_key": "อาคารพาณิชย์5ชั้นครึ่ง2คูหาซอยทินกร",
-    "canonical_name": "อาคารพาณิชย์ 5 ชั้นครึ่ง   2 คูหา ซอยทินกร",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "2f1ca98a-5b9f-5857-8581-ecda84bd10ab",
-    "bucket_key": "อาคารสำนักงาน",
-    "canonical_name": "อาคารสำนักงาน",
-    "aliases": [],
-    "transit_unverified": [],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "ab9f2494-ebd1-54df-9ba5-9d394ef4c84a",
-    "bucket_key": "อาคารสำนักงานรัชดาภิเษกซอย7",
-    "canonical_name": "อาคารสำนักงาน รัชดาภิเษก ซอย 7",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT ศูนย์วัฒนธรรมแห่งประเทศไทย"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "97e2f7e6-6837-5286-a0b8-38367f3b5533",
-    "bucket_key": "เดอะซิตี้ราชพฤกษ์สวนผัก",
-    "canonical_name": "เดอะ ซิตี้ ราชพฤกษ์-สวนผัก (The City Ratchaphruek Suanphak)",
-    "aliases": [],
-    "transit_unverified": [
-      "MRT สิรินธร"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "c1950e3c-750b-5c18-8b04-1401a876cea1",
-    "bucket_key": "แกรนด์บางกอกบูเลอวาร์ดบางนาอ่อนนุช",
-    "canonical_name": "แกรนด์ บางกอก บูเลอวาร์ด บางนา - อ่อนนุช (Grand Bangkok Boulevard Bangna-Onnut)",
-    "aliases": [],
-    "transit_unverified": [
-      "ARL ลาดกระบัง"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "70337a6f-9e04-5d72-b007-b9ceeb5dce68",
-    "bucket_key": "โครงการดิอิมเพรสนครปฐม",
-    "canonical_name": "โครงการดิ อิมเพรส นครปฐม (The Impress Nakhon Pathom)",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS บางหว้า"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
-  },
-  {
-    "id": "d2f7f173-be7f-58c5-93a8-71c1ba0a152d",
-    "bucket_key": "โครงการtheracquetclubsukhumvit49",
-    "canonical_name": "โครงการ​ The​ Racquet Club Sukhumvit​49",
-    "aliases": [],
-    "transit_unverified": [
-      "BTS ทองหล่อ"
-    ],
-    "zone_unverified": [],
-    "transit_verified": [],
-    "zone_verified": [],
-    "location_status": "pending_verification",
-    "is_thru_thonglor": false,
-    "listing_count": 0
   }
 ]

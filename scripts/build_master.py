@@ -23,7 +23,8 @@ PROJECTS_JSON = BASE_DIR / "data" / "projects.json"
 PROPERTIES_JSON = BASE_DIR / "data" / "properties.json"
 PREVIEW_JS = BASE_DIR / "hub" / "preview-data.js"  # written via project_store.write_preview_js
 
-CUTOFF = datetime(2025, 10, 7)  # 9 months before Jul 7 2026
+# Historical 9-month archive cutoff — disabled: show full stock as active.
+CUTOFF = None  # was datetime(2025, 10, 7)
 
 # Canonical overrides — never auto-merge these
 CANONICAL_OVERRIDES: dict[str, str] = {
@@ -392,9 +393,12 @@ def build_properties(
             stats["incomplete_skipped"] += 1
             continue
 
+        # Delete only when post OR pages is a Drive/Docs URL (junk listing).
+        post_raw = unwrap_link_cell(row.get("post_link", ""))
+        pages_raw = unwrap_link_cell(row.get("post_pages", ""))
         if row.get("delete_drive") == "1" or is_google_drive_url(
-            row.get("post_link", "")
-        ) or is_google_drive_url(row.get("source", "")):
+            post_raw
+        ) or is_google_drive_url(pages_raw):
             stats["drive_dropped"] += 1
             continue
 
@@ -407,23 +411,33 @@ def build_properties(
             import_status = "needs_review"
             stats["import_needs_review"] += 1
             stats["partial_imported"] += 1
-        elif acquired and acquired >= CUTOFF:
+        elif acquired:
+            # Full stock: no 9-month archive cutoff (CUTOFF disabled).
             import_status = "active"
             stats["import_active"] += 1
-        elif acquired:
-            import_status = "archived"
-            stats["import_archived"] += 1
+            if CUTOFF is not None and acquired < CUTOFF:
+                stats["would_have_archived"] += 1
         else:
             import_status = "needs_review"
             stats["import_needs_review"] += 1
 
         # Mapping: ลิ้งค์โพส→post_url, ลิ้งค์โพส Pages→post_pages_url,
-        # ลิ้งค์ต้นโพสต์→source_url, เฟสเจ้าของ→owner_facebook
-        post = http_url_or_empty(row.get("post_link", ""))
-        post_pages = http_url_or_empty(row.get("post_pages", ""))
-        source_url = unwrap_link_cell(row.get("source", ""))
+        # ลิ้งค์ต้นโพสต์→source_url (URLs only), เฟสเจ้าของ→owner_facebook
+        post = http_url_or_empty(post_raw)
+        post_pages = http_url_or_empty(pages_raw)
+        source_url = http_url_or_empty(row.get("source", ""))
+        # Strip Drive helpers from source/owner without deleting the row.
+        if source_url and is_google_drive_url(source_url):
+            source_url = ""
+            stats["drive_stripped_source"] += 1
         media_status = "has_link" if post.startswith("http") else "none"
-        owner_fb = owner_facebook_from_sheet(row.get("owner_fb", ""))
+        owner_fb = [
+            u
+            for u in owner_facebook_from_sheet(row.get("owner_fb", ""))
+            if not is_google_drive_url(u)
+        ]
+        # Owner column: keep URLs; non-URL text already merged into notes by trust_map
+        owner_fb = [u for u in owner_fb if u.startswith("http")]
         if owner_fb:
             stats["with_owner_facebook"] += 1
         action = row.get("owner_fb_action") or ""
@@ -443,6 +457,8 @@ def build_properties(
             stats["with_post_pages_url"] += 1
         if source_url.startswith("http"):
             stats["with_source_url"] += 1
+        if (row.get("notes") or "").strip():
+            stats["with_notes"] += 1
 
         properties.append(
             {
@@ -616,6 +632,8 @@ def rebuild_from_csv() -> dict:
         "properties_needs_review": stats["import_needs_review"],
         "properties_flagged_duplicate": dup_stats["properties_flagged"],
         "drive_dropped": stats["drive_dropped"],
+        "would_have_archived": stats["would_have_archived"],
+        "with_notes": stats["with_notes"],
         "code_only_dropped": stats["code_only_dropped"],
         "incomplete_skipped": stats["incomplete_skipped"],
         "partial_imported": stats["partial_imported"],
@@ -638,11 +656,13 @@ def main() -> None:
     print("=== build_master.py complete ===")
     print(f"Projects in master: {summary['projects']}")
     print(f"Properties total (after filters): {summary['properties_total']}")
-    print(f"  active (9 mo): {summary['properties_active']}")
+    print(f"  active (full stock): {summary['properties_active']}")
     print(f"  archived: {summary['properties_archived']}")
+    print(f"  would_have_archived (cutoff off): {summary.get('would_have_archived', 0)}")
     print(f"  needs_review: {summary['properties_needs_review']}")
     print(f"  flagged duplicate: {summary['properties_flagged_duplicate']}")
-    print(f"  drive dropped: {summary['drive_dropped']}")
+    print(f"  drive dropped (post/pages): {summary['drive_dropped']}")
+    print(f"  with_notes: {summary.get('with_notes', 0)}")
     print(f"  code_only dropped: {summary['code_only_dropped']}")
     print(f"  incomplete skipped: {summary['incomplete_skipped']}")
     print("Owner Facebook resolution (imported rows):")

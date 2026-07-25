@@ -1,52 +1,129 @@
 {
-  "started": "2026-07-26 05:38:53",
+  "started": "2026-07-26 05:53:29",
   "mapping": {
     "stats": {
-      "rows_written": 17623,
-      "non_ptp": 3,
-      "preserved_station": 8307,
-      "ptp_rows": 17620,
-      "owner_from_r": 4753,
-      "has_source": 8488,
-      "has_post": 8393,
-      "has_owner": 6657,
-      "owner_from_fase": 1904,
-      "has_pages": 6623,
-      "owner_empty": 10963
+      "drive_deleted": 1222,
+      "drive_deleted_ptp": 1221,
+      "preserved_talea": 7066,
+      "preserved_station": 7281,
+      "rows_written": 16401,
+      "ptp_rows": 16399,
+      "owner_from_r": 3658,
+      "has_source": 7180,
+      "has_post": 7172,
+      "has_owner": 5396,
+      "has_notes": 1733,
+      "text_to_notes_rows": 154,
+      "text_to_notes_fragments": 163,
+      "owner_from_fase": 1738,
+      "has_pages": 6577,
+      "owner_empty": 11003,
+      "drive_stripped_source": 5,
+      "non_ptp": 2
     },
     "rates": {
-      "ptp_rows": 17620,
-      "owner_from_fase": 1904,
-      "owner_from_r": 4753,
-      "owner_empty": 10963,
+      "ptp_rows": 16399,
+      "owner_from_fase": 1738,
+      "owner_from_r": 3658,
+      "owner_empty": 11003,
+      "text_to_notes_rows": 154,
+      "text_to_notes_fragments": 163,
+      "drive_deleted": 1222,
+      "drive_deleted_ptp": 1221,
       "owner_fill": {
-        "filled": 6657,
-        "total": 17620,
-        "pct": 37.8
+        "filled": 5396,
+        "total": 16399,
+        "pct": 32.9
       },
       "source_fill": {
-        "filled": 8488,
-        "total": 17620,
-        "pct": 48.2
+        "filled": 7180,
+        "total": 16399,
+        "pct": 43.8
       },
       "post_fill": {
-        "filled": 8393,
-        "total": 17620,
-        "pct": 47.6
+        "filled": 7172,
+        "total": 16399,
+        "pct": 43.7
       },
       "pages_fill": {
-        "filled": 6623,
-        "total": 17620,
-        "pct": 37.6
+        "filled": 6577,
+        "total": 16399,
+        "pct": 40.1
+      },
+      "notes_fill": {
+        "filled": 1733,
+        "total": 16399,
+        "pct": 10.6
       }
+    },
+    "drive_deleted_sample": [
+      "PTP0001",
+      "PTP0002",
+      "PTP0003",
+      "PTP0004",
+      "PTP0005",
+      "PTP0006",
+      "PTP0007",
+      "PTP0008",
+      "PTP0009",
+      "PTP0010",
+      "PTP0011",
+      "PTP0012",
+      "PTP0013",
+      "PTP0014",
+      "PTP0015",
+      "PTP0017",
+      "PTP0018",
+      "PTP0019",
+      "PTP0020",
+      "PTP0021",
+      "PTP0022",
+      "PTP0023",
+      "PTP0024",
+      "PTP0025",
+      "PTP0026",
+      "PTP0027",
+      "PTP0028",
+      "PTP0029",
+      "PTP0030",
+      "PTP0031"
+    ],
+    "drive_deleted_total": 1221
+  },
+  "spot_check": {
+    "PTP8200": {
+      "source": "",
+      "owner": "",
+      "notes": "พี่เพลงติดต่อใน Line | วัต จข ทรู ทองหล่อ",
+      "text_to_notes": [
+        "พี่เพลงติดต่อใน Line",
+        "วัต จข ทรู ทองหล่อ"
+      ],
+      "post": "https://www.facebook.com/share/1GyADeLL3N/?mibextid=wwXIfr"
+    },
+    "PTP8201": {
+      "source": "",
+      "owner": "",
+      "notes": "492 คุณเอม / Line นัท",
+      "text_to_notes": [
+        "492 คุณเอม / Line นัท"
+      ],
+      "post": "https://www.facebook.com/share/p/196nL5LxEv/?mibextid=wwXIfr"
+    },
+    "PTP8202": {
+      "source": "https://www.livinginsider.com/istockdetail/DIoooI_DofyCCy.html",
+      "owner": "",
+      "notes": "",
+      "text_to_notes": [],
+      "post": "https://www.facebook.com/share/p/1BXiu3WFoE/?mibextid=wwXIfr"
     }
   },
   "write": {
     "ok": true,
     "dry_run": false,
-    "rows_written": 17624,
-    "ptp_rows": 17620,
-    "ptp_unique": 17306,
+    "rows_written": 16402,
+    "ptp_rows": 16399,
+    "ptp_unique": 16085,
     "headers": [
       "รหัสทรัพย์",
       "วันที่รับเข้า",
@@ -72,36 +149,38 @@
   },
   "living": {
     "sheet_id": "1UUJFSj069k0XuPDWRJILYRes40amuQRxGpcGChITNjc",
-    "rows": 17623,
+    "rows": 16401,
     "inserted_talea": false,
-    "updated_rows": 8128,
-    "cleared_station_seo": 2446,
-    "matched_projects": 8532,
-    "unmatched_projects": 5,
+    "updated_rows": 302,
+    "cleared_station_seo": 86,
+    "matched_projects": 7314,
+    "unmatched_projects": 4,
     "dry_run": false,
-    "talea_cells": 8021,
-    "station_cells": 7116
+    "talea_cells": 293,
+    "station_cells": 285
   },
   "rebuild": {
-    "projects": 2436,
-    "properties_total": 7318,
-    "properties_active": 2669,
-    "properties_archived": 4626,
+    "projects": 2234,
+    "properties_total": 7323,
+    "properties_active": 7300,
+    "properties_archived": 0,
     "properties_needs_review": 23,
-    "properties_flagged_duplicate": 2205,
-    "drive_dropped": 1226,
+    "properties_flagged_duplicate": 2184,
+    "drive_dropped": 0,
+    "would_have_archived": 0,
+    "with_notes": 1733,
     "code_only_dropped": 9073,
     "incomplete_skipped": 3,
     "partial_imported": 22,
-    "with_owner_facebook": 5432,
-    "with_post_url": 7165,
-    "with_post_pages_url": 6572,
+    "with_owner_facebook": 5388,
+    "with_post_url": 7170,
+    "with_post_pages_url": 6577,
     "with_source_url": 7180,
-    "owner_already": 5432,
+    "owner_already": 5388,
     "owner_from_adjacent": 0,
     "owner_from_adjacent_over_post": 0,
     "owner_from_source_profile": 0,
-    "owner_empty": 1886,
+    "owner_empty": 1935,
     "newest_imported_code": "PTP8243",
     "newest_sheet_code": "PTP17312",
     "properties_hub": 0
@@ -109,19 +188,40 @@
   "overview": {
     "ok": true,
     "via": "gspread",
-    "overview_rows": null,
-    "active_for_overview": 2692,
+    "overview_rows": 7323,
+    "active_for_overview": 7323,
     "spreadsheet_url": "https://docs.google.com/spreadsheets/d/1UUJFSj069k0XuPDWRJILYRes40amuQRxGpcGChITNjc/edit#gid=404603508",
     "warnings": null
   },
   "final_verify": {
-    "ptp": 17620,
-    "source_pct": 48.2,
-    "owner_pct": 37.8,
-    "post_pct": 47.6,
-    "pages_pct": 37.6,
+    "ptp": 16399,
+    "source_pct": 43.8,
+    "owner_pct": 32.9,
+    "post_pct": 43.7,
+    "pages_pct": 40.1,
+    "notes_pct": 11.2,
+    "notes_filled": 1836,
     "adjacent_r_still_filled": 0,
-    "owner_from_fase": 1904,
-    "owner_from_r": 4753
+    "source_non_url_left": 0,
+    "text_to_notes_rows": 154,
+    "text_to_notes_fragments": 163,
+    "drive_deleted": 1222,
+    "spot_final": {
+      "PTP8200": {
+        "source": "",
+        "owner": "",
+        "notes": "พี่เพลงติดต่อใน Line | วัต จข ทรู ทองหล่อ"
+      },
+      "PTP8201": {
+        "source": "",
+        "owner": "",
+        "notes": "492 คุณเอม / Line นัท"
+      },
+      "PTP8202": {
+        "source": "https://www.livinginsider.com/istockdetail/DIoooI_DofyCCy.html",
+        "owner": "",
+        "notes": ""
+      }
+    }
   }
 }

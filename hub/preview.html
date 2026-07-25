@@ -484,6 +484,14 @@
     }
     .prop-sheet-meta .meta-chip strong { font-weight: 600; color: #6b7785; font-size: 10px; }
     .prop-sheet-meta .meta-chip.loc { background: #e8f5e9; border-color: #c8e6c9; color: #137333; }
+    .prop-sheet-notes {
+      margin-top: 6px; font-size: 12px; line-height: 1.4; color: #5f6368;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; word-break: break-word;
+    }
+    .prop-sheet-notes strong {
+      font-weight: 600; color: #80868b; font-size: 10px; margin-right: 4px;
+    }
     .prop-sheet-side {
       text-align: right; min-width: 0;
       display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
@@ -1510,7 +1518,7 @@
       <div class="table-wrap" id="props-panel">
         <div class="prop-list-head">
           <span>รูป</span>
-          <span>รหัส · วันที่ · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล</span>
+          <span>รหัส · วันที่ · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล · หมายเหตุ</span>
           <span class="head-side">ราคา</span>
         </div>
         <div class="scroll props-table-scroll">
@@ -1530,7 +1538,7 @@
         <div class="table-wrap">
           <div class="prop-list-head">
             <span>รูป</span>
-            <span>รหัส · วันที่ · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล</span>
+            <span>รหัส · วันที่ · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล · หมายเหตุ</span>
             <span class="head-side">ราคา</span>
           </div>
           <div class="scroll props-table-scroll">
@@ -2075,7 +2083,7 @@
             <p class="project-match-note hidden" id="add-transit-note"></p>
           </label>
           <label class="add-wide">
-            <span>หมายเหตุภายใน (ทีม — ไม่ส่งลูกค้า)</span>
+            <span>หมายเหตุ (ทีม — ซิงค์กับชีทคอลัมน์หมายเหตุ)</span>
             <textarea id="add-notes" placeholder="บันทึกเพิ่มสำหรับทีม…"></textarea>
           </label>
         </div>
@@ -2747,12 +2755,13 @@
     }
 
     function getProjectSearchBlob(p, proj) {
-      // ค้นหาทั่วไป = รหัส + ชื่อโครงการ เท่านั้น (ไม่รวมทำเล/BTS)
+      // ค้นหาทั่วไป = รหัส + ชื่อโครงการ + หมายเหตุ (ไม่รวมทำเล/BTS)
       return collectSearchKeys(
         p.code,
         p.project_name,
         proj.canonical_name || "",
-        proj.aliases || []
+        proj.aliases || [],
+        p.notes || ""
       ).join(" ");
     }
 
@@ -4824,6 +4833,8 @@
       var beds = p.bedrooms || "—";
       var size = formatSizeCell(p.size_sqm);
       var floor = p.floor || "—";
+      var notesText = String(p.notes || "").trim();
+      if (notesText === "-" || notesText === "—" || notesText === "–") notesText = "";
       var projectBtn = p.project_id
         ? '<button type="button" class="prop-project-link" data-open-project="' + esc(p.project_id) + '">' + esc(name) + "</button>"
         : esc(name);
@@ -4848,6 +4859,9 @@
             '<span class="meta-chip"><strong>ประเภท</strong> ' + esc(typeLabel) + "</span>" +
             (locText ? '<span class="meta-chip loc" title="' + esc(locText) + '"><strong>ทำเล</strong> ' + esc(locText) + "</span>" : "") +
           "</div>" +
+          (notesText
+            ? '<div class="prop-sheet-notes" title="' + esc(notesText) + '"><strong>หมายเหตุ</strong>' + esc(notesText) + "</div>"
+            : "") +
         "</div>" +
         '<div class="prop-sheet-side">' +
           priceStackHtml(p) +

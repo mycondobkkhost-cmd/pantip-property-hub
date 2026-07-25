@@ -74,6 +74,7 @@ OVERVIEW_HEADERS = [
     "เจ้าของ",
     "ที่โพสต์",
     "เพจ",
+    "หมายเหตุ",
 ]
 
 _FORBIDDEN_TAB_NAMES = {
@@ -120,22 +121,28 @@ OVERVIEW_COL_WIDTHS = [
     72,  # เจ้าของ
     72,  # ที่โพสต์
     72,  # เพจ
+    160,  # หมายเหตุ
 ]
 # Link-like columns (O–P / indices 12–15) — yellow header + CLIP like work sheet.
 OVERVIEW_LINK_COL_INDEXES = (12, 13, 14, 15)
 OVERVIEW_NUMBER_COL_INDEXES = (8, 9)  # เช่า / ขาย → #,##0
+OVERVIEW_NOTES_COL_INDEX = 16  # Q · หมายเหตุ
+# A1 letter of last overview column (must match len(OVERVIEW_HEADERS)).
+OVERVIEW_END_COL = "Q"
 
-# Search chrome: C2 = รหัส/โครงการ · C3 = ทำเล/สถานี · empty = all · both = AND
+# Search chrome: C2 = รหัส/โครงการ/หมายเหตุ · C3 = ทำเล/สถานี · empty = all · both = AND
 # (Must use IF(q="",1,…) — SEARCH("", "") on blank ทำเล/สถานี is #VALUE! and drops rows.)
 #
 # FILTER returns *values* only — HYPERLINK formulas inside a multi-column FILTER/BYROW
 # spill are NOT clickable. Store raw URLs in `_overview_src` M–P; FILTER A:L into A6;
 # rebuild short clickable links with per-column ARRAYFORMULA(HYPERLINK(VLOOKUP(...))).
+# หมายเหตุ (Q) is plain text via ARRAYFORMULA(VLOOKUP) like the link cols.
 _OVERVIEW_FILTER_COND = (
     "('_overview_src'!A2:A<>\"\")*"
     "IF(TRIM($C$2)=\"\",1,"
     "((ISNUMBER(SEARCH($C$2,'_overview_src'!A2:A)))+"
     "(ISNUMBER(SEARCH($C$2,'_overview_src'!D2:D)))+"
+    "(ISNUMBER(SEARCH($C$2,'_overview_src'!Q2:Q)))+"
     "IF(REGEXMATCH(LOWER(TRIM($C$2)),\"thru|ทรู\"),"
     "IF(REGEXMATCH(LOWER('_overview_src'!D2:D),\"thru|ทรู\"),1,0),0)>0))*"
     "IF(TRIM($C$3)=\"\",1,"
@@ -169,6 +176,11 @@ OVERVIEW_LINK_FORMULAS = {
         "VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE),\"เพจ\"),)))"
     ),
 }
+# Notes column (Q6) — plain text from `_overview_src` col 17.
+OVERVIEW_NOTES_FORMULA = (
+    '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
+    "VLOOKUP(A6:A,'_overview_src'!$A$2:$Q,17,FALSE),)))"
+)
 
 _TYPE_TH = {
     "condo": "คอนโด",
@@ -190,6 +202,18 @@ def _join_tags(tags) -> str:
     if isinstance(tags, list):
         return ", ".join(str(t) for t in tags if t)
     return str(tags or "").strip()
+
+
+def _notes_for_sheet(raw) -> str:
+    """Normalize property notes for sheet cells (treat placeholder dashes as empty)."""
+    s = str(raw or "").strip()
+    if s in {"-", "—", "–"}:
+        return ""
+    return s
+
+
+def _norm_prop_code(raw) -> str:
+    return str(raw or "").upper().replace(" ", "").strip()
 
 
 def _listed_sort_key(prop: dict) -> tuple:
@@ -290,10 +314,11 @@ def _maybe_hyperlink(url: str, label: str, *, enabled: bool) -> str:
 
 def _overview_data_with_hyperlinks(data_rows: list[list]) -> list[list]:
     """Convert raw URL cells in cols M–P to short HYPERLINK formulas (direct writes)."""
+    n = len(OVERVIEW_HEADERS)
     out: list[list] = []
     for row in data_rows:
-        r = list(row) + [""] * max(0, 16 - len(row))
-        r = r[:16]
+        r = list(row) + [""] * max(0, n - len(row))
+        r = r[:n]
         r[12] = _hyperlink_cell(str(r[12] or ""), "ต้นทาง")
         r[13] = _maybe_hyperlink(str(r[13] or ""), "เจ้าของ", enabled=True)
         r[14] = _hyperlink_cell(str(r[14] or ""), "โพสต์")
@@ -436,7 +461,7 @@ def prop_to_hub_row(
         "",
         post_url,
         pages_url,
-        str(prop.get("notes") or ""),
+        _notes_for_sheet(prop.get("notes")),
         source_url,
         _owner_display(prop),
         "Hub",
@@ -483,6 +508,7 @@ def prop_to_overview_row(
         owner_link,
         post_url,
         pages_url,
+        _notes_for_sheet(prop.get("notes")),
     ]
 
 
@@ -748,7 +774,7 @@ def _col_width_requests(sheet_id: int, widths: list[int]) -> list[dict]:
 def _worksheet_has_dashboard_chrome(ws) -> bool:
     """True when rows 1–5 look like the overview search chrome."""
     try:
-        probe = ws.get("A1:P5")
+        probe = ws.get(f"A1:{OVERVIEW_END_COL}5")
     except Exception:
         return False
     if not probe or len(probe) < 5:
@@ -1028,6 +1054,31 @@ def _format_overview_table_body(
                 }
             }
         )
+
+    # Notes column: CLIP so long หมายเหตุ doesn't blow row height
+    ci = OVERVIEW_NOTES_COL_INDEX
+    requests.append(
+        {
+            "repeatCell": {
+                "range": {
+                    "sheetId": sid,
+                    "startRowIndex": header_row + 1,
+                    "endRowIndex": end_row,
+                    "startColumnIndex": ci,
+                    "endColumnIndex": ci + 1,
+                },
+                "cell": {
+                    "userEnteredFormat": {
+                        "horizontalAlignment": "LEFT",
+                        "wrapStrategy": "CLIP",
+                    }
+                },
+                "fields": (
+                    "userEnteredFormat(horizontalAlignment,wrapStrategy)"
+                ),
+            }
+        }
+    )
 
     return requests
 
@@ -1340,7 +1391,7 @@ def ensure_overview_search_chrome(
             "ค้นหาทั่วไป",
             "→",
             "",
-            "เช่น PTP8088 · Life Asoke · Thru / ทรู (ไม่บังคับ)",
+            "เช่น PTP8088 · Life Asoke · Thru / หมายเหตุ (ไม่บังคับ)",
         ]
         + [""] * (cols - 4),
         [
@@ -1365,11 +1416,11 @@ def ensure_overview_search_chrome(
     try:
         last = max(ws.row_count, OVERVIEW_DATA_START)
         if last >= OVERVIEW_DATA_START:
-            ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
+            ws.batch_clear([f"A{OVERVIEW_DATA_START}:{OVERVIEW_END_COL}{last}"])
     except Exception:
         pass
 
-    ws.update("A1:P5", chrome_rows, value_input_option="USER_ENTERED")
+    ws.update(f"A1:{OVERVIEW_END_COL}5", chrome_rows, value_input_option="USER_ENTERED")
     if c2 or c3:
         ws.update("C2:C3", [[c2], [c3]], value_input_option="USER_ENTERED")
 
@@ -1379,12 +1430,12 @@ def ensure_overview_search_chrome(
 
 
 def _install_overview_data_formulas(ws) -> None:
-    """Install A6 FILTER (A:L) + M6:P6 ARRAYFORMULA short HYPERLINKs."""
+    """Install A6 FILTER (A:L) + M6:P6 HYPERLINKs + Q6 หมายเหตุ."""
     try:
         last = max(int(getattr(ws, "row_count", 0) or 0), OVERVIEW_DATA_START)
         if last >= OVERVIEW_DATA_START:
-            # Clear prior multi-col FILTER spill / stale link formulas.
-            ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
+            # Clear prior multi-col FILTER spill / stale link + notes formulas.
+            ws.batch_clear([f"A{OVERVIEW_DATA_START}:{OVERVIEW_END_COL}{last}"])
     except Exception:
         pass
     ws.update(
@@ -1397,8 +1448,9 @@ def _install_overview_data_formulas(ws) -> None:
         OVERVIEW_LINK_FORMULAS["N6"],
         OVERVIEW_LINK_FORMULAS["O6"],
         OVERVIEW_LINK_FORMULAS["P6"],
+        OVERVIEW_NOTES_FORMULA,
     ]]
-    ws.update("M6:P6", link_rows, value_input_option="USER_ENTERED")
+    ws.update(f"M6:{OVERVIEW_END_COL}6", link_rows, value_input_option="USER_ENTERED")
 
 
 def _write_overview_src(ss, values: list[list]) -> dict:
@@ -1408,7 +1460,7 @@ def _write_overview_src(ss, values: list[list]) -> dict:
     src = _open_or_create_src_sheet(ss, rows=len(full) + 10)
     try:
         last = max(src.row_count, 1)
-        src.batch_clear([f"A1:P{last}"])
+        src.batch_clear([f"A1:{OVERVIEW_END_COL}{last}"])
     except Exception:
         try:
             src.clear()
@@ -1443,7 +1495,7 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                     row_count=len(data_rows),
                 )
             else:
-                # Refresh status + keep FILTER / link formulas current
+                # Refresh status + keep FILTER / link / notes formulas current
                 try:
                     ws.update(
                         "A4",
@@ -1452,6 +1504,15 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                             f"ซิงค์จากแอป · อัปเดต: {synced_at} · "
                             f"{len(data_rows):,} รายการ · เรียงใหม่→เก่า"
                         ]],
+                        value_input_option="USER_ENTERED",
+                    )
+                except Exception:
+                    pass
+                # Keep header strip in sync when columns are added (e.g. หมายเหตุ).
+                try:
+                    ws.update(
+                        f"A{OVERVIEW_HEADER_ROW}:{OVERVIEW_END_COL}{OVERVIEW_HEADER_ROW}",
+                        [list(OVERVIEW_HEADERS)],
                         value_input_option="USER_ENTERED",
                     )
                 except Exception:
@@ -1478,7 +1539,7 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
         try:
             last = max(ws.row_count, OVERVIEW_DATA_START)
             if last >= OVERVIEW_DATA_START:
-                ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
+                ws.batch_clear([f"A{OVERVIEW_DATA_START}:{OVERVIEW_END_COL}{last}"])
         except Exception:
             try:
                 ws.clear()
@@ -1559,6 +1620,27 @@ def _write_hub_tab(ss, hub_rows: list[list], *, hub_name: str, hub_gid: str) -> 
                 pass
 
     values = [HUB_HEADERS] + hub_rows
+    # Header row sometimes has P1:Q1 merged (Pages + หมายเหตุ) which blanks หมายเหตุ.
+    try:
+        ss.batch_update(
+            {
+                "requests": [
+                    {
+                        "unmergeCells": {
+                            "range": {
+                                "sheetId": ws.id,
+                                "startRowIndex": 0,
+                                "endRowIndex": 1,
+                                "startColumnIndex": 15,
+                                "endColumnIndex": 17,
+                            }
+                        }
+                    }
+                ]
+            }
+        )
+    except Exception:
+        pass
     ws.clear()
     _update_values_chunked(ws, values, start_row=1)
     return {
@@ -1566,6 +1648,89 @@ def _write_hub_tab(ss, hub_rows: list[list], *, hub_name: str, hub_gid: str) -> 
         "rows_written": len(hub_rows),
         "created_sheet": hub_name if created else "",
         "gid": ws.id,
+    }
+
+
+def sync_notes_to_main_sheet(
+    ss,
+    properties: list[dict],
+    *,
+    sheet_name: str | None = None,
+) -> dict:
+    """Write Hub `notes` back onto「ชีตสำหรับทำงาน」หมายเหตุ by matching รหัสทรัพย์.
+
+    Only updates cells that differ. Does not insert/delete rows.
+    """
+    tab = (
+        sheet_name
+        or _env("MAIN_SHEET_NAME")
+        or _env("HUB_MAIN_SHEET_NAME")
+        or "ชีตสำหรับทำงาน"
+    ).strip()
+    if _tab_forbidden(tab):
+        raise ValueError(f"ห้ามเขียนแท็บ「{tab}」")
+    ws = ss.worksheet(tab)
+    headers = ws.row_values(1)
+    if "รหัสทรัพย์" not in headers:
+        raise ValueError(f"「{tab}」ไม่มีคอลัมน์รหัสทรัพย์")
+    if "หมายเหตุ" not in headers:
+        # Insert before ลิ้งค์ต้นโพสต์ when present, else append.
+        if "ลิ้งค์ต้นโพสต์" in headers:
+            insert_at = headers.index("ลิ้งค์ต้นโพสต์")
+        else:
+            insert_at = len(headers)
+        ws.insert_cols([[]], col=insert_at + 1)
+        ws.update_cell(1, insert_at + 1, "หมายเหตุ")
+        headers = ws.row_values(1)
+
+    code_i = headers.index("รหัสทรัพย์")
+    notes_i = headers.index("หมายเหตุ")
+    code_letter = _col_a1(code_i + 1)
+    notes_letter = _col_a1(notes_i + 1)
+
+    codes = ws.col_values(code_i + 1)
+    current = ws.col_values(notes_i + 1)
+    by_code: dict[str, str] = {}
+    for p in properties:
+        code = _norm_prop_code(p.get("code"))
+        if not code:
+            continue
+        by_code[code] = _notes_for_sheet(p.get("notes"))
+
+    updates: list[dict] = []
+    checked = 0
+    for row_idx in range(2, len(codes) + 1):
+        code = _norm_prop_code(codes[row_idx - 1] if row_idx - 1 < len(codes) else "")
+        if not code or code not in by_code:
+            continue
+        checked += 1
+        new_note = by_code[code]
+        old = ""
+        if row_idx - 1 < len(current):
+            old = str(current[row_idx - 1] or "").strip()
+        if _notes_for_sheet(old) == new_note:
+            continue
+        updates.append(
+            {
+                "range": f"{notes_letter}{row_idx}",
+                "values": [[new_note]],
+            }
+        )
+
+    # Batch in chunks (Sheets API ~100 ranges / request is comfortable).
+    written = 0
+    chunk = 200
+    for i in range(0, len(updates), chunk):
+        part = updates[i : i + chunk]
+        ws.batch_update(part, value_input_option="USER_ENTERED")
+        written += len(part)
+
+    return {
+        "sheet_title": ws.title,
+        "notes_col": notes_letter,
+        "code_col": code_letter,
+        "matched": checked,
+        "updated": written,
     }
 
 
@@ -1667,6 +1832,14 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
                 result["hub_rows_written"] = hub_meta.get("rows_written", 0)
             except Exception as exc:  # noqa: BLE001
                 warnings.append(f"แท็บ「{hub_name}」: {exc}")
+
+            try:
+                notes_meta = sync_notes_to_main_sheet(ss, all_props)
+                result["main_notes_updated"] = notes_meta.get("updated", 0)
+                result["main_notes_matched"] = notes_meta.get("matched", 0)
+                result["main_sheet_title"] = notes_meta.get("sheet_title")
+            except Exception as exc:  # noqa: BLE001
+                warnings.append(f"หมายเหตุ→ชีตสำหรับทำงาน: {exc}")
 
             if warnings:
                 result["push_warning"] = " · ".join(warnings)

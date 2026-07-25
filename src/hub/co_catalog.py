@@ -77,12 +77,13 @@ def slim_property(
     prop: dict,
     proj: dict,
     *,
-    require_page: bool = False,
+    require_page: bool = True,
     include_archived: bool = True,
 ) -> dict | None:
     """Slim row for Co-Agent.
 
-    Catalog mirrors Hub default (all eras, page optional). Match keeps active-only.
+    Default: only listings with a personal FB post (post_url) or page post
+    (post_pages_url) — Co-Agent is for sharing stock that already has a link.
     """
     code = (prop.get("code") or "").strip()
     if not code:
@@ -166,8 +167,8 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
 
     for prop in props:
         proj = projects.get(prop.get("project_id")) or {}
-        # Same universe as Hub list (includes archived); page link optional for thumbs.
-        slim = slim_property(prop, proj, require_page=False, include_archived=True)
+        # Co-Agent: only stock with personal post or page post link.
+        slim = slim_property(prop, proj, require_page=True, include_archived=True)
         if not slim:
             continue
         items.append(slim)
@@ -368,7 +369,7 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
             if project_ids and pid not in project_ids:
                 continue
             # Match for co-agents: live stock only (skip archived).
-            slim = slim_property(prop, proj, require_page=False, include_archived=False)
+            slim = slim_property(prop, proj, require_page=True, include_archived=False)
             if not slim:
                 continue
             if not _passes_size(slim, size_min, size_max):
@@ -399,7 +400,7 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
         slim = slim_property(
             prop,
             projects.get(prop.get("project_id")) or {},
-            require_page=False,
+            require_page=True,
             include_archived=False,
         )
         if not slim:

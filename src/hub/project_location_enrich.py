@@ -166,6 +166,19 @@ STATION_TO_ZONE = {
 # When a corridor is authoritative, do NOT merge sheet noise.
 # Sheet tags are often wrong (agents list distant stations for SEO).
 
+# Life Asoke family — Living pins Rama9/Makkasan/Phetchaburi; zone chips also need
+# อโศก + มศว (corridor landmarks Living breadcrumb omits). Never BTS อโศก / ลาดพร้าว.
+LIFE_ASOKE_BUCKETS = frozenset({"life_asoke", "life_asoke_rama9", "life_asoke_hype"})
+LIFE_ASOKE_CURATED_ZONES = [
+    "อโศก",
+    "เพชรบุรีตัดใหม่",
+    "RCA",
+    "มศว ประสานมิตร",
+    "พระราม 9",
+]
+LIFE_ASOKE_CURATED_TRANSIT = ["MRT พระราม 9", "ARL มักกะสัน", "MRT เพชรบุรี"]
+LIFE_ASOKE_SOURCE = "livinginsider+curated:life_asoke"
+
 # Explicit overrides researched from listing sites / maps (nearest stations only)
 PROJECT_OVERRIDES: dict[str, dict] = {
     # Thonglor Tower @ Soi Thonglor 18 — ~1.4km BTS Thong Lo, ~2km BTS Ekkamai
@@ -191,6 +204,22 @@ PROJECT_OVERRIDES: dict[str, dict] = {
         "zones": ["ทองหล่อ", "เพชรบุรีตัดใหม่", "RCA", "โรงพยาบาลกรุงเทพ", "มศว ประสานมิตร"],
         "transit": ["BTS ทองหล่อ", "MRT เพชรบุรี", "ARL มักกะสัน"],
         "source": "override:livinginsider-thru",
+    },
+    # Life Asoke / Hype / Rama 9 — Living transit + curated corridor ทำเล
+    "life_asoke": {
+        "zones": list(LIFE_ASOKE_CURATED_ZONES),
+        "transit": list(LIFE_ASOKE_CURATED_TRANSIT),
+        "source": "override:life_asoke_corridor",
+    },
+    "life_asoke_rama9": {
+        "zones": list(LIFE_ASOKE_CURATED_ZONES),
+        "transit": list(LIFE_ASOKE_CURATED_TRANSIT),
+        "source": "override:life_asoke_corridor",
+    },
+    "life_asoke_hype": {
+        "zones": list(LIFE_ASOKE_CURATED_ZONES),
+        "transit": list(LIFE_ASOKE_CURATED_TRANSIT),
+        "source": "override:life_asoke_corridor",
     },
 }
 
@@ -218,6 +247,14 @@ class CorridorProfile:
 
 # Specific corridors first (lower priority number = match first)
 CORRIDORS: list[CorridorProfile] = [
+    CorridorProfile(
+        id="life_asoke",
+        buckets=["life_asoke", "life_asoke_rama9", "life_asoke_hype"],
+        name_groups=[["lifeasoke"], ["ไลฟ์อโศก"]],
+        zones=list(LIFE_ASOKE_CURATED_ZONES),
+        transit=list(LIFE_ASOKE_CURATED_TRANSIT),
+        priority=8,
+    ),
     CorridorProfile(
         id="thru_thonglor",
         buckets=["thru_thonglor"],
@@ -326,7 +363,8 @@ CORRIDORS: list[CorridorProfile] = [
     ),
     CorridorProfile(
         id="asoke",
-        name_groups=[["asoke"], ["asok"], ["อโศก"], ["lifeasoke"]],
+        # Do NOT match Life Asoke here — that corridor is Rama 9 / Makkasan, not BTS อโศก
+        name_groups=[["asoke"], ["asok"], ["อโศก"]],
         zones=["อโศก", "สุขุมวิท"],
         transit=["BTS อโศก", "MRT สุขุมวิท"],
         priority=45,
@@ -609,6 +647,41 @@ def living_stations_plausible(
     return True
 
 
+def _is_living_source(source: str) -> bool:
+    s = (source or "").strip()
+    return s == "livinginsider" or s.startswith("livinginsider+")
+
+
+def merge_life_asoke_corridor(
+    zones: list[str],
+    transit: list[str],
+    *,
+    living_stations: list[str] | None = None,
+) -> tuple[list[str], list[str]]:
+    """Living transit first; merge curated Life Asoke corridor ทำเล chips."""
+    # Prefer Living station order when it already has the required trio
+    ordered_transit: list[str] = []
+    for t in list(living_stations or []) + list(transit) + list(LIFE_ASOKE_CURATED_TRANSIT):
+        if t and t not in ordered_transit:
+            ordered_transit.append(t)
+    # Drop far stations — Life Asoke is never ลาดพร้าว / BTS อโศก
+    blocked = {"MRT ลาดพร้าว", "BTS ห้าแยกลาดพร้าว", "BTS อโศก", "MRT สุขุมวิท"}
+    ordered_transit = [t for t in ordered_transit if t not in blocked]
+    for t in LIFE_ASOKE_CURATED_TRANSIT:
+        if t not in ordered_transit:
+            ordered_transit.append(t)
+    transit_out = dedupe_stations(ordered_transit)[:3]
+
+    ordered_zones: list[str] = []
+    for z in list(LIFE_ASOKE_CURATED_ZONES) + list(zones):
+        if z and z not in ordered_zones and not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I):
+            ordered_zones.append(z)
+    # Drop มักกะสัน area chip if present — covered by ARL transit; free a slot for มศว/อโศก
+    ordered_zones = [z for z in ordered_zones if z != "มักกะสัน"]
+    zones_out = ordered_zones[:5]
+    return zones_out, transit_out
+
+
 def apply_living_to_project(
     proj: dict,
     *,
@@ -618,6 +691,7 @@ def apply_living_to_project(
 ) -> tuple[list[str], list[str]]:
     """Write Living-verified zone/transit onto a project dict. Returns (zones, transit)."""
     name = proj.get("canonical_name") or ""
+    bucket = proj.get("bucket_key") or project_bucket(name) or ""
     use_stations = list(stations or [])
     if not living_stations_plausible(use_stations, zone=zone, project_name=name):
         # Keep Living zone; replace stations with name/corridor inference
@@ -630,13 +704,17 @@ def apply_living_to_project(
         for z in extract_zones_from_text(name):
             if z not in zones:
                 zones.append(z)
+    source = "livinginsider"
+    if bucket in LIFE_ASOKE_BUCKETS:
+        zones, transit = merge_life_asoke_corridor(zones, transit, living_stations=use_stations)
+        source = LIFE_ASOKE_SOURCE
     proj["zone_verified"] = zones
     proj["zone_unverified"] = []
     proj["transit_verified"] = transit
     # Keep raw sheet pile out of primary display once Living verified
     proj["transit_unverified"] = []
     proj["location_status"] = "verified"
-    proj["location_source"] = "livinginsider"
+    proj["location_source"] = source
     if living_project_url:
         proj["living_project_url"] = living_project_url
     if zone:
@@ -658,13 +736,13 @@ def enrich_project(proj: dict, property_hints: list[str] | None = None) -> tuple
     bucket = proj.get("bucket_key") or project_bucket(name) or ""
 
     # Prefer Living-verified if already written by enrich_from_living
-    if (proj.get("location_source") or "") == "livinginsider" and (
+    if _is_living_source(proj.get("location_source") or "") and (
         proj.get("transit_verified") or proj.get("zone_verified")
     ):
         return (
             list(proj.get("zone_verified") or []),
             list(proj.get("transit_verified") or []),
-            "livinginsider",
+            proj.get("location_source") or "livinginsider",
         )
 
     override = PROJECT_OVERRIDES.get(bucket)
@@ -813,7 +891,7 @@ def enrich_projects_from_living(
         stats["projects_with_living_url"] += 1
         if (
             not force
-            and (proj.get("location_source") or "") == "livinginsider"
+            and _is_living_source(proj.get("location_source") or "")
             and (proj.get("transit_verified") or proj.get("zone_verified"))
         ):
             stats["projects_skipped_already"] += 1
@@ -938,11 +1016,12 @@ def enrich_all_projects(*, dry_run: bool = False, min_listings: int = 0) -> dict
         if int(proj.get("listing_count") or 0) < min_listings:
             continue
         # Never overwrite Living-verified with corridor/sheet heuristics
-        if (proj.get("location_source") or "") == "livinginsider" and (
+        if _is_living_source(proj.get("location_source") or "") and (
             proj.get("transit_verified") or proj.get("zone_verified")
         ):
             stats["skipped_living"] += 1
-            stats["by_source"]["livinginsider"] = stats["by_source"].get("livinginsider", 0) + 1
+            src = proj.get("location_source") or "livinginsider"
+            stats["by_source"][src] = stats["by_source"].get(src, 0) + 1
             continue
         zones, transit, source = enrich_project(proj, hints_by_pid.get(proj["id"]))
         stats["by_source"][source] = stats["by_source"].get(source, 0) + 1

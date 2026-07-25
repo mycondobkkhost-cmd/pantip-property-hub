@@ -229,7 +229,8 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
             bucket = proj.get("bucket_key") or ""
             if not bucket:
                 continue
-            if (proj.get("location_source") or "") == "livinginsider" or (
+            src = proj.get("location_source") or ""
+            if src == "livinginsider" or src.startswith("livinginsider+") or (
                 proj.get("transit_verified") or proj.get("zone_verified")
             ):
                 preserved_loc_by_bucket[bucket] = {

@@ -612,6 +612,14 @@ def _write_hub_tab(ss, hub_rows: list[list], *, hub_name: str, hub_gid: str) -> 
             )
             created = True
 
+    # New-sheet clones often keep hub gid but title「Sale」— rename to app name.
+    if ws is not None and (ws.title or "").strip() != hub_name:
+        if (ws.title or "").strip().lower() == "sale":
+            try:
+                ws.update_title(hub_name)
+            except Exception:
+                pass
+
     values = [HUB_HEADERS] + hub_rows
     ws.clear()
     _update_values_chunked(ws, values, start_row=1)

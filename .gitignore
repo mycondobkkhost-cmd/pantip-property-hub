@@ -5,6 +5,7 @@ venv/
 
 # Credentials & sessions
 credentials/
+credentials/*.json
 cookies/
 
 # Runtime / local-only (cloud deploy force-adds essentials — see DEPLOY_RENDER.md)

@@ -115,6 +115,45 @@ def download_csv(url: str, dest: Path, timeout: int = 90) -> int:
     return len(text)
 
 
+def download_sheet_via_service_account(
+    *,
+    spreadsheet_id: str,
+    dest: Path,
+    sheet_name: str = "",
+    gid: str = "",
+) -> int:
+    """Pull a worksheet via Service Account (private sheets). Returns bytes written."""
+    import csv
+    import io
+
+    from src.hub.sheet_write import _gspread_client
+
+    sid = (spreadsheet_id or "").strip()
+    if not sid:
+        raise ValueError("ไม่มี spreadsheet_id สำหรับดึงด้วย Service Account")
+
+    client = _gspread_client()
+    ss = client.open_by_key(sid)
+    ws = None
+    if gid:
+        try:
+            ws = ss.get_worksheet_by_id(int(gid))
+        except Exception:
+            ws = None
+    if ws is None and sheet_name:
+        ws = ss.worksheet(sheet_name)
+    if ws is None:
+        ws = ss.get_worksheet(0)
+
+    values = ws.get_all_values()
+    buf = io.StringIO()
+    csv.writer(buf).writerows(values)
+    text = buf.getvalue().encode("utf-8")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(text)
+    return len(text)
+
+
 def fetch_spreadsheet_title(spreadsheet_id: str, timeout: int = 20) -> str:
     """Best-effort public title from htmlview (no auth)."""
     sid = (spreadsheet_id or "").strip()
@@ -188,12 +227,33 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
     downloaded = False
     download_error = ""
     bytes_written = 0
+    download_via = ""
+    sheet_name = _env("MAIN_SHEET_NAME", "HUB_MAIN_SHEET_NAME") or "ชีตสำหรับทำงาน"
+    sheet_gid = _env("MAIN_SHEET_GID", "HUB_MAIN_SHEET_GID") or "0"
     if url:
         try:
             bytes_written = download_csv(url, MAIN_CSV)
             downloaded = True
+            download_via = "public_csv"
         except Exception as exc:  # noqa: BLE001
             download_error = str(exc)
+
+    # Private sheets (shared only with SA) cannot use export CSV URLs.
+    if not downloaded and source_id and not source_id.startswith("your_"):
+        try:
+            bytes_written = download_sheet_via_service_account(
+                spreadsheet_id=source_id,
+                dest=MAIN_CSV,
+                sheet_name=sheet_name,
+                gid=sheet_gid,
+            )
+            downloaded = True
+            download_via = "service_account"
+            if download_error:
+                download_error = f"{download_error} → fallback SA ok"
+        except Exception as exc:  # noqa: BLE001
+            sa_err = f"Service Account pull: {exc}"
+            download_error = f"{download_error} · {sa_err}" if download_error else sa_err
 
     if not MAIN_CSV.exists():
         raise ValueError(
@@ -207,12 +267,13 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
         "downloaded": downloaded,
         "bytes": bytes_written,
         "source": "google_sheet" if downloaded else "local_csv",
+        "download_via": download_via or ("local_csv" if not downloaded else ""),
         "preserved_hub": 0,
         "spreadsheet_id": sid,
         "csv_url": url or "",
         "sync_role": "pull_source",
     }
-    if download_error and not downloaded:
+    if download_error and download_via != "public_csv":
         summary["download_warning"] = download_error
 
     if sid:

@@ -102,12 +102,120 @@ _STARTUP_SHEET_SYNC: dict = {
     "properties_total": 0,
     "message": "",
 }
+# After Hub add/edit: push web → sheet in background (admins need not click sync).
+_AUTO_SYNC_TO_SHEET: dict = {
+    "status": "idle",  # idle | queued | running | ok | error | skipped
+    "pending": False,
+    "running": False,
+    "worker_started": False,
+    "requested_at": 0.0,
+    "reason": "",
+    "last_at": "",
+    "pushed": False,
+    "spreadsheet_id": "",
+    "message": "",
+}
+_AUTO_SYNC_LOCK = __import__("threading").Lock()
+_AUTO_SYNC_DEBOUNCE_SEC = 6.0
 _CO_CATALOG_CACHE: dict = {"mtime": 0.0, "data": None}
 _PREVIEW_CACHE_MAX = 400
 _THUMB_FETCH_LOCK = __import__("threading").Semaphore(1)
 _THUMB_PENDING: set[str] = set()
 _THUMB_QUEUE = __import__("queue").Queue()
 _THUMB_FAIL_UNTIL: dict[str, float] = {}
+
+
+def _auto_sync_to_sheet_enabled() -> bool:
+    import os
+
+    flag = (os.environ.get("HUB_AUTO_SYNC_TO_SHEET") or "1").strip().lower()
+    return flag not in ("0", "false", "no", "off")
+
+
+def schedule_auto_sync_to_sheet(*, reason: str = "") -> dict:
+    """Queue a debounced background push_hub_properties_to_sheet after Hub writes.
+
+    Full overview rewrite can take ~1–2 min / risk 502 if done inline on Render,
+    so we never block the save/update response.
+    """
+    import threading
+    import time
+
+    if not _auto_sync_to_sheet_enabled():
+        return {"queued": False, "status": "skipped", "message": "HUB_AUTO_SYNC_TO_SHEET=0"}
+
+    with _AUTO_SYNC_LOCK:
+        _AUTO_SYNC_TO_SHEET["pending"] = True
+        _AUTO_SYNC_TO_SHEET["requested_at"] = time.time()
+        _AUTO_SYNC_TO_SHEET["reason"] = (reason or "").strip() or "hub_write"
+        _AUTO_SYNC_TO_SHEET["status"] = (
+            "running" if _AUTO_SYNC_TO_SHEET.get("running") else "queued"
+        )
+        start_worker = not _AUTO_SYNC_TO_SHEET.get("worker_started")
+        if start_worker:
+            _AUTO_SYNC_TO_SHEET["worker_started"] = True
+
+    if start_worker:
+        threading.Thread(target=_auto_sync_to_sheet_worker_loop, daemon=True).start()
+
+    return {
+        "queued": True,
+        "status": _AUTO_SYNC_TO_SHEET.get("status") or "queued",
+        "reason": _AUTO_SYNC_TO_SHEET.get("reason") or "",
+    }
+
+
+def _auto_sync_to_sheet_worker_loop() -> None:
+    import time
+
+    while True:
+        time.sleep(0.5)
+        with _AUTO_SYNC_LOCK:
+            if not _AUTO_SYNC_TO_SHEET.get("pending") or _AUTO_SYNC_TO_SHEET.get("running"):
+                continue
+            wait = _AUTO_SYNC_DEBOUNCE_SEC - (
+                time.time() - float(_AUTO_SYNC_TO_SHEET.get("requested_at") or 0)
+            )
+            if wait > 0:
+                continue
+            reason = _AUTO_SYNC_TO_SHEET.get("reason") or "hub_write"
+            _AUTO_SYNC_TO_SHEET["pending"] = False
+            _AUTO_SYNC_TO_SHEET["running"] = True
+            _AUTO_SYNC_TO_SHEET["status"] = "running"
+            _AUTO_SYNC_TO_SHEET["message"] = f"pushing ({reason})…"
+
+        print(f"[hub] auto sync-to-sheet start ({reason})")
+        try:
+            result = push_hub_properties_to_sheet()
+            pushed = bool(result.get("pushed"))
+            warn = (result.get("push_warning") or "").strip()
+            msg = (
+                f"pushed={pushed} rows={result.get('written_count') or 0}"
+                + (f" · {warn}" if warn else "")
+            )
+            with _AUTO_SYNC_LOCK:
+                _AUTO_SYNC_TO_SHEET.update(
+                    {
+                        "status": "ok" if pushed else "error",
+                        "pushed": pushed,
+                        "spreadsheet_id": result.get("spreadsheet_id") or "",
+                        "last_at": result.get("synced_at") or time.strftime("%d/%m/%Y %H:%M"),
+                        "message": msg,
+                        "running": False,
+                    }
+                )
+            print(f"[hub] auto sync-to-sheet done: {msg}")
+        except Exception as exc:  # noqa: BLE001
+            with _AUTO_SYNC_LOCK:
+                _AUTO_SYNC_TO_SHEET.update(
+                    {
+                        "status": "error",
+                        "pushed": False,
+                        "message": str(exc),
+                        "running": False,
+                    }
+                )
+            print(f"[hub] auto sync-to-sheet error: {exc}")
 
 
 def _cache_put(cache: dict, key: str, value) -> None:
@@ -554,6 +662,18 @@ class HubHandler(BaseHTTPRequestHandler):
                     "properties_total": meta.get("properties_total") or 0,
                     "generated_at": meta.get("generated_at") or "",
                     "startup_sheet_sync": dict(_STARTUP_SHEET_SYNC),
+                    "auto_sync_to_sheet": {
+                        "enabled": _auto_sync_to_sheet_enabled(),
+                        "status": _AUTO_SYNC_TO_SHEET.get("status") or "idle",
+                        "pending": bool(_AUTO_SYNC_TO_SHEET.get("pending")),
+                        "running": bool(_AUTO_SYNC_TO_SHEET.get("running")),
+                        "pushed": bool(_AUTO_SYNC_TO_SHEET.get("pushed")),
+                        "spreadsheet_id": _AUTO_SYNC_TO_SHEET.get("spreadsheet_id")
+                        or "",
+                        "last_at": _AUTO_SYNC_TO_SHEET.get("last_at") or "",
+                        "message": _AUTO_SYNC_TO_SHEET.get("message") or "",
+                        "reason": _AUTO_SYNC_TO_SHEET.get("reason") or "",
+                    },
                 },
             )
             return
@@ -940,12 +1060,17 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/properties/save":
             try:
                 prop = save_new_property(body.get("property") or body)
+                code = (prop.get("code") or "").strip()
+                sheet_sync = schedule_auto_sync_to_sheet(
+                    reason=f"save {code}" if code else "save"
+                )
                 self._json(
                     200,
                     {
                         "ok": True,
                         "property": prop,
                         "next_code": next_rxt_code(prop.get("code_prefix") or "RXT"),
+                        "sheet_sync": sheet_sync,
                     },
                 )
             except ValueError as exc:
@@ -961,7 +1086,14 @@ class HubHandler(BaseHTTPRequestHandler):
                 if not pid:
                     pid = (prop_body.get("id") or prop_body.get("code") or "").strip()
                 prop = update_property(pid, prop_body)
-                self._json(200, {"ok": True, "property": prop})
+                code = (prop.get("code") or pid or "").strip()
+                sheet_sync = schedule_auto_sync_to_sheet(
+                    reason=f"update {code}" if code else "update"
+                )
+                self._json(
+                    200,
+                    {"ok": True, "property": prop, "sheet_sync": sheet_sync},
+                )
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})
             except Exception as exc:  # noqa: BLE001
@@ -972,7 +1104,14 @@ class HubHandler(BaseHTTPRequestHandler):
             try:
                 pid = (body.get("id") or body.get("code") or "").strip()
                 prop = update_property_links(pid, body)
-                self._json(200, {"ok": True, "property": prop})
+                code = (prop.get("code") or pid or "").strip()
+                sheet_sync = schedule_auto_sync_to_sheet(
+                    reason=f"update-links {code}" if code else "update-links"
+                )
+                self._json(
+                    200,
+                    {"ok": True, "property": prop, "sheet_sync": sheet_sync},
+                )
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})
             except Exception as exc:  # noqa: BLE001

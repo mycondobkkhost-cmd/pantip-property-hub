@@ -98,6 +98,7 @@ Render จะให้ URL แบบ:
 | หลับ | ไม่มีคนใช้สักพัก → เปิดครั้งถัดไปรอนานหน่อย |
 | Disk ชั่วคราว | ไฟล์ที่เขียนตอนรัน (`properties.json`, `preview-data.js`, Focus, คิวรอโพสต์) **หายเมื่อ redeploy** — แผนฟรีไม่มี Persistent Disk |
 | ดึงชีทตอนบูต | ถ้าตั้ง `MAIN_SHEET_CSV_URL` (หรือ `SOURCE_GOOGLE_SHEETS_ID`) เซิร์ฟจะ **รีเฟรชจาก Google Sheet อัตโนมัติตอนสตาร์ท** หลังทุก deploy — ไม่ต้องกด「รีเฟรชชีท」เอง |
+| ซิงค์ Web→ชีท | หลัง **เพิ่ม/แก้ไขทรัพย์** (save / update / update-links) เซิร์ฟ **queue sync-to-sheet อัตโนมัติ** (background + debounce ~6 วินาที) — แอดมินไม่ต้องกดปุ่มทุกครั้ง; ปุ่ม「ซิงค์ไปชีท」ยังใช้ได้ถ้าต้องการบังคับทันที |
 | Focus / คิว | ปักหมุด Focus และแก้คิวบนเซิร์ฟยัง ephemeral (ยังไม่ดึงกลับจากชีทตอนบูต) — ข้อมูลสำคัญให้ซิงค์ไปชีทหรือบันทึกใน Sheet เป็นหลัก |
 | ความปลอดภัย | เปลี่ยนรหัสผ่านก่อนแชร์ URL สาธารณะ |
 
@@ -107,6 +108,7 @@ Render จะให้ URL แบบ:
 - หรือ `SOURCE_GOOGLE_SHEETS_ID` + `MAIN_SHEET_GID`
 - `WAIT_POST_SHEET_CSV_URL` — แท็บ「รอโพสต์」(optional)
 - `HUB_STARTUP_SHEET_SYNC=0` — ปิด sync ตอนบูต (ค่าเริ่มต้นเปิด)
+- `HUB_AUTO_SYNC_TO_SHEET=0` — ปิด auto push หลังบันทึกทรัพย์ (ค่าเริ่มต้นเปิด)
 
 ## ทดสอบบนเครื่องก่อน push
 

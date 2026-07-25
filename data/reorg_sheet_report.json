@@ -1,0 +1,127 @@
+{
+  "started": "2026-07-26 05:38:53",
+  "mapping": {
+    "stats": {
+      "rows_written": 17623,
+      "non_ptp": 3,
+      "preserved_station": 8307,
+      "ptp_rows": 17620,
+      "owner_from_r": 4753,
+      "has_source": 8488,
+      "has_post": 8393,
+      "has_owner": 6657,
+      "owner_from_fase": 1904,
+      "has_pages": 6623,
+      "owner_empty": 10963
+    },
+    "rates": {
+      "ptp_rows": 17620,
+      "owner_from_fase": 1904,
+      "owner_from_r": 4753,
+      "owner_empty": 10963,
+      "owner_fill": {
+        "filled": 6657,
+        "total": 17620,
+        "pct": 37.8
+      },
+      "source_fill": {
+        "filled": 8488,
+        "total": 17620,
+        "pct": 48.2
+      },
+      "post_fill": {
+        "filled": 8393,
+        "total": 17620,
+        "pct": 47.6
+      },
+      "pages_fill": {
+        "filled": 6623,
+        "total": 17620,
+        "pct": 37.6
+      }
+    }
+  },
+  "write": {
+    "ok": true,
+    "dry_run": false,
+    "rows_written": 17624,
+    "ptp_rows": 17620,
+    "ptp_unique": 17306,
+    "headers": [
+      "รหัสทรัพย์",
+      "วันที่รับเข้า",
+      "วันที่ว่าง",
+      "โครงการ",
+      "ประเภท",
+      "ห้องนอน/ห้องน้ำ",
+      "ขนาด",
+      "ชั้น",
+      "ราคาเช่า",
+      "ราคาขาย",
+      "ทำเล",
+      "สถานีรถไฟฟ้า",
+      "Short-Term",
+      "PETS",
+      "ลิ้งค์โพส",
+      "ลิ้งค์โพส Pages",
+      "หมายเหตุ",
+      "ลิ้งค์ต้นโพสต์",
+      "",
+      "เฟสเจ้าของ"
+    ]
+  },
+  "living": {
+    "sheet_id": "1UUJFSj069k0XuPDWRJILYRes40amuQRxGpcGChITNjc",
+    "rows": 17623,
+    "inserted_talea": false,
+    "updated_rows": 8128,
+    "cleared_station_seo": 2446,
+    "matched_projects": 8532,
+    "unmatched_projects": 5,
+    "dry_run": false,
+    "talea_cells": 8021,
+    "station_cells": 7116
+  },
+  "rebuild": {
+    "projects": 2436,
+    "properties_total": 7318,
+    "properties_active": 2669,
+    "properties_archived": 4626,
+    "properties_needs_review": 23,
+    "properties_flagged_duplicate": 2205,
+    "drive_dropped": 1226,
+    "code_only_dropped": 9073,
+    "incomplete_skipped": 3,
+    "partial_imported": 22,
+    "with_owner_facebook": 5432,
+    "with_post_url": 7165,
+    "with_post_pages_url": 6572,
+    "with_source_url": 7180,
+    "owner_already": 5432,
+    "owner_from_adjacent": 0,
+    "owner_from_adjacent_over_post": 0,
+    "owner_from_source_profile": 0,
+    "owner_empty": 1886,
+    "newest_imported_code": "PTP8243",
+    "newest_sheet_code": "PTP17312",
+    "properties_hub": 0
+  },
+  "overview": {
+    "ok": true,
+    "via": "gspread",
+    "overview_rows": null,
+    "active_for_overview": 2692,
+    "spreadsheet_url": "https://docs.google.com/spreadsheets/d/1UUJFSj069k0XuPDWRJILYRes40amuQRxGpcGChITNjc/edit#gid=404603508",
+    "warnings": null
+  },
+  "final_verify": {
+    "ptp": 17620,
+    "source_pct": 48.2,
+    "owner_pct": 37.8,
+    "post_pct": 47.6,
+    "pages_pct": 37.6,
+    "adjacent_r_still_filled": 0,
+    "owner_from_fase": 1904,
+    "owner_from_r": 4753
+  }
+}

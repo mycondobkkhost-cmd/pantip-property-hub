@@ -34,7 +34,8 @@ CANONICAL_OVERRIDES: dict[str, str] = {
 }
 
 from src.hub.project_identity import resolve_bucket as _resolve_bucket  # noqa: E402
-from src.hub.link_classify import classify_row, is_google_helper_url  # noqa: E402
+from src.hub.link_classify import is_google_helper_url  # noqa: E402
+from src.hub.trust_map import trust_map_row  # noqa: E402
 from src.hub.sheet_links import (  # noqa: E402
     http_url_or_empty,
     unwrap_link_cell,
@@ -172,20 +173,8 @@ def load_rows() -> list[dict[str, str]]:
     out: list[dict[str, str]] = []
     for idx, r in enumerate(sheet[1:], start=2):
         code = col(r, "รหัสทรัพย์").upper().replace(" ", "")
-        classified = classify_row(headers, r)
-        action = "deleted_drive" if classified.delete else (
-            "moved" if classified.moved_from else (
-                "already_owner" if classified.owner else "empty"
-            )
-        )
-        if classified.moved_from.get("owner") == "adjacent":
-            action = "from_adjacent"
-        elif classified.moved_from.get("owner") == "source":
-            action = "from_source_profile"
-        elif classified.owner and not classified.moved_from.get("owner"):
-            action = "already_owner"
-        elif not classified.owner:
-            action = "empty"
+        # Trust sheet columns (no horizontal URL reclassify).
+        mapped = trust_map_row(headers, r)
         out.append(
             {
                 "row": str(idx),
@@ -201,14 +190,14 @@ def load_rows() -> list[dict[str, str]]:
                 "sale": col(r, "ราคาขาย"),
                 "zone": col(r, "ทำเล"),
                 "transit": col(r, "สถานีรถไฟฟ้า"),
-                "source": "" if classified.delete else classified.source,
+                "source": mapped.source,
                 "source_adjacent": "",
-                "owner_fb": "" if classified.delete else classified.owner,
-                "owner_fb_action": action,
-                "post_link": "" if classified.delete else classified.post,
-                "post_pages": "" if classified.delete else classified.pages,
-                "notes": "" if classified.delete else classified.notes,
-                "delete_drive": "1" if classified.delete else "",
+                "owner_fb": mapped.owner,
+                "owner_fb_action": mapped.owner_action,
+                "post_link": mapped.post,
+                "post_pages": mapped.pages,
+                "notes": mapped.notes,
+                "delete_drive": "",
             }
         )
     return out

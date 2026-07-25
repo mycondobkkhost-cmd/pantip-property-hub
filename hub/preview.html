@@ -2101,6 +2101,15 @@
             <span>ข้อความลูกค้า (English) — ตัด contact แล้ว</span>
             <textarea class="output-box" id="out-en" readonly></textarea>
           </label>
+          <label class="add-wide">
+            <span>ต้นฉบับโพสต์เพจ (คัดลอกทั้งดุ้นจากเพจสาธารณะ — ใช้ตอนกด「โพสต์」กลุ่ม)</span>
+            <textarea id="add-page-post-text" class="output-box" rows="12" placeholder="เปิดโพสต์เพจ → คัดลอกข้อความทั้งหมด → วางที่นี่ แล้วกดบันทึกต้นฉบับ&#10;&#10;ระบบจะเก็บต้นฉบับครบ แล้วค่อยดัดแปลงกันสแปมเบาๆ ตอนคัดลอกไปแต่ละกลุ่ม"></textarea>
+          </label>
+          <div class="add-wide toolbar-row" style="margin-top:4px;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" class="btn-sm primary" id="add-save-page-text">บันทึกต้นฉบับเพจ</button>
+            <button type="button" class="btn-sm" id="add-fill-page-text-from-th" title="คัดลอกจากข้อความไทยใน Hub ถ้าโพสต์เพจใช้ข้อความชุดเดียวกัน">เติมจากข้อความไทย</button>
+            <span id="add-page-post-hint" style="font-size:11px;color:#71717a">Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ — ต้องวางต้นฉบับเองครั้งหนึ่งต่อทรัพย์</span>
+          </div>
         </div>
         <div class="toolbar-row" style="margin-top:16px;gap:10px;flex-wrap:wrap;align-items:center">
           <button type="button" class="btn-sm primary" id="add-proceed" style="font-size:14px;padding:10px 16px">
@@ -2114,7 +2123,7 @@
         <div id="group-recommend-box" class="add-wide" style="margin-top:14px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
             <strong style="font-size:13px">กลุ่ม FB แนะนำ — 30 กลุ่ม (เรียงจากแนะนำสุด)</strong>
-            <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังเลือกโครงการ/ราคา</span>
+            <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังเลือกโครงการ/ราคา · ต้องมีต้นฉบับเพจก่อนกดโพสต์</span>
           </div>
           <div id="group-recommend-tabs" class="hidden" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
           <div id="group-recommend-list" style="margin-top:10px;font-size:12px;color:#a1a1aa;max-height:480px;overflow:auto">ยังไม่มีรายการ</div>
@@ -5166,6 +5175,13 @@
       document.getElementById("add-notes").value = "";
       document.getElementById("out-th").value = "";
       document.getElementById("out-en").value = "";
+      var pagePostEl = document.getElementById("add-page-post-text");
+      if (pagePostEl) pagePostEl.value = "";
+      var pageHint = document.getElementById("add-page-post-hint");
+      if (pageHint) {
+        pageHint.style.color = "#71717a";
+        pageHint.textContent = "Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ — ต้องวางต้นฉบับเองครั้งหนึ่งต่อทรัพย์";
+      }
       document.getElementById("add-project").value = "";
       document.getElementById("add-project-id").value = "";
       document.getElementById("add-beds").value = "";
@@ -5354,6 +5370,9 @@
       document.getElementById("add-notes").value = prop.notes || "";
       document.getElementById("out-th").value = prop.text_th || "";
       document.getElementById("out-en").value = prop.text_en || "";
+      var pagePostEl = document.getElementById("add-page-post-text");
+      if (pagePostEl) pagePostEl.value = prop.page_post_text || "";
+      updatePagePostHint(prop.page_post_text || "");
       if (prop.project_id) {
         applyProjectMaster(prop.project_id);
       } else if (prop.location_ref) {
@@ -5671,6 +5690,7 @@
         source_url: document.getElementById("add-url").value,
         post_url: document.getElementById("add-post-url").value.trim(),
         post_pages_url: document.getElementById("add-page-url").value.trim(),
+        page_post_text: (document.getElementById("add-page-post-text") || { value: "" }).value.trim(),
       };
     }
 
@@ -5704,6 +5724,11 @@
         document.getElementById("add-raw").value = data.raw_text;
       }
       if (data.source_url) document.getElementById("add-url").value = data.source_url;
+      if (data.page_post_text) {
+        var ppt = document.getElementById("add-page-post-text");
+        if (ppt) ppt.value = data.page_post_text;
+        updatePagePostHint(data.page_post_text);
+      }
 
       try {
         setAddProjectFromParse(data.project_name, data.project_id);
@@ -6140,20 +6165,98 @@
       el.textContent = message || "";
     }
 
+    function updatePagePostHint(text) {
+      var hint = document.getElementById("add-page-post-hint");
+      if (!hint) return;
+      var t = String(text || "").trim();
+      if (!t) {
+        hint.style.color = "#71717a";
+        hint.textContent = "Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ — ต้องวางต้นฉบับเองครั้งหนึ่งต่อทรัพย์";
+        return;
+      }
+      var lines = t.split(/\n/).length;
+      hint.style.color = lines >= 8 && t.length >= 180 ? "#137333" : "#b45309";
+      hint.textContent = "ต้นฉบับ " + t.length + " ตัวอักษร · " + lines + " บรรทัด" +
+        (lines >= 8 && t.length >= 180 ? " · พร้อมใช้กับปุ่มโพสต์" : " · อาจยังไม่ครบ ตรวจเทียบกับโพสต์เพจ");
+    }
+
     function pagePublicCaptionSource() {
+      var pagePostEl = document.getElementById("add-page-post-text");
       return {
         code: (document.getElementById("add-code").value || "").trim(),
         page_url: (document.getElementById("add-page-url").value || "").trim(),
         post_url: (document.getElementById("add-post-url").value || "").trim(),
+        page_post_text: pagePostEl ? (pagePostEl.value || "").trim() : "",
         base_text: (document.getElementById("out-th").value || "").trim(),
       };
     }
 
+    async function savePagePostTextOnly() {
+      var src = pagePublicCaptionSource();
+      var text = src.page_post_text;
+      if (!text) {
+        alert("วางข้อความเต็มจากโพสต์เพจในช่อง「ต้นฉบับโพสต์เพจ」ก่อน");
+        return;
+      }
+      if (!editingPropertyId && !src.code) {
+        alert("บันทึกทรัพย์ก่อน หรือเปิดทรัพย์จากรายการ แล้วค่อยบันทึกต้นฉบับเพจ");
+        return;
+      }
+      updatePagePostHint(text);
+      // If editing existing property, persist immediately; else keep in form until บันทึกทรัพย์
+      if (editingPropertyId) {
+        try {
+          var payload = addFormPayload();
+          payload.text_th = document.getElementById("out-th").value;
+          payload.text_en = document.getElementById("out-en").value;
+          payload.page_post_text = text;
+          await apiPost("/api/properties/update", { id: editingPropertyId, property: payload });
+          await reloadPreviewData();
+          var hint = document.getElementById("add-page-post-hint");
+          if (hint) {
+            hint.style.color = "#137333";
+            hint.textContent = "บันทึกต้นฉบับเพจแล้ว · " + text.length + " ตัวอักษร";
+          }
+        } catch (e) {
+          alert(e.message || "บันทึกต้นฉบับไม่ได้");
+        }
+      } else {
+        var hint2 = document.getElementById("add-page-post-hint");
+        if (hint2) {
+          hint2.style.color = "#137333";
+          hint2.textContent = "เก็บในฟอร์มแล้ว — กด「บันทึกทรัพย์」เพื่อเซฟถาวร · " + text.length + " ตัวอักษร";
+        }
+      }
+    }
+
     async function prepareAndCopyGroupCaption(groupUrl, groupName, btn, forceNew) {
       var src = pagePublicCaptionSource();
-      if (!src.page_url && !src.base_text && !src.post_url) {
-        alert("ยังไม่มีข้อความจากเพจสาธารณะ — ใส่ลิงก์โพสต์เพจ หรือสร้างข้อความไทยใน Hub ก่อน");
+      if (!src.page_post_text && !src.base_text) {
+        alert(
+          "ยังไม่มีต้นฉบับโพสต์เพจ\n\n" +
+          "1) เปิดลิงก์โพสต์เพจสาธารณะ\n" +
+          "2) คัดลอกข้อความทั้งดุ้น\n" +
+          "3) วางในช่อง「ต้นฉบับโพสต์เพจ」แล้วกดบันทึกต้นฉบับ\n" +
+          "จากนั้นค่อยกด「โพสต์」อีกครั้ง"
+        );
+        var box = document.getElementById("add-page-post-text");
+        if (box) {
+          try { box.focus(); box.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) { /* ignore */ }
+        }
         return;
+      }
+      if (!src.page_post_text) {
+        var ok = confirm(
+          "ยังไม่ได้วางต้นฉบับจากเพจ — จะใช้ข้อความไทยใน Hub ชั่วคราว\n\n" +
+          "ถ้าไม่ตรงกับโพสต์เพจ ให้กดยกเลิก แล้ววางต้นฉบับเต็มก่อน\n\nดำเนินการต่อ?"
+        );
+        if (!ok) {
+          var box2 = document.getElementById("add-page-post-text");
+          if (box2) {
+            try { box2.focus(); box2.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) { /* ignore */ }
+          }
+          return;
+        }
       }
       if (!src.code) {
         alert("ยังไม่มีรหัสทรัพย์ — บันทึกหรือเปิดทรัพย์ก่อนใช้ปุ่มโพสต์");
@@ -6164,31 +6267,38 @@
         btn.disabled = true;
         btn.textContent = "เตรียม…";
       }
-      setGroupCaptionStatus(groupUrl, "กำลังเตรียมข้อความกันซ้ำ…", false);
+      setGroupCaptionStatus(groupUrl, "กำลังเตรียมต้นฉบับเต็ม + กันซ้ำ…", false);
       try {
         var data = await apiPost("/api/groups/prepare-caption", {
           code: src.code,
           group_url: groupUrl,
           group_name: groupName || "",
+          page_post_text: src.page_post_text,
           page_url: src.page_url,
           post_url: src.post_url,
           base_text: src.base_text,
           force_new: !!forceNew,
+          allow_scrape: false, // ห้ามใช้ scrape ตัดข้อความ — ใช้ต้นฉบับที่วางไว้เท่านั้น
         });
         if (!data || !data.ok || !data.caption) {
           throw new Error((data && data.error) || "เตรียมข้อความไม่ได้");
         }
         await copyTextToClipboard(data.caption);
         var srcLabel = ({
-          page_scrape: "จากเพจสาธารณะ",
-          text_th: "จากข้อความไทยใน Hub",
+          page_original: "ต้นฉบับเพจทั้งดุ้น",
+          text_th: "ข้อความไทยใน Hub",
+          page_scrape: "จากลิงก์เพจ",
           post_scrape: "จากโพสต์โปรไฟล์",
         })[data.source] || data.source || "";
         var status =
           (data.reused ? "ใช้ชุดล่าสุด · " : "คัดลอกแล้ว · ") +
+          (data.base_chars ? data.base_chars + " ตัวอักษร · " : "") +
           "เวอร์ชัน " + ((data.variant_index || 0) + 1) +
           (srcLabel ? " · " + srcLabel : "") +
           " · ไม่ซ้ำในทรัพย์นี้";
+        if (data.warnings && data.warnings.length) {
+          status += " · " + data.warnings[0];
+        }
         setGroupCaptionStatus(groupUrl, status, false);
         if (btn) {
           btn.textContent = data.reused ? "ในคลิปแล้ว" : "คัดลอกแล้ว";
@@ -7432,6 +7542,7 @@
         var payload = addFormPayload();
         payload.text_th = document.getElementById("out-th").value;
         payload.text_en = document.getElementById("out-en").value;
+        payload.page_post_text = (document.getElementById("add-page-post-text") || { value: "" }).value.trim();
         var data;
         if (editingPropertyId) {
           payload.id = editingPropertyId;
@@ -8107,6 +8218,26 @@
     document.getElementById("add-parse").addEventListener("click", doParse);
     document.getElementById("add-generate").addEventListener("click", doGenerate);
     document.getElementById("add-proceed").addEventListener("click", doProceed);
+    var savePageTextBtn = document.getElementById("add-save-page-text");
+    if (savePageTextBtn) savePageTextBtn.addEventListener("click", savePagePostTextOnly);
+    var fillPageTextBtn = document.getElementById("add-fill-page-text-from-th");
+    if (fillPageTextBtn) {
+      fillPageTextBtn.addEventListener("click", function () {
+        var th = (document.getElementById("out-th").value || "").trim();
+        if (!th) {
+          alert("ยังไม่มีข้อความไทยใน Hub — สร้างข้อความ TH ก่อน หรือวางจากเพจเอง");
+          return;
+        }
+        document.getElementById("add-page-post-text").value = th;
+        updatePagePostHint(th);
+      });
+    }
+    var pagePostTextEl = document.getElementById("add-page-post-text");
+    if (pagePostTextEl) {
+      pagePostTextEl.addEventListener("input", function () {
+        updatePagePostHint(pagePostTextEl.value);
+      });
+    }
     document.getElementById("add-recommend-groups").addEventListener("click", loadGroupRecommendations);
     document.getElementById("group-recommend-list").addEventListener("click", function (e) {
       var postBtn = e.target.closest("[data-post-group]");

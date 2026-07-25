@@ -887,6 +887,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     property_code=(body.get("code") or body.get("property_code") or "").strip(),
                     group_url=(body.get("group_url") or body.get("url") or "").strip(),
                     group_name=(body.get("group_name") or "").strip(),
+                    page_post_text=(body.get("page_post_text") or "").strip(),
                     page_url=(body.get("page_url") or body.get("post_pages_url") or "").strip(),
                     post_url=(body.get("post_url") or "").strip(),
                     base_text=(body.get("base_text") or body.get("text_th") or "").strip(),

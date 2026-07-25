@@ -576,6 +576,7 @@ def _save_new_property_locked(payload: dict) -> dict:
         "text_th": payload.get("text_th") or "",
         "text_en": payload.get("text_en") or "",
         "raw_text": payload.get("raw_text") or "",
+        "page_post_text": (payload.get("page_post_text") or "").strip(),
         "linked_ptp_code": (payload.get("linked_ptp_code") or "").strip(),
     }
 
@@ -683,6 +684,8 @@ def _update_property_locked(property_id: str, payload: dict) -> dict:
         prop["text_en"] = payload.get("text_en") or ""
     if "raw_text" in payload:
         prop["raw_text"] = payload.get("raw_text") or ""
+    if "page_post_text" in payload:
+        prop["page_post_text"] = (payload.get("page_post_text") or "").strip()
 
     if old_project_id != project_id:
         for pr in projects:

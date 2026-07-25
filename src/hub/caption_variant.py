@@ -1,9 +1,12 @@
-"""Unique group-post captions from a public page (or Hub) base text.
+"""Unique group-post captions from a full public-page original.
 
-Goals:
-- Same property → different caption per Facebook group
-- Same group again (repost) → new caption, still unique vs all prior copies
-- Accidental double-click → reuse last caption for that group (short window)
+Priority for base text:
+1. page_post_text — admin-pasted full original from the public Page post
+2. Hub text_th — only if it looks complete (never prefer truncated FB scrape)
+3. FB scrape — last resort, rejected when truncated / title-mashup
+
+Anti-spam: keep the original body 100% intact; only micro-vary the end
+(hashtag reorder / trailing newlines / invisible marks / soft date trailer).
 """
 
 from __future__ import annotations
@@ -24,30 +27,20 @@ HISTORY_PATH = BASE_DIR / "data" / "caption_copy_history.json"
 _LOCK = threading.RLock()
 BANGKOK = ZoneInfo("Asia/Bangkok")
 
-# Reuse last caption for same group if clicked again within this window (seconds)
 REUSE_WINDOW_SEC = 120
 MAX_ATTEMPTS = 48
 
-BULLETS = ("•", "·", "-", "▪", "●")
-CTA_VARIANTS = (
-    "สนใจสอบถามเพิ่มเติมได้ครับ",
-    "สนใจทักสอบถามได้ครับ",
-    "สอบถามรายละเอียดเพิ่มเติมได้ครับ",
-    "ทักมาสอบถามได้เลยครับ",
-    "สนใจรายละเอียดเพิ่ม คุยได้ครับ",
-)
-HASHTAG_SETS = (
-    ("#คอนโดให้เช่า", "#อสังหา"),
-    ("#คอนโดกรุงเทพ", "#ให้เช่า"),
-    ("#เช่าคอนโด", "#BangkokCondo"),
-    ("#คอนโดใกล้รถไฟฟ้า", "#อสังหาริมทรัพย์"),
-    ("#คอนโด", "#เช่าขาย"),
+# Soft trailers we append (never strip original page hashtags/contacts)
+OUR_DATE_TRAILER_RE = re.compile(r"^อัปเดต \d{2}/\d{2}(?: · [a-f0-9]+)?$")
+PAGE_BRAND_NOISE_RE = re.compile(
+    r"Pantip\s*Property|จัดหา\s*ฝากขาย\s*บ้านคอนโด",
+    re.I,
 )
 
 
 def caption_fingerprint(text: str) -> str:
-    """Normalize whitespace then hash — catches near-identical spam copies."""
-    norm = re.sub(r"\s+", " ", (text or "").strip())
+    """Hash after collapsing normal whitespace; keep zero-width marks so variants differ."""
+    norm = re.sub(r"[ \t\r\n\f\v]+", " ", (text or "").strip())
     return hashlib.sha256(norm.encode("utf-8")).hexdigest()[:20]
 
 
@@ -77,53 +70,70 @@ def _seed_int(property_code: str, group_url: str) -> int:
     return int(hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12], 16)
 
 
-def _split_blocks(text: str) -> list[str]:
-    parts = re.split(r"\n\s*\n", (text or "").strip())
-    return [p.strip() for p in parts if p.strip()]
-
-
-def _replace_bullets(text: str, bullet: str) -> str:
-    out = text
-    for b in BULLETS:
-        if b != bullet:
-            out = out.replace(b, bullet)
-    # common list prefixes
-    out = re.sub(r"(?m)^(\s*)[-*]\s+", rf"\1{bullet} ", out)
-    return out
-
-
-def _soft_swap_tail(blocks: list[str], mode: int) -> list[str]:
-    if len(blocks) < 2:
-        return blocks
-    out = list(blocks)
-    if mode % 3 == 1 and len(out) >= 2:
-        out[-1], out[-2] = out[-2], out[-1]
-    elif mode % 3 == 2 and len(out) >= 3:
-        out[-3:] = [out[-2], out[-1], out[-3]]
-    return out
-
-
-def _strip_old_trailers(text: str) -> str:
-    """Remove trailers we may have appended on earlier variants."""
-    lines = text.rstrip().split("\n")
+def _strip_our_variant_markers(text: str) -> str:
+    """Remove only markers this module appended — never strip original page content."""
+    raw = (text or "").rstrip()
+    # Strip trailing zero-width / word-joiner only lines and chars at end
+    raw = re.sub(r"[\u200b\u200c\u200d\u2060]+$", "", raw)
+    lines = raw.split("\n")
     while lines:
         last = lines[-1].strip()
         if not last:
             lines.pop()
             continue
-        if last.startswith("อัปเดต ") and len(last) <= 24:
+        if OUR_DATE_TRAILER_RE.match(last):
             lines.pop()
             continue
-        if last.startswith("#") and " " not in last[1:40] and len(last) <= 80:
-            # hashtag-only last line (or space-separated hashtags)
-            if all(p.startswith("#") for p in last.split() if p):
-                lines.pop()
-                continue
-        if last in CTA_VARIANTS:
+        if re.fullmatch(r"[\u200b\u200c\u200d\u2060]+", last):
             lines.pop()
             continue
         break
     return "\n".join(lines).rstrip()
+
+
+def _looks_like_truncated_fb_scrape(text: str) -> bool:
+    """Facebook og:meta scrapes are short and often mash page title into the body."""
+    t = (text or "").strip()
+    if not t:
+        return True
+    newlines = t.count("\n")
+    if len(t) < 180:
+        return True
+    if newlines < 4 and len(t) < 500:
+        return True
+    # Title/brand dumped mid-post (classic og:title + og:description mashup)
+    if PAGE_BRAND_NOISE_RE.search(t) and newlines < 8:
+        return True
+    # Real page posts almost always include LINE / phone / many emoji lines
+    has_contact = bool(re.search(r"LINE\s*:|@PTP\.|080-|064-", t, re.I))
+    if not has_contact and newlines < 6:
+        return True
+    return False
+
+
+def _looks_complete_original(text: str) -> bool:
+    t = (text or "").strip()
+    if len(t) < 120:
+        return False
+    if t.count("\n") < 3:
+        return False
+    return not _looks_like_truncated_fb_scrape(t) or (
+        len(t) >= 300 and t.count("\n") >= 8
+    )
+
+
+def _rotate_hashtag_line(text: str, shift: int) -> str:
+    """Reorder the last hashtag-only line — content unchanged, fingerprint changes."""
+    if shift <= 0:
+        return text
+    lines = text.rstrip().split("\n")
+    for i in range(len(lines) - 1, -1, -1):
+        parts = [p for p in lines[i].split() if p]
+        if len(parts) >= 2 and all(p.startswith("#") for p in parts):
+            k = shift % len(parts)
+            lines[i] = " ".join(parts[k:] + parts[:k])
+            return "\n".join(lines)
+    return text
 
 
 def build_caption_variant(
@@ -133,42 +143,38 @@ def build_caption_variant(
     group_url: str,
     attempt: int = 0,
 ) -> str:
-    """Build a human-readable micro-variant of base_text."""
-    base = _strip_old_trailers((base_text or "").strip())
+    """Keep original body intact; only micro-vary the ending for uniqueness."""
+    base = _strip_our_variant_markers((base_text or "").strip())
     if not base:
         return ""
 
-    rng = random.Random(_seed_int(property_code, group_url) + attempt * 9973)
-    blocks = _split_blocks(base)
-    blocks = _soft_swap_tail(blocks, attempt + rng.randint(0, 2))
+    seed = _seed_int(property_code, group_url)
+    rng = random.Random(seed + attempt * 9973)
 
-    bullet = BULLETS[(attempt + rng.randint(0, 4)) % len(BULLETS)]
-    gap = "\n\n" if (attempt + rng.randint(0, 1)) % 2 == 0 else "\n\n\n"
-    body = gap.join(_replace_bullets(b, bullet) for b in blocks)
+    # 1) Rotate trailing hashtags (same tags, different order)
+    body = _rotate_hashtag_line(base, shift=1 + (seed + attempt) % 7)
 
-    today = datetime.now(BANGKOK).strftime("%d/%m")
-    cta = CTA_VARIANTS[(attempt + rng.randint(0, len(CTA_VARIANTS) - 1)) % len(CTA_VARIANTS)]
-    tags = HASHTAG_SETS[(attempt + rng.randint(0, len(HASHTAG_SETS) - 1)) % len(HASHTAG_SETS)]
-    tag_line = " ".join(tags)
+    # 2) Trailing blank lines (1–3)
+    extra_nl = 1 + ((attempt + rng.randint(0, 2)) % 3)
+    out = body.rstrip() + ("\n" * extra_nl)
 
-    # Always append a light unique trailer stack (readable, not spammy)
-    trailers = [cta, f"อัปเดต {today}", tag_line]
-    # Rotate which trailers appear / order by attempt
-    if attempt % 4 == 0:
-        chosen = [trailers[0], trailers[2]]
-    elif attempt % 4 == 1:
-        chosen = [trailers[1], trailers[0], trailers[2]]
-    elif attempt % 4 == 2:
-        chosen = [trailers[2], trailers[0]]
-    else:
-        chosen = [trailers[0], trailers[1]]
+    # 3) Invisible unique marks (survive fingerprint; may be stripped by FB — ok as extra)
+    zw = "\u200b" * (1 + ((seed + attempt) % 9))
+    out = out + zw
 
-    # Guaranteed uniqueness fallback marker (tiny, only when attempt high)
+    # 4) Soft visible trailer only when needed for higher attempts / collisions
+    if attempt >= 1:
+        today = datetime.now(BANGKOK).strftime("%d/%m")
+        # Keep original contacts/hashtags — add a light date line after them
+        out = out.rstrip("\u200b") + f"\nอัปเดต {today}" + zw
+
     if attempt >= 8:
         code = (property_code or "RXT").strip().upper() or "RXT"
-        chosen.append(f"รหัส {code}-{attempt}")
+        nonce = hashlib.sha256(f"{group_url}|{attempt}|{seed}".encode()).hexdigest()[:6]
+        out = out.rstrip("\u200b") + f"\nอัปเดต {datetime.now(BANGKOK).strftime('%d/%m')} · {nonce}"
+        out += "\u200b"
 
-    return body.rstrip() + "\n\n" + "\n".join(chosen)
+    return out
 
 
 def _property_bucket(history: dict, property_code: str) -> dict:
@@ -184,44 +190,64 @@ def _property_bucket(history: dict, property_code: str) -> dict:
 
 def resolve_base_text(
     *,
+    page_post_text: str = "",
     page_url: str = "",
     post_url: str = "",
     base_text: str = "",
     allow_scrape: bool = True,
 ) -> tuple[str, str, list[str]]:
     """
-    Prefer public page post text, then Hub text, then profile post scrape.
-
     Returns (text, source, warnings).
-    source: page_scrape | text_th | post_scrape | none
+
+    source: page_original | text_th | page_scrape | post_scrape | none
     """
     warnings: list[str] = []
+    page_post_text = (page_post_text or "").strip()
     page_url = (page_url or "").strip()
     post_url = (post_url or "").strip()
     base_text = (base_text or "").strip()
 
+    # 1) Explicit full original pasted from the public Page post
+    if page_post_text and _looks_complete_original(page_post_text):
+        return page_post_text, "page_original", warnings
+    if page_post_text:
+        warnings.append("ต้นฉบับเพจสั้นผิดปกติ — ตรวจว่าคัดลอกครบทั้งโพสต์หรือยัง")
+        return page_post_text, "page_original", warnings
+
+    # 2) Hub Thai caption (often identical to what was posted on Page)
+    if base_text and _looks_complete_original(base_text):
+        warnings.append(
+            "ใช้ข้อความไทยใน Hub — ถ้าไม่ตรงเพจ ให้วางต้นฉบับเต็มในช่อง「ต้นฉบับโพสต์เพจ」"
+        )
+        return base_text, "text_th", warnings
+
+    # 3) Scrape is unreliable — only accept if it looks complete AND longer than Hub text
+    scraped_page = ""
     if allow_scrape and page_url.startswith("http"):
         try:
             from src.hub.scraper import fetch_page_text
 
-            scraped, scrape_warnings = fetch_page_text(page_url)
+            scraped_page, scrape_warnings = fetch_page_text(page_url)
             warnings.extend(scrape_warnings)
-            scraped = (scraped or "").strip()
-            # Facebook og:description is often truncated; prefer Hub text if much longer
-            if scraped and (not base_text or len(scraped) >= 80 or len(scraped) >= len(base_text) * 0.6):
-                if base_text and len(base_text) > len(scraped) + 40:
-                    warnings.append(
-                        "ข้อความจากเพจอาจไม่ครบ — ใช้ข้อความไทยใน Hub เป็นหลัก"
-                    )
-                    return base_text, "text_th", warnings
-                return scraped, "page_scrape", warnings
-            if scraped and base_text:
-                warnings.append("ข้อความจากเพจสั้นเกินไป — ใช้ข้อความไทยใน Hub")
-                return base_text, "text_th", warnings
+            scraped_page = (scraped_page or "").strip()
         except Exception as exc:  # noqa: BLE001
-            warnings.append(f"ดึงข้อความเพจไม่ได้: {exc}")
+            warnings.append(f"ดึงข้อความเพจอัตโนมัติไม่ได้: {exc}")
+
+    if scraped_page and not _looks_like_truncated_fb_scrape(scraped_page):
+        if not base_text or len(scraped_page) >= len(base_text):
+            return scraped_page, "page_scrape", warnings
+        warnings.append("ข้อความจากเพจสั้นกว่าใน Hub — ใช้ข้อความไทยใน Hub")
+        return base_text, "text_th", warnings
+
+    if scraped_page:
+        warnings.append(
+            "ดึงจากลิงก์เพจได้ไม่ครบ (Facebook ตัดข้อความ) — "
+            "เปิดโพสต์เพจแล้วคัดลอกทั้งดุ้นมาวางในช่อง「ต้นฉบับโพสต์เพจ」"
+        )
 
     if base_text:
+        if _looks_like_truncated_fb_scrape(base_text):
+            warnings.append("ข้อความไทยใน Hub อาจไม่ครบ — แนะนำวางต้นฉบับจากเพจ")
         return base_text, "text_th", warnings
 
     if allow_scrape and post_url.startswith("http"):
@@ -231,8 +257,10 @@ def resolve_base_text(
             scraped, scrape_warnings = fetch_page_text(post_url)
             warnings.extend(scrape_warnings)
             scraped = (scraped or "").strip()
-            if scraped:
+            if scraped and not _looks_like_truncated_fb_scrape(scraped):
                 return scraped, "post_scrape", warnings
+            if scraped:
+                warnings.append("ดึงจากโพสต์โปรไฟล์ได้ไม่ครบ")
         except Exception as exc:  # noqa: BLE001
             warnings.append(f"ดึงข้อความโพสต์โปรไฟล์ไม่ได้: {exc}")
 
@@ -244,23 +272,21 @@ def prepare_group_caption(
     property_code: str,
     group_url: str,
     group_name: str = "",
+    page_post_text: str = "",
     page_url: str = "",
     post_url: str = "",
     base_text: str = "",
     force_new: bool = False,
     allow_scrape: bool = True,
 ) -> dict:
-    """
-    Prepare a clipboard-ready caption unique across groups for this property.
-
-    Returns dict with caption, hash, source, reused, variant_index, warnings, error?
-    """
+    """Prepare clipboard caption: full original + light unique ending."""
     property_code = (property_code or "").strip()
     group_url = (group_url or "").strip()
     if not group_url:
         return {"ok": False, "error": "ไม่มีลิงก์กลุ่ม"}
 
     text, source, warnings = resolve_base_text(
+        page_post_text=page_post_text,
         page_url=page_url,
         post_url=post_url,
         base_text=base_text,
@@ -270,8 +296,20 @@ def prepare_group_caption(
         return {
             "ok": False,
             "error": (
-                "ยังไม่มีข้อความหลักจากเพจสาธารณะ — "
-                "ใส่ลิงก์โพสต์เพจ หรือสร้าง/วางข้อความไทยใน Hub ก่อน"
+                "ยังไม่มีข้อความต้นฉบับเต็มจากเพจ — "
+                "เปิดโพสต์เพจสาธารณะ → คัดลอกทั้งดุ้น → วางในช่อง「ต้นฉบับโพสต์เพจ」แล้วบันทึก"
+            ),
+            "warnings": warnings,
+            "source": source,
+        }
+
+    # Refuse to ship known-truncated scrape as if it were the page original
+    if source in {"page_scrape", "post_scrape"} and _looks_like_truncated_fb_scrape(text):
+        return {
+            "ok": False,
+            "error": (
+                "ข้อความจากลิงก์เพจไม่ครบ (Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ) — "
+                "กรุณาวางต้นฉบับเต็มจากเพจในช่อง「ต้นฉบับโพสต์เพจ」"
             ),
             "warnings": warnings,
             "source": source,
@@ -300,6 +338,7 @@ def prepare_group_caption(
                     "variant_index": int(last.get("variant_index") or 0),
                     "group_copy_count": len(entries),
                     "unique_across_property": True,
+                    "base_chars": len(text),
                     "warnings": warnings
                     + ["ใช้ข้อความชุดล่าสุดของกลุ่มนี้ (กันคลิกซ้ำ)"],
                     "group_url": group_url,
@@ -324,9 +363,13 @@ def prepare_group_caption(
                 caption = candidate
                 break
         else:
-            # Absolute fallback — append unique nonce
-            nonce = hashlib.sha256(f"{group_url}|{now}|{len(used_hashes)}".encode()).hexdigest()[:6]
-            caption = text.rstrip() + f"\n\nอัปเดต {datetime.now(BANGKOK).strftime('%d/%m')} · {nonce}"
+            nonce = hashlib.sha256(
+                f"{group_url}|{now}|{len(used_hashes)}".encode()
+            ).hexdigest()[:6]
+            caption = (
+                _strip_our_variant_markers(text)
+                + f"\nอัปเดต {datetime.now(BANGKOK).strftime('%d/%m')} · {nonce}"
+            )
             fp = caption_fingerprint(caption)
             variant_index = start_attempt + MAX_ATTEMPTS
 
@@ -337,7 +380,8 @@ def prepare_group_caption(
             "source": source,
             "variant_index": variant_index,
             "group_name": group_name or "",
-            "preview": re.sub(r"\s+", " ", caption)[:100],
+            "preview": re.sub(r"\s+", " ", caption)[:120],
+            "base_chars": len(text),
         }
         entries.append(entry)
         groups[group_url] = entries
@@ -356,6 +400,7 @@ def prepare_group_caption(
             "variant_index": variant_index,
             "group_copy_count": len(entries),
             "unique_across_property": True,
+            "base_chars": len(text),
             "warnings": warnings,
             "group_url": group_url,
             "group_name": group_name,
@@ -378,6 +423,7 @@ def list_caption_history(property_code: str) -> dict:
                         "ts": e.get("ts"),
                         "preview": e.get("preview"),
                         "source": e.get("source"),
+                        "base_chars": e.get("base_chars"),
                     }
                     for e in (entries or [])
                 ]

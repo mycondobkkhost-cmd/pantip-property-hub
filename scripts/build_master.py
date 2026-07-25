@@ -34,6 +34,11 @@ CANONICAL_OVERRIDES: dict[str, str] = {
 }
 
 from src.hub.project_identity import resolve_bucket as _resolve_bucket  # noqa: E402
+from src.hub.owner_facebook import (  # noqa: E402
+    adjacent_column_index,
+    resolve_owner_facebook,
+    source_column_index,
+)
 
 
 def norm_key(name: str) -> str:
@@ -127,15 +132,31 @@ def is_code_only_row(row: dict[str, str]) -> bool:
 def load_rows() -> list[dict[str, str]]:
     with open(CSV_PATH, encoding="utf-8") as f:
         sheet = list(csv.reader(f))
-    cols = {h.strip(): i for i, h in enumerate(sheet[0])}
+    headers = sheet[0]
+    cols = {h.strip(): i for i, h in enumerate(headers)}
+    src_i = source_column_index(headers)
+    adj_i = adjacent_column_index(headers)
 
     def col(r: list[str], name: str) -> str:
         i = cols.get(name)
         return r[i].strip() if i is not None and i < len(r) else ""
 
+    def at(r: list[str], i: int | None) -> str:
+        if i is None or i >= len(r):
+            return ""
+        return (r[i] or "").strip()
+
     out: list[dict[str, str]] = []
     for idx, r in enumerate(sheet[1:], start=2):
         code = col(r, "รหัสทรัพย์").upper().replace(" ", "")
+        source = at(r, src_i) if src_i is not None else col(r, "ลิ้งค์ต้นโพสต์")
+        adjacent = at(r, adj_i)
+        owner_raw = col(r, "เฟสเจ้าของ")
+        resolved = resolve_owner_facebook(
+            owner_raw=owner_raw,
+            adjacent_raw=adjacent,
+            source_raw=source,
+        )
         out.append(
             {
                 "row": str(idx),
@@ -150,11 +171,14 @@ def load_rows() -> list[dict[str, str]]:
                 "rent": col(r, "ราคาเช่า"),
                 "sale": col(r, "ราคาขาย"),
                 "transit": col(r, "สถานีรถไฟฟ้า"),
-                "source": col(r, "ลิ้งค์ต้นโพสต์"),
+                # Post link may be cleared when a profile was misplaced in this col
+                "source": resolved.source_url,
+                "source_adjacent": adjacent,
+                "owner_fb": resolved.owner,
+                "owner_fb_action": resolved.action,
                 "post_link": col(r, "ลิ้งค์โพส"),
                 "post_pages": col(r, "ลิ้งค์โพส Pages") or col(r, "ลิ้งค์โพส Pages "),
                 "notes": col(r, "หมายเหตุ"),
-                "owner_fb": col(r, "เฟสเจ้าของ"),
             }
         )
     return out
@@ -373,6 +397,17 @@ def build_properties(
         owner_fb = owner_facebook_from_sheet(row.get("owner_fb", ""))
         if owner_fb:
             stats["with_owner_facebook"] += 1
+        action = row.get("owner_fb_action") or ""
+        if action == "already_owner":
+            stats["owner_already"] += 1
+        elif action == "from_adjacent":
+            stats["owner_from_adjacent"] += 1
+        elif action == "from_adjacent_over_post":
+            stats["owner_from_adjacent_over_post"] += 1
+        elif action == "from_source_profile":
+            stats["owner_from_source_profile"] += 1
+        elif action == "empty":
+            stats["owner_empty"] += 1
 
         properties.append(
             {
@@ -553,6 +588,12 @@ def rebuild_from_csv() -> dict:
         "code_only_dropped": stats["code_only_dropped"],
         "incomplete_skipped": stats["incomplete_skipped"],
         "partial_imported": stats["partial_imported"],
+        "with_owner_facebook": stats["with_owner_facebook"],
+        "owner_already": stats["owner_already"],
+        "owner_from_adjacent": stats["owner_from_adjacent"],
+        "owner_from_adjacent_over_post": stats["owner_from_adjacent_over_post"],
+        "owner_from_source_profile": stats["owner_from_source_profile"],
+        "owner_empty": stats["owner_empty"],
         "newest_imported_code": f"PTP{max(codes)}" if codes else "",
         "newest_sheet_code": f"PTP{max(sheet_codes)}" if sheet_codes else "",
     }
@@ -570,6 +611,16 @@ def main() -> None:
     print(f"  drive dropped: {summary['drive_dropped']}")
     print(f"  code_only dropped: {summary['code_only_dropped']}")
     print(f"  incomplete skipped: {summary['incomplete_skipped']}")
+    print("Owner Facebook resolution (imported rows):")
+    print(f"  already had เฟสเจ้าของ: {summary.get('owner_already', 0)}")
+    print(f"  filled from adjacent col: {summary.get('owner_from_adjacent', 0)}")
+    print(
+        f"  replaced post-in-owner from adjacent: "
+        f"{summary.get('owner_from_adjacent_over_post', 0)}"
+    )
+    print(f"  moved from ลิ้งค์ต้นโพสต์: {summary.get('owner_from_source_profile', 0)}")
+    print(f"  still empty: {summary.get('owner_empty', 0)}")
+    print(f"  with_owner_facebook: {summary.get('with_owner_facebook', 0)}")
     print(f"Written: {DB_PATH}")
     print(f"Written: {PREVIEW_JS}")
 

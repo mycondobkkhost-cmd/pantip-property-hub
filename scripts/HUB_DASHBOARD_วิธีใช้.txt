@@ -20,7 +20,7 @@ https://docs.google.com/spreadsheets/d/14U1y4dsebeuudTSK_bFb4JyK3aRg-Vujv9BdEtrr
 - แถว 3: 「ค้นหาทำเล/BTS」+ ช่องเหลือง C3 (ทำเล + สถานี)
 - A4: สถานะ / จำนวนรายการ
 - แถว 5: หัวคอลัมน์ (พื้นทอง #fbbc04)
-- A6 ลงไป: ผล FILTER จาก `_overview_src`
+- A6 ลงไป: ผล FILTER จาก `_overview_src` (ลิงก์สั้นสร้างด้วย HYPERLINK)
 
 ใช้งาน
 ------

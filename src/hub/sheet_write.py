@@ -125,11 +125,13 @@ OVERVIEW_COL_WIDTHS = [
 OVERVIEW_LINK_COL_INDEXES = (12, 13, 14, 15)
 OVERVIEW_NUMBER_COL_INDEXES = (8, 9)  # เช่า / ขาย → #,##0
 
-# FILTER over _overview_src: C2 = รหัส/โครงการ · C3 = ทำเล/สถานี · empty = all · both = AND
+# Search chrome: C2 = รหัส/โครงการ · C3 = ทำเล/สถานี · empty = all · both = AND
 # (Must use IF(q="",1,…) — SEARCH("", "") on blank ทำเล/สถานี is #VALUE! and drops rows.)
-OVERVIEW_FILTER_FORMULA = (
-    "=IFERROR("
-    "FILTER('_overview_src'!A2:P,"
+#
+# FILTER returns *values* only — HYPERLINK formulas inside a multi-column FILTER/BYROW
+# spill are NOT clickable. Store raw URLs in `_overview_src` M–P; FILTER A:L into A6;
+# rebuild short clickable links with per-column ARRAYFORMULA(HYPERLINK(VLOOKUP(...))).
+_OVERVIEW_FILTER_COND = (
     "('_overview_src'!A2:A<>\"\")*"
     "IF(TRIM($C$2)=\"\",1,"
     "((ISNUMBER(SEARCH($C$2,'_overview_src'!A2:A)))+"
@@ -138,9 +140,35 @@ OVERVIEW_FILTER_FORMULA = (
     "IF(REGEXMATCH(LOWER('_overview_src'!D2:D),\"thru|ทรู\"),1,0),0)>0))*"
     "IF(TRIM($C$3)=\"\",1,"
     "((ISNUMBER(SEARCH($C$3,'_overview_src'!K2:K)))+"
-    "(ISNUMBER(SEARCH($C$3,'_overview_src'!L2:L)))>0))),"
+    "(ISNUMBER(SEARCH($C$3,'_overview_src'!L2:L)))>0))"
+)
+OVERVIEW_FILTER_FORMULA = (
+    "=IFERROR("
+    "FILTER('_overview_src'!A2:L," + _OVERVIEW_FILTER_COND + "),"
     "IF(AND(TRIM($C$2)=\"\",TRIM($C$3)=\"\"),\"ยังไม่มีข้อมูล\",\"ไม่พบรายการที่ตรงคำค้น\"))"
 )
+# Link-column formulas (written at M6/N6/O6/P6). Open-ended A6:A follows FILTER spill.
+OVERVIEW_LINK_FORMULAS = {
+    "M6": (
+        '=ARRAYFORMULA(IF(A6:A="",,IFERROR(HYPERLINK('
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE),\"ต้นทาง\"),)))"
+    ),
+    "N6": (
+        '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
+        "IF(REGEXMATCH(VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE)&\"\","
+        '"(?i)^https?://"),'
+        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE),\"เจ้าของ\"),"
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE)),)))"
+    ),
+    "O6": (
+        '=ARRAYFORMULA(IF(A6:A="",,IFERROR(HYPERLINK('
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE),\"โพสต์\"),)))"
+    ),
+    "P6": (
+        '=ARRAYFORMULA(IF(A6:A="",,IFERROR(HYPERLINK('
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE),\"เพจ\"),)))"
+    ),
+}
 
 _TYPE_TH = {
     "condo": "คอนโด",
@@ -214,6 +242,30 @@ def _maybe_hyperlink(url: str, label: str, *, enabled: bool) -> str:
         # Non-URL text (e.g. owner name) — keep as-is for display columns
         return raw
     return _hyperlink_cell(raw, label)
+
+
+def _overview_data_with_hyperlinks(data_rows: list[list]) -> list[list]:
+    """Convert raw URL cells in cols M–P to short HYPERLINK formulas (direct writes)."""
+    out: list[list] = []
+    for row in data_rows:
+        r = list(row) + [""] * max(0, 16 - len(row))
+        r = r[:16]
+        r[12] = _hyperlink_cell(str(r[12] or ""), "ต้นทาง")
+        r[13] = _maybe_hyperlink(str(r[13] or ""), "เจ้าของ", enabled=True)
+        r[14] = _hyperlink_cell(str(r[14] or ""), "โพสต์")
+        r[15] = _hyperlink_cell(str(r[15] or ""), "เพจ")
+        out.append(r)
+    return out
+
+
+def _overview_values_with_hyperlinks(values: list[list]) -> list[list]:
+    """Like `_overview_data_with_hyperlinks` but preserves a header row when present."""
+    if not values:
+        return values
+    head = list(values[0]) if values[0] else []
+    if head[:4] == list(OVERVIEW_HEADERS)[:4]:
+        return [list(values[0])] + _overview_data_with_hyperlinks(values[1:])
+    return _overview_data_with_hyperlinks(values)
 
 
 def _is_active_listing(prop: dict) -> bool:
@@ -1279,13 +1331,32 @@ def ensure_overview_search_chrome(
     if c2 or c3:
         ws.update("C2:C3", [[c2], [c3]], value_input_option="USER_ENTERED")
 
+    _install_overview_data_formulas(ws)
+    _format_overview_chrome(ss, ws)
+    return {"chrome_installed": True, "filter_cell": "A6"}
+
+
+def _install_overview_data_formulas(ws) -> None:
+    """Install A6 FILTER (A:L) + M6:P6 ARRAYFORMULA short HYPERLINKs."""
+    try:
+        last = max(int(getattr(ws, "row_count", 0) or 0), OVERVIEW_DATA_START)
+        if last >= OVERVIEW_DATA_START:
+            # Clear prior multi-col FILTER spill / stale link formulas.
+            ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
+    except Exception:
+        pass
     ws.update(
         "A6",
         [[OVERVIEW_FILTER_FORMULA]],
         value_input_option="USER_ENTERED",
     )
-    _format_overview_chrome(ss, ws)
-    return {"chrome_installed": True, "filter_cell": "A6"}
+    link_rows = [[
+        OVERVIEW_LINK_FORMULAS["M6"],
+        OVERVIEW_LINK_FORMULAS["N6"],
+        OVERVIEW_LINK_FORMULAS["O6"],
+        OVERVIEW_LINK_FORMULAS["P6"],
+    ]]
+    ws.update("M6:P6", link_rows, value_input_option="USER_ENTERED")
 
 
 def _write_overview_src(ss, values: list[list]) -> dict:
@@ -1330,7 +1401,7 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                     row_count=len(data_rows),
                 )
             else:
-                # Refresh status + ensure FILTER formula still at A6
+                # Refresh status + keep FILTER / link formulas current
                 try:
                     ws.update(
                         "A4",
@@ -1343,22 +1414,8 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                     )
                 except Exception:
                     pass
-                try:
-                    a6 = ws.acell("A6", value_render_option="FORMULA").value or ""
-                except Exception:
-                    a6 = ""
-                if not str(a6).startswith("="):
-                    try:
-                        last = max(ws.row_count, OVERVIEW_DATA_START)
-                        if last >= OVERVIEW_DATA_START:
-                            ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
-                    except Exception:
-                        pass
-                    ws.update(
-                        "A6",
-                        [[OVERVIEW_FILTER_FORMULA]],
-                        value_input_option="USER_ENTERED",
-                    )
+                # Always re-apply formulas so upgrades (clickable HYPERLINKs) deploy.
+                _install_overview_data_formulas(ws)
                 # Re-apply work-sheet-matched decoration on every sync.
                 _format_overview_chrome(spreadsheet, ws)
 
@@ -1385,7 +1442,9 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                 ws.clear()
                 meta["chrome_preserved"] = False
                 meta["data_start_row"] = 1
-                _update_values_chunked(ws, values, start_row=1)
+                _update_values_chunked(
+                    ws, _overview_values_with_hyperlinks(values), start_row=1
+                )
                 meta["rows_written"] = max(0, len(values) - 1)
                 return meta
             except Exception:
@@ -1402,12 +1461,18 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
         except Exception:
             pass
         if data_rows:
-            _update_values_chunked(ws, data_rows, start_row=OVERVIEW_DATA_START)
+            _update_values_chunked(
+                ws,
+                _overview_data_with_hyperlinks(data_rows),
+                start_row=OVERVIEW_DATA_START,
+            )
         meta["rows_written"] = len(data_rows)
         return meta
 
     ws.clear()
-    _update_values_chunked(ws, values, start_row=1)
+    _update_values_chunked(
+        ws, _overview_values_with_hyperlinks(values), start_row=1
+    )
     meta["rows_written"] = max(0, len(values) - 1)
     meta["chrome_preserved"] = False
     return meta
@@ -1488,10 +1553,11 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
     export_hub = write_hub_export_csv(hub_props, projects_by_id=projects_by_id)
 
     synced = datetime.now().strftime("%d/%m/%Y %H:%M")
-    # Sheet cells: short HYPERLINK labels. CSV export above keeps raw URLs.
+    # `_overview_src` keeps raw URLs; visible FILTER rebuilds short HYPERLINKs.
+    # CSV export above also keeps raw URLs.
     overview_rows = [
         prop_to_overview_row(
-            p, projects_by_id=projects_by_id, link_as_hyperlink=True
+            p, projects_by_id=projects_by_id, link_as_hyperlink=False
         )
         for p in overview_props
     ]

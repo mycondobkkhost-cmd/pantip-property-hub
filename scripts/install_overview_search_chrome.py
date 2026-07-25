@@ -3,7 +3,8 @@
 
 Matches「ชีตสำหรับทำงาน」decoration: gold header (#fbbc04), peach row banding
 (#ffe6dd), freeze chrome rows, yellow link headers, #,##0 on เช่า/ขาย.
-Sync data lands on hidden `_overview_src`; A6 FILTER reads C2/C3.
+Sync data lands on hidden `_overview_src` as raw URLs; A6 FILTERs A:L from
+C2/C3 search; M6:P6 ARRAYFORMULA rebuilds short clickable HYPERLINK labels.
 
 Usage:
   .venv/bin/python scripts/install_overview_search_chrome.py

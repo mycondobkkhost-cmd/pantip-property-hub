@@ -4762,7 +4762,14 @@
         }
         var da = parseDateDMY(a.last_listed_at) || new Date(0);
         var db = parseDateDMY(b.last_listed_at) || new Date(0);
-        return f.sort === "date_asc" ? da - db : db - da;
+        var dateDiff = f.sort === "date_asc" ? da - db : db - da;
+        if (dateDiff !== 0) return dateDiff;
+        // Same calendar day: higher code first so unfinished new rows
+        // (e.g. PTP8243) sit above older same-day rows — matches sheet ใหม่→เก่า.
+        var ca = String(a.code || "");
+        var cb = String(b.code || "");
+        var codeCmp = ca.localeCompare(cb, undefined, { numeric: true, sensitivity: "base" });
+        return f.sort === "date_asc" ? codeCmp : -codeCmp;
       });
 
       var n = countAdvancedOnly(f);

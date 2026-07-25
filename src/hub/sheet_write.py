@@ -209,11 +209,55 @@ def _type_display(raw: str) -> str:
     return mapped or s
 
 
+def _owner_entries(prop: dict) -> list[str]:
+    """Normalize owner_facebook (and legacy single-string) into non-empty entries."""
+    owners = prop.get("owner_facebook")
+    if owners is None or owners == "":
+        # Legacy / queue fields sometimes hold the profile link
+        for key in ("owner_fb", "owner_contact", "owner_profile"):
+            alt = prop.get(key)
+            if alt:
+                owners = alt
+                break
+    if isinstance(owners, str):
+        owners = [owners]
+    if not isinstance(owners, list):
+        return []
+    out: list[str] = []
+    for u in owners:
+        s = str(u or "").strip()
+        if not s or s in {".", "-", "—"}:
+            continue
+        out.append(s)
+    return out
+
+
+def _owner_url_and_name(prop: dict) -> tuple[str, str]:
+    """Prefer a profile/contact URL; keep a short display name when present."""
+    urls: list[str] = []
+    names: list[str] = []
+    for s in _owner_entries(prop):
+        if _is_http_url(s):
+            urls.append(s)
+        else:
+            names.append(s)
+    return (urls[0] if urls else "", names[0] if names else "")
+
+
 def _owner_display(prop: dict) -> str:
-    owners = prop.get("owner_facebook") or []
-    if isinstance(owners, list):
-        return ", ".join(str(u) for u in owners if u)
-    return str(owners or "")
+    """Value for sheet「เจ้าของ」/「เฟสเจ้าของ」: prefer URL (→ short HYPERLINK), else name."""
+    url, name = _owner_url_and_name(prop)
+    if url:
+        return url
+    return name
+
+
+def _owner_hyperlink_label(prop: dict) -> str:
+    """Short clickable label: owner name when short, else「เจ้าของ」."""
+    _url, name = _owner_url_and_name(prop)
+    if name and len(name) <= 24 and "\n" not in name:
+        return name
+    return "เจ้าของ"
 
 
 def _is_http_url(value: str) -> bool:
@@ -413,15 +457,16 @@ def prop_to_overview_row(
 ) -> list[str]:
     zone_s, transit_s = resolve_prop_location_for_sheet(prop, projects_by_id)
     source = "Hub" if is_hub_owned(prop) else "ชีท"
-    owners = _owner_display(prop)
-    # Prefer a single clickable owner URL when present
-    owner_link = owners.split(",")[0].strip() if owners else ""
+    # Prefer URL in「เจ้าของ」so `_overview_src` + ARRAYFORMULA make a short link
+    owner_link = _owner_display(prop)
     source_url = str(prop.get("source_url") or "")
     post_url = str(prop.get("post_url") or "")
     pages_url = str(prop.get("post_pages_url") or "")
     if link_as_hyperlink:
         source_url = _hyperlink_cell(source_url, "ต้นทาง")
-        owner_link = _maybe_hyperlink(owner_link, "เจ้าของ", enabled=True)
+        owner_link = _maybe_hyperlink(
+            owner_link, _owner_hyperlink_label(prop), enabled=True
+        )
         post_url = _hyperlink_cell(post_url, "โพสต์")
         pages_url = _hyperlink_cell(pages_url, "เพจ")
     return [

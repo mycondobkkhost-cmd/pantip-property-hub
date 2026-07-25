@@ -307,6 +307,20 @@ def annotate_duplicates(properties: list[dict]) -> Counter:
     return stats
 
 
+def owner_facebook_from_sheet(raw: str) -> list[str]:
+    """Parse main-sheet「เฟสเจ้าของ」into owner_facebook list (URLs and/or short names)."""
+    s = (raw or "").strip()
+    if not s or s in {".", "-", "—", "n/a", "N/A", "NA"}:
+        return []
+    parts = [p.strip() for p in re.split(r"[\n,]+", s) if p.strip()]
+    out: list[str] = []
+    for p in parts:
+        if p in {".", "-", "—"}:
+            continue
+        out.append(p)
+    return out
+
+
 def build_properties(
     rows: list[dict[str, str]], projects: dict[str, dict]
 ) -> tuple[list[dict], dict]:
@@ -356,6 +370,9 @@ def build_properties(
         post = row.get("post_link", "")
         post_pages = row.get("post_pages", "")
         media_status = "has_link" if post.startswith("http") else "none"
+        owner_fb = owner_facebook_from_sheet(row.get("owner_fb", ""))
+        if owner_fb:
+            stats["with_owner_facebook"] += 1
 
         properties.append(
             {
@@ -376,6 +393,7 @@ def build_properties(
                 "source_url": row.get("source", ""),
                 "post_url": post,
                 "post_pages_url": post_pages,
+                "owner_facebook": owner_fb,
                 "notes": row.get("notes", ""),
                 "import_status": import_status,
                 "media_status": media_status,

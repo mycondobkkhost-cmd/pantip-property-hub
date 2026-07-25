@@ -34,14 +34,9 @@ CANONICAL_OVERRIDES: dict[str, str] = {
 }
 
 from src.hub.project_identity import resolve_bucket as _resolve_bucket  # noqa: E402
-from src.hub.owner_facebook import (  # noqa: E402
-    adjacent_column_index,
-    resolve_owner_facebook,
-    source_column_index,
-)
+from src.hub.link_classify import classify_row, is_google_helper_url  # noqa: E402
 from src.hub.sheet_links import (  # noqa: E402
     http_url_or_empty,
-    pages_header_match,
     unwrap_link_cell,
 )
 
@@ -169,44 +164,28 @@ def load_rows() -> list[dict[str, str]]:
         sheet = list(csv.reader(f))
     headers = sheet[0]
     cols = {h.strip(): i for i, h in enumerate(headers)}
-    src_i = source_column_index(headers)
-    adj_i = adjacent_column_index(headers)
 
     def col(r: list[str], name: str) -> str:
         i = cols.get(name)
         return r[i].strip() if i is not None and i < len(r) else ""
 
-    def at(r: list[str], i: int | None) -> str:
-        if i is None or i >= len(r):
-            return ""
-        return (r[i] or "").strip()
-
-    # 「ลิ้งค์โพส Pages」often has a trailing space in the header
-    pages_i = None
-    for i, h in enumerate(headers):
-        if pages_header_match(h or ""):
-            pages_i = i
-            break
-
     out: list[dict[str, str]] = []
     for idx, r in enumerate(sheet[1:], start=2):
         code = col(r, "รหัสทรัพย์").upper().replace(" ", "")
-        source = unwrap_link_cell(
-            at(r, src_i) if src_i is not None else col(r, "ลิ้งค์ต้นโพสต์")
-        )
-        adjacent = unwrap_link_cell(at(r, adj_i))
-        owner_raw = unwrap_link_cell(col(r, "เฟสเจ้าของ"))
-        resolved = resolve_owner_facebook(
-            owner_raw=owner_raw,
-            adjacent_raw=adjacent,
-            source_raw=source,
-        )
-        post_raw = unwrap_link_cell(col(r, "ลิ้งค์โพส"))
-        pages_raw = unwrap_link_cell(at(r, pages_i) if pages_i is not None else "")
-        if not pages_raw:
-            pages_raw = unwrap_link_cell(
-                col(r, "ลิ้งค์โพส Pages") or col(r, "ลิ้งค์โพส Pages ")
+        classified = classify_row(headers, r)
+        action = "deleted_drive" if classified.delete else (
+            "moved" if classified.moved_from else (
+                "already_owner" if classified.owner else "empty"
             )
+        )
+        if classified.moved_from.get("owner") == "adjacent":
+            action = "from_adjacent"
+        elif classified.moved_from.get("owner") == "source":
+            action = "from_source_profile"
+        elif classified.owner and not classified.moved_from.get("owner"):
+            action = "already_owner"
+        elif not classified.owner:
+            action = "empty"
         out.append(
             {
                 "row": str(idx),
@@ -222,15 +201,14 @@ def load_rows() -> list[dict[str, str]]:
                 "sale": col(r, "ราคาขาย"),
                 "zone": col(r, "ทำเล"),
                 "transit": col(r, "สถานีรถไฟฟ้า"),
-                # Post link may be cleared when a profile was misplaced in this col
-                "source": resolved.source_url,
-                "source_adjacent": adjacent,
-                "owner_fb": resolved.owner,
-                "owner_fb_action": resolved.action,
-                # Prefer real http URLs for post/pages (drop placeholders like "-")
-                "post_link": http_url_or_empty(post_raw) or post_raw,
-                "post_pages": http_url_or_empty(pages_raw),
-                "notes": col(r, "หมายเหตุ"),
+                "source": "" if classified.delete else classified.source,
+                "source_adjacent": "",
+                "owner_fb": "" if classified.delete else classified.owner,
+                "owner_fb_action": action,
+                "post_link": "" if classified.delete else classified.post,
+                "post_pages": "" if classified.delete else classified.pages,
+                "notes": "" if classified.delete else classified.notes,
+                "delete_drive": "1" if classified.delete else "",
             }
         )
     return out
@@ -287,8 +265,7 @@ def build_projects(all_rows: list[dict[str, str]]) -> dict[str, dict]:
 
 
 def is_google_drive_url(url: str) -> bool:
-    u = (url or "").strip().lower()
-    return "drive.google.com" in u or "docs.google.com" in u
+    return is_google_helper_url(url)
 
 
 def has_price(raw: str) -> bool:
@@ -420,9 +397,9 @@ def build_properties(
             stats["incomplete_skipped"] += 1
             continue
 
-        if is_google_drive_url(row.get("post_link", "")) or is_google_drive_url(
-            row.get("source", "")
-        ):
+        if row.get("delete_drive") == "1" or is_google_drive_url(
+            row.get("post_link", "")
+        ) or is_google_drive_url(row.get("source", "")):
             stats["drive_dropped"] += 1
             continue
 

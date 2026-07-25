@@ -180,7 +180,7 @@ OVERVIEW_LINK_FORMULAS = {
         "IF(REGEXMATCH(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE)&\"\","
         '"(?i)^https?://"),'
         "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE),\"โพสต์\"),"
-        '""))),)))'
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE))),)))"
     ),
     "P6": (
         '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
@@ -188,7 +188,7 @@ OVERVIEW_LINK_FORMULAS = {
         "IF(REGEXMATCH(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE)&\"\","
         '"(?i)^https?://"),'
         "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE),\"เพจ\"),"
-        '""))),)))'
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE))),)))"
     ),
 }
 # Notes column (Q6) — plain text from `_overview_src` col 17.

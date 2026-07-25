@@ -88,16 +88,42 @@ OVERVIEW_SRC_SHEET = "_overview_src"
 OVERVIEW_HEADER_ROW = 5
 OVERVIEW_DATA_START = 6
 
-# Match「ชีตสำหรับทำงาน」header gold (#fbbc04) + yellow search inputs.
+# Match「ชีตสำหรับทำงาน」visual language (inspected via Sheets API).
 CLR_TITLE_BG = "#fff8e1"
 CLR_TITLE_FG = "#5d4037"
-CLR_HEADER_BG = "#fbbc04"
+CLR_HEADER_BG = "#fbbc04"  # banded header / gold
 CLR_HEADER_FG = "#202124"
+CLR_LINK_HEADER_BG = "#ffff00"  # link columns on work sheet
 CLR_SEARCH_BG = "#fff9c4"
 CLR_SEARCH_BORDER = "#f9ab00"
 CLR_ROW_BG = "#fffdf5"
 CLR_STATUS_BG = "#faf6e9"
 CLR_MUTED = "#80868b"
+CLR_BAND_FIRST = "#ffffff"
+CLR_BAND_SECOND = "#ffe6dd"  # peach alternating rows
+
+# Column widths aligned to「ชีตสำหรับทำงาน」analogs (รหัส/วันที่/โครงการ/…).
+OVERVIEW_COL_WIDTHS = [
+    80,  # รหัส (~71 on work sheet)
+    56,  # ที่มา
+    104,  # วันที่
+    272,  # โครงการ
+    102,  # ประเภท
+    99,  # ห้อง
+    72,  # ตรม.
+    48,  # ชั้น (~37; slightly wider)
+    106,  # เช่า
+    88,  # ขาย
+    120,  # ทำเล
+    215,  # สถานี
+    72,  # ต้นทาง (short HYPERLINK label)
+    72,  # เจ้าของ
+    72,  # ที่โพสต์
+    72,  # เพจ
+]
+# Link-like columns (O–P / indices 12–15) — yellow header + CLIP like work sheet.
+OVERVIEW_LINK_COL_INDEXES = (12, 13, 14, 15)
+OVERVIEW_NUMBER_COL_INDEXES = (8, 9)  # เช่า / ขาย → #,##0
 
 # FILTER over _overview_src: C2 = รหัส/โครงการ · C3 = ทำเล/สถานี · empty = all · both = AND
 # (Must use IF(q="",1,…) — SEARCH("", "") on blank ทำเล/สถานี is #VALUE! and drops rows.)
@@ -575,6 +601,56 @@ def _hex_rgb(hex_color: str) -> dict:
     }
 
 
+def _solid_medium_borders() -> dict:
+    edge = {"style": "SOLID_MEDIUM"}
+    return {"top": edge, "bottom": edge, "left": edge, "right": edge}
+
+
+def _delete_banded_range_requests(ss, sheet_id: int) -> list[dict]:
+    """Build deleteBanding requests for existing banded ranges on a sheet."""
+    reqs: list[dict] = []
+    try:
+        meta = ss.fetch_sheet_metadata(
+            {
+                "fields": "sheets(properties(sheetId),bandedRanges)",
+            }
+        )
+    except Exception:
+        try:
+            meta = ss.fetch_sheet_metadata()
+        except Exception:
+            return reqs
+    for sh in meta.get("sheets") or []:
+        props = sh.get("properties") or {}
+        if props.get("sheetId") != sheet_id:
+            continue
+        for br in sh.get("bandedRanges") or []:
+            bid = br.get("bandedRangeId")
+            if bid is not None:
+                reqs.append({"deleteBanding": {"bandedRangeId": bid}})
+    return reqs
+
+
+def _col_width_requests(sheet_id: int, widths: list[int]) -> list[dict]:
+    out: list[dict] = []
+    for i, w in enumerate(widths):
+        out.append(
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "dimension": "COLUMNS",
+                        "startIndex": i,
+                        "endIndex": i + 1,
+                    },
+                    "properties": {"pixelSize": int(w)},
+                    "fields": "pixelSize",
+                }
+            }
+        )
+    return out
+
+
 def _worksheet_has_dashboard_chrome(ws) -> bool:
     """True when rows 1–5 look like the overview search chrome."""
     try:
@@ -665,139 +741,51 @@ def _open_or_create_src_sheet(ss, *, rows: int):
     return src
 
 
-def _format_overview_chrome(ss, ws) -> None:
-    """Apply ชีตสำหรับทำงาน-style gold header + yellow search chrome via Sheets API."""
-    sid = ws.id
-    cols = len(OVERVIEW_HEADERS)
-    end_col = cols  # 1-based inclusive for GridRange endColumnIndex is exclusive
-
-    def rng(r0: int, r1: int, c0: int = 0, c1: int | None = None):
-        return {
-            "sheetId": sid,
-            "startRowIndex": r0,
-            "endRowIndex": r1,
-            "startColumnIndex": c0,
-            "endColumnIndex": end_col if c1 is None else c1,
-        }
-
+def _format_overview_table_body(
+    sid: int,
+    *,
+    header_row: int,
+    data_end_row: int,
+    cols: int,
+) -> list[dict]:
+    """Shared body formatting matching「ชีตสำหรับทำงาน」(banding, header, #,##0, CLIP links)."""
+    end_row = max(data_end_row, header_row + 2)
+    header_rng = {
+        "sheetId": sid,
+        "startRowIndex": header_row,
+        "endRowIndex": header_row + 1,
+        "startColumnIndex": 0,
+        "endColumnIndex": cols,
+    }
+    data_rng = {
+        "sheetId": sid,
+        "startRowIndex": header_row + 1,
+        "endRowIndex": end_row,
+        "startColumnIndex": 0,
+        "endColumnIndex": cols,
+    }
     requests: list[dict] = [
         {
-            "updateSheetProperties": {
-                "properties": {
-                    "sheetId": sid,
-                    "gridProperties": {"frozenRowCount": OVERVIEW_HEADER_ROW},
-                },
-                "fields": "gridProperties.frozenRowCount",
-            }
-        },
-        {
-            "mergeCells": {
-                "range": rng(0, 1),
-                "mergeType": "MERGE_ALL",
-            }
-        },
-        {
-            "mergeCells": {
-                "range": rng(1, 2, 3, cols),
-                "mergeType": "MERGE_ALL",
-            }
-        },
-        {
-            "mergeCells": {
-                "range": rng(2, 3, 3, cols),
-                "mergeType": "MERGE_ALL",
-            }
-        },
-        {
-            "mergeCells": {
-                "range": rng(3, 4),
-                "mergeType": "MERGE_ALL",
+            "addBanding": {
+                "bandedRange": {
+                    "range": {
+                        "sheetId": sid,
+                        "startRowIndex": header_row,
+                        "endRowIndex": end_row,
+                        "startColumnIndex": 0,
+                        "endColumnIndex": cols,
+                    },
+                    "rowProperties": {
+                        "headerColor": _hex_rgb(CLR_HEADER_BG),
+                        "firstBandColor": _hex_rgb(CLR_BAND_FIRST),
+                        "secondBandColor": _hex_rgb(CLR_BAND_SECOND),
+                    },
+                }
             }
         },
         {
             "repeatCell": {
-                "range": rng(0, 1),
-                "cell": {
-                    "userEnteredFormat": {
-                        "backgroundColor": _hex_rgb(CLR_TITLE_BG),
-                        "textFormat": {
-                            "foregroundColor": _hex_rgb(CLR_TITLE_FG),
-                            "fontSize": 14,
-                            "bold": True,
-                        },
-                        "verticalAlignment": "MIDDLE",
-                    }
-                },
-                "fields": "userEnteredFormat(backgroundColor,textFormat,verticalAlignment)",
-            }
-        },
-        {
-            "repeatCell": {
-                "range": rng(1, 3),
-                "cell": {
-                    "userEnteredFormat": {
-                        "backgroundColor": _hex_rgb(CLR_ROW_BG),
-                    }
-                },
-                "fields": "userEnteredFormat.backgroundColor",
-            }
-        },
-        {
-            "repeatCell": {
-                "range": {
-                    "sheetId": sid,
-                    "startRowIndex": 1,
-                    "endRowIndex": 3,
-                    "startColumnIndex": 2,
-                    "endColumnIndex": 3,
-                },
-                "cell": {
-                    "userEnteredFormat": {
-                        "backgroundColor": _hex_rgb(CLR_SEARCH_BG),
-                        "textFormat": {"fontSize": 12, "bold": True},
-                        "borders": {
-                            "top": {
-                                "style": "SOLID_MEDIUM",
-                                "color": _hex_rgb(CLR_SEARCH_BORDER),
-                            },
-                            "bottom": {
-                                "style": "SOLID_MEDIUM",
-                                "color": _hex_rgb(CLR_SEARCH_BORDER),
-                            },
-                            "left": {
-                                "style": "SOLID_MEDIUM",
-                                "color": _hex_rgb(CLR_SEARCH_BORDER),
-                            },
-                            "right": {
-                                "style": "SOLID_MEDIUM",
-                                "color": _hex_rgb(CLR_SEARCH_BORDER),
-                            },
-                        },
-                    }
-                },
-                "fields": (
-                    "userEnteredFormat(backgroundColor,textFormat,borders)"
-                ),
-            }
-        },
-        {
-            "repeatCell": {
-                "range": rng(3, 4),
-                "cell": {
-                    "userEnteredFormat": {
-                        "backgroundColor": _hex_rgb(CLR_STATUS_BG),
-                        "textFormat": {
-                            "foregroundColor": _hex_rgb(CLR_MUTED),
-                            "fontSize": 10,
-                        },
-                    }
-                },
-                "fields": "userEnteredFormat(backgroundColor,textFormat)",
-            }
-        },
-        {
-            "repeatCell": {
-                "range": rng(4, 5),
+                "range": header_rng,
                 "cell": {
                     "userEnteredFormat": {
                         "backgroundColor": _hex_rgb(CLR_HEADER_BG),
@@ -805,91 +793,427 @@ def _format_overview_chrome(ss, ws) -> None:
                             "foregroundColor": _hex_rgb(CLR_HEADER_FG),
                             "bold": True,
                             "fontSize": 10,
+                            "fontFamily": "Arial",
                         },
                         "horizontalAlignment": "CENTER",
-                        "verticalAlignment": "MIDDLE",
-                        "wrapStrategy": "WRAP",
+                        "verticalAlignment": "BOTTOM",
+                        "wrapStrategy": "OVERFLOW_CELL",
+                        "borders": _solid_medium_borders(),
                     }
                 },
                 "fields": (
                     "userEnteredFormat(backgroundColor,textFormat,"
-                    "horizontalAlignment,verticalAlignment,wrapStrategy)"
+                    "horizontalAlignment,verticalAlignment,wrapStrategy,borders)"
                 ),
             }
         },
         {
-            "updateDimensionProperties": {
-                "range": {
-                    "sheetId": sid,
-                    "dimension": "ROWS",
-                    "startIndex": 0,
-                    "endIndex": 1,
+            # Default data body: Arial 10, center like work sheet.
+            "repeatCell": {
+                "range": data_rng,
+                "cell": {
+                    "userEnteredFormat": {
+                        "textFormat": {"fontSize": 10, "fontFamily": "Arial"},
+                        "horizontalAlignment": "CENTER",
+                        "verticalAlignment": "BOTTOM",
+                        "wrapStrategy": "OVERFLOW_CELL",
+                    }
                 },
-                "properties": {"pixelSize": 38},
-                "fields": "pixelSize",
-            }
-        },
-        {
-            "updateDimensionProperties": {
-                "range": {
-                    "sheetId": sid,
-                    "dimension": "ROWS",
-                    "startIndex": 1,
-                    "endIndex": 3,
-                },
-                "properties": {"pixelSize": 34},
-                "fields": "pixelSize",
-            }
-        },
-        {
-            "updateDimensionProperties": {
-                "range": {
-                    "sheetId": sid,
-                    "dimension": "ROWS",
-                    "startIndex": 3,
-                    "endIndex": 4,
-                },
-                "properties": {"pixelSize": 22},
-                "fields": "pixelSize",
-            }
-        },
-        {
-            "updateDimensionProperties": {
-                "range": {
-                    "sheetId": sid,
-                    "dimension": "ROWS",
-                    "startIndex": 4,
-                    "endIndex": 5,
-                },
-                "properties": {"pixelSize": 30},
-                "fields": "pixelSize",
+                "fields": (
+                    "userEnteredFormat(textFormat,horizontalAlignment,"
+                    "verticalAlignment,wrapStrategy)"
+                ),
             }
         },
     ]
 
-    widths = [
-        96, 56, 92, 220, 72, 110, 64, 52, 88, 100, 120, 180, 68, 68, 68, 68
-    ]
-    for i, w in enumerate(widths):
+    # LEFT-align long text columns: โครงการ / ทำเล / สถานี
+    for c0, c1 in ((3, 4), (10, 12)):
         requests.append(
             {
-                "updateDimensionProperties": {
+                "repeatCell": {
                     "range": {
                         "sheetId": sid,
-                        "dimension": "COLUMNS",
-                        "startIndex": i,
-                        "endIndex": i + 1,
+                        "startRowIndex": header_row + 1,
+                        "endRowIndex": end_row,
+                        "startColumnIndex": c0,
+                        "endColumnIndex": c1,
                     },
-                    "properties": {"pixelSize": w},
-                    "fields": "pixelSize",
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "LEFT",
+                        }
+                    },
+                    "fields": "userEnteredFormat.horizontalAlignment",
                 }
             }
         )
 
+    # Rent / sale number format #,##0 (header + data columns)
+    for ci in OVERVIEW_NUMBER_COL_INDEXES:
+        requests.append(
+            {
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sid,
+                        "startRowIndex": header_row,
+                        "endRowIndex": end_row,
+                        "startColumnIndex": ci,
+                        "endColumnIndex": ci + 1,
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "numberFormat": {
+                                "type": "NUMBER",
+                                "pattern": "#,##0",
+                            },
+                            "horizontalAlignment": "CENTER",
+                        }
+                    },
+                    "fields": (
+                        "userEnteredFormat(numberFormat,horizontalAlignment)"
+                    ),
+                }
+            }
+        )
+
+    # Link columns: yellow header + CLIP wrap + LEFT (short HYPERLINK labels)
+    for ci in OVERVIEW_LINK_COL_INDEXES:
+        requests.append(
+            {
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sid,
+                        "startRowIndex": header_row,
+                        "endRowIndex": header_row + 1,
+                        "startColumnIndex": ci,
+                        "endColumnIndex": ci + 1,
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": _hex_rgb(CLR_LINK_HEADER_BG),
+                            "textFormat": {
+                                "foregroundColor": _hex_rgb(CLR_HEADER_FG),
+                                "bold": True,
+                                "fontSize": 10,
+                                "fontFamily": "Arial",
+                            },
+                            "horizontalAlignment": "CENTER",
+                            "verticalAlignment": "BOTTOM",
+                            "wrapStrategy": "CLIP",
+                            "borders": _solid_medium_borders(),
+                        }
+                    },
+                    "fields": (
+                        "userEnteredFormat(backgroundColor,textFormat,"
+                        "horizontalAlignment,verticalAlignment,"
+                        "wrapStrategy,borders)"
+                    ),
+                }
+            }
+        )
+        requests.append(
+            {
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sid,
+                        "startRowIndex": header_row + 1,
+                        "endRowIndex": end_row,
+                        "startColumnIndex": ci,
+                        "endColumnIndex": ci + 1,
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "LEFT",
+                            "wrapStrategy": "CLIP",
+                        }
+                    },
+                    "fields": (
+                        "userEnteredFormat(horizontalAlignment,wrapStrategy)"
+                    ),
+                }
+            }
+        )
+
+    return requests
+
+
+def _format_overview_chrome(ss, ws) -> None:
+    """Apply ชีตสำหรับทำงาน-style decoration on「ทรัพย์รวม」(chrome + table)."""
+    sid = ws.id
+    cols = len(OVERVIEW_HEADERS)
+    try:
+        data_end = max(int(ws.row_count or 0), OVERVIEW_DATA_START + 50)
+    except Exception:
+        data_end = 3000
+
+    def rng(r0: int, r1: int, c0: int = 0, c1: int | None = None):
+        return {
+            "sheetId": sid,
+            "startRowIndex": r0,
+            "endRowIndex": r1,
+            "startColumnIndex": c0,
+            "endColumnIndex": cols if c1 is None else c1,
+        }
+
+    requests: list[dict] = []
+    requests.extend(_delete_banded_range_requests(ss, sid))
+    requests.extend(
+        [
+            {
+                "updateSheetProperties": {
+                    "properties": {
+                        "sheetId": sid,
+                        "gridProperties": {
+                            # Freeze search chrome rows. (Col-A freeze is incompatible
+                            # with A1:P / A4:P merges used by the chrome title/status.)
+                            "frozenRowCount": OVERVIEW_HEADER_ROW,
+                            "frozenColumnCount": 0,
+                            "hideGridlines": False,
+                        },
+                    },
+                    "fields": (
+                        "gridProperties.frozenRowCount,"
+                        "gridProperties.frozenColumnCount,"
+                        "gridProperties.hideGridlines"
+                    ),
+                }
+            },
+            # Unmerge before re-merge (idempotent re-apply on sync).
+            {"unmergeCells": {"range": rng(0, 1)}},
+            {"unmergeCells": {"range": rng(1, 2, 3, cols)}},
+            {"unmergeCells": {"range": rng(2, 3, 3, cols)}},
+            {"unmergeCells": {"range": rng(3, 4)}},
+            {
+                "mergeCells": {
+                    "range": rng(0, 1),
+                    "mergeType": "MERGE_ALL",
+                }
+            },
+            {
+                "mergeCells": {
+                    "range": rng(1, 2, 3, cols),
+                    "mergeType": "MERGE_ALL",
+                }
+            },
+            {
+                "mergeCells": {
+                    "range": rng(2, 3, 3, cols),
+                    "mergeType": "MERGE_ALL",
+                }
+            },
+            {
+                "mergeCells": {
+                    "range": rng(3, 4),
+                    "mergeType": "MERGE_ALL",
+                }
+            },
+            {
+                "repeatCell": {
+                    "range": rng(0, 1),
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": _hex_rgb(CLR_TITLE_BG),
+                            "textFormat": {
+                                "foregroundColor": _hex_rgb(CLR_TITLE_FG),
+                                "fontSize": 14,
+                                "bold": True,
+                                "fontFamily": "Arial",
+                            },
+                            "verticalAlignment": "MIDDLE",
+                        }
+                    },
+                    "fields": (
+                        "userEnteredFormat(backgroundColor,textFormat,"
+                        "verticalAlignment)"
+                    ),
+                }
+            },
+            {
+                "repeatCell": {
+                    "range": rng(1, 3),
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": _hex_rgb(CLR_ROW_BG),
+                        }
+                    },
+                    "fields": "userEnteredFormat.backgroundColor",
+                }
+            },
+            {
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sid,
+                        "startRowIndex": 1,
+                        "endRowIndex": 3,
+                        "startColumnIndex": 2,
+                        "endColumnIndex": 3,
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": _hex_rgb(CLR_SEARCH_BG),
+                            "textFormat": {
+                                "fontSize": 12,
+                                "bold": True,
+                                "fontFamily": "Arial",
+                            },
+                            "borders": {
+                                "top": {
+                                    "style": "SOLID_MEDIUM",
+                                    "color": _hex_rgb(CLR_SEARCH_BORDER),
+                                },
+                                "bottom": {
+                                    "style": "SOLID_MEDIUM",
+                                    "color": _hex_rgb(CLR_SEARCH_BORDER),
+                                },
+                                "left": {
+                                    "style": "SOLID_MEDIUM",
+                                    "color": _hex_rgb(CLR_SEARCH_BORDER),
+                                },
+                                "right": {
+                                    "style": "SOLID_MEDIUM",
+                                    "color": _hex_rgb(CLR_SEARCH_BORDER),
+                                },
+                            },
+                        }
+                    },
+                    "fields": (
+                        "userEnteredFormat(backgroundColor,textFormat,borders)"
+                    ),
+                }
+            },
+            {
+                "repeatCell": {
+                    "range": rng(3, 4),
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": _hex_rgb(CLR_STATUS_BG),
+                            "textFormat": {
+                                "foregroundColor": _hex_rgb(CLR_MUTED),
+                                "fontSize": 10,
+                                "fontFamily": "Arial",
+                            },
+                        }
+                    },
+                    "fields": "userEnteredFormat(backgroundColor,textFormat)",
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sid,
+                        "dimension": "ROWS",
+                        "startIndex": 0,
+                        "endIndex": 1,
+                    },
+                    "properties": {"pixelSize": 38},
+                    "fields": "pixelSize",
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sid,
+                        "dimension": "ROWS",
+                        "startIndex": 1,
+                        "endIndex": 3,
+                    },
+                    "properties": {"pixelSize": 34},
+                    "fields": "pixelSize",
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sid,
+                        "dimension": "ROWS",
+                        "startIndex": 3,
+                        "endIndex": 4,
+                    },
+                    "properties": {"pixelSize": 22},
+                    "fields": "pixelSize",
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sid,
+                        "dimension": "ROWS",
+                        "startIndex": 4,
+                        "endIndex": 5,
+                    },
+                    "properties": {"pixelSize": 21},
+                    "fields": "pixelSize",
+                }
+            },
+        ]
+    )
+    requests.extend(
+        _format_overview_table_body(
+            sid,
+            header_row=OVERVIEW_HEADER_ROW - 1,  # 0-based row 4 = sheet row 5
+            data_end_row=data_end,
+            cols=cols,
+        )
+    )
+    requests.extend(_col_width_requests(sid, OVERVIEW_COL_WIDTHS))
+
+    try:
+        ss.batch_update({"requests": requests})
+    except Exception as exc:  # noqa: BLE001
+        # Formatting is best-effort; values/formula still work.
+        try:
+            import os as _os
+
+            if _os.environ.get("HUB_SHEET_FORMAT_DEBUG"):
+                print(f"_format_overview_chrome warn: {exc}", flush=True)
+        except Exception:
+            pass
+
+
+def _format_overview_src(ss, src) -> None:
+    """Style hidden `_overview_src` like work-sheet table (for consistency when synced)."""
+    sid = src.id
+    cols = len(OVERVIEW_HEADERS)
+    try:
+        data_end = max(int(src.row_count or 0), 50)
+    except Exception:
+        data_end = 3000
+
+    requests: list[dict] = []
+    requests.extend(_delete_banded_range_requests(ss, sid))
+    requests.append(
+        {
+            "updateSheetProperties": {
+                "properties": {
+                    "sheetId": sid,
+                    "hidden": True,
+                    "gridProperties": {
+                        "frozenRowCount": 1,
+                        "frozenColumnCount": 1,
+                        "hideGridlines": False,
+                    },
+                },
+                "fields": (
+                    "hidden,gridProperties.frozenRowCount,"
+                    "gridProperties.frozenColumnCount,"
+                    "gridProperties.hideGridlines"
+                ),
+            }
+        }
+    )
+    requests.extend(
+        _format_overview_table_body(
+            sid,
+            header_row=0,
+            data_end_row=data_end,
+            cols=cols,
+        )
+    )
+    requests.extend(_col_width_requests(sid, OVERVIEW_COL_WIDTHS))
     try:
         ss.batch_update({"requests": requests})
     except Exception:
-        # Formatting is best-effort; values/formula still work.
         pass
 
 
@@ -903,7 +1227,8 @@ def ensure_overview_search_chrome(
     """
     Install/restore rows 1–5 search chrome + FILTER formula on overview tab.
 
-    Uses gold header like「ชีตสำหรับทำงาน」. Data lives on hidden `_overview_src`.
+    Matches「ชีตสำหรับทำงาน」decoration (gold header, peach banding, freeze col A,
+    yellow link headers, #,##0). Data lives on hidden `_overview_src`.
     """
     cols = len(OVERVIEW_HEADERS)
     status = (
@@ -960,10 +1285,6 @@ def ensure_overview_search_chrome(
         value_input_option="USER_ENTERED",
     )
     _format_overview_chrome(ss, ws)
-    try:
-        ws.hide_gridlines()
-    except Exception:
-        pass
     return {"chrome_installed": True, "filter_cell": "A6"}
 
 
@@ -981,6 +1302,7 @@ def _write_overview_src(ss, values: list[list]) -> dict:
         except Exception:
             pass
     _update_values_chunked(src, full, start_row=1)
+    _format_overview_src(ss, src)
     return {
         "sheet_title": src.title,
         "rows_written": len(data_rows),
@@ -1037,6 +1359,8 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                         [[OVERVIEW_FILTER_FORMULA]],
                         value_input_option="USER_ENTERED",
                     )
+                # Re-apply work-sheet-matched decoration on every sync.
+                _format_overview_chrome(spreadsheet, ws)
 
             src_meta = _write_overview_src(spreadsheet, values)
             meta["data_start_row"] = OVERVIEW_DATA_START

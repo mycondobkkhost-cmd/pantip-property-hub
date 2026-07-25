@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Install search chrome + FILTER on「ทรัพย์รวม」via Sheets API (no Apps Script).
 
-Uses gold header styling from「ชีตสำหรับทำงาน」(#fbbc04).
+Matches「ชีตสำหรับทำงาน」decoration: gold header (#fbbc04), peach row banding
+(#ffe6dd), freeze chrome rows, yellow link headers, #,##0 on เช่า/ขาย.
 Sync data lands on hidden `_overview_src`; A6 FILTER reads C2/C3.
 
 Usage:
@@ -84,6 +85,16 @@ def main() -> int:
         synced_at=synced,
         row_count=max(0, len(existing_rows) - 1) if existing_rows else None,
     )
+
+    # Always refresh `_overview_src` table decoration when the tab exists.
+    try:
+        from src.hub.sheet_write import OVERVIEW_SRC_SHEET, _format_overview_src
+
+        src = ss.worksheet(OVERVIEW_SRC_SHEET)
+        _format_overview_src(ss, src)
+        print(f"Styled hidden tab: {OVERVIEW_SRC_SHEET}", flush=True)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Skip _overview_src style: {exc}", flush=True)
 
     if existing_rows:
         meta = _write_overview_values(ws, existing_rows, synced_at=synced, ss=ss)

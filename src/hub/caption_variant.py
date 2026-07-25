@@ -211,13 +211,13 @@ def resolve_base_text(
     if page_post_text and _looks_complete_original(page_post_text):
         return page_post_text, "page_original", warnings
     if page_post_text:
-        warnings.append("ต้นฉบับเพจสั้นผิดปกติ — ตรวจว่าคัดลอกครบทั้งโพสต์หรือยัง")
+        warnings.append("ข้อความต้นฉบับ สำหรับโพสต์กลุ่มสั้นผิดปกติ — ตรวจว่าคัดลอกครบทั้งโพสต์หรือยัง")
         return page_post_text, "page_original", warnings
 
     # 2) Hub Thai caption (often identical to what was posted on Page)
     if base_text and _looks_complete_original(base_text):
         warnings.append(
-            "ใช้ข้อความไทยใน Hub — ถ้าไม่ตรงเพจ ให้วางต้นฉบับเต็มในช่อง「ต้นฉบับโพสต์เพจ」"
+            "ใช้ข้อความไทยใน Hub — ถ้าไม่ตรงเพจ ให้วางต้นฉบับเต็มในช่อง「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」"
         )
         return base_text, "text_th", warnings
 
@@ -242,12 +242,12 @@ def resolve_base_text(
     if scraped_page:
         warnings.append(
             "ดึงจากลิงก์เพจได้ไม่ครบ (Facebook ตัดข้อความ) — "
-            "เปิดโพสต์เพจแล้วคัดลอกทั้งดุ้นมาวางในช่อง「ต้นฉบับโพสต์เพจ」"
+            "เปิดโพสต์เพจแล้วคัดลอกทั้งดุ้นมาวางในช่อง「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」"
         )
 
     if base_text:
         if _looks_like_truncated_fb_scrape(base_text):
-            warnings.append("ข้อความไทยใน Hub อาจไม่ครบ — แนะนำวางต้นฉบับจากเพจ")
+            warnings.append("ข้อความไทยใน Hub อาจไม่ครบ — แนะนำวางข้อความต้นฉบับ สำหรับโพสต์กลุ่ม")
         return base_text, "text_th", warnings
 
     if allow_scrape and post_url.startswith("http"):
@@ -296,8 +296,8 @@ def prepare_group_caption(
         return {
             "ok": False,
             "error": (
-                "ยังไม่มีข้อความต้นฉบับเต็มจากเพจ — "
-                "เปิดโพสต์เพจสาธารณะ → คัดลอกทั้งดุ้น → วางในช่อง「ต้นฉบับโพสต์เพจ」แล้วบันทึก"
+                "ยังไม่มี「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」— "
+                "เปิดโพสต์เพจสาธารณะ → คัดลอกทั้งดุ้น → วางในช่องนั้นแล้วกดบันทึกต้นฉบับ"
             ),
             "warnings": warnings,
             "source": source,
@@ -309,7 +309,7 @@ def prepare_group_caption(
             "ok": False,
             "error": (
                 "ข้อความจากลิงก์เพจไม่ครบ (Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ) — "
-                "กรุณาวางต้นฉบับเต็มจากเพจในช่อง「ต้นฉบับโพสต์เพจ」"
+                "กรุณาวางต้นฉบับเต็มในช่อง「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」"
             ),
             "warnings": warnings,
             "source": source,

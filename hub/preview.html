@@ -2102,13 +2102,22 @@
             <textarea class="output-box" id="out-en" readonly></textarea>
           </label>
           <label class="add-wide">
-            <span>ต้นฉบับโพสต์เพจ (คัดลอกทั้งดุ้นจากเพจสาธารณะ — ใช้ตอนกด「โพสต์」กลุ่ม)</span>
-            <textarea id="add-page-post-text" class="output-box" rows="12" placeholder="เปิดโพสต์เพจ → คัดลอกข้อความทั้งหมด → วางที่นี่ แล้วกดบันทึกต้นฉบับ&#10;&#10;ระบบจะเก็บต้นฉบับครบ แล้วค่อยดัดแปลงกันสแปมเบาๆ ตอนคัดลอกไปแต่ละกลุ่ม"></textarea>
+            <span>ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม</span>
+            <textarea id="add-page-post-text" class="output-box" rows="12" placeholder="วางข้อความเต็มจากโพสต์เพจสาธารณะที่นี่…"></textarea>
           </label>
-          <div class="add-wide toolbar-row" style="margin-top:4px;gap:8px;flex-wrap:wrap;align-items:center">
-            <button type="button" class="btn-sm primary" id="add-save-page-text">บันทึกต้นฉบับเพจ</button>
-            <button type="button" class="btn-sm" id="add-fill-page-text-from-th" title="คัดลอกจากข้อความไทยใน Hub ถ้าโพสต์เพจใช้ข้อความชุดเดียวกัน">เติมจากข้อความไทย</button>
-            <span id="add-page-post-hint" style="font-size:11px;color:#71717a">Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ — ต้องวางต้นฉบับเองครั้งหนึ่งต่อทรัพย์</span>
+          <div class="add-wide" id="add-page-post-howto" style="margin-top:6px;padding:10px 12px;background:#f4f4f5;border:1px solid #e4e4e7;border-radius:8px;font-size:12px;color:#3f3f46;line-height:1.55">
+            <strong style="display:block;margin-bottom:4px">วิธีใช้</strong>
+            1) เปิดลิงก์「โพสต์บนเพจ」ของทรัพย์นี้<br/>
+            2) คัดลอกข้อความประกาศ<strong>ทั้งดุ้น</strong>จากเพจ (อย่าตัดท้าย)<br/>
+            3) วางในช่องนี้ แล้วกด「บันทึกต้นฉบับ」<br/>
+            4) เลื่อนลงไปที่กลุ่มแนะนำ → กด「โพสต์」 → ระบบคัดลอกข้อความ (กันซ้ำ) + เปิดกลุ่ม<br/>
+            5) ใน Facebook วางข้อความ (Cmd/Ctrl+V) → เพิ่มรูปเอง → กดเผยแพร่<br/>
+            <span style="color:#71717a;font-size:11px">หมายเหตุ: Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ — วางต้นฉบับครั้งเดียวต่อทรัพย์ก็พอ</span>
+          </div>
+          <div class="add-wide toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" class="btn-sm primary" id="add-save-page-text">บันทึกต้นฉบับ</button>
+            <button type="button" class="btn-sm" id="add-fill-page-text-from-th" title="ใช้เมื่อโพสต์เพจกับข้อความไทยใน Hub เป็นชุดเดียวกัน">เติมจากข้อความไทย</button>
+            <span id="add-page-post-hint" style="font-size:11px;color:#71717a">ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน</span>
           </div>
         </div>
         <div class="toolbar-row" style="margin-top:16px;gap:10px;flex-wrap:wrap;align-items:center">
@@ -2123,7 +2132,7 @@
         <div id="group-recommend-box" class="add-wide" style="margin-top:14px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
             <strong style="font-size:13px">กลุ่ม FB แนะนำ — 30 กลุ่ม (เรียงจากแนะนำสุด)</strong>
-            <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังเลือกโครงการ/ราคา · ต้องมีต้นฉบับเพจก่อนกดโพสต์</span>
+            <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังมีข้อความต้นฉบับ สำหรับโพสต์กลุ่ม</span>
           </div>
           <div id="group-recommend-tabs" class="hidden" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
           <div id="group-recommend-list" style="margin-top:10px;font-size:12px;color:#a1a1aa;max-height:480px;overflow:auto">ยังไม่มีรายการ</div>
@@ -5180,7 +5189,7 @@
       var pageHint = document.getElementById("add-page-post-hint");
       if (pageHint) {
         pageHint.style.color = "#71717a";
-        pageHint.textContent = "Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ — ต้องวางต้นฉบับเองครั้งหนึ่งต่อทรัพย์";
+        pageHint.textContent = "ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน";
       }
       document.getElementById("add-project").value = "";
       document.getElementById("add-project-id").value = "";
@@ -5876,7 +5885,7 @@
         box.innerHTML = '<span style="color:#a1a1aa">ยังไม่เจอกลุ่ม — ลองเลือกโครงการ/ทำเล หรือรีแท็กสมุดกลุ่ม</span>';
         return;
       }
-      box.innerHTML = '<div style="font-size:11px;color:#71717a;margin-bottom:6px">ลำดับ: ชื่อโครงการ → โซน/ทำเล → กลุ่มใหญ่ · ปุ่ม「โพสต์」= คัดลอกข้อความกันซ้ำจากเพจสาธารณะ + เปิดกลุ่ม</div>' +
+      box.innerHTML = '<div style="font-size:11px;color:#71717a;margin-bottom:6px">ลำดับ: ชื่อโครงการ → โซน/ทำเล → กลุ่มใหญ่ · ปุ่ม「โพสต์」ใช้ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม (กันซ้ำต่อกลุ่ม)</div>' +
         groups.map(function (g, i) {
           var tier = g.tier || "";
           var tierLabel = ({ project: "โครงการ", zone: "โซน", large: "กลุ่มใหญ่", fit: "แมตช์", other: "" })[tier] || "";
@@ -6171,13 +6180,13 @@
       var t = String(text || "").trim();
       if (!t) {
         hint.style.color = "#71717a";
-        hint.textContent = "Facebook ไม่ให้ดึงทั้งโพสต์อัตโนมัติ — ต้องวางต้นฉบับเองครั้งหนึ่งต่อทรัพย์";
+        hint.textContent = "ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน";
         return;
       }
       var lines = t.split(/\n/).length;
       hint.style.color = lines >= 8 && t.length >= 180 ? "#137333" : "#b45309";
-      hint.textContent = "ต้นฉบับ " + t.length + " ตัวอักษร · " + lines + " บรรทัด" +
-        (lines >= 8 && t.length >= 180 ? " · พร้อมใช้กับปุ่มโพสต์" : " · อาจยังไม่ครบ ตรวจเทียบกับโพสต์เพจ");
+      hint.textContent = "ข้อความต้นฉบับ " + t.length + " ตัวอักษร · " + lines + " บรรทัด" +
+        (lines >= 8 && t.length >= 180 ? " · พร้อมใช้กับปุ่มโพสต์กลุ่ม" : " · อาจยังไม่ครบ เทียบกับโพสต์เพจอีกครั้ง");
     }
 
     function pagePublicCaptionSource() {
@@ -6195,11 +6204,11 @@
       var src = pagePublicCaptionSource();
       var text = src.page_post_text;
       if (!text) {
-        alert("วางข้อความเต็มจากโพสต์เพจในช่อง「ต้นฉบับโพสต์เพจ」ก่อน");
+        alert("วางข้อความเต็มจากโพสต์เพจในช่อง「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」ก่อน");
         return;
       }
       if (!editingPropertyId && !src.code) {
-        alert("บันทึกทรัพย์ก่อน หรือเปิดทรัพย์จากรายการ แล้วค่อยบันทึกต้นฉบับเพจ");
+        alert("บันทึกทรัพย์ก่อน หรือเปิดทรัพย์จากรายการ แล้วค่อยบันทึกต้นฉบับ");
         return;
       }
       updatePagePostHint(text);
@@ -6215,7 +6224,7 @@
           var hint = document.getElementById("add-page-post-hint");
           if (hint) {
             hint.style.color = "#137333";
-            hint.textContent = "บันทึกต้นฉบับเพจแล้ว · " + text.length + " ตัวอักษร";
+            hint.textContent = "บันทึกข้อความต้นฉบับแล้ว · " + text.length + " ตัวอักษร";
           }
         } catch (e) {
           alert(e.message || "บันทึกต้นฉบับไม่ได้");
@@ -6233,10 +6242,10 @@
       var src = pagePublicCaptionSource();
       if (!src.page_post_text && !src.base_text) {
         alert(
-          "ยังไม่มีต้นฉบับโพสต์เพจ\n\n" +
+          "ยังไม่มี「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」\n\n" +
           "1) เปิดลิงก์โพสต์เพจสาธารณะ\n" +
           "2) คัดลอกข้อความทั้งดุ้น\n" +
-          "3) วางในช่อง「ต้นฉบับโพสต์เพจ」แล้วกดบันทึกต้นฉบับ\n" +
+          "3) วางในช่อง「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」แล้วกดบันทึกต้นฉบับ\n" +
           "จากนั้นค่อยกด「โพสต์」อีกครั้ง"
         );
         var box = document.getElementById("add-page-post-text");
@@ -6247,7 +6256,7 @@
       }
       if (!src.page_post_text) {
         var ok = confirm(
-          "ยังไม่ได้วางต้นฉบับจากเพจ — จะใช้ข้อความไทยใน Hub ชั่วคราว\n\n" +
+          "ยังไม่ได้วาง「ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม」— จะใช้ข้อความไทยใน Hub ชั่วคราว\n\n" +
           "ถ้าไม่ตรงกับโพสต์เพจ ให้กดยกเลิก แล้ววางต้นฉบับเต็มก่อน\n\nดำเนินการต่อ?"
         );
         if (!ok) {
@@ -6285,7 +6294,7 @@
         }
         await copyTextToClipboard(data.caption);
         var srcLabel = ({
-          page_original: "ต้นฉบับเพจทั้งดุ้น",
+          page_original: "ข้อความต้นฉบับสำหรับโพสต์กลุ่ม",
           text_th: "ข้อความไทยใน Hub",
           page_scrape: "จากลิงก์เพจ",
           post_scrape: "จากโพสต์โปรไฟล์",

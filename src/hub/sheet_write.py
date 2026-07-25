@@ -24,9 +24,9 @@ OVERVIEW_EXPORT_CSV = BASE_DIR / "data" / "hub_overview_export.csv"
 PROPERTIES_JSON = BASE_DIR / "data" / "properties.json"
 
 try:
-    from dotenv import load_dotenv
+    from src.hub.env_load import load_hub_env
 
-    load_dotenv(BASE_DIR / ".env")
+    load_hub_env()
 except Exception:
     pass
 
@@ -1812,6 +1812,7 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
             )
             result["pushed"] = True
             result["via"] = "gspread"
+            result["spreadsheet_id"] = sheet_id
             result["sheet_title"] = ov_meta.get("sheet_title") or overview_ws.title
             result["written_count"] = int(
                 ov_meta.get("rows_written") or len(overview_rows)
@@ -1823,6 +1824,16 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
             result["spreadsheet_url"] = (
                 f"https://docs.google.com/spreadsheets/d/{sheet_id}/edit#gid={overview_ws.id}"
             )
+            source_id = (
+                _env("SOURCE_GOOGLE_SHEETS_ID")
+                or _env("MAIN_GOOGLE_SHEETS_ID")
+                or _env("HUB_SOURCE_GOOGLE_SHEETS_ID")
+            )
+            if source_id and source_id != sheet_id:
+                warnings.append(
+                    f"ซิงค์ไปชีท {sheet_id[:8]}… แต่ SOURCE ดึงจาก {source_id[:8]}… "
+                    "— ตรวจ HUB_GOOGLE_SHEETS_ID / SOURCE_GOOGLE_SHEETS_ID ใน .env"
+                )
 
             try:
                 hub_meta = _write_hub_tab(

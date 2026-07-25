@@ -106,6 +106,36 @@ def parse_transit_reference(raw: str) -> list[str]:
     return tags[:8]
 
 
+def parse_zone_tags(raw: str) -> list[str]:
+    """Sheet「ทำเล」— split into short zone labels (not BTS/MRT piles)."""
+    if not raw:
+        return []
+    tags: list[str] = []
+    seen: set[str] = set()
+    for part in re.split(r"[,，\n/;|]| และ ", raw):
+        p = re.sub(r"\s+", " ", (part or "").strip())
+        if not p or len(p) > 60:
+            continue
+        up = p.upper()
+        if up.startswith(("BTS ", "MRT ", "ARL ", "APL ")) or up in {"BTS", "MRT", "ARL"}:
+            continue
+        k = re.sub(r"[^a-z0-9ก-๙]", "", p.lower())
+        if not k or k in seen:
+            continue
+        seen.add(k)
+        tags.append(p[:40])
+    return tags[:8]
+
+
+def location_ref_from_sheet(raw: str) -> str:
+    """Keep sheet ทำเล as a display string; drop placeholder dashes."""
+    s = (raw or "").strip()
+    if not s or s in {"-", "—", "–", "."}:
+        return ""
+    tags = parse_zone_tags(s)
+    return ", ".join(tags) if tags else s[:120]
+
+
 def is_code_only_row(row: dict[str, str]) -> bool:
     code = row.get("code", "")
     if not code.startswith("PTP"):
@@ -170,6 +200,7 @@ def load_rows() -> list[dict[str, str]]:
                 "floor": col(r, "ชั้น"),
                 "rent": col(r, "ราคาเช่า"),
                 "sale": col(r, "ราคาขาย"),
+                "zone": col(r, "ทำเล"),
                 "transit": col(r, "สถานีรถไฟฟ้า"),
                 # Post link may be cleared when a profile was misplaced in this col
                 "source": resolved.source_url,
@@ -188,6 +219,7 @@ def build_projects(all_rows: list[dict[str, str]]) -> dict[str, dict]:
     """Aggregate every project name ever seen into Project Master buckets."""
     buckets: dict[str, Counter] = defaultdict(Counter)
     transit_refs: dict[str, Counter] = defaultdict(Counter)
+    zone_refs: dict[str, Counter] = defaultdict(Counter)
 
     for row in all_rows:
         name = row.get("project", "").strip()
@@ -199,6 +231,8 @@ def build_projects(all_rows: list[dict[str, str]]) -> dict[str, dict]:
         buckets[bucket][name] += 1
         for t in parse_transit_reference(row.get("transit", "")):
             transit_refs[bucket][t] += 1
+        for z in parse_zone_tags(row.get("zone", "")):
+            zone_refs[bucket][z] += 1
 
     projects: dict[str, dict] = {}
     for bucket, name_counts in buckets.items():
@@ -213,6 +247,7 @@ def build_projects(all_rows: list[dict[str, str]]) -> dict[str, dict]:
             aliases = aliases[1:]
 
         unverified_transit = [t for t, _ in transit_refs[bucket].most_common(10)]
+        unverified_zone = [z for z, _ in zone_refs[bucket].most_common(10)]
 
         projects[bucket] = {
             "id": pid,
@@ -220,7 +255,7 @@ def build_projects(all_rows: list[dict[str, str]]) -> dict[str, dict]:
             "canonical_name": canonical,
             "aliases": aliases,
             "transit_unverified": unverified_transit,
-            "zone_unverified": [],
+            "zone_unverified": unverified_zone,
             "transit_verified": [],
             "zone_verified": [],
             "location_status": "pending_verification",
@@ -316,9 +351,6 @@ def annotate_duplicates(properties: list[dict]) -> Counter:
             flags.append("relist")
 
         prop["duplicate_flags"] = flags
-        # location_ref = ทำเล only — never dump station SEO piles here.
-        # Living / enrich sync fills this from project zone_verified later.
-        prop["location_ref"] = ""
 
         if flags:
             stats["properties_flagged"] += 1
@@ -435,6 +467,7 @@ def build_properties(
                 "media_status": media_status,
                 "sheet_row": row["row"],
                 "transit_from_sheet": parse_transit_reference(row.get("transit", "")),
+                "location_ref": location_ref_from_sheet(row.get("zone", "")),
             }
         )
 

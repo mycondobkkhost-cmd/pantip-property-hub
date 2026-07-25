@@ -15,9 +15,9 @@ MAIN_CSV = BASE_DIR / "data" / "main_sheet.csv"
 WAIT_CSV = BASE_DIR / "data" / "wait_post_sheet.csv"
 
 try:
-    from dotenv import load_dotenv
+    from src.hub.env_load import load_hub_env
 
-    load_dotenv(BASE_DIR / ".env")
+    load_hub_env()
 except Exception:
     pass
 
@@ -366,6 +366,24 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
         summary["stats"]["properties_total"] = len(properties)
         summary["stats"]["properties_hub"] = restored
 
+        # Safety net: merge「ทรัพย์ Hub」tab so RXT/COA survive if memory snapshot
+        # was empty, and pick up notes edited directly on that tab.
+        try:
+            sheet_hub = _merge_hub_tab_into_properties(projects, properties)
+            if sheet_hub.get("merged") or sheet_hub.get("notes_updated"):
+                properties = sheet_hub["properties"]
+                projects = sheet_hub["projects"]
+                persist(projects, properties)
+                summary["hub_tab_merged"] = sheet_hub.get("merged", 0)
+                summary["hub_tab_notes_updated"] = sheet_hub.get("notes_updated", 0)
+                summary["preserved_hub"] = sum(
+                    1 for p in properties if is_hub_owned(p)
+                )
+                summary["stats"]["properties_total"] = len(properties)
+                summary["stats"]["properties_hub"] = summary["preserved_hub"]
+        except Exception as hub_exc:  # noqa: BLE001
+            summary["hub_tab_warning"] = str(hub_exc)
+
         # optional: refresh local export of hub tab for visibility
         try:
             from src.hub.sheet_write import write_hub_export_csv
@@ -375,6 +393,159 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
             pass
 
     return summary
+
+
+def _merge_hub_tab_into_properties(projects: list[dict], properties: list[dict]) -> dict:
+    """Pull Hub-owned rows / notes from「ทรัพย์ Hub」when credentials are available."""
+    import uuid
+    from datetime import datetime
+
+    from src.hub.project_store import project_location_label, project_transit_display
+
+    sheet_id = _env("HUB_GOOGLE_SHEETS_ID") or _env("GOOGLE_SHEETS_ID")
+    hub_name = _env("HUB_SHEET_NAME") or "ทรัพย์ Hub"
+    hub_gid = _env("HUB_SHEET_GID")
+    if not sheet_id or sheet_id.startswith("your_"):
+        return {"merged": 0, "notes_updated": 0, "properties": properties, "projects": projects}
+
+    try:
+        from src.hub.sheet_write import _gspread_client
+    except Exception:
+        return {"merged": 0, "notes_updated": 0, "properties": properties, "projects": projects}
+
+    client = _gspread_client()
+    ss = client.open_by_key(sheet_id)
+    ws = None
+    if hub_gid:
+        try:
+            ws = ss.get_worksheet_by_id(int(hub_gid))
+        except Exception:
+            ws = None
+    if ws is None:
+        ws = ss.worksheet(hub_name)
+
+    values = ws.get_all_values()
+    if len(values) < 2:
+        return {"merged": 0, "notes_updated": 0, "properties": properties, "projects": projects}
+
+    headers = [str(h or "").strip() for h in values[0]]
+
+    def col(name: str) -> int | None:
+        try:
+            return headers.index(name)
+        except ValueError:
+            return None
+
+    code_i = col("รหัสทรัพย์")
+    if code_i is None:
+        return {"merged": 0, "notes_updated": 0, "properties": properties, "projects": projects}
+    notes_i = col("หมายเหตุ")
+    proj_i = col("โครงการ")
+    type_i = col("ประเภท")
+    beds_i = col("ห้องนอน/ห้องน้ำ")
+    size_i = col("ขนาด")
+    floor_i = col("ชั้น")
+    rent_i = col("ราคาเช่า")
+    sale_i = col("ราคาขาย")
+    date_i = col("วันที่รับเข้า")
+    owner_i = col("เฟสเจ้าของ")
+
+    by_code = {(p.get("code") or "").upper(): p for p in properties}
+    projects_by_name = {
+        (p.get("canonical_name") or "").strip().lower(): p for p in projects
+    }
+    merged = 0
+    notes_updated = 0
+
+    def cell(row: list[str], idx: int | None) -> str:
+        if idx is None or idx >= len(row):
+            return ""
+        return str(row[idx] or "").strip()
+
+    for row in values[1:]:
+        code = cell(row, code_i).upper().replace(" ", "")
+        if not (code.startswith("RXT") or code.startswith("COA")):
+            continue
+        notes = cell(row, notes_i)
+        existing = by_code.get(code)
+        if existing:
+            if notes and notes != (existing.get("notes") or "").strip():
+                existing["notes"] = notes
+                notes_updated += 1
+            existing["data_source"] = "hub"
+            continue
+
+        proj_name = cell(row, proj_i)
+        proj = projects_by_name.get(proj_name.lower()) if proj_name else None
+        if not proj and proj_name:
+            # soft match contains
+            for name, p in projects_by_name.items():
+                if proj_name.lower() in name or name in proj_name.lower():
+                    proj = p
+                    break
+        if not proj:
+            continue
+
+        beds_raw = cell(row, beds_i)
+        beds = beds_raw.split("/")[0].strip() if beds_raw else ""
+        owner_raw = cell(row, owner_i)
+        owner_fb = [owner_raw] if owner_raw.startswith("http") else []
+        prefix = "COA" if code.startswith("COA") else "RXT"
+        prop = {
+            "id": str(uuid.uuid4()),
+            "code": code,
+            "code_prefix": prefix,
+            "data_source": "hub",
+            "listing_kind": "co_agent" if prefix == "COA" else "direct",
+            "project_id": proj["id"],
+            "project_name": proj["canonical_name"],
+            "last_listed_at": cell(row, date_i) or datetime.now().strftime("%d/%m/%Y"),
+            "property_type": cell(row, type_i) or "Condo",
+            "bedrooms": beds,
+            "size_sqm": cell(row, size_i),
+            "floor": cell(row, floor_i),
+            "rent_price": cell(row, rent_i),
+            "sale_price": cell(row, sale_i),
+            "source_url": "",
+            "post_url": "",
+            "post_pages_url": "",
+            "notes": notes,
+            "import_status": "active",
+            "media_status": "pending",
+            "sheet_row": "",
+            "transit_from_sheet": project_transit_display(proj),
+            "duplicate_flags": [],
+            "location_ref": project_location_label(proj),
+            "owner_phones": [],
+            "owner_lines": [],
+            "owner_facebook": owner_fb,
+            "text_th": "",
+            "text_en": "",
+            "raw_text": "",
+            "linked_ptp_code": "",
+        }
+        properties.insert(0, prop)
+        by_code[code] = prop
+        merged += 1
+
+    if merged:
+        counts: dict[str, int] = {}
+        for p in properties:
+            pid = p.get("project_id") or ""
+            if pid:
+                counts[pid] = counts.get(pid, 0) + 1
+        for proj in projects:
+            proj["listing_count"] = counts.get(proj["id"], 0)
+        projects.sort(
+            key=lambda x: (-int(x.get("listing_count") or 0), x["canonical_name"])
+        )
+
+    return {
+        "merged": merged,
+        "notes_updated": notes_updated,
+        "properties": properties,
+        "projects": projects,
+    }
 
 
 def refresh_wait_post_sheet(*, csv_url: str = "") -> dict:

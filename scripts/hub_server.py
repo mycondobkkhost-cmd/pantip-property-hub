@@ -14,6 +14,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 HUB_DIR = BASE_DIR / "hub"
 sys.path.insert(0, str(BASE_DIR))
 
+# Local `.env` must override stale shell exports (wrong Sheet ID / CSV URL).
+from src.hub.env_load import load_hub_env  # noqa: E402
+
+load_hub_env()
+
 from src.hub.parser import parse_listing_text, parsed_to_dict  # noqa: E402
 from src.hub.codes import next_hub_code  # noqa: E402
 from src.hub.group_store import (  # noqa: E402

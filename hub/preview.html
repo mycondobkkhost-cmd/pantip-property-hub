@@ -7391,11 +7391,11 @@
           msg += "\nข้ามรหัสเปล่า " + (st.code_only_dropped || 0) +
             " · ข้ามข้อมูลไม่พอ " + (st.incomplete_skipped || 0);
         }
-        if (
-          (data.sheet_title && /ทดลอง/i.test(data.sheet_title)) ||
-          (data.spreadsheet_id && String(data.spreadsheet_id).indexOf("14U1y4dsebeuudTSK") === 0)
-        ) {
-          msg += "\n\n⚠ ตอนนี้ดึงจากชีททดลองอยู่ — ควรเป็นชีทจริง「ชีตทำงาน」";
+        if (data.sheet_title && /ทดลอง/i.test(data.sheet_title)) {
+          msg += "\n\n⚠ ตอนนี้ดึงจากชีททดลองอยู่ — ตรวจ SOURCE_GOOGLE_SHEETS_ID / MAIN_SHEET_CSV_URL";
+        }
+        if (data.spreadsheet_id) {
+          msg += "\nSheet ID: " + String(data.spreadsheet_id).slice(0, 12) + "…";
         }
         var wp = data.wait_post || {};
         if (wp.total != null) {

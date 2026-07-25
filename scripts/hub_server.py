@@ -29,6 +29,10 @@ from src.hub.group_store import (  # noqa: E402
     retag_all,
     update_group,
 )
+from src.hub.caption_variant import (  # noqa: E402
+    list_caption_history,
+    prepare_group_caption,
+)
 from src.hub.project_store import (  # noqa: E402
     PREVIEW_JS,
     PREVIEW_META,
@@ -873,6 +877,32 @@ class HubHandler(BaseHTTPRequestHandler):
                     property_code=(body.get("code") or "").strip(),
                 )
                 self._json(200, {"ok": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/groups/prepare-caption":
+            try:
+                result = prepare_group_caption(
+                    property_code=(body.get("code") or body.get("property_code") or "").strip(),
+                    group_url=(body.get("group_url") or body.get("url") or "").strip(),
+                    group_name=(body.get("group_name") or "").strip(),
+                    page_url=(body.get("page_url") or body.get("post_pages_url") or "").strip(),
+                    post_url=(body.get("post_url") or "").strip(),
+                    base_text=(body.get("base_text") or body.get("text_th") or "").strip(),
+                    force_new=bool(body.get("force_new")),
+                    allow_scrape=body.get("allow_scrape", True) is not False,
+                )
+                status = 200 if result.get("ok") else 400
+                self._json(status, result)
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/groups/caption-history":
+            try:
+                code = (body.get("code") or body.get("property_code") or "").strip()
+                self._json(200, list_caption_history(code))
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"error": str(exc)})
             return

@@ -12,6 +12,7 @@ cookies/
 data/hub.db
 data/line_chats.jsonl
 data/line_cases.json
+data/caption_copy_history.json
 data/thumb_cache/
 data/living_cache/
 logs/*.log

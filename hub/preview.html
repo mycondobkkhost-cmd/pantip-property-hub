@@ -5851,10 +5851,11 @@
         box.innerHTML = '<span style="color:#a1a1aa">ยังไม่เจอกลุ่ม — ลองเลือกโครงการ/ทำเล หรือรีแท็กสมุดกลุ่ม</span>';
         return;
       }
-      box.innerHTML = '<div style="font-size:11px;color:#71717a;margin-bottom:6px">ลำดับ: ชื่อโครงการ → โซน/ทำเล → กลุ่มใหญ่ · มีหมุนเวียนและสำรวจกลุ่มใหม่</div>' +
+      box.innerHTML = '<div style="font-size:11px;color:#71717a;margin-bottom:6px">ลำดับ: ชื่อโครงการ → โซน/ทำเล → กลุ่มใหญ่ · ปุ่ม「โพสต์」= คัดลอกข้อความกันซ้ำจากเพจสาธารณะ + เปิดกลุ่ม</div>' +
         groups.map(function (g, i) {
           var tier = g.tier || "";
           var tierLabel = ({ project: "โครงการ", zone: "โซน", large: "กลุ่มใหญ่", fit: "แมตช์", other: "" })[tier] || "";
+          var url = g.url || "";
           return '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid #eee">' +
             '<span style="color:#188038;font-weight:600;min-width:22px">' + (i + 1) + "</span>" +
             '<div style="flex:1;min-width:0">' +
@@ -5862,10 +5863,12 @@
                 (tierLabel ? ' <span class="tag" style="background:#e6f4ea;color:#137333">' + esc(tierLabel) + "</span>" : "") +
               "</div>" +
               '<div style="font-size:11px;color:#71717a;margin-top:2px">' + esc((g.reasons || []).join(" · ")) + "</div>" +
+              '<div class="group-caption-status" data-caption-status-for="' + esc(url) + '" style="font-size:10px;color:#a1a1aa;margin-top:4px"></div>' +
             "</div>" +
-            '<div style="display:flex;flex-direction:column;gap:4px">' +
-              '<a class="btn-sm" href="' + esc(g.url) + '" target="_blank" rel="noopener">เปิด</a>' +
-              '<button type="button" class="btn-sm" data-copy-group="' + esc(g.url) + '">คัดลอก</button>' +
+            '<div style="display:flex;flex-direction:column;gap:4px;min-width:88px">' +
+              '<a class="btn-sm" href="' + esc(url) + '" target="_blank" rel="noopener">เปิดลิงก์</a>' +
+              '<button type="button" class="btn-sm" data-copy-group="' + esc(url) + '">คัดลอกลิงก์</button>' +
+              '<button type="button" class="btn-sm primary" data-post-group="' + esc(url) + '" data-group-name="' + esc(g.name || "") + '">โพสต์</button>' +
             "</div>" +
           "</div>";
         }).join("");
@@ -6080,7 +6083,7 @@
         var old = btn.getAttribute("data-label") || btn.textContent;
         btn.setAttribute("data-label", old);
         btn.textContent = "คัดลอกแล้ว";
-        setTimeout(function () { btn.textContent = old || "คัดลอก"; }, 1200);
+        setTimeout(function () { btn.textContent = old || "คัดลอกลิงก์"; }, 1200);
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(done).catch(function () {
@@ -6089,6 +6092,123 @@
       } else {
         prompt("คัดลอกลิงก์:", url);
         done();
+      }
+    }
+
+    function copyTextToClipboard(text) {
+      if (!text) return Promise.reject(new Error("ไม่มีข้อความ"));
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      return new Promise(function (resolve, reject) {
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.select();
+          var ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          if (ok) resolve();
+          else reject(new Error("คัดลอกไม่ได้"));
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    function setGroupCaptionStatus(groupUrl, message, isError) {
+      var el = null;
+      try {
+        if (window.CSS && typeof CSS.escape === "function") {
+          el = document.querySelector('[data-caption-status-for="' + CSS.escape(groupUrl) + '"]');
+        }
+      } catch (err) { /* ignore */ }
+      if (!el) {
+        var all = document.querySelectorAll("[data-caption-status-for]");
+        for (var i = 0; i < all.length; i++) {
+          if (all[i].getAttribute("data-caption-status-for") === groupUrl) {
+            el = all[i];
+            break;
+          }
+        }
+      }
+      if (!el) return;
+      el.style.color = isError ? "#b91c1c" : "#137333";
+      el.textContent = message || "";
+    }
+
+    function pagePublicCaptionSource() {
+      return {
+        code: (document.getElementById("add-code").value || "").trim(),
+        page_url: (document.getElementById("add-page-url").value || "").trim(),
+        post_url: (document.getElementById("add-post-url").value || "").trim(),
+        base_text: (document.getElementById("out-th").value || "").trim(),
+      };
+    }
+
+    async function prepareAndCopyGroupCaption(groupUrl, groupName, btn, forceNew) {
+      var src = pagePublicCaptionSource();
+      if (!src.page_url && !src.base_text && !src.post_url) {
+        alert("ยังไม่มีข้อความจากเพจสาธารณะ — ใส่ลิงก์โพสต์เพจ หรือสร้างข้อความไทยใน Hub ก่อน");
+        return;
+      }
+      if (!src.code) {
+        alert("ยังไม่มีรหัสทรัพย์ — บันทึกหรือเปิดทรัพย์ก่อนใช้ปุ่มโพสต์");
+        return;
+      }
+      var prev = btn ? btn.textContent : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "เตรียม…";
+      }
+      setGroupCaptionStatus(groupUrl, "กำลังเตรียมข้อความกันซ้ำ…", false);
+      try {
+        var data = await apiPost("/api/groups/prepare-caption", {
+          code: src.code,
+          group_url: groupUrl,
+          group_name: groupName || "",
+          page_url: src.page_url,
+          post_url: src.post_url,
+          base_text: src.base_text,
+          force_new: !!forceNew,
+        });
+        if (!data || !data.ok || !data.caption) {
+          throw new Error((data && data.error) || "เตรียมข้อความไม่ได้");
+        }
+        await copyTextToClipboard(data.caption);
+        var srcLabel = ({
+          page_scrape: "จากเพจสาธารณะ",
+          text_th: "จากข้อความไทยใน Hub",
+          post_scrape: "จากโพสต์โปรไฟล์",
+        })[data.source] || data.source || "";
+        var status =
+          (data.reused ? "ใช้ชุดล่าสุด · " : "คัดลอกแล้ว · ") +
+          "เวอร์ชัน " + ((data.variant_index || 0) + 1) +
+          (srcLabel ? " · " + srcLabel : "") +
+          " · ไม่ซ้ำในทรัพย์นี้";
+        setGroupCaptionStatus(groupUrl, status, false);
+        if (btn) {
+          btn.textContent = data.reused ? "ในคลิปแล้ว" : "คัดลอกแล้ว";
+          setTimeout(function () {
+            btn.textContent = prev || "โพสต์";
+            btn.disabled = false;
+          }, 1400);
+        }
+        window.open(groupUrl, "_blank", "noopener,noreferrer");
+        apiPost("/api/groups/mark-used", {
+          url: groupUrl,
+          code: src.code,
+        }).catch(function () { /* ignore */ });
+      } catch (e) {
+        setGroupCaptionStatus(groupUrl, e.message || "ผิดพลาด", true);
+        alert(e.message || "เตรียมข้อความไม่ได้");
+        if (btn) {
+          btn.textContent = prev || "โพสต์";
+          btn.disabled = false;
+        }
       }
     }
 
@@ -7989,6 +8109,17 @@
     document.getElementById("add-proceed").addEventListener("click", doProceed);
     document.getElementById("add-recommend-groups").addEventListener("click", loadGroupRecommendations);
     document.getElementById("group-recommend-list").addEventListener("click", function (e) {
+      var postBtn = e.target.closest("[data-post-group]");
+      if (postBtn) {
+        e.preventDefault();
+        prepareAndCopyGroupCaption(
+          postBtn.getAttribute("data-post-group"),
+          postBtn.getAttribute("data-group-name") || "",
+          postBtn,
+          !!e.shiftKey // Shift+คลิก = สร้างเวอร์ชันใหม่แม้เป็นกลุ่มเดิม
+        );
+        return;
+      }
       var btn = e.target.closest("[data-copy-group]");
       if (!btn) return;
       var url = btn.getAttribute("data-copy-group");

@@ -217,7 +217,9 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
         gid=_env("MAIN_SHEET_GID", "HUB_MAIN_SHEET_GID") or "0",
     )
 
-    # Snapshot Hub-owned rows before rebuild wipes properties.json
+    # Snapshot Hub-owned rows / verified locations before rebuild.
+    # Fresh snapshot is taken again under the store lock immediately before
+    # rebuild so adds that landed during the (slow) CSV download are kept.
     preserved: list[dict] = []
     preserved_loc_by_bucket: dict[str, dict] = {}
     try:
@@ -307,90 +309,101 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
         summary["sheet_gid"] = _gid_from_url(url) or _env("MAIN_SHEET_GID", "HUB_MAIN_SHEET_GID") or ""
 
     if rebuild:
+        from src.hub.project_store import _STORE_LOCK
+
         build_master = _load_build_master()
-        summary["stats"] = build_master.rebuild_from_csv()
 
-        # Re-attach Hub rows (RXT/COA) so refresh does not erase app work
-        projects = load_projects()
-        properties = load_properties()
-        for p in properties:
-            p.setdefault("data_source", "sheet")
-            p.setdefault("code_prefix", "PTP")
+        # Hold the store lock across fresh-snapshot → rebuild → re-attach so
+        # concurrent Hub saves cannot land mid-wipe and then be lost.
+        with _STORE_LOCK:
+            try:
+                preserved = [dict(p) for p in load_properties() if is_hub_owned(p)]
+            except Exception:
+                pass  # keep earlier snapshot
 
-        # Restore Living / verified location fields wiped by rebuild_from_csv
-        restored_loc = 0
-        for proj in projects:
-            bucket = proj.get("bucket_key") or ""
-            snap = preserved_loc_by_bucket.get(bucket)
-            if not snap:
-                continue
-            for key, val in snap.items():
-                if val not in ("", None, [], {}):
-                    proj[key] = val
-            if snap.get("transit_verified") or snap.get("zone_verified"):
-                from src.hub.project_store import sync_project_listings_location_ref
+            summary["stats"] = build_master.rebuild_from_csv()
 
-                sync_project_listings_location_ref(proj, properties)
-                restored_loc += 1
-        summary["preserved_locations"] = restored_loc
-
-        existing = {(p.get("code") or "").upper() for p in properties}
-        restored = 0
-        for hp in preserved:
-            code = (hp.get("code") or "").upper()
-            if not code:
-                continue
-            hp = dict(hp)
-            hp["data_source"] = "hub"
-            if code in existing:
-                # Prefer keeping Hub version for same code
-                properties = [p for p in properties if (p.get("code") or "").upper() != code]
-            properties.insert(0, hp)
-            existing.add(code)
-            restored += 1
-            # bump project listing_count lightly is skipped — rebuild already set counts
-        if restored or restored_loc:
-            # recount listing_count from merged properties
-            counts: dict[str, int] = {}
+            # Re-attach Hub rows (RXT/COA) so refresh does not erase app work
+            projects = load_projects()
+            properties = load_properties()
             for p in properties:
-                pid = p.get("project_id") or ""
-                if pid:
-                    counts[pid] = counts.get(pid, 0) + 1
+                p.setdefault("data_source", "sheet")
+                p.setdefault("code_prefix", "PTP")
+
+            # Restore Living / verified location fields wiped by rebuild_from_csv
+            restored_loc = 0
             for proj in projects:
-                proj["listing_count"] = counts.get(proj["id"], 0)
-            projects.sort(
-                key=lambda x: (-int(x.get("listing_count") or 0), x["canonical_name"])
-            )
-            persist(projects, properties)
-        summary["preserved_hub"] = restored
-        summary["stats"]["properties_total"] = len(properties)
-        summary["stats"]["properties_hub"] = restored
+                bucket = proj.get("bucket_key") or ""
+                snap = preserved_loc_by_bucket.get(bucket)
+                if not snap:
+                    continue
+                for key, val in snap.items():
+                    if val not in ("", None, [], {}):
+                        proj[key] = val
+                if snap.get("transit_verified") or snap.get("zone_verified"):
+                    from src.hub.project_store import sync_project_listings_location_ref
 
-        # Safety net: merge「ทรัพย์ Hub」tab so RXT/COA survive if memory snapshot
-        # was empty, and pick up notes edited directly on that tab.
-        try:
-            sheet_hub = _merge_hub_tab_into_properties(projects, properties)
-            if sheet_hub.get("merged") or sheet_hub.get("notes_updated"):
-                properties = sheet_hub["properties"]
-                projects = sheet_hub["projects"]
-                persist(projects, properties)
-                summary["hub_tab_merged"] = sheet_hub.get("merged", 0)
-                summary["hub_tab_notes_updated"] = sheet_hub.get("notes_updated", 0)
-                summary["preserved_hub"] = sum(
-                    1 for p in properties if is_hub_owned(p)
+                    sync_project_listings_location_ref(proj, properties)
+                    restored_loc += 1
+            summary["preserved_locations"] = restored_loc
+
+            existing = {(p.get("code") or "").upper() for p in properties}
+            restored = 0
+            for hp in preserved:
+                code = (hp.get("code") or "").upper()
+                if not code:
+                    continue
+                hp = dict(hp)
+                hp["data_source"] = "hub"
+                if code in existing:
+                    # Prefer keeping Hub version for same code
+                    properties = [p for p in properties if (p.get("code") or "").upper() != code]
+                properties.insert(0, hp)
+                existing.add(code)
+                restored += 1
+                # bump project listing_count lightly is skipped — rebuild already set counts
+            if restored or restored_loc:
+                # recount listing_count from merged properties
+                counts: dict[str, int] = {}
+                for p in properties:
+                    pid = p.get("project_id") or ""
+                    if pid:
+                        counts[pid] = counts.get(pid, 0) + 1
+                for proj in projects:
+                    proj["listing_count"] = counts.get(proj["id"], 0)
+                projects.sort(
+                    key=lambda x: (-int(x.get("listing_count") or 0), x["canonical_name"])
                 )
-                summary["stats"]["properties_total"] = len(properties)
-                summary["stats"]["properties_hub"] = summary["preserved_hub"]
-        except Exception as hub_exc:  # noqa: BLE001
-            summary["hub_tab_warning"] = str(hub_exc)
+                persist(projects, properties)
+            summary["preserved_hub"] = restored
+            summary["stats"]["properties_total"] = len(properties)
+            summary["stats"]["properties_hub"] = restored
 
-        # optional: refresh local export of hub tab for visibility
-        try:
-            from src.hub.sheet_write import write_hub_export_csv
+            # Safety net: merge「ทรัพย์ Hub」tab so RXT/COA survive if memory snapshot
+            # was empty, and pick up blank notes from that tab (never clobber local).
+            try:
+                sheet_hub = _merge_hub_tab_into_properties(projects, properties)
+                if sheet_hub.get("merged") or sheet_hub.get("notes_updated"):
+                    properties = sheet_hub["properties"]
+                    projects = sheet_hub["projects"]
+                    persist(projects, properties)
+                    summary["hub_tab_merged"] = sheet_hub.get("merged", 0)
+                    summary["hub_tab_notes_updated"] = sheet_hub.get("notes_updated", 0)
+                    summary["preserved_hub"] = sum(
+                        1 for p in properties if is_hub_owned(p)
+                    )
+                    summary["stats"]["properties_total"] = len(properties)
+                    summary["stats"]["properties_hub"] = summary["preserved_hub"]
+            except Exception as hub_exc:  # noqa: BLE001
+                summary["hub_tab_warning"] = str(hub_exc)
 
-            write_hub_export_csv([p for p in properties if is_hub_owned(p)])
-        except Exception:
-            pass
+            # optional: refresh local export of hub tab for visibility
+            try:
+                from src.hub.sheet_write import write_hub_export_csv
+
+                write_hub_export_csv([p for p in properties if is_hub_owned(p)])
+            except Exception:
+                pass
 
     return summary
 
@@ -469,9 +482,15 @@ def _merge_hub_tab_into_properties(projects: list[dict], properties: list[dict])
         notes = cell(row, notes_i)
         existing = by_code.get(code)
         if existing:
-            if notes and notes != (existing.get("notes") or "").strip():
+            # Prefer non-empty local notes — sheet merge must not clobber Hub edits
+            # that have not been sync-to-sheet yet. Only fill blanks from the tab.
+            local_notes = (existing.get("notes") or "").strip()
+            if notes and not local_notes:
                 existing["notes"] = notes
                 notes_updated += 1
+            elif notes and notes != local_notes:
+                # Sheet has different notes while local already has text — keep local.
+                pass
             existing["data_source"] = "hub"
             continue
 

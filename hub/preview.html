@@ -7325,7 +7325,8 @@
           // Force-refresh from server so status + field always advance (RXT/COA)
           await refreshNextCode({ force: true, prefix: selectedAddPrefix() });
           await loadQueue();
-          reloadPreviewData();
+          // Await so the next add in the same session sees updated list/data_version
+          await reloadPreviewData();
         }
       } catch (e) {
         alert(e.message);

@@ -585,20 +585,15 @@ def rebuild_from_csv() -> dict:
     if not CSV_PATH.exists():
         raise FileNotFoundError(f"Missing {CSV_PATH} — download sheet CSV first")
 
+    from src.hub.project_store import persist
+
     rows = load_rows()
     project_dict = build_projects(rows)
     projects = sorted(project_dict.values(), key=lambda x: -x["listing_count"])
     properties, stats = build_properties(rows, project_dict)
     dup_stats = annotate_duplicates(properties)
 
-    PROJECTS_JSON.write_text(
-        json.dumps(projects, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    PROPERTIES_JSON.write_text(
-        json.dumps(properties, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    write_sqlite(projects, properties)
-    write_preview_js(projects, properties)
+    persist(projects, properties)
 
     active = sum(1 for p in properties if p["import_status"] == "active")
     codes = []

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
+import threading
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +17,17 @@ PROPERTIES_JSON = BASE_DIR / "data" / "properties.json"
 DB_PATH = BASE_DIR / "data" / "hub.db"
 PREVIEW_JS = BASE_DIR / "hub" / "preview-data.js"
 PREVIEW_META = BASE_DIR / "hub" / "preview-data.meta.json"
+
+# ThreadingHTTPServer serves requests concurrently — serialize read-modify-write
+# so multi-add / parallel saves cannot lose rows or collide on hub.db rebuild.
+_STORE_LOCK = threading.RLock()
+
+
+def _atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding=encoding)
+    os.replace(tmp, path)
 
 
 from src.hub.project_identity import resolve_bucket as _resolve_bucket
@@ -163,11 +176,13 @@ def sync_project_listings_location_ref(project: dict, properties: list[dict]) ->
 
 
 def write_sqlite(projects: list[dict], properties: list[dict]) -> None:
+    """Rebuild hub.db atomically (temp → replace) so concurrent readers never see a deleted file."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if DB_PATH.exists():
-        DB_PATH.unlink()
+    tmp_path = DB_PATH.with_name(DB_PATH.name + ".tmp")
+    if tmp_path.exists():
+        tmp_path.unlink()
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(tmp_path)
     conn.executescript(
         """
         CREATE TABLE projects (
@@ -258,6 +273,7 @@ def write_sqlite(projects: list[dict], properties: list[dict]) -> None:
 
     conn.commit()
     conn.close()
+    os.replace(tmp_path, DB_PATH)
 
 
 def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
@@ -287,12 +303,13 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
         "generated_at": generated_at,
         "data_version": data_version,
     }
-    PREVIEW_JS.write_text(
+    _atomic_write_text(
+        PREVIEW_JS,
         "// Auto-generated — do not edit\n"
         f"window.PTP_DATA = {json.dumps(payload, ensure_ascii=False, indent=2)};\n",
-        encoding="utf-8",
     )
-    PREVIEW_META.write_text(
+    _atomic_write_text(
+        PREVIEW_META,
         json.dumps(
             {
                 "data_version": data_version,
@@ -304,19 +321,21 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
             indent=2,
         )
         + "\n",
-        encoding="utf-8",
     )
 
 
 def persist(projects: list[dict], properties: list[dict]) -> None:
-    PROJECTS_JSON.write_text(
-        json.dumps(projects, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    PROPERTIES_JSON.write_text(
-        json.dumps(properties, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    write_sqlite(projects, properties)
-    write_preview_js(projects, properties)
+    with _STORE_LOCK:
+        _atomic_write_text(
+            PROJECTS_JSON,
+            json.dumps(projects, ensure_ascii=False, indent=2),
+        )
+        _atomic_write_text(
+            PROPERTIES_JSON,
+            json.dumps(properties, ensure_ascii=False, indent=2),
+        )
+        write_sqlite(projects, properties)
+        write_preview_js(projects, properties)
 
 
 def _next_code_from_list(properties: list[dict], prefix: str = "RXT") -> str:
@@ -332,6 +351,11 @@ def _next_code_from_list(properties: list[dict], prefix: str = "RXT") -> str:
 
 def save_new_property(payload: dict) -> dict:
     """Append a new listing from เพิ่มทรัพย์ form → properties.json + sqlite + preview."""
+    with _STORE_LOCK:
+        return _save_new_property_locked(payload)
+
+
+def _save_new_property_locked(payload: dict) -> dict:
     from datetime import datetime
 
     from src.hub.codes import code_number, format_code
@@ -439,6 +463,11 @@ def save_new_property(payload: dict) -> dict:
 
 def update_property(property_id: str, payload: dict) -> dict:
     """Update an existing listing from the edit form (same fields as save)."""
+    with _STORE_LOCK:
+        return _update_property_locked(property_id, payload)
+
+
+def _update_property_locked(property_id: str, payload: dict) -> dict:
     from datetime import datetime
 
     properties = load_properties()
@@ -535,6 +564,11 @@ def update_property(property_id: str, payload: dict) -> dict:
 
 def update_property_links(property_id: str, payload: dict) -> dict:
     """Update our post / page links (and optional owner contact) after save."""
+    with _STORE_LOCK:
+        return _update_property_links_locked(property_id, payload)
+
+
+def _update_property_links_locked(property_id: str, payload: dict) -> dict:
     properties = load_properties()
     projects = load_projects()
     prop = next((p for p in properties if p.get("id") == property_id or p.get("code") == property_id), None)
@@ -575,6 +609,22 @@ def find_project_by_bucket(projects: list[dict], bucket: str) -> dict | None:
 
 
 def create_project(
+    canonical_name: str,
+    transit_raw: str | list[str] = "",
+    *,
+    zone_raw: str | list[str] | None = None,
+    aliases: str | list[str] | None = None,
+) -> dict:
+    with _STORE_LOCK:
+        return _create_project_locked(
+            canonical_name,
+            transit_raw,
+            zone_raw=zone_raw,
+            aliases=aliases,
+        )
+
+
+def _create_project_locked(
     canonical_name: str,
     transit_raw: str | list[str] = "",
     *,
@@ -648,6 +698,24 @@ def update_project_standard(
     This becomes the single source of truth for every room in the project,
     including rooms added later (they read from master on create).
     """
+    with _STORE_LOCK:
+        return _update_project_standard_locked(
+            project_id,
+            transit_raw=transit_raw,
+            zone_raw=zone_raw,
+            canonical_name=canonical_name,
+            aliases=aliases,
+        )
+
+
+def _update_project_standard_locked(
+    project_id: str,
+    *,
+    transit_raw: str | list[str] | None = None,
+    zone_raw: str | list[str] | None = None,
+    canonical_name: str | None = None,
+    aliases: str | list[str] | None = None,
+) -> tuple[dict, int]:
     pid = (project_id or "").strip()
     if not pid:
         raise ValueError("ไม่พบโครงการ")

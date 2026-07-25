@@ -162,6 +162,34 @@ def _owner_display(prop: dict) -> str:
     return str(owners or "")
 
 
+def _is_http_url(value: str) -> bool:
+    s = str(value or "").strip().lower()
+    return s.startswith("http://") or s.startswith("https://")
+
+
+def _hyperlink_cell(url: str, label: str) -> str:
+    """Sheet cell: short clickable label, or empty when no URL."""
+    raw = str(url or "").strip()
+    if not raw or not _is_http_url(raw):
+        return ""
+    # Escape double-quotes for Sheets formula literals
+    safe_url = raw.replace('"', '""')
+    safe_label = str(label or "เปิด").replace('"', '""')
+    return f'=HYPERLINK("{safe_url}","{safe_label}")'
+
+
+def _maybe_hyperlink(url: str, label: str, *, enabled: bool) -> str:
+    raw = str(url or "").strip()
+    if not enabled:
+        return raw
+    if not raw:
+        return ""
+    if not _is_http_url(raw):
+        # Non-URL text (e.g. owner name) — keep as-is for display columns
+        return raw
+    return _hyperlink_cell(raw, label)
+
+
 def _is_active_listing(prop: dict) -> bool:
     """Match Hub main list: active + needs_review + unset (exclude archived)."""
     status = (prop.get("import_status") or "").strip().lower()
@@ -262,8 +290,16 @@ def prop_to_hub_row(
     synced_at: str | None = None,
     *,
     projects_by_id: dict[str, dict] | None = None,
+    link_as_hyperlink: bool = False,
 ) -> list[str]:
     zone_s, transit_s = resolve_prop_location_for_sheet(prop, projects_by_id)
+    post_url = str(prop.get("post_url") or "")
+    pages_url = str(prop.get("post_pages_url") or "")
+    source_url = str(prop.get("source_url") or "")
+    if link_as_hyperlink:
+        post_url = _hyperlink_cell(post_url, "โพสต์")
+        pages_url = _hyperlink_cell(pages_url, "เพจ")
+        source_url = _hyperlink_cell(source_url, "ต้นทาง")
     return [
         str(prop.get("code") or ""),
         str(prop.get("last_listed_at") or ""),
@@ -279,10 +315,10 @@ def prop_to_hub_row(
         transit_s,
         "",
         "",
-        str(prop.get("post_url") or ""),
-        str(prop.get("post_pages_url") or ""),
+        post_url,
+        pages_url,
         str(prop.get("notes") or ""),
-        str(prop.get("source_url") or ""),
+        source_url,
         _owner_display(prop),
         "Hub",
         str(prop.get("linked_ptp_code") or ""),
@@ -295,12 +331,21 @@ def prop_to_overview_row(
     prop: dict,
     *,
     projects_by_id: dict[str, dict] | None = None,
+    link_as_hyperlink: bool = False,
 ) -> list[str]:
     zone_s, transit_s = resolve_prop_location_for_sheet(prop, projects_by_id)
     source = "Hub" if is_hub_owned(prop) else "ชีท"
     owners = _owner_display(prop)
     # Prefer a single clickable owner URL when present
     owner_link = owners.split(",")[0].strip() if owners else ""
+    source_url = str(prop.get("source_url") or "")
+    post_url = str(prop.get("post_url") or "")
+    pages_url = str(prop.get("post_pages_url") or "")
+    if link_as_hyperlink:
+        source_url = _hyperlink_cell(source_url, "ต้นทาง")
+        owner_link = _maybe_hyperlink(owner_link, "เจ้าของ", enabled=True)
+        post_url = _hyperlink_cell(post_url, "โพสต์")
+        pages_url = _hyperlink_cell(pages_url, "เพจ")
     return [
         str(prop.get("code") or ""),
         source,
@@ -314,10 +359,10 @@ def prop_to_overview_row(
         str(prop.get("sale_price") or ""),
         zone_s,
         transit_s,
-        str(prop.get("source_url") or ""),
+        source_url,
         owner_link,
-        str(prop.get("post_url") or ""),
-        str(prop.get("post_pages_url") or ""),
+        post_url,
+        pages_url,
     ]
 
 
@@ -1119,11 +1164,18 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
     export_hub = write_hub_export_csv(hub_props, projects_by_id=projects_by_id)
 
     synced = datetime.now().strftime("%d/%m/%Y %H:%M")
+    # Sheet cells: short HYPERLINK labels. CSV export above keeps raw URLs.
     overview_rows = [
-        prop_to_overview_row(p, projects_by_id=projects_by_id) for p in overview_props
+        prop_to_overview_row(
+            p, projects_by_id=projects_by_id, link_as_hyperlink=True
+        )
+        for p in overview_props
     ]
     hub_rows = [
-        prop_to_hub_row(p, synced, projects_by_id=projects_by_id) for p in hub_props
+        prop_to_hub_row(
+            p, synced, projects_by_id=projects_by_id, link_as_hyperlink=True
+        )
+        for p in hub_props
     ]
 
     result: dict = {

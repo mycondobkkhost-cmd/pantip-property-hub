@@ -33,6 +33,7 @@ from src.hub.project_store import (  # noqa: E402
     PREVIEW_JS,
     PREVIEW_META,
     create_project,
+    ensure_preview_js,
     load_properties,
     project_location_label,
     project_transit_display,
@@ -710,8 +711,27 @@ class HubHandler(BaseHTTPRequestHandler):
             self.send_error(403)
             return
         if not file_path.is_file():
-            self.send_error(404)
-            return
+            # Last-chance: rebuild catalog JS from properties.json if deploy/sync
+            # dropped preview-data.js (avoids empty Hub 「ไม่พบ preview-data.js」).
+            if file_path.name == "preview-data.js":
+                try:
+                    fixed = ensure_preview_js()
+                    if fixed.get("ok") and file_path.is_file():
+                        print(
+                            f"[hub] served rebuilt preview-data.js "
+                            f"({fixed.get('reason')}, "
+                            f"{fixed.get('properties_total') or 0} props)"
+                        )
+                    else:
+                        self.send_error(404)
+                        return
+                except Exception as exc:  # noqa: BLE001
+                    print(f"[hub] ensure_preview_js on 404 failed: {exc}")
+                    self.send_error(404)
+                    return
+            else:
+                self.send_error(404)
+                return
         content = file_path.read_bytes()
         ctype = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
         if file_path.suffix == ".html":
@@ -1310,6 +1330,21 @@ def _startup_sheet_sync_enabled() -> bool:
 
 def _startup_sheet_sync_worker() -> None:
     """Re-hydrate catalog from Google Sheet after deploy (Render disk is ephemeral)."""
+    import os
+    import threading
+
+    # Bundled Docker data must be serveable even if sheet pull hangs/OOMs.
+    try:
+        ensured = ensure_preview_js()
+        if ensured.get("rebuilt"):
+            print(
+                f"[hub] rebuilt preview-data.js from store "
+                f"({ensured.get('reason')}, "
+                f"{ensured.get('properties_total') or 0} properties)"
+            )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[hub] ensure_preview_js before sync failed: {exc}")
+
     if not _startup_sheet_sync_enabled():
         _STARTUP_SHEET_SYNC.update(
             {
@@ -1332,47 +1367,98 @@ def _startup_sheet_sync_worker() -> None:
         )
         return
 
-    _STARTUP_SHEET_SYNC.update({"status": "running", "message": "pulling sheet…"})
-    print("[hub] startup sheet sync starting…")
     try:
-        result = _run_sheet_refresh()
-        stats = result.get("stats") or {}
-        n = int(
-            stats.get("properties_total")
-            or len(load_properties())
-            or 0
+        timeout_s = int(
+            (os.environ.get("HUB_STARTUP_SHEET_SYNC_TIMEOUT") or "240").strip() or "240"
         )
-        warn = (result.get("download_warning") or "").strip()
-        msg = f"startup sheet sync ok, {n} properties"
-        if warn:
-            msg = f"{msg} (download_warning: {warn})"
-        _STARTUP_SHEET_SYNC.update(
-            {
-                "status": "ok",
-                "properties_total": n,
-                "message": msg,
-                "downloaded": bool(result.get("downloaded")),
-                "source": result.get("source") or "",
-            }
-        )
-        print(f"[hub] {msg}")
-    except Exception as exc:  # noqa: BLE001
-        # Never crash the server — keep baked-in image data.
+    except ValueError:
+        timeout_s = 240
+    timeout_s = max(30, min(timeout_s, 900))
+
+    _STARTUP_SHEET_SYNC.update({"status": "running", "message": "pulling sheet…"})
+    print(f"[hub] startup sheet sync starting (timeout {timeout_s}s)…")
+
+    box: dict = {}
+
+    def _run() -> None:
         try:
-            n = len(load_properties())
-        except Exception:
-            n = 0
-        _STARTUP_SHEET_SYNC.update(
-            {
-                "status": "error",
-                "properties_total": n,
-                "message": str(exc),
-            }
-        )
-        print(
-            f"[hub] startup sheet sync failed — using bundled data "
-            f"({n} properties): {exc}"
-        )
+            box["result"] = _run_sheet_refresh()
+        except Exception as exc:  # noqa: BLE001
+            box["error"] = exc
+
+    worker = threading.Thread(target=_run, daemon=True, name="startup-sheet-sync")
+    worker.start()
+    worker.join(timeout=timeout_s)
+
+    try:
+        if worker.is_alive():
+            # Leave the daemon thread running; do not let a hung sheet pull leave
+            # status=running forever or block serving the baked catalog.
+            try:
+                n = len(load_properties())
+            except Exception:
+                n = 0
+            msg = (
+                f"startup sheet sync timed out after {timeout_s}s — "
+                f"using bundled data ({n} properties)"
+            )
+            _STARTUP_SHEET_SYNC.update(
+                {
+                    "status": "error",
+                    "properties_total": n,
+                    "message": msg,
+                }
+            )
+            print(f"[hub] {msg}")
+        elif "error" in box:
+            exc = box["error"]
+            try:
+                n = len(load_properties())
+            except Exception:
+                n = 0
+            _STARTUP_SHEET_SYNC.update(
+                {
+                    "status": "error",
+                    "properties_total": n,
+                    "message": str(exc),
+                }
+            )
+            print(
+                f"[hub] startup sheet sync failed — using bundled data "
+                f"({n} properties): {exc}"
+            )
+        else:
+            result = box.get("result") or {}
+            stats = result.get("stats") or {}
+            n = int(
+                stats.get("properties_total")
+                or len(load_properties())
+                or 0
+            )
+            warn = (result.get("download_warning") or "").strip()
+            msg = f"startup sheet sync ok, {n} properties"
+            if warn:
+                msg = f"{msg} (download_warning: {warn})"
+            _STARTUP_SHEET_SYNC.update(
+                {
+                    "status": "ok",
+                    "properties_total": n,
+                    "message": msg,
+                    "downloaded": bool(result.get("downloaded")),
+                    "source": result.get("source") or "",
+                }
+            )
+            print(f"[hub] {msg}")
+    finally:
+        try:
+            ensured = ensure_preview_js()
+            if ensured.get("rebuilt"):
+                print(
+                    f"[hub] rebuilt preview-data.js after sync "
+                    f"({ensured.get('properties_total') or 0} properties)"
+                )
+        except Exception as exc:  # noqa: BLE001
+            print(f"[hub] ensure_preview_js after sync failed: {exc}")
 
 
 def main() -> None:
@@ -1382,6 +1468,24 @@ def main() -> None:
 
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", str(PORT)))
+
+    # Make catalog JS available before the first browser hit (Render free tier
+    # can otherwise briefly 404 preview-data.js during a bad sync window).
+    try:
+        ensured = ensure_preview_js()
+        if ensured.get("rebuilt"):
+            print(
+                f"[hub] boot: rebuilt preview-data.js "
+                f"({ensured.get('properties_total') or 0} properties)"
+            )
+        else:
+            print(
+                f"[hub] boot: preview-data.js ok "
+                f"({ensured.get('properties_total') or 0} properties)"
+            )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[hub] boot ensure_preview_js failed: {exc}")
+
     server = ReuseThreadingHTTPServer((host, port), HubHandler)
 
     for _ in range(2):

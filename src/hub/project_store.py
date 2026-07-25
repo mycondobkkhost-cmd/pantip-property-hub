@@ -324,6 +324,86 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
     )
 
 
+def ensure_preview_js(*, min_bytes: int = 64) -> dict:
+    """Rebuild hub/preview-data.js from properties.json when missing/empty/corrupt.
+
+    Render serves the baked Docker copy; if a deploy/sync drops the file, rebuild
+    from the JSON store so the Hub list is not empty (ไม่พบ preview-data.js).
+    """
+    reason = "present"
+    needs = False
+    if not PREVIEW_JS.is_file():
+        needs = True
+        reason = "missing"
+    else:
+        try:
+            size = PREVIEW_JS.stat().st_size
+        except OSError:
+            size = 0
+        if size < min_bytes:
+            needs = True
+            reason = "empty"
+        else:
+            try:
+                # Only need the header — full 13MB read on every boot is wasteful.
+                head = PREVIEW_JS.read_bytes()[:120].decode("utf-8", errors="replace")
+                if "PTP_DATA" not in head:
+                    needs = True
+                    reason = "invalid"
+            except OSError:
+                needs = True
+                reason = "unreadable"
+
+    if not needs:
+        total = 0
+        if PREVIEW_META.is_file():
+            try:
+                meta = json.loads(PREVIEW_META.read_text(encoding="utf-8"))
+                total = int((meta or {}).get("properties_total") or 0)
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                total = 0
+        return {
+            "ok": True,
+            "rebuilt": False,
+            "reason": reason,
+            "properties_total": total,
+        }
+
+    with _STORE_LOCK:
+        # Re-check under lock — another writer may have fixed it.
+        if PREVIEW_JS.is_file():
+            try:
+                if (
+                    PREVIEW_JS.stat().st_size >= min_bytes
+                    and b"PTP_DATA" in PREVIEW_JS.read_bytes()[:120]
+                ):
+                    return {
+                        "ok": True,
+                        "rebuilt": False,
+                        "reason": "present",
+                        "properties_total": len(load_properties()),
+                    }
+            except OSError:
+                pass
+        projects = load_projects()
+        properties = load_properties()
+        if not properties:
+            return {
+                "ok": False,
+                "rebuilt": False,
+                "reason": "no_properties",
+                "properties_total": 0,
+            }
+        write_preview_js(projects, properties)
+        return {
+            "ok": True,
+            "rebuilt": True,
+            "reason": reason,
+            "properties_total": len(properties),
+            "projects": len(projects),
+        }
+
+
 def persist(projects: list[dict], properties: list[dict]) -> None:
     with _STORE_LOCK:
         _atomic_write_text(

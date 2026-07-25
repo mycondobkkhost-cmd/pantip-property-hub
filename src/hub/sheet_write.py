@@ -155,31 +155,38 @@ OVERVIEW_FILTER_FORMULA = (
     "IF(AND(TRIM($C$2)=\"\",TRIM($C$3)=\"\"),\"ยังไม่มีข้อมูล\",\"ไม่พบรายการที่ตรงคำค้น\"))"
 )
 # Link-column formulas (written at M6/N6/O6/P6). Open-ended A6:A follows FILTER spill.
+# Guard empty VLOOKUP results — HYPERLINK("","โพสต์") still paints a label and looks
+# like a real link while ทำเล/สถานี/หมายเหตุ stay blank.
 OVERVIEW_LINK_FORMULAS = {
     "M6": (
-        '=ARRAYFORMULA(IF(A6:A="",,IFERROR(HYPERLINK('
-        "VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE),\"ต้นทาง\"),)))"
+        '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
+        "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE)=\"\",\"\","
+        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE),\"ต้นทาง\")),)))"
     ),
     "N6": (
         '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
+        "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE)=\"\",\"\","
         "IF(REGEXMATCH(VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE)&\"\","
         '"(?i)^https?://"),'
         "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE),\"เจ้าของ\"),"
-        "VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE)),)))"
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$N,14,FALSE))),)))"
     ),
     "O6": (
-        '=ARRAYFORMULA(IF(A6:A="",,IFERROR(HYPERLINK('
-        "VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE),\"โพสต์\"),)))"
+        '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
+        "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE)=\"\",\"\","
+        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE),\"โพสต์\")),)))"
     ),
     "P6": (
-        '=ARRAYFORMULA(IF(A6:A="",,IFERROR(HYPERLINK('
-        "VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE),\"เพจ\"),)))"
+        '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
+        "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE)=\"\",\"\","
+        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE),\"เพจ\")),)))"
     ),
 }
 # Notes column (Q6) — plain text from `_overview_src` col 17.
 OVERVIEW_NOTES_FORMULA = (
     '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
-    "VLOOKUP(A6:A,'_overview_src'!$A$2:$Q,17,FALSE),)))"
+    "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$Q,17,FALSE)=\"\",\"\","
+    "VLOOKUP(A6:A,'_overview_src'!$A$2:$Q,17,FALSE)),)))"
 )
 
 _TYPE_TH = {
@@ -362,15 +369,22 @@ def resolve_prop_location_for_sheet(
     if projects_by_id is None:
         projects_by_id = {p["id"]: p for p in load_projects()}
 
+    zones_fallback = str(prop.get("location_ref") or "").strip()
+    transit_fallback = _join_tags(prop.get("transit_from_sheet") or [])
+
     proj = projects_by_id.get(str(prop.get("project_id") or ""))
     if proj:
-        zones = project_zone_display(proj)
-        transit = project_transit_display(proj)
-        return _join_tags(zones), _join_tags(transit)
+        zones_s = _join_tags(project_zone_display(proj))
+        transit_s = _join_tags(project_transit_display(proj))
+        # Project row exists but Living verification still pending → do not wipe
+        # listing ทำเล/สถานี that were already filled on the property.
+        if not zones_s:
+            zones_s = zones_fallback
+        if not transit_s:
+            transit_s = transit_fallback
+        return zones_s, transit_s
 
-    zones_s = str(prop.get("location_ref") or "").strip()
-    transit_s = _join_tags(prop.get("transit_from_sheet") or [])
-    return zones_s, transit_s
+    return zones_fallback, transit_fallback
 
 
 def refresh_hub_listing_locations(
@@ -1420,7 +1434,7 @@ def ensure_overview_search_chrome(
     except Exception:
         pass
 
-    ws.update(f"A1:{OVERVIEW_END_COL}5", chrome_rows, value_input_option="USER_ENTERED")
+    ws.update(f"A1:{OVERVIEW_END_COL}5", chrome_rows, value_input_option="RAW")
     if c2 or c3:
         ws.update("C2:C3", [[c2], [c3]], value_input_option="USER_ENTERED")
 
@@ -1512,7 +1526,8 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                             f"ซิงค์จากแอป · อัปเดต: {synced_at} · "
                             f"{len(data_rows):,} รายการ · เรียงใหม่→เก่า"
                         ]],
-                        value_input_option="USER_ENTERED",
+                        # RAW — USER_ENTERED can mangle "dd/mm/yyyy HH:MM" into "timing"
+                        value_input_option="RAW",
                     )
                 except Exception:
                     pass
@@ -1521,7 +1536,7 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                     ws.update(
                         f"A{OVERVIEW_HEADER_ROW}:{OVERVIEW_END_COL}{OVERVIEW_HEADER_ROW}",
                         [list(OVERVIEW_HEADERS)],
-                        value_input_option="USER_ENTERED",
+                        value_input_option="RAW",
                     )
                 except Exception:
                     pass
@@ -1567,7 +1582,7 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                     f"ซิงค์จากแอป · อัปเดต: {synced_at} · แสดง "
                     f"{len(data_rows):,} รายการ · เรียงใหม่→เก่า"
                 ]],
-                value_input_option="USER_ENTERED",
+                value_input_option="RAW",
             )
         except Exception:
             pass

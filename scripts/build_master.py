@@ -274,18 +274,24 @@ def has_price(raw: str) -> bool:
 
 
 def usable_property(row: dict[str, str]) -> bool:
-    """Keep complete rows, or partial rows that already have a source link / project."""
+    """Keep complete rows, or partial rows that already have a listing link / project."""
     has_project = bool(row.get("project"))
     priced = has_price(row.get("rent", "")) or has_price(row.get("sale", ""))
-    has_source = bool(row.get("source"))
+    has_link = bool(
+        row.get("source")
+        or row.get("post_link")
+        or row.get("post_pages")
+        or row.get("owner_fb")
+    )
 
     if has_project and priced:
-        if not has_source:
+        # Prefer a listing link; Thru Thonglor may be price-only in the sheet.
+        if not has_link:
             return is_thru_thonglor(row["project"])
         return True
 
-    # แถวที่เริ่มกรอกแล้ว (มีลิงก์ต้นทาง หรือมีชื่อโครงการ) — เก็บเป็น needs_review
-    if has_source or has_project:
+    # แถวที่เริ่มกรอกแล้ว (มีลิงก์ หรือมีชื่อโครงการ) — เก็บเป็น needs_review
+    if has_link or has_project:
         return True
     return False
 

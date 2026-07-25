@@ -8,7 +8,11 @@ For each row we collect every URL, then assign:
   เพจ (pages)      ← Facebook Page URL, or a post that lived in Pages col
   ที่โพสต์ (post)   ← Facebook personal feed/post URL
 
-Google Drive / Docs / Sheets anywhere → discard the whole property.
+Google Drive / Docs / Sheets:
+  - Strip helper URLs from link fields / notes.
+  - Delete the whole property ONLY when the row is Drive-only junk
+    (has Drive URL AND no Facebook / Livinginsider listing links).
+  - Real listings that also have a Drive folder must be kept.
 """
 
 from __future__ import annotations
@@ -225,6 +229,11 @@ def collect_row_hits(headers: list[str], row: list[str]) -> list[UrlHit]:
     return hits
 
 
+def _has_listing_link(hits: list[UrlHit]) -> bool:
+    """True when row has any Facebook or Livinginsider URL (real listing signal)."""
+    return any(h.kind in {"living", "group", "owner", "page", "post"} for h in hits)
+
+
 def classify_row(headers: list[str], row: list[str]) -> ClassifiedRow:
     code = (row[0] if row else "").upper().replace(" ", "").strip()
     notes_i = None
@@ -237,17 +246,24 @@ def classify_row(headers: list[str], row: list[str]) -> ClassifiedRow:
 
     hits = collect_row_hits(headers, row)
     result = ClassifiedRow(code=code, all_urls=[h.url for h in hits], notes=notes_raw)
+    drive_hits = [h for h in hits if h.kind == "drive"]
+    listing_hits = [h for h in hits if h.kind != "drive"]
 
-    if any(h.kind == "drive" for h in hits):
+    # Drive-only junk: helper link(s) and nothing else listing-related.
+    if drive_hits and not _has_listing_link(hits):
         result.delete = True
-        result.reasons.append("drive_helper")
+        result.reasons.append("drive_only_junk")
         return result
 
-    living = [h for h in hits if h.kind == "living"]
-    groups = [h for h in hits if h.kind == "group"]
-    owners = [h for h in hits if h.kind == "owner"]
-    pages_exact = [h for h in hits if h.kind == "page"]
-    posts = [h for h in hits if h.kind == "post"]
+    if drive_hits:
+        result.reasons.append("drive_stripped")
+
+    # Classify from non-Drive URLs only (Drive folders are helpers, not listing links).
+    living = [h for h in listing_hits if h.kind == "living"]
+    groups = [h for h in listing_hits if h.kind == "group"]
+    owners = [h for h in listing_hits if h.kind == "owner"]
+    pages_exact = [h for h in listing_hits if h.kind == "page"]
+    posts = [h for h in listing_hits if h.kind == "post"]
 
     # --- source (ต้นทาง) ---
     src_hit = _pick_preferred(living, prefer_roles=("source", "notes", "adjacent", "other"))
@@ -301,9 +317,9 @@ def classify_row(headers: list[str], row: list[str]) -> ClassifiedRow:
     # If Pages col held a profile/group wrongly, don't keep it as pages
     # (already handled — we only assign post-kind / page-kind)
 
-    # Clean notes: remove URLs that we assigned into link buckets
+    # Clean notes: remove URLs that we assigned into link buckets + Drive helpers
     assigned = {u for u in (result.source, result.owner, result.post, result.pages) if u}
-    drive_urls = {h.url for h in hits if h.kind == "drive"}
+    drive_urls = {h.url for h in drive_hits}
     result.notes = _strip_urls_from_notes(notes_raw, assigned | drive_urls)
 
     # Normalize http-only for link fields

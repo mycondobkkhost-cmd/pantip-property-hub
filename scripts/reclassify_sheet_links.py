@@ -3,10 +3,14 @@
 
 1. Read ALL rows from OLD「ชีตสำหรับทำงาน」(source of truth for links)
 2. Classify every URL in each row into ต้นทาง / เจ้าของ / ที่โพสต์ / เพจ
-3. Drive/Docs/Sheets → delete code + row from NEW sheet (+ Hub on rebuild)
+3. Drive/Docs/Sheets → strip helper URLs; delete row ONLY if Drive-only junk
+   (Drive URL present AND no Facebook/Living listing links)
 4. Write cleaned link cols + notes onto NEW「ชีตสำหรับทำงาน」
 5. Rebuild master / preview from NEW
 6. Sync「ทรัพย์รวม」
+
+Prefer ``scripts/restore_sheet_from_old.py`` after mass deletion — it
+re-copies every OLD row onto NEW before reclassify.
 
 Usage:
   .venv/bin/python scripts/reclassify_sheet_links.py

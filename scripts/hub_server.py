@@ -435,8 +435,10 @@ def next_rxt_code(prefix: str = "RXT") -> str:
     p = (prefix or "RXT").strip().upper() or "RXT"
     if p not in {"RXT", "COA", "PTP"}:
         p = "RXT"
+    from src.hub.project_store import load_properties_cached
+
     return next_hub_code(
-        load_properties(),
+        load_properties_cached(),
         prefix=p,
         main_csv=BASE_DIR / "data" / "main_sheet.csv",
         hub_csv=BASE_DIR / "data" / "hub_sheet_export.csv",
@@ -732,12 +734,12 @@ class HubHandler(BaseHTTPRequestHandler):
             else:
                 self.send_error(404)
                 return
-        content = file_path.read_bytes()
         ctype = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
         if file_path.suffix == ".html":
             ctype = "text/html; charset=utf-8"
         # Cache-bust embedded catalog so Safari/mobile cannot keep a stale preview-data.js
         if file_path.name == "preview.html":
+            content = file_path.read_bytes()
             meta = _preview_data_meta()
             ver = meta.get("data_version") or str(int(__import__("time").time()))
             text = content.decode("utf-8", errors="replace")
@@ -747,15 +749,37 @@ class HubHandler(BaseHTTPRequestHandler):
                 1,
             )
             content = text.encode("utf-8")
+            self.send_response(200)
+            self._cors()
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(content)))
+            _no_store_headers(self)
+            self.end_headers()
+            self.wfile.write(content)
+            return
+
+        # Stream large catalogs (preview-data.js ~10MB) — avoid read_bytes OOM/502
+        # on Render free tier when several requests overlap.
+        try:
+            size = file_path.stat().st_size
+        except OSError:
+            self.send_error(404)
+            return
         self.send_response(200)
         self._cors()
         self.send_header("Content-Type", ctype)
-        self.send_header("Content-Length", str(len(content)))
-        # Avoid stale UI/data after sheet refresh — never long-cache HTML/JS/CSS/JSON
-        if file_path.suffix in {".html", ".js", ".css", ".json"} or file_path.name.endswith(".meta.json"):
+        self.send_header("Content-Length", str(size))
+        if file_path.suffix in {".html", ".js", ".css", ".json"} or file_path.name.endswith(
+            ".meta.json"
+        ):
             _no_store_headers(self)
         self.end_headers()
-        self.wfile.write(content)
+        with file_path.open("rb") as fh:
+            while True:
+                chunk = fh.read(256 * 1024)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path

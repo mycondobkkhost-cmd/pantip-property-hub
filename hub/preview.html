@@ -3709,12 +3709,28 @@
       applyFilter();
     }
 
+    function ensureProjectMap() {
+      var data = window.PTP_DATA;
+      if (!data) return {};
+      var existing = data.project_map;
+      if (existing && typeof existing === "object" && Object.keys(existing).length) {
+        return existing;
+      }
+      var map = {};
+      (data.projects || []).forEach(function (proj) {
+        if (proj && proj.id) map[proj.id] = proj;
+      });
+      data.project_map = map;
+      return map;
+    }
+
     function initData() {
       if (!window.PTP_DATA) {
         document.getElementById("property-rows").innerHTML =
           '<div class="empty"><span>ไม่พบ preview-data.js</span>รัน: python3 scripts/build_master.py</div>';
         return;
       }
+      ensureProjectMap();
       initLinkFields();
       invalidateSearchCaches();
       updatePageSize();

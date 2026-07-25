@@ -127,6 +127,34 @@ def load_properties() -> list[dict]:
     return json.loads(PROPERTIES_JSON.read_text(encoding="utf-8"))
 
 
+_PROPERTIES_CACHE: dict = {"mtime": None, "data": None}
+
+
+def load_properties_cached(*, max_age_s: float = 15.0) -> list[dict]:
+    """Reuse a short-lived in-memory copy — health/next_code hit this often."""
+    import time
+
+    try:
+        mtime = PROPERTIES_JSON.stat().st_mtime if PROPERTIES_JSON.exists() else None
+    except OSError:
+        mtime = None
+    now = time.monotonic()
+    cached = _PROPERTIES_CACHE.get("data")
+    cached_mtime = _PROPERTIES_CACHE.get("mtime")
+    cached_at = float(_PROPERTIES_CACHE.get("at") or 0)
+    if (
+        cached is not None
+        and cached_mtime == mtime
+        and (now - cached_at) < max_age_s
+    ):
+        return cached
+    data = load_properties()
+    _PROPERTIES_CACHE["data"] = data
+    _PROPERTIES_CACHE["mtime"] = mtime
+    _PROPERTIES_CACHE["at"] = now
+    return data
+
+
 def project_transit_display(proj: dict) -> list[str]:
     """Verified stations only — never concatenate unverified SEO piles for Hub/sheet."""
     verified = proj.get("transit_verified") or []
@@ -277,7 +305,8 @@ def write_sqlite(projects: list[dict], properties: list[dict]) -> None:
 
 
 def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
-    project_map = {p["id"]: p for p in projects}
+    # Omit project_map from the baked JS — client builds it from projects[]
+    # (duplicate map nearly doubled catalog size and OOMed free-tier deploys).
     flagged = sum(1 for p in properties if p.get("duplicate_flags"))
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
     data_version = datetime.now().astimezone().strftime("%Y%m%d%H%M%S")
@@ -298,7 +327,6 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
     payload = {
         "projects": projects,
         "properties": properties,
-        "project_map": project_map,
         "stats": stats,
         "generated_at": generated_at,
         "data_version": data_version,
@@ -306,7 +334,9 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
     _atomic_write_text(
         PREVIEW_JS,
         "// Auto-generated — do not edit\n"
-        f"window.PTP_DATA = {json.dumps(payload, ensure_ascii=False, indent=2)};\n",
+        "window.PTP_DATA = "
+        + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        + ";\n",
     )
     _atomic_write_text(
         PREVIEW_META,
@@ -345,7 +375,7 @@ def ensure_preview_js(*, min_bytes: int = 64) -> dict:
             reason = "empty"
         else:
             try:
-                # Only need the header — full 13MB read on every boot is wasteful.
+                # Only need the header — full catalog read on every boot is wasteful.
                 head = PREVIEW_JS.read_bytes()[:120].decode("utf-8", errors="replace")
                 if "PTP_DATA" not in head:
                     needs = True
@@ -353,6 +383,26 @@ def ensure_preview_js(*, min_bytes: int = 64) -> dict:
             except OSError:
                 needs = True
                 reason = "unreadable"
+
+    # Meta says empty but the JSON store has rows → regenerate (partial write /
+    # aborted restore left a stub catalog that 502s under memory pressure).
+    if not needs and PROPERTIES_JSON.is_file():
+        meta_total = 0
+        if PREVIEW_META.is_file():
+            try:
+                meta = json.loads(PREVIEW_META.read_text(encoding="utf-8"))
+                meta_total = int((meta or {}).get("properties_total") or 0)
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                meta_total = 0
+        if meta_total <= 0:
+            try:
+                # Cheap non-empty check without full parse when possible.
+                raw = PROPERTIES_JSON.read_bytes()[:64]
+                if raw.lstrip().startswith(b"["):
+                    needs = True
+                    reason = "meta_empty"
+            except OSError:
+                pass
 
     if not needs:
         total = 0
@@ -416,6 +466,10 @@ def persist(projects: list[dict], properties: list[dict]) -> None:
         )
         write_sqlite(projects, properties)
         write_preview_js(projects, properties)
+        # Drop short-lived load cache so next_code / health see fresh rows.
+        _PROPERTIES_CACHE["data"] = None
+        _PROPERTIES_CACHE["mtime"] = None
+        _PROPERTIES_CACHE["at"] = 0.0
 
 
 def _next_code_from_list(properties: list[dict], prefix: str = "RXT") -> str:

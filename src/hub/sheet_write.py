@@ -1455,8 +1455,15 @@ def _install_overview_data_formulas(ws) -> None:
 
 def _write_overview_src(ss, values: list[list]) -> dict:
     """Replace hidden `_overview_src` table (headers + data)."""
-    data_rows = values[1:] if values and values[0] == OVERVIEW_HEADERS else values
-    full = [list(OVERVIEW_HEADERS)] + list(data_rows)
+    n = len(OVERVIEW_HEADERS)
+    data_rows = values[1:] if values and list(values[0])[:n] == OVERVIEW_HEADERS else values
+    # Pad/truncate every row so FILTER/VLOOKUP column indexes stay aligned
+    # after header upgrades (e.g. หมายเหตุ added as col Q).
+    normalized: list[list] = []
+    for row in data_rows:
+        r = list(row or []) + [""] * max(0, n - len(row or []))
+        normalized.append(r[:n])
+    full = [list(OVERVIEW_HEADERS)] + normalized
     src = _open_or_create_src_sheet(ss, rows=len(full) + 10)
     try:
         last = max(src.row_count, 1)
@@ -1470,8 +1477,9 @@ def _write_overview_src(ss, values: list[list]) -> dict:
     _format_overview_src(ss, src)
     return {
         "sheet_title": src.title,
-        "rows_written": len(data_rows),
+        "rows_written": len(normalized),
         "gid": src.id,
+        "columns": n,
     }
 
 

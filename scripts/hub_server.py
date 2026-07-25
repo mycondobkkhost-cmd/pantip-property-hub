@@ -103,6 +103,8 @@ _STARTUP_SHEET_SYNC: dict = {
     "message": "",
 }
 # After Hub add/edit: push web → sheet in background (admins need not click sync).
+# Manual「ซิงค์ไปชีท」also uses this queue — never run push inline on Render
+# (7k-row rewrite exceeds proxy timeout → HTML 502).
 _AUTO_SYNC_TO_SHEET: dict = {
     "status": "idle",  # idle | queued | running | ok | error | skipped
     "pending": False,
@@ -113,10 +115,21 @@ _AUTO_SYNC_TO_SHEET: dict = {
     "last_at": "",
     "pushed": False,
     "spreadsheet_id": "",
+    "written_count": 0,
+    "sheet_title": "",
+    "hub_sheet_title": "",
+    "hub_rows_written": 0,
+    "spreadsheet_url": "",
+    "push_warning": "",
     "message": "",
+    "result": None,
+    "generation": 0,
+    "completed_generation": 0,
 }
 _AUTO_SYNC_LOCK = __import__("threading").Lock()
 _AUTO_SYNC_DEBOUNCE_SEC = 6.0
+# Serialize Google Sheet pull/push so startup refresh and sync don't fight.
+_SHEET_IO_LOCK = __import__("threading").Lock()
 _CO_CATALOG_CACHE: dict = {"mtime": 0.0, "data": None}
 _PREVIEW_CACHE_MAX = 400
 _THUMB_FETCH_LOCK = __import__("threading").Semaphore(1)
@@ -132,36 +145,104 @@ def _auto_sync_to_sheet_enabled() -> bool:
     return flag not in ("0", "false", "no", "off")
 
 
-def schedule_auto_sync_to_sheet(*, reason: str = "") -> dict:
+def schedule_auto_sync_to_sheet(
+    *,
+    reason: str = "",
+    debounce_sec: float | None = None,
+    force: bool = False,
+) -> dict:
     """Queue a debounced background push_hub_properties_to_sheet after Hub writes.
 
     Full overview rewrite can take ~1–2 min / risk 502 if done inline on Render,
-    so we never block the save/update response.
+    so we never block the save/update (or manual sync button) response.
+
+    force=True: always queue (manual sync button), even if HUB_AUTO_SYNC_TO_SHEET=0.
+    debounce_sec: override default debounce (manual sync uses ~0.2s).
     """
     import threading
     import time
 
-    if not _auto_sync_to_sheet_enabled():
-        return {"queued": False, "status": "skipped", "message": "HUB_AUTO_SYNC_TO_SHEET=0"}
+    if not force and not _auto_sync_to_sheet_enabled():
+        return {
+            "queued": False,
+            "status": "skipped",
+            "message": "HUB_AUTO_SYNC_TO_SHEET=0",
+        }
 
+    debounce = (
+        _AUTO_SYNC_DEBOUNCE_SEC if debounce_sec is None else max(0.0, float(debounce_sec))
+    )
     with _AUTO_SYNC_LOCK:
         _AUTO_SYNC_TO_SHEET["pending"] = True
-        _AUTO_SYNC_TO_SHEET["requested_at"] = time.time()
+        # Keep earliest request clock when already pending so debounce doesn't
+        # reset forever under rapid edits — except manual force which bumps now.
+        now = time.time()
+        if force or not _AUTO_SYNC_TO_SHEET.get("requested_at"):
+            _AUTO_SYNC_TO_SHEET["requested_at"] = now - max(
+                0.0, _AUTO_SYNC_DEBOUNCE_SEC - debounce
+            )
+        else:
+            # Soft bump: allow coalescing but don't starve forever
+            _AUTO_SYNC_TO_SHEET["requested_at"] = min(
+                float(_AUTO_SYNC_TO_SHEET["requested_at"]),
+                now - max(0.0, _AUTO_SYNC_DEBOUNCE_SEC - debounce),
+            )
         _AUTO_SYNC_TO_SHEET["reason"] = (reason or "").strip() or "hub_write"
+        _AUTO_SYNC_TO_SHEET["generation"] = int(
+            _AUTO_SYNC_TO_SHEET.get("generation") or 0
+        ) + 1
+        gen = int(_AUTO_SYNC_TO_SHEET["generation"])
         _AUTO_SYNC_TO_SHEET["status"] = (
             "running" if _AUTO_SYNC_TO_SHEET.get("running") else "queued"
+        )
+        _AUTO_SYNC_TO_SHEET["message"] = (
+            f"queued ({_AUTO_SYNC_TO_SHEET['reason']})…"
+            if not _AUTO_SYNC_TO_SHEET.get("running")
+            else _AUTO_SYNC_TO_SHEET.get("message") or "pushing…"
         )
         start_worker = not _AUTO_SYNC_TO_SHEET.get("worker_started")
         if start_worker:
             _AUTO_SYNC_TO_SHEET["worker_started"] = True
 
     if start_worker:
-        threading.Thread(target=_auto_sync_to_sheet_worker_loop, daemon=True).start()
+        threading.Thread(
+            target=_auto_sync_to_sheet_worker_loop,
+            daemon=True,
+            name="auto-sync-to-sheet",
+        ).start()
 
     return {
+        "ok": True,
         "queued": True,
         "status": _AUTO_SYNC_TO_SHEET.get("status") or "queued",
         "reason": _AUTO_SYNC_TO_SHEET.get("reason") or "",
+        "message": _AUTO_SYNC_TO_SHEET.get("message") or "",
+        "generation": gen,
+    }
+
+
+def _auto_sync_status_payload() -> dict:
+    return {
+        "enabled": _auto_sync_to_sheet_enabled(),
+        "status": _AUTO_SYNC_TO_SHEET.get("status") or "idle",
+        "pending": bool(_AUTO_SYNC_TO_SHEET.get("pending")),
+        "running": bool(_AUTO_SYNC_TO_SHEET.get("running")),
+        "pushed": bool(_AUTO_SYNC_TO_SHEET.get("pushed")),
+        "spreadsheet_id": _AUTO_SYNC_TO_SHEET.get("spreadsheet_id") or "",
+        "written_count": int(_AUTO_SYNC_TO_SHEET.get("written_count") or 0),
+        "sheet_title": _AUTO_SYNC_TO_SHEET.get("sheet_title") or "",
+        "hub_sheet_title": _AUTO_SYNC_TO_SHEET.get("hub_sheet_title") or "",
+        "hub_rows_written": int(_AUTO_SYNC_TO_SHEET.get("hub_rows_written") or 0),
+        "spreadsheet_url": _AUTO_SYNC_TO_SHEET.get("spreadsheet_url") or "",
+        "push_warning": _AUTO_SYNC_TO_SHEET.get("push_warning") or "",
+        "last_at": _AUTO_SYNC_TO_SHEET.get("last_at") or "",
+        "message": _AUTO_SYNC_TO_SHEET.get("message") or "",
+        "reason": _AUTO_SYNC_TO_SHEET.get("reason") or "",
+        "generation": int(_AUTO_SYNC_TO_SHEET.get("generation") or 0),
+        "completed_generation": int(
+            _AUTO_SYNC_TO_SHEET.get("completed_generation") or 0
+        ),
+        "result": _AUTO_SYNC_TO_SHEET.get("result"),
     }
 
 
@@ -178,15 +259,22 @@ def _auto_sync_to_sheet_worker_loop() -> None:
             )
             if wait > 0:
                 continue
+            # Don't fight startup sheet pull (same Sheets API / memory).
+            startup = (_STARTUP_SHEET_SYNC.get("status") or "").strip()
+            if startup == "running":
+                _AUTO_SYNC_TO_SHEET["message"] = "waiting for startup sheet pull…"
+                continue
             reason = _AUTO_SYNC_TO_SHEET.get("reason") or "hub_write"
             _AUTO_SYNC_TO_SHEET["pending"] = False
             _AUTO_SYNC_TO_SHEET["running"] = True
             _AUTO_SYNC_TO_SHEET["status"] = "running"
             _AUTO_SYNC_TO_SHEET["message"] = f"pushing ({reason})…"
+            _AUTO_SYNC_TO_SHEET["result"] = None
 
         print(f"[hub] auto sync-to-sheet start ({reason})")
         try:
-            result = push_hub_properties_to_sheet()
+            with _SHEET_IO_LOCK:
+                result = push_hub_properties_to_sheet()
             pushed = bool(result.get("pushed"))
             warn = (result.get("push_warning") or "").strip()
             msg = (
@@ -199,9 +287,20 @@ def _auto_sync_to_sheet_worker_loop() -> None:
                         "status": "ok" if pushed else "error",
                         "pushed": pushed,
                         "spreadsheet_id": result.get("spreadsheet_id") or "",
-                        "last_at": result.get("synced_at") or time.strftime("%d/%m/%Y %H:%M"),
+                        "written_count": int(result.get("written_count") or 0),
+                        "sheet_title": result.get("sheet_title") or "",
+                        "hub_sheet_title": result.get("hub_sheet_title") or "",
+                        "hub_rows_written": int(result.get("hub_rows_written") or 0),
+                        "spreadsheet_url": result.get("spreadsheet_url") or "",
+                        "push_warning": warn,
+                        "last_at": result.get("synced_at")
+                        or time.strftime("%d/%m/%Y %H:%M"),
                         "message": msg,
                         "running": False,
+                        "result": result,
+                        "completed_generation": int(
+                            _AUTO_SYNC_TO_SHEET.get("generation") or 0
+                        ),
                     }
                 )
             print(f"[hub] auto sync-to-sheet done: {msg}")
@@ -212,7 +311,12 @@ def _auto_sync_to_sheet_worker_loop() -> None:
                         "status": "error",
                         "pushed": False,
                         "message": str(exc),
+                        "push_warning": str(exc),
                         "running": False,
+                        "result": None,
+                        "completed_generation": int(
+                            _AUTO_SYNC_TO_SHEET.get("generation") or 0
+                        ),
                     }
                 )
             print(f"[hub] auto sync-to-sheet error: {exc}")
@@ -662,18 +766,17 @@ class HubHandler(BaseHTTPRequestHandler):
                     "properties_total": meta.get("properties_total") or 0,
                     "generated_at": meta.get("generated_at") or "",
                     "startup_sheet_sync": dict(_STARTUP_SHEET_SYNC),
-                    "auto_sync_to_sheet": {
-                        "enabled": _auto_sync_to_sheet_enabled(),
-                        "status": _AUTO_SYNC_TO_SHEET.get("status") or "idle",
-                        "pending": bool(_AUTO_SYNC_TO_SHEET.get("pending")),
-                        "running": bool(_AUTO_SYNC_TO_SHEET.get("running")),
-                        "pushed": bool(_AUTO_SYNC_TO_SHEET.get("pushed")),
-                        "spreadsheet_id": _AUTO_SYNC_TO_SHEET.get("spreadsheet_id")
-                        or "",
-                        "last_at": _AUTO_SYNC_TO_SHEET.get("last_at") or "",
-                        "message": _AUTO_SYNC_TO_SHEET.get("message") or "",
-                        "reason": _AUTO_SYNC_TO_SHEET.get("reason") or "",
-                    },
+                    "auto_sync_to_sheet": _auto_sync_status_payload(),
+                },
+            )
+            return
+        if path == "/api/properties/sync-status":
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "auto_sync_to_sheet": _auto_sync_status_payload(),
+                    "startup_sheet_sync": dict(_STARTUP_SHEET_SYNC),
                 },
             )
             return
@@ -1455,32 +1558,58 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/properties/sync-to-sheet":
+            # Always queue in background. Inline push of ~7k rows exceeds Render
+            # proxy idle timeout → browser sees HTML 502 ("เซิร์ฟเวอร์ตอบไม่ถูกต้อง").
             try:
-                result = push_hub_properties_to_sheet()
-                if not result.get("pushed"):
-                    warn = result.get("push_warning") or "ซิงค์ชีทไม่สำเร็จ"
-                    payload = {
-                        "error": warn,
-                        "ok": False,
-                        "pushed": False,
-                        "hub_count": result.get("hub_count", 0),
-                        "overview_count": result.get("overview_count", 0),
-                        "export_csv": result.get("export_csv"),
-                        "synced_at": result.get("synced_at"),
-                        "push_warning": warn,
-                        "download_url": result.get("download_url")
-                        or "/api/properties/overview-export.csv",
-                    }
-                    for key in (
-                        "need_service_account",
-                        "setup_steps",
-                        "setup_hint",
-                    ):
-                        if key in result:
-                            payload[key] = result[key]
-                    self._json(502, payload)
+                wait = bool(body.get("wait"))
+                if wait:
+                    with _SHEET_IO_LOCK:
+                        result = push_hub_properties_to_sheet()
+                    if not result.get("pushed"):
+                        warn = result.get("push_warning") or "ซิงค์ชีทไม่สำเร็จ"
+                        payload = {
+                            "error": warn,
+                            "ok": False,
+                            "pushed": False,
+                            "hub_count": result.get("hub_count", 0),
+                            "overview_count": result.get("overview_count", 0),
+                            "export_csv": result.get("export_csv"),
+                            "synced_at": result.get("synced_at"),
+                            "push_warning": warn,
+                            "download_url": result.get("download_url")
+                            or "/api/properties/overview-export.csv",
+                        }
+                        for key in (
+                            "need_service_account",
+                            "setup_steps",
+                            "setup_hint",
+                        ):
+                            if key in result:
+                                payload[key] = result[key]
+                        self._json(502, payload)
+                        return
+                    self._json(200, result)
                     return
-                self._json(200, result)
+                queued = schedule_auto_sync_to_sheet(
+                    reason="manual_sync_button",
+                    debounce_sec=0.2,
+                    force=True,
+                )
+                self._json(
+                    202,
+                    {
+                        "ok": True,
+                        "queued": True,
+                        "async": True,
+                        "status": queued.get("status") or "queued",
+                        "generation": queued.get("generation") or 0,
+                        "message": (
+                            "กำลังซิงค์ขึ้นชีทในพื้นหลัง — รอสักครู่แล้วดูผลที่ปุ่มซิงค์"
+                        ),
+                        "poll_url": "/api/properties/sync-status",
+                        "auto_sync_to_sheet": _auto_sync_status_payload(),
+                    },
+                )
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})
             except Exception as exc:  # noqa: BLE001
@@ -1496,23 +1625,24 @@ class ReuseThreadingHTTPServer(ThreadingHTTPServer):
 
 def _run_sheet_refresh(*, csv_url: str = "", wait_csv_url: str = "") -> dict:
     """Same path as POST /api/properties/refresh-sheet (main + wait-post queue)."""
-    result = refresh_main_sheet(csv_url=csv_url, rebuild=True)
-    wait_meta: dict = {}
-    wait_import: dict = {}
-    try:
-        wait_meta = refresh_wait_post_sheet(csv_url=wait_csv_url)
-        wait_import = import_from_sheet_csv(replace=True)
-    except Exception as wait_exc:  # noqa: BLE001
-        wait_meta = {
-            "ok": False,
-            "download_warning": str(wait_exc),
+    with _SHEET_IO_LOCK:
+        result = refresh_main_sheet(csv_url=csv_url, rebuild=True)
+        wait_meta: dict = {}
+        wait_import: dict = {}
+        try:
+            wait_meta = refresh_wait_post_sheet(csv_url=wait_csv_url)
+            wait_import = import_from_sheet_csv(replace=True)
+        except Exception as wait_exc:  # noqa: BLE001
+            wait_meta = {
+                "ok": False,
+                "download_warning": str(wait_exc),
+            }
+        result["wait_post"] = {
+            **wait_meta,
+            **wait_import,
+            "stats": queue_stats(),
         }
-    result["wait_post"] = {
-        **wait_meta,
-        **wait_import,
-        "stats": queue_stats(),
-    }
-    return result
+        return result
 
 
 def _startup_sheet_sync_enabled() -> bool:
@@ -1569,7 +1699,16 @@ def _startup_sheet_sync_worker() -> None:
         timeout_s = 240
     timeout_s = max(30, min(timeout_s, 900))
 
-    _STARTUP_SHEET_SYNC.update({"status": "running", "message": "pulling sheet…"})
+    import time as _time
+
+    started = _time.time()
+    _STARTUP_SHEET_SYNC.update(
+        {
+            "status": "running",
+            "message": "pulling sheet…",
+            "started_at": started,
+        }
+    )
     print(f"[hub] startup sheet sync starting (timeout {timeout_s}s)…")
 
     box: dict = {}
@@ -1582,7 +1721,12 @@ def _startup_sheet_sync_worker() -> None:
 
     worker = threading.Thread(target=_run, daemon=True, name="startup-sheet-sync")
     worker.start()
-    worker.join(timeout=timeout_s)
+    # Poll so status cannot stick on "running" if join misbehaves.
+    while worker.is_alive() and (_time.time() - started) < timeout_s:
+        worker.join(timeout=5.0)
+        elapsed = int(_time.time() - started)
+        if worker.is_alive():
+            _STARTUP_SHEET_SYNC["message"] = f"pulling sheet… ({elapsed}s)"
 
     try:
         if worker.is_alive():
@@ -1653,7 +1797,6 @@ def _startup_sheet_sync_worker() -> None:
                 )
         except Exception as exc:  # noqa: BLE001
             print(f"[hub] ensure_preview_js after sync failed: {exc}")
-
 
 def main() -> None:
     import os

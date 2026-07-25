@@ -7733,7 +7733,63 @@
       var oldHtml = label.innerHTML;
       btn.disabled = true;
       label.textContent = "กำลังซิงค์…";
+
+      function sleep(ms) {
+        return new Promise(function (resolve) { setTimeout(resolve, ms); });
+      }
+
+      async function pollSyncResult(startedAt, expectGen) {
+        var deadline = Date.now() + 180000;
+        while (Date.now() < deadline) {
+          await sleep(2000);
+          var stRes = await fetch((API_BASE || "") + "/api/properties/sync-status", {
+            credentials: "same-origin",
+            cache: "no-store",
+          });
+          var st = await stRes.json().catch(function () { return null; });
+          if (!st || !st.ok) continue;
+          var a = st.auto_sync_to_sheet || {};
+          label.textContent = "กำลังซิงค์…";
+          var busy = a.pending || a.running || a.status === "queued" || a.status === "running";
+          if (busy) continue;
+          var doneGen = Number(a.completed_generation || 0);
+          var wantGen = Number(expectGen || 0);
+          if (wantGen && doneGen < wantGen) {
+            if (Date.now() - startedAt < 8000) continue;
+          }
+          if (a.status === "ok" && a.pushed && (!wantGen || doneGen >= wantGen)) {
+            return { ok: true, data: a.result || a };
+          }
+          if ((a.status === "error" || (a.status === "ok" && !a.pushed)) && (!wantGen || doneGen >= wantGen)) {
+            return {
+              ok: false,
+              data: a.result || {
+                error: a.push_warning || a.message || "ซิงค์ชีทไม่สำเร็จ",
+                push_warning: a.push_warning || a.message || "",
+                pushed: false,
+              },
+            };
+          }
+          if (Date.now() - startedAt < 8000) continue;
+          return {
+            ok: false,
+            data: {
+              error: a.message || "หมดเวลารอผลซิงค์ — ลองกดซิงค์อีกครั้งหรือรีเฟรชหน้า",
+              pushed: false,
+            },
+          };
+        }
+        return {
+          ok: false,
+          data: {
+            error: "หมดเวลารอผลซิงค์ (ประมาณ 3 นาที) — เซิร์ฟเวอร์อาจยังเขียนชีทอยู่ ลองเช็คชีทหรือกดอีกครั้ง",
+            pushed: false,
+          },
+        };
+      }
+
       try {
+        var startedAt = Date.now();
         var res;
         try {
           res = await fetch((API_BASE || "") + "/api/properties/sync-to-sheet", {
@@ -7754,7 +7810,30 @@
         } catch (_e) {
           throw new Error("เซิร์ฟเวอร์ตอบไม่ถูกต้อง (HTTP " + res.status + ")");
         }
-        if (!res.ok || !data.pushed) {
+
+        // New async path: 202 + poll (avoids Render proxy 502 on long writes).
+        if (data.queued || data.async || res.status === 202) {
+          label.textContent = "กำลังซิงค์…";
+          var polled = await pollSyncResult(startedAt, data.generation || 0);
+          data = polled.data || {};
+          if (polled.ok) {
+            data.pushed = true;
+            if (!data.sheet_title && polled.data) {
+              data.sheet_title = polled.data.sheet_title;
+              data.written_count = polled.data.written_count || data.written_count;
+              data.hub_sheet_title = polled.data.hub_sheet_title;
+              data.hub_rows_written = polled.data.hub_rows_written;
+              data.spreadsheet_url = polled.data.spreadsheet_url;
+              data.push_warning = polled.data.push_warning;
+              data.synced_at = polled.data.last_at || polled.data.synced_at;
+            }
+          } else {
+            data.pushed = false;
+            if (!data.error) data.error = (polled.data && polled.data.error) || "ซิงค์ชีทไม่สำเร็จ";
+          }
+        }
+
+        if (!data.pushed) {
           var warn = data.error || data.push_warning || "ซิงค์ชีทไม่สำเร็จ";
           var steps = data.setup_steps || null;
           var hint = data.setup_hint || "";
@@ -7785,7 +7864,7 @@
           var okMsg =
             "เขียนขึ้นชีทแล้ว\n" +
             "• แท็บ「" + tab + "」· " + n.toLocaleString("th-TH") + " รายการ (ใหม่→เก่า)\n" +
-            "• เวลา " + (data.synced_at || "—");
+            "• เวลา " + (data.synced_at || data.last_at || "—");
           if (data.hub_sheet_title) {
             okMsg += "\n• แท็บ「" + data.hub_sheet_title + "」· Hub/RXT " +
               (data.hub_rows_written != null ? data.hub_rows_written : (data.hub_count || 0)) + " แถว";

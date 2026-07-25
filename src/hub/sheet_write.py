@@ -343,11 +343,8 @@ def resolve_prop_location_for_sheet(
         transit = project_transit_display(proj)
         return _join_tags(zones), _join_tags(transit)
 
-    zones_s = ""
+    zones_s = str(prop.get("location_ref") or "").strip()
     transit_s = _join_tags(prop.get("transit_from_sheet") or [])
-    loc = str(prop.get("location_ref") or "").strip()
-    if loc and not transit_s:
-        transit_s = loc
     return zones_s, transit_s
 
 

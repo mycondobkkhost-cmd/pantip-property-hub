@@ -3934,9 +3934,10 @@
     }
 
     function masterTransitAll(proj) {
+      // Verified-only for Hub — never fall back to SEO unverified piles
       var src = (proj.transit_verified && proj.transit_verified.length)
         ? proj.transit_verified
-        : (proj.transit_unverified || []);
+        : [];
       var seen = {};
       var out = [];
       src.forEach(function (t) {
@@ -3954,7 +3955,7 @@
     function masterZoneAll(proj) {
       var src = (proj.zone_verified && proj.zone_verified.length)
         ? proj.zone_verified
-        : (proj.zone_unverified || []);
+        : [];
       var seen = {};
       var out = [];
       src.forEach(function (t) {

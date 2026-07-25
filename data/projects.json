@@ -10,18 +10,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ"
+      "BTS ทองหล่อ",
+      "MRT เพชรบุรี",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "ทองหล่อ"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": true,
     "listing_count": 130,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:livinginsider-thru",
     "living_project_url": "https://www.livinginsider.com/living_project/14/1128/1/all/all/1/ทรู-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -130,9 +133,9 @@
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
-      "เพลินจิต",
-      "ชิดลม"
+      "เพลินจิต"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -153,18 +156,20 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT เพชรบุรี",
-      "BTS ทองหล่อ"
+      "BTS ทองหล่อ",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "ทองหล่อ"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 65,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:niche_pride_thonglor_phet",
     "living_project_url": "https://www.livinginsider.com/living_project/14/1109/1/all/all/1/เดอะ-นิช-ไพร์ด-ทองหล่อ-เพชรบุรี.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -238,14 +243,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
-      "BTS พร้อมพงษ์"
+      "MRT ลุมพินี",
+      "BTS ศาลาแดง"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
       "สุขุมวิท",
-      "พร้อมพงษ์"
+      "ลุมพินี",
+      "สีลม"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -272,6 +278,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง"
     ],
     "location_status": "verified",
@@ -325,21 +332,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์",
       "MRT เพชรบุรี",
-      "BTS ทองหล่อ"
+      "BTS ทองหล่อ",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "พร้อมพงษ์",
-      "ทองหล่อ"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 47,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:base_phet_thonglor",
     "living_project_url": "https://www.livinginsider.com/living_project/14/3175/1/all/all/1/เดอะ-เบส-เพชรบุรี-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -356,13 +363,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "รามคำแหง"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -408,7 +416,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -430,12 +439,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ราชเทวี",
-      "BTS พญาไท",
-      "BTS สยาม"
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร",
+      "BTS ราชเทวี"
     ],
     "zone_verified": [
-      "ราชเทวี พญาไท"
+      "ราชเทวี พญาไท",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -481,6 +491,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง"
     ],
     "location_status": "verified",
@@ -504,7 +515,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -686,7 +698,8 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "ARL รามคำแหง",
+      "MRT รามคำแหง"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
@@ -740,16 +753,23 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS ทองหล่อ",
+      "BTS เอกมัย",
+      "BTS พร้อมพงษ์"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "เอกมัย",
+      "พร้อมพงษ์"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 32,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/346/1/all/all/1/โนเบิล-รีมิกซ์-สุขุมวิท-36.html",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
     "id": "540a1611-0fb2-5bf4-aa32-5660d60b1869",
@@ -767,6 +787,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง"
     ],
     "location_status": "verified",
@@ -792,6 +813,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง"
     ],
     "location_status": "verified",
@@ -882,16 +904,22 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน",
+      "MRT เพชรบุรี"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 30,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/14/1111/1/all/all/1/ริธึ่ม-อโศก.html",
+    "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
   {
     "id": "bbcf7724-0c27-5345-bbec-d49976ace335",
@@ -962,6 +990,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "บางจาก"
     ],
     "location_status": "verified",
@@ -982,18 +1011,17 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS เอกมัย"
+      "BTS เอกมัย",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
-      "RCA",
-      "พระราม 9",
-      "เอกมัย"
+      "เอกมัย",
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 29,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:capital_ekamai_thonglor",
     "living_project_url": "https://www.livinginsider.com/living_project/14/1116/1/all/all/1/เดอะ-แคปิตอล-เอกมัย-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -1023,8 +1051,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์",
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์"
+      "BTS พร้อมพงษ์"
     ],
     "zone_verified": [
       "ทองหล่อ",
@@ -1049,11 +1076,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1096,11 +1127,11 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ห้วยขวาง"
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รัชดา",
-      "ห้วยขวาง"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1146,16 +1177,22 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS บางจาก",
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "บางจาก",
+      "พระโขนง",
+      "สุขุมวิท",
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 27,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider+curated:livinginsider-bangchak",
+    "living_project_url": "https://www.livinginsider.com/living_project/19/2560/1/all/all/1/ไอดีโอ-สุขุมวิท-93-IDEO-Sukhumvit-93.html",
+    "living_zone": "อ่อนนุช อุดมสุข"
   },
   {
     "id": "c6880bf0-afe5-58a4-a3bc-3ab1f9b70074",
@@ -1167,17 +1204,16 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์"
+      "BTS ทองหล่อ",
+      "BTS เอกมัย"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "อโศก",
-      "สุขุมวิท"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 27,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:maps-nearest",
     "living_project_url": "https://www.livinginsider.com/living_project/18/3313/1/all/all/1/ทองหล่อ-ทาวเวอร์.html",
     "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
@@ -1194,12 +1230,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT พระราม 9"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1250,6 +1288,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง",
       "เอกมัย"
     ],
@@ -1275,7 +1314,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1357,16 +1397,19 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS พระโขนง"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "พระโขนง"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 25,
     "location_source": "livinginsider",
-    "living_project_url": "https://www.livinginsider.com/living_project/19/468/1/all/all/1/เดอะ-เบส-สุขุมวิท-77.html",
+    "living_project_url": "https://www.livinginsider.com/living_project/19/443/1/all/all/1/เดอะ-เบส-พาร์ค-เวสต์.html",
     "living_zone": "อ่อนนุช อุดมสุข"
   },
   {
@@ -1423,16 +1466,18 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 24,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/19/466/1/all/all/1/ริทึ่ม-สุขุมวิท-50.html",
+    "living_zone": "อ่อนนุช อุดมสุข"
   },
   {
     "id": "b0c896fb-8d75-5fd4-8f07-7a8a9862462d",
@@ -1445,12 +1490,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ"
+      "BTS ทองหล่อ",
+      "BTS เอกมัย"
     ],
     "zone_verified": [
       "ทองหล่อ",
-      "อโศก",
-      "สุขุมวิท"
+      "เอกมัย"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1542,17 +1587,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS เอกมัย",
-      "BTS ทองหล่อ"
+      "BTS เอกมัย"
     ],
     "zone_verified": [
-      "เอกมัย",
-      "ทองหล่อ"
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "เอกมัย"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 22,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/2618/1/all/all/1/ซี-เอกมัย.html",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
     "id": "a196bbc4-4dad-5124-b9c9-fa2c4d7f114c",
@@ -1562,14 +1610,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1618,7 +1666,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1638,16 +1687,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "ARL รามคำแหง"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "พระราม 9",
+      "รามคำแหง"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 22,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/14/2769/1/all/all/1/เดอะ-ไพรเวซี่-พระราม-9.html",
+    "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
   {
     "id": "5825a3a6-c64f-57f6-b6cb-7822d816ef99",
@@ -1759,7 +1812,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1780,17 +1834,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT เพชรบุรี"
+      "MRT เพชรบุรี",
+      "BTS ทองหล่อ",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 21,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:cloud_thonglor_phet",
     "living_project_url": "https://www.livinginsider.com/living_project/14/3043/1/all/all/1/คลาวด์-ทองหล่อ-เพชรบุรี.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -1851,11 +1909,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พระโขนง",
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1905,12 +1966,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS บางจาก",
-      "BTS ปุณณวิถี"
+      "BTS ปุณณวิถี",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "บางจาก",
-      "ปุณณวิถี"
+      "ปุณณวิถี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -1977,10 +2041,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อารีย์",
-      "BTS สนามเป้า"
+      "BTS สนามเป้า",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "อารีย์"
+      "อารีย์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2003,16 +2069,18 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
+      "MRT คลองเตย"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "คลองเตย กล้วยน้ำไท"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 19,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/23/4314/1/all/all/1/ไลฟ์-พระราม-4-อโศก.html",
+    "living_zone": "คลองเตย กล้วยน้ำไท"
   },
   {
     "id": "1948314e-ce2b-5a3f-906f-4262b0e28261",
@@ -2025,11 +2093,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2072,12 +2144,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ห้วยขวาง",
-      "MRT สุทธิสาร"
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร",
+      "MRT ห้วยขวาง"
     ],
     "zone_verified": [
       "รัชดา",
-      "ห้วยขวาง"
+      "ห้วยขวาง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2121,7 +2195,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2164,16 +2239,23 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT สุขุมวิท",
+      "MRT เพชรบุรี",
+      "BTS นานา"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "เพชรบุรีตัดใหม่",
+      "นานา"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 18,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/395/1/all/all/1/แกรนด์-พาร์ค-วิว-อโศก.html",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
     "id": "1cbb56b3-55d0-551a-be60-d50ac3065d6a",
@@ -2186,16 +2268,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS พร้อมพงษ์",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "พร้อมพงษ์"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 17,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/2683/1/all/all/1/Ideo-Q-สุขุมวิท-36.html",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
     "id": "8c4cba5c-c99e-504b-87f7-4a8207437d63",
@@ -2260,15 +2347,11 @@
     ],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [
-      "BTS พร้อมพงษ์",
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์"
-    ],
+    "transit_verified": [],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
-      "สุขุมวิท",
-      "พร้อมพงษ์"
+      "สุขุมวิท"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2287,19 +2370,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS รัชโยธิน",
-      "BTS พหลโยธิน 24",
-      "BTS เสนานิคม"
+      "BTS เอกมัย"
     ],
     "zone_verified": [
-      "เกษตรศาสตร์ รัชโยธิน"
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "เอกมัย"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 17,
     "location_source": "livinginsider",
-    "living_project_url": "https://www.livinginsider.com/living_project/1/2903/1/all/all/1/แมสซารีน-รัชโยธิน.html",
-    "living_zone": "เกษตรศาสตร์ รัชโยธิน"
+    "living_project_url": "https://www.livinginsider.com/living_project/18/308/1/all/all/1/เอ็ม-ทองหล่อ-เท็น.html",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
     "id": "eda5a063-fbd9-5d16-ba8b-e42bb72eac6b",
@@ -2309,14 +2393,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS เอกมัย"
+      "BTS พร้อมพงษ์",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
       "สุขุมวิท",
-      "เอกมัย"
+      "พร้อมพงษ์"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2360,16 +2444,22 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS ปุณณวิถี",
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "ปุณณวิถี",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 17,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/19/450/1/all/all/1/เอลลิโอ-เดล-เรย์-สุขุมวิท-64.html",
+    "living_zone": "อ่อนนุช อุดมสุข"
   },
   {
     "id": "b7a3a040-965b-5625-9636-a3e0498d8992",
@@ -2386,7 +2476,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2433,18 +2524,20 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT เพชรบุรี",
-      "ARL มักกะสัน"
+      "ARL มักกะสัน",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
-      "RCA",
-      "พระราม 9",
-      "มักกะสัน"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร",
+      "RCA"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 17,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:lloyd_soonvijai",
     "living_project_url": "https://www.livinginsider.com/living_project/14/3133/1/all/all/1/ลอยด์-ศูนย์วิจัย-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -2579,16 +2672,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS นานา",
+      "MRT สุขุมวิท",
+      "BTS อโศก"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "นานา",
+      "อโศก"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 16,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/17/3237/1/all/all/1/สุขุมวิท-สวีท.html",
+    "living_zone": "นานา"
   },
   {
     "id": "ac4c65b1-c6dd-5938-8ee5-0300a9dd0b87",
@@ -2603,16 +2700,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS อโศก",
+      "MRT สุขุมวิท"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 16,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/2679/1/all/all/1/เดอะ-เนสท์-สุขุมวิท-22.html",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
     "id": "7763a09d-4e0e-5d8e-b0b3-3ceeaa2208a6",
@@ -2649,10 +2750,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2669,18 +2774,18 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "ARL รามคำแหง",
+      "BTS เอกมัย",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
-      "RCA",
-      "พระราม 9",
-      "รามคำแหง"
+      "เอกมัย",
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 15,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:ekamai_thonglor",
     "living_project_url": "https://www.livinginsider.com/living_project/14/1117/1/all/all/1/ศุภาลัยปาร์ค-เอกมัย-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -2718,10 +2823,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "ARL รามคำแหง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รามคำแหง"
+      "รามคำแหง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2740,8 +2848,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สามย่าน",
-      "MRT หัวลำโพง"
+      "MRT สามย่าน"
     ],
     "zone_verified": [
       "สามย่าน"
@@ -2760,8 +2867,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS กรุงธนบุรี",
       "BTS วงเวียนใหญ่",
-      "BTS กรุงธนบุรี"
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -2815,7 +2923,7 @@
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 15,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider+curated:ekamai_thonglor"
   },
   {
     "id": "4b333284-166e-5bcc-b9fd-b7d897e2a734",
@@ -2825,15 +2933,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
       "BTS อโศก",
-      "BTS พร้อมพงษ์"
+      "MRT สุขุมวิท"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
-      "สุขุมวิท",
-      "พร้อมพงษ์"
+      "สุขุมวิท"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -2933,9 +3039,9 @@
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
-      "เพลินจิต",
-      "ชิดลม"
+      "เพลินจิต"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -3002,7 +3108,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พญาไท",
       "BTS สะพานควาย"
     ],
     "zone_verified": [],
@@ -3121,6 +3226,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -3326,12 +3432,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช",
-      "พระโขนง"
+      "อ่อนนุช"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -3379,7 +3483,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -3451,11 +3556,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT สามย่าน",
-      "BTS ศาลาแดง"
+      "BTS ศาลาแดง",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "สามย่าน",
-      "สีลม"
+      "สีลม",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -3528,12 +3635,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อุดมสุข",
-      "BTS ปุณณวิถี"
+      "BTS ปุณณวิถี",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
       "อุดมสุข",
-      "ปุณณวิถี"
+      "ปุณณวิถี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -3580,8 +3689,8 @@
     ],
     "zone_verified": [
       "วิทยุ",
-      "หลังสวน",
       "ชิดลม",
+      "หลังสวน",
       "ลุมพินี"
     ],
     "location_status": "verified",
@@ -3626,6 +3735,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เอกมัย",
       "พระโขนง"
     ],
@@ -3798,18 +3908,20 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT เพชรบุรี",
-      "BTS ทองหล่อ"
+      "BTS ทองหล่อ",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "ทองหล่อ"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 12,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:niche_pride_thonglor_phet",
     "living_project_url": "https://www.livinginsider.com/living_project/14/1109/1/all/all/1/เดอะ-นิช-ไพร์ด-ทองหล่อ-เพชรบุรี.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -3826,12 +3938,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พระโขนง",
-      "BTS เอกมัย"
+      "BTS เอกมัย",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "คลองเตย กล้วยน้ำไท",
       "พระโขนง",
-      "เอกมัย"
+      "เอกมัย",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4104,7 +4218,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4194,11 +4309,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4263,17 +4382,18 @@
     ],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
+    "transit_verified": [],
     "zone_verified": [
-      "เจริญนคร"
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "พระราม 9"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 11,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/14/937/1/all/all/1/ศุภาลัย-เวลลิงตัน-2.html",
+    "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
   {
     "id": "abde375c-cf47-5540-84dc-785d58ff9383",
@@ -4287,8 +4407,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์",
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์"
+      "BTS พร้อมพงษ์"
     ],
     "zone_verified": [
       "ทองหล่อ",
@@ -4313,10 +4432,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร",
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4340,6 +4463,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -4508,11 +4632,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS บางนา",
-      "BTS แบริ่ง"
+      "BTS แบริ่ง",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "บางนา",
-      "แบริ่ง"
+      "แบริ่ง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4607,11 +4733,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS บางนา",
-      "BTS แบริ่ง"
+      "BTS แบริ่ง",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "บางนา",
-      "แบริ่ง"
+      "แบริ่ง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4631,7 +4759,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4698,11 +4827,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4773,7 +4905,8 @@
       "MRT ศรีนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4795,7 +4928,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -4816,16 +4950,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS พร้อมพงษ์"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "ทองหล่อ",
+      "อโศก",
+      "สุขุมวิท",
+      "พร้อมพงษ์"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 10,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/18802/1/all/all/1/ควินทารา-มาย‘เซน-พร้อมพงษ์.html",
+    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
     "id": "bab99f92-f659-5802-af62-0d7de0b886b1",
@@ -4844,12 +4982,15 @@
       "BTS เจริญนคร"
     ],
     "zone_verified": [
+      "บางนา",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 10,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/20/4849/6/all/all/1/พลีโน่-สุขุมวิท-บางนา-2.html",
+    "living_zone": "บางนา แบริ่ง ลาซาล"
   },
   {
     "id": "16957384-8fc0-54b1-b3bb-7e378bec7334",
@@ -4893,6 +5034,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "บางจาก"
     ],
     "location_status": "verified",
@@ -5021,11 +5163,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "อุดมสุข"
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5068,12 +5213,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "มีนบุรี-ร่มเกล้า",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5090,12 +5236,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์",
-      "MRT สุขุมวิท"
+      "BTS พร้อมพงษ์"
     ],
     "zone_verified": [
-      "พร้อมพงษ์",
-      "อโศก"
+      "พร้อมพงษ์"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5243,11 +5387,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT เพชรบุรี",
       "BTS อโศก"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
       "อโศก",
       "มศว ประสานมิตร"
     ],
@@ -5289,12 +5431,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5331,12 +5473,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พระโขนง",
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "คลองเตย กล้วยน้ำไท",
       "พระโขนง",
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5356,11 +5500,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5407,6 +5554,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "บางจาก",
       "ปุณณวิถี"
     ],
@@ -5429,11 +5577,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ลาดพร้าว",
-      "MRT รัชดาภิเษก"
+      "MRT รัชดาภิเษก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "ลาดพร้าว",
-      "รัชดา"
+      "รัชดา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5453,7 +5603,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5518,12 +5669,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช",
-      "พระโขนง"
+      "อ่อนนุช"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5619,8 +5768,8 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "ปุณณวิถี",
-      "อุดมสุข"
+      "อุดมสุข",
+      "ปุณณวิถี"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5640,12 +5789,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "อุดมสุข"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5689,12 +5840,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "อุดมสุข"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5764,8 +5917,8 @@
     ],
     "zone_verified": [
       "วิทยุ",
-      "หลังสวน",
       "ชิดลม",
+      "หลังสวน",
       "เพลินจิต"
     ],
     "location_status": "verified",
@@ -5876,11 +6029,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5898,11 +6052,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -5947,10 +6104,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS สะพานตากสิน",
-      "BTS สุรศักดิ์"
+      "BTS สุรศักดิ์",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6014,7 +6173,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6071,11 +6231,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พระโขนง",
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6141,11 +6304,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS เอกมัย"
+      "BTS เอกมัย",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "คลองเตย กล้วยน้ำไท",
-      "เอกมัย"
+      "เอกมัย",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6217,11 +6383,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6265,11 +6434,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "BTS ทองหล่อ",
+      "BTS เอกมัย"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
-      "รามคำแหง"
+      "ทองหล่อ",
+      "เอกมัย"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6368,12 +6539,15 @@
       "BTS เจริญนคร"
     ],
     "zone_verified": [
+      "บางนา",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 7,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/20/19218/6/all/all/1/อินดี้-บางนา-รามคำแหง-2.html",
+    "living_zone": "บางนา แบริ่ง ลาซาล"
   },
   {
     "id": "a4a3e52f-264a-5bd3-ac60-ba114c35962d",
@@ -6541,11 +6715,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6581,10 +6759,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT พหลโยธิน",
-      "BTS ห้าแยกลาดพร้าว"
+      "BTS ห้าแยกลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ลาดพร้าว"
+      "ลาดพร้าว",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6601,11 +6781,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT เพชรบุรี",
       "BTS อโศก"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
       "อโศก"
     ],
     "location_status": "verified",
@@ -6624,8 +6802,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS กรุงธนบุรี",
       "BTS วงเวียนใหญ่",
-      "BTS กรุงธนบุรี"
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -6646,8 +6825,8 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS พร้อมพงษ์"
+      "BTS พร้อมพงษ์",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
       "ทองหล่อ",
@@ -6670,11 +6849,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6761,12 +6944,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "บางจาก"
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6806,12 +6992,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "อุดมสุข"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6850,10 +7038,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "รามคำแหง"
+      "รามคำแหง",
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -6990,10 +7181,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พหลโยธิน 24",
-      "BTS รัชโยธิน"
+      "BTS รัชโยธิน",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "เกษตรศาสตร์ รัชโยธิน"
+      "เกษตรศาสตร์ รัชโยธิน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7057,8 +7250,8 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "ปุณณวิถี",
-      "อุดมสุข"
+      "อุดมสุข",
+      "ปุณณวิถี"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7142,8 +7335,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พญาไท",
-      "BTS ราชเทวี"
+      "BTS พญาไท"
     ],
     "zone_verified": [],
     "location_status": "verified",
@@ -7166,12 +7358,15 @@
       "BTS เจริญนคร"
     ],
     "zone_verified": [
+      "บางนา",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 6,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/20/4678/6/all/all/1/อินดี้-2-บางนา-รามคำแหง-2.html",
+    "living_zone": "บางนา แบริ่ง ลาซาล"
   },
   {
     "id": "05c2d6f3-0f2f-5d2b-9bd6-f254e4f3c83c",
@@ -7203,16 +7398,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS แบริ่ง",
       "BTS กรุงธนบุรี",
       "BTS เจริญนคร"
     ],
     "zone_verified": [
+      "บางนา",
+      "แบริ่ง",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 6,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/20/2827/1/all/all/1/ไนท์บริดจ์-คอลลาจ-สุขุมวิท-107.html",
+    "living_zone": "บางนา แบริ่ง ลาซาล"
   },
   {
     "id": "876e8042-3e17-54cf-b718-5faf7c0f4f0d",
@@ -7299,10 +7499,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT แยกลำสาลี"
+      "MRT แยกลำสาลี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "เสรีไทย-นิด้า"
+      "เสรีไทย-นิด้า",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7390,15 +7593,11 @@
     ],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
+    "transit_verified": [],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "เจริญนคร"
+      "พระราม 9"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7417,11 +7616,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ปุณณวิถี"
+      "BTS ปุณณวิถี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "ปุณณวิถี"
+      "อุดมสุข",
+      "ปุณณวิถี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7459,6 +7662,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "MRT ศรีเอี่ยม",
       "BTS กรุงธนบุรี",
       "BTS เจริญนคร"
     ],
@@ -7470,7 +7674,7 @@
     "is_thru_thonglor": false,
     "listing_count": 6,
     "location_source": "livinginsider",
-    "living_project_url": "https://www.livinginsider.com/living_project/20/2939/1/all/all/1/นิช-โมโน-เมกะ-สเปซ-บางนา.html",
+    "living_project_url": "https://www.livinginsider.com/living_project/20/525/1/all/all/1/เดอะ-นิช-โมโน-บางนา.html",
     "living_zone": "บางนา แบริ่ง ลาซาล"
   },
   {
@@ -7530,10 +7734,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7596,8 +7804,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS วงเวียนใหญ่",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS วงเวียนใหญ่"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -7748,12 +7956,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS เอกมัย"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "เอกมัย"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7876,12 +8082,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS พร้อมพงษ์"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "พร้อมพงษ์"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7898,7 +8102,8 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศรีกรีฑา"
+      "MRT ศรีกรีฑา",
+      "ARL หัวหมาก"
     ],
     "zone_verified": [
       "รามคำแหง"
@@ -7907,7 +8112,7 @@
     "is_thru_thonglor": false,
     "listing_count": 6,
     "location_source": "livinginsider",
-    "living_project_url": "https://www.livinginsider.com/living_project/31/1208/1/all/all/1/ยู-ดีไลท์-หัวหมากสเตชั่น.html",
+    "living_project_url": "https://www.livinginsider.com/living_project/31/1163/1/all/all/1/คอนโด-ยู-หัวหมาก-สเตชั่น.html",
     "living_zone": "รามคำแหง หัวหมาก"
   },
   {
@@ -7918,12 +8123,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ชิดลม",
-      "BTS เพลินจิต"
+      "BTS ชิดลม"
     ],
     "zone_verified": [
-      "ชิดลม",
-      "เพลินจิต"
+      "ชิดลม"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -7982,7 +8185,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT พหลโยธิน",
       "BTS ห้าแยกลาดพร้าว"
     ],
     "zone_verified": [],
@@ -8021,10 +8223,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ม.เกษตรศาสตร์",
-      "BTS เสนานิคม"
+      "BTS เสนานิคม",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "เกษตรศาสตร์ รัชโยธิน"
+      "เกษตรศาสตร์ รัชโยธิน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8080,14 +8284,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8111,6 +8315,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -8181,11 +8386,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ลาดพร้าว",
-      "MRT รัชดาภิเษก"
+      "MRT รัชดาภิเษก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "ลาดพร้าว",
-      "รัชดา"
+      "รัชดา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8244,10 +8451,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS สุรศักดิ์",
-      "BTS สะพานตากสิน"
+      "BTS สะพานตากสิน",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8268,8 +8477,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS เจริญนคร",
-      "BTS สะพานตากสิน",
-      "BTS กรุงธนบุรี"
+      "BTS กรุงธนบุรี",
+      "BTS สะพานตากสิน"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -8291,7 +8500,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ราชเทวี",
       "BTS พญาไท"
     ],
     "zone_verified": [],
@@ -8395,10 +8603,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ช่องนนทรี"
+      "BTS ช่องนนทรี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8606,11 +8817,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8633,9 +8847,9 @@
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
-      "เพลินจิต",
-      "ชิดลม"
+      "เพลินจิต"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8727,11 +8941,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8862,11 +9080,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8912,9 +9133,13 @@
     ],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "พระราม 3 สาธุประดิษฐ์"
+      "พระราม 3 สาธุประดิษฐ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -8934,12 +9159,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "ลาดกระบัง สุวรรณภูมิ",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9029,7 +9255,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9045,9 +9272,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "พระราม 3 สาธุประดิษฐ์"
+      "พระราม 3 สาธุประดิษฐ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9064,10 +9295,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9140,18 +9375,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS เอกมัย",
       "BTS ทองหล่อ"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
-      "สุขุมวิท"
+      "สุขุมวิท",
+      "เอกมัย"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 5,
     "location_source": "livinginsider",
-    "living_project_url": "https://www.livinginsider.com/living_project/18/3371/1/all/all/1/เอสเตลลา-เอกมัย.html",
+    "living_project_url": "https://www.livinginsider.com/living_project/18/4373/1/all/all/1/คอนโด-อัพ-เอกมัย.html",
     "living_zone": "สุขุมวิท อโศก ทองหล่อ"
   },
   {
@@ -9335,10 +9572,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ศรีเอี่ยม",
-      "MRT ศรีอุดม"
+      "MRT ศรีอุดม",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9397,16 +9636,20 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS สุรศักดิ์",
+      "BTS สะพานตากสิน",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
+      "สาทร",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 4,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/24/3345/1/all/all/1/บลอสซั่ม-คอนโด-แอท-สาทร-เจริญราษฎร์.html",
+    "living_zone": "สาทร นราธิวาส"
   },
   {
     "id": "4ba279c6-51cb-581a-85fc-f5e22f2a9620",
@@ -9455,11 +9698,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS แบริ่ง"
+      "BTS แบริ่ง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "บางนา",
-      "แบริ่ง"
+      "แบริ่ง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9622,12 +9868,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS เอกมัย"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "เอกมัย"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9701,15 +9945,19 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
+      "BTS วงเวียนใหญ่",
       "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "เจริญนคร",
+      "วงเวียนใหญ่"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 4,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/26/859/1/all/all/1/ไฮฟ์-ตากสิน.html",
+    "living_zone": "วงเวียนใหญ่ เจริญนคร"
   },
   {
     "id": "36cfc549-4165-5363-82e4-cf4d13fe201a",
@@ -9760,10 +10008,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง สะพานพระนั่งเกล้า"
+      "MRT สายสีม่วง สะพานพระนั่งเกล้า",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า"
+      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -9829,10 +10080,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สะพานตากสิน"
+      "BTS สะพานตากสิน",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -10100,11 +10354,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS แบริ่ง",
-      "BTS บางนา"
+      "BTS บางนา",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "บางนา",
-      "แบริ่ง"
+      "แบริ่ง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -10178,14 +10434,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์",
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์"
+      "BTS อโศก",
+      "MRT สุขุมวิท"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
-      "สุขุมวิท",
-      "พร้อมพงษ์"
+      "สุขุมวิท"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -10373,12 +10628,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "อุดมสุข"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -10524,11 +10781,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -10678,8 +10939,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช",
-      "MRT ศรีนุช"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
       "อ่อนนุช"
@@ -10698,7 +10958,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS หมอชิต",
       "BTS สะพานควาย"
     ],
     "zone_verified": [],
@@ -10722,6 +10981,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -10877,6 +11137,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง",
       "เอกมัย"
     ],
@@ -10901,9 +11162,9 @@
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
       "เพลินจิต",
-      "ชิดลม",
       "นานา"
     ],
     "location_status": "verified",
@@ -10922,17 +11183,16 @@
     ],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
+    "transit_verified": [],
     "zone_verified": [
-      "เจริญนคร"
+      "พระราม 3 สาธุประดิษฐ์"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 4,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/25/3233/1/all/all/1/เอสวี-ซิตี้-พระราม-3.html",
+    "living_zone": "พระราม 3 สาธุประดิษฐ์"
   },
   {
     "id": "20404a0a-0109-5dbc-9f70-9f85b9a7bac0",
@@ -11147,10 +11407,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT พหลโยธิน",
-      "BTS ห้าแยกลาดพร้าว"
+      "BTS ห้าแยกลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ลาดพร้าว"
+      "ลาดพร้าว",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -11328,12 +11590,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "บางจาก"
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -11414,10 +11679,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปู่เจ้าสมิงพราย",
-      "BTS สำโรง"
+      "BTS สำโรง",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สมุทรปราการ สำโรง"
+      "สมุทรปราการ สำโรง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -11434,8 +11701,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อโศก",
-      "MRT สุขุมวิท"
+      "BTS อโศก"
     ],
     "zone_verified": [
       "อโศก"
@@ -11452,14 +11718,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -11698,10 +11964,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง วงศ์สว่าง"
+      "MRT สายสีม่วง วงศ์สว่าง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางซื่อ วงศ์สว่าง เตาปูน"
+      "บางซื่อ วงศ์สว่าง เตาปูน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -11741,11 +12010,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT คลองเตย",
-      "MRT ลุมพินี"
+      "MRT ลุมพินี",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "สาทร",
-      "ลุมพินี"
+      "ลุมพินี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -11782,8 +12053,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พญาไท",
-      "BTS สยาม"
+      "BTS พญาไท"
     ],
     "zone_verified": [],
     "location_status": "verified",
@@ -11937,11 +12207,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "อุดมสุข"
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -11960,11 +12233,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "อุดมสุข"
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12003,7 +12279,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สุขุมวิท",
+      "BTS อโศก",
       "BTS พร้อมพงษ์"
     ],
     "zone_verified": [
@@ -12025,10 +12301,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อนุสาวรีย์ชัยสมรภูมิ",
-      "ARL ราชปรารภ"
+      "ARL ราชปรารภ",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ราชเทวี พญาไท"
+      "ราชเทวี พญาไท",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12050,6 +12328,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -12095,6 +12374,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -12134,10 +12414,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS สะพานควาย",
-      "MRT กำแพงเพชร"
+      "MRT กำแพงเพชร",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สะพานควาย จตุจักร"
+      "สะพานควาย จตุจักร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12174,7 +12456,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS วงเวียนใหญ่",
-      "BTS โพธิ์นิมิตร"
+      "BTS โพธิ์นิมิตร",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -12195,10 +12478,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT บางกะปิ"
+      "MRT บางกะปิ",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "ลาดพร้าว"
+      "ลาดพร้าว",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12323,12 +12609,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช",
-      "พระโขนง"
+      "อ่อนนุช"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12346,7 +12630,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ราชเทวี",
       "BTS พญาไท"
     ],
     "zone_verified": [],
@@ -12381,11 +12664,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง",
       "MRT เพชรบุรี"
     ],
     "zone_verified": [
-      "รามคำแหง",
       "เพชรบุรีตัดใหม่"
     ],
     "location_status": "verified",
@@ -12488,11 +12769,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS บางจาก",
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12551,11 +12835,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "อุดมสุข"
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12572,11 +12859,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -12695,7 +12983,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT พหลโยธิน",
       "BTS ห้าแยกลาดพร้าว"
     ],
     "zone_verified": [],
@@ -12851,7 +13138,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT บางกะปิ",
       "BTS นานา"
     ],
     "zone_verified": [
@@ -13017,12 +13303,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS พร้อมพงษ์"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "พร้อมพงษ์"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -13174,6 +13458,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "บางจาก",
       "ปุณณวิถี"
     ],
@@ -13463,10 +13748,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS สะพานควาย",
-      "MRT กำแพงเพชร"
+      "MRT กำแพงเพชร",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "อารีย์"
+      "อารีย์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -13483,12 +13770,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -13510,12 +13798,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS เอกมัย",
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เอกมัย",
-      "พระโขนง"
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -13579,11 +13870,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS แบริ่ง"
+      "BTS แบริ่ง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "บางนา",
-      "แบริ่ง"
+      "แบริ่ง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -13731,11 +14025,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT พระราม 9",
       "BTS อโศก"
     ],
     "zone_verified": [
-      "พระราม 9",
       "อโศก"
     ],
     "location_status": "verified",
@@ -13750,7 +14042,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ตลาดพลู"
+      "BTS ตลาดพลู",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -13791,10 +14085,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศรีลาซาล"
+      "MRT ศรีลาซาล",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -13883,10 +14180,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ช่องนนทรี"
+      "BTS ช่องนนทรี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -13948,6 +14248,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -14031,10 +14332,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศรีเอี่ยม"
+      "MRT ศรีเอี่ยม",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14122,10 +14426,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สุรศักดิ์"
+      "BTS สุรศักดิ์",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14207,7 +14514,8 @@
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14227,10 +14535,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT หัวหมาก ( สีเหลือง )",
-      "ARL หัวหมาก"
+      "ARL หัวหมาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์"
+      "พัฒนาการ ศรีนครินทร์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14371,10 +14681,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง สะพานพระนั่งเกล้า"
+      "MRT สายสีม่วง สะพานพระนั่งเกล้า",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า"
+      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14410,9 +14723,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14503,10 +14820,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศรีลาซาล"
+      "MRT ศรีลาซาล",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14814,8 +15134,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ชิดลม",
-      "BTS สยาม"
+      "BTS ชิดลม"
     ],
     "zone_verified": [
       "ชิดลม"
@@ -14833,12 +15152,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "บางจาก"
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14875,10 +15197,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง สะพานพระนั่งเกล้า"
+      "MRT สายสีม่วง สะพานพระนั่งเกล้า",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า"
+      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14895,9 +15220,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สะพานตากสิน",
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สะพานตากสิน"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -14954,10 +15279,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ศรีด่าน",
-      "MRT ศรีเทพา"
+      "MRT ศรีเทพา",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สมุทรปราการ สำโรง"
+      "สมุทรปราการ สำโรง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -14994,10 +15321,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ม.เกษตรศาสตร์",
-      "BTS เสนานิคม"
+      "BTS เสนานิคม",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "เกษตรศาสตร์ รัชโยธิน"
+      "เกษตรศาสตร์ รัชโยธิน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -15104,9 +15433,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "พระราม 3 สาธุประดิษฐ์"
+      "พระราม 3 สาธุประดิษฐ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -15225,10 +15558,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT สายสีม่วง แยกติวานนท์",
-      "MRT สายสีม่วง กระทรวงสาธารณสุข"
+      "MRT สายสีม่วง กระทรวงสาธารณสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "พระราม 5 ราชพฤกษ์ บางกรวย"
+      "พระราม 5 ราชพฤกษ์ บางกรวย",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -15245,12 +15580,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา",
-      "MRT ลาดพร้าว"
+      "MRT รามอินทรา"
     ],
-    "zone_verified": [
-      "ลาดพร้าว"
-    ],
+    "zone_verified": [],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2
@@ -15373,8 +15705,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ศาลาแดง",
-      "MRT สีลม"
+      "BTS ศาลาแดง"
     ],
     "zone_verified": [
       "สีลม"
@@ -15413,10 +15744,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT บางอ้อ",
-      "MRT บางพลัด"
+      "MRT บางพลัด",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ปิ่นเกล้า จรัญสนิทวงศ์"
+      "ปิ่นเกล้า จรัญสนิทวงศ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -15497,12 +15830,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS อ่อนนุช"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "อ่อนนุช"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -15664,8 +15995,8 @@
     ],
     "zone_verified": [
       "วิทยุ",
-      "หลังสวน",
       "ชิดลม",
+      "หลังสวน",
       "เพลินจิต"
     ],
     "location_status": "verified",
@@ -16105,10 +16436,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อารีย์",
-      "BTS สนามเป้า"
+      "BTS สนามเป้า",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "อารีย์"
+      "อารีย์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -16143,15 +16476,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
-      "MRT คลองเตย",
-      "BTS พร้อมพงษ์"
+      "BTS อโศก",
+      "MRT สุขุมวิท"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
-      "สุขุมวิท",
-      "พร้อมพงษ์"
+      "สุขุมวิท"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -16210,8 +16541,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS กรุงธนบุรี",
       "BTS วงเวียนใหญ่",
-      "BTS กรุงธนบุรี"
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -16255,12 +16587,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เสรีไทย-นิด้า",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -16356,13 +16689,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์"
+      "BTS ทองหล่อ",
+      "BTS เอกมัย"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
       "สุขุมวิท",
-      "พร้อมพงษ์"
+      "เอกมัย"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -16512,10 +16846,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สิรินธร"
+      "MRT สิรินธร",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "ปิ่นเกล้า จรัญสนิทวงศ์"
+      "ปิ่นเกล้า จรัญสนิทวงศ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -16714,11 +17051,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT เพชรบุรี",
       "BTS อโศก"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
       "อโศก"
     ],
     "location_status": "verified",
@@ -16773,7 +17108,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สุขุมวิท",
       "BTS อโศก"
     ],
     "zone_verified": [
@@ -16824,10 +17158,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL บ้านทับช้าง"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "ลาดกระบัง สุวรรณภูมิ"
+      "ลาดกระบัง สุวรรณภูมิ",
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -16863,14 +17200,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -17108,12 +17445,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "บางจาก"
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -17291,10 +17631,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ช่องนนทรี",
-      "BTS สุรศักดิ์"
+      "BTS สุรศักดิ์",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -17326,7 +17668,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS รัชโยธิน",
       "BTS หมอชิต"
     ],
     "zone_verified": [],
@@ -17657,11 +17998,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ลุมพินี",
       "BTS เพลินจิต"
     ],
     "zone_verified": [
-      "ลุมพินี",
       "เพลินจิต"
     ],
     "location_status": "verified",
@@ -17716,12 +18055,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "อุดมสุข"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -17755,12 +18096,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ช่องนนทรี",
-      "MRT ลุมพินี"
+      "BTS ช่องนนทรี"
     ],
     "zone_verified": [
-      "สาทร",
-      "ลุมพินี"
+      "สาทร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -17859,16 +18198,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ตลาดพลู",
-      "BTS โพธิ์นิมิตร"
+      "BTS ทองหล่อ",
+      "MRT เพชรบุรี",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "ท่าพระ ตลาดพลู วุฒากาศ"
+      "ทองหล่อ",
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:niche_pride_thonglor_phet",
     "living_project_url": "https://www.livinginsider.com/living_project/27/926/1/all/all/1/แอสปาย-สาทร-ท่าพระ.html",
     "living_zone": "ท่าพระ ตลาดพลู วุฒากาศ"
   },
@@ -17882,8 +18226,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สะพานควาย",
-      "BTS พญาไท"
+      "BTS สะพานควาย"
     ],
     "zone_verified": [],
     "location_status": "verified",
@@ -17962,7 +18305,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศูนย์วัฒนธรรมแห่งประเทศไทย",
       "MRT ห้วยขวาง"
     ],
     "zone_verified": [
@@ -18015,7 +18357,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "บางนา",
@@ -18050,7 +18393,7 @@
     "is_thru_thonglor": false,
     "listing_count": 2,
     "location_source": "livinginsider",
-    "living_project_url": "https://www.livinginsider.com/living_project/32/4761/6/all/all/1/บ้านกลางเมือง-ลาดพร้าว-เสรีไทย.html",
+    "living_project_url": "https://www.livinginsider.com/living_project/32/-1/6/all/all/1/.html",
     "living_zone": "เสรีไทย-นิด้า"
   },
   {
@@ -18064,12 +18407,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "รามคำแหง",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -18145,10 +18489,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT แยกลำสาลี",
-      "MRT บางกะปิ"
+      "MRT บางกะปิ",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "รามคำแหง"
+      "รามคำแหง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -18289,10 +18635,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สะพานใหม่"
+      "BTS สะพานใหม่",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "วิภาวดี ดอนเมือง หลักสี่"
+      "วิภาวดี ดอนเมือง หลักสี่",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -18434,12 +18783,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อุดมสุข",
-      "BTS บางนา"
+      "BTS อุดมสุข"
     ],
     "zone_verified": [
-      "อุดมสุข",
-      "บางนา"
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -18482,6 +18829,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -18520,17 +18868,23 @@
     ],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS พระโขนง",
+      "BTS เอกมัย",
+      "BTS กรุงธนบุรี"
+    ],
     "zone_verified": [
-      "ทองหล่อ",
-      "อโศก",
-      "สุขุมวิท"
+      "คลองเตย กล้วยน้ำไท",
+      "พระโขนง",
+      "เอกมัย",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2,
     "location_source": "livinginsider",
-    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
+    "living_zone": "คลองเตย กล้วยน้ำไท",
+    "living_project_url": "https://www.livinginsider.com/living_project/23/57/1/all/all/1/ยูสบาย-พระราม-4-กล้วยน้ำไท.html"
   },
   {
     "id": "e49f9890-8dcb-50f4-b486-227486307b66",
@@ -18564,14 +18918,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -18588,12 +18942,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -18610,7 +18965,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
       "BTS อโศก"
     ],
     "zone_verified": [
@@ -18669,9 +19023,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "พระราม 3 สาธุประดิษฐ์"
+      "พระราม 3 สาธุประดิษฐ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -18755,12 +19113,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อโศก",
-      "MRT เพชรบุรี"
+      "BTS อโศก"
     ],
     "zone_verified": [
       "อโศก",
-      "เพชรบุรีตัดใหม่",
       "สุขุมวิท"
     ],
     "location_status": "verified",
@@ -18829,13 +19185,15 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2,
     "location_source": "livinginsider",
-    "living_zone": "อ่อนนุช อุดมสุข"
+    "living_zone": "อ่อนนุช อุดมสุข",
+    "living_project_url": "https://www.livinginsider.com/living_project/19/-1/6/all/all/1/.html"
   },
   {
     "id": "b948b6b7-3a2e-5124-853d-dd6a2f42d3c7",
@@ -18849,14 +19207,15 @@
       "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "ลาดพร้าว",
+      "เกษตร นวมินทร์ ลาดปลาเค้า",
       "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2,
     "location_source": "livinginsider",
-    "living_zone": "โชคชัย4 ลาดพร้าว71"
+    "living_zone": "เกษตร นวมินทร์ ลาดปลาเค้า",
+    "living_project_url": "https://www.livinginsider.com/living_project/2/-1/6/all/all/1/.html"
   },
   {
     "id": "3e80a0c8-49b4-5bdc-8cfe-37da0f596c2c",
@@ -18867,7 +19226,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ปิ่นเกล้า จรัญสนิทวงศ์",
@@ -18889,7 +19249,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -19030,6 +19391,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "บางจาก"
     ],
     "location_status": "verified",
@@ -19046,9 +19408,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "แจ้งวัฒนะ เมืองทอง"
+      "แจ้งวัฒนะ เมืองทอง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19160,10 +19526,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง วงศ์สว่าง"
+      "MRT สายสีม่วง วงศ์สว่าง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางซื่อ วงศ์สว่าง เตาปูน"
+      "บางซื่อ วงศ์สว่าง เตาปูน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19183,21 +19552,19 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS บางจาก",
-      "BTS ปุณณวิถี"
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "อโศก",
-      "สุขุมวิท",
-      "บางจาก",
-      "ปุณณวิถี"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2,
     "location_source": "livinginsider",
-    "living_zone": "สุขุมวิท อโศก ทองหล่อ"
+    "living_zone": "อ่อนนุช อุดมสุข"
   },
   {
     "id": "8bd0c304-dc85-5bd4-9458-aed181abbb40",
@@ -19210,12 +19577,11 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS สะพานตากสิน"
+      "BTS เจริญนคร",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "เจริญนคร",
-      "สาทร"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19325,12 +19691,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "รามคำแหง",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19461,10 +19828,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร",
       "BTS สุรศักดิ์"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19486,6 +19856,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง"
     ],
     "location_status": "verified",
@@ -19531,8 +19902,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS วงเวียนใหญ่",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS วงเวียนใหญ่"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -19553,11 +19924,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19572,10 +19944,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT บางโพ"
+      "MRT บางโพ",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางซื่อ วงศ์สว่าง เตาปูน"
+      "บางซื่อ วงศ์สว่าง เตาปูน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19677,11 +20052,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "อุดมสุข"
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19724,10 +20102,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สำโรง"
+      "BTS สำโรง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สมุทรปราการ สำโรง"
+      "สมุทรปราการ สำโรง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19747,10 +20128,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS สะพานควาย",
-      "MRT กำแพงเพชร"
+      "MRT กำแพงเพชร",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สะพานควาย จตุจักร"
+      "สะพานควาย จตุจักร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19840,6 +20223,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -19926,10 +20310,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT หัวหมาก ( สีเหลือง )",
-      "ARL หัวหมาก"
+      "ARL หัวหมาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์"
+      "พัฒนาการ ศรีนครินทร์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -19949,12 +20335,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS เพลินจิต",
-      "MRT ลุมพินี"
+      "BTS เพลินจิต"
     ],
     "zone_verified": [
       "เพลินจิต",
-      "ลุมพินี",
       "วิทยุ"
     ],
     "location_status": "verified",
@@ -20043,11 +20427,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ลุมพินี",
       "BTS ช่องนนทรี"
     ],
     "zone_verified": [
-      "ลุมพินี",
       "สาทร"
     ],
     "location_status": "verified",
@@ -20290,11 +20672,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร",
       "MRT ห้วยขวาง"
     ],
     "zone_verified": [
       "รัชดา",
-      "ห้วยขวาง"
+      "ห้วยขวาง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -20350,10 +20735,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT แยกลำสาลี",
-      "MRT บางกะปิ"
+      "MRT บางกะปิ",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "เสรีไทย-นิด้า"
+      "เสรีไทย-นิด้า",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -20550,8 +20937,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อารีย์",
-      "BTS พญาไท"
+      "BTS อารีย์"
     ],
     "zone_verified": [
       "อารีย์"
@@ -20593,16 +20979,22 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน",
+      "MRT เพชรบุรี"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 2,
-    "location_source": "livinginsider"
+    "location_source": "livinginsider",
+    "living_project_url": "https://www.livinginsider.com/living_project/14/1111/1/all/all/1/ริธึ่ม-อโศก.html",
+    "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
   {
     "id": "553c9ab2-e6c2-5d39-8023-889c4da420d0",
@@ -20676,6 +21068,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -20716,12 +21109,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พระโขนง",
-      "BTS เอกมัย"
+      "BTS เอกมัย",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง",
-      "เอกมัย"
+      "เอกมัย",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -23411,6 +23807,7 @@
     ],
     "zone_verified": [
       "แบริ่ง",
+      "อุดมสุข",
       "สุขุมวิท"
     ],
     "location_status": "verified",
@@ -23449,6 +23846,7 @@
     ],
     "zone_verified": [
       "แบริ่ง",
+      "อุดมสุข",
       "สุขุมวิท"
     ],
     "location_status": "verified",
@@ -25320,6 +25718,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พร้อมพงษ์",
       "ทองหล่อ",
       "พระโขนง"
@@ -26258,11 +26657,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS แบริ่ง"
+      "BTS แบริ่ง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "บางนา",
-      "แบริ่ง"
+      "แบริ่ง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -26353,10 +26755,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS โพธิ์นิมิตร",
-      "BTS ตลาดพลู"
+      "BTS ตลาดพลู",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ท่าพระ ตลาดพลู วุฒากาศ"
+      "ท่าพระ ตลาดพลู วุฒากาศ",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -27599,10 +28003,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT พหลโยธิน",
-      "BTS ห้าแยกลาดพร้าว"
+      "BTS ห้าแยกลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ลาดพร้าว"
+      "ลาดพร้าว",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -27620,10 +28026,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ภาษีเจริญ",
-      "MRT บางแค"
+      "MRT บางแค",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "บางแค เพชรเกษม"
+      "บางแค เพชรเกษม",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -28000,7 +28408,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รัชดา",
@@ -28141,6 +28550,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -28547,7 +28957,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศรีนุช",
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
@@ -29132,10 +29541,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -29174,10 +29587,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT หลักสอง"
+      "MRT หลักสอง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางแค เพชรเกษม"
+      "บางแค เพชรเกษม",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -29705,6 +30121,7 @@
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
       "เจริญนคร"
     ],
@@ -29727,6 +30144,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -30281,7 +30699,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -30487,6 +30906,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -30743,10 +31163,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS บางนา"
+      "BTS บางนา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -30935,9 +31358,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "พระราม 3 สาธุประดิษฐ์"
+      "พระราม 3 สาธุประดิษฐ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -30955,12 +31382,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "อุดมสุข"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -31105,7 +31534,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT พหลโยธิน",
       "BTS ห้าแยกลาดพร้าว"
     ],
     "zone_verified": [],
@@ -31475,6 +31903,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -31755,7 +32184,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -31776,10 +32206,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS บางนา"
+      "BTS บางนา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -31990,7 +32423,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตร นวมินทร์ ลาดปลาเค้า",
@@ -32056,7 +32490,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -32155,10 +32590,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พหลโยธิน 24",
-      "BTS ห้าแยกลาดพร้าว"
+      "BTS ห้าแยกลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "เกษตรศาสตร์ รัชโยธิน"
+      "เกษตรศาสตร์ รัชโยธิน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -32300,7 +32737,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พระราม 5 ราชพฤกษ์ บางกรวย",
@@ -32445,6 +32883,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -32462,7 +32901,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รัชดา",
@@ -32506,10 +32946,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -32549,19 +32991,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS ทองหล่อ",
+      "MRT เพชรบุรี",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
-      "RCA",
-      "พระราม 9",
-      "เจริญนคร"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร",
+      "RCA"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:lloyd_soonvijai",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
   {
@@ -32699,7 +33143,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รัชดา",
@@ -32867,14 +33312,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -32911,7 +33356,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "สมุทรปราการ สำโรง",
@@ -32994,7 +33440,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ท่าพระ ตลาดพลู วุฒากาศ",
@@ -33016,7 +33463,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "บางแค เพชรเกษม",
@@ -33063,6 +33511,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -33121,11 +33570,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "BTS ทองหล่อ",
+      "BTS เอกมัย"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
-      "รามคำแหง"
+      "ทองหล่อ",
+      "เอกมัย"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -33143,7 +33594,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รัชดา",
@@ -33205,12 +33657,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เลียบทางด่วนรามอินทรา",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -33228,7 +33681,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -33434,10 +33888,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
       "เจริญนคร"
     ],
@@ -33498,9 +33954,14 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS เอกมัย",
+      "BTS ทองหล่อ"
+    ],
     "zone_verified": [
-      "เลียบทางด่วนรามอินทรา"
+      "เลียบทางด่วนรามอินทรา",
+      "เอกมัย",
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -33862,7 +34323,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -33949,10 +34411,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT บางโพ",
-      "MRT สายสีม่วง เตาปูน"
+      "MRT สายสีม่วง เตาปูน",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "บางซื่อ วงศ์สว่าง เตาปูน"
+      "บางซื่อ วงศ์สว่าง เตาปูน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -33968,9 +34432,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "แจ้งวัฒนะ เมืองทอง"
+      "แจ้งวัฒนะ เมืองทอง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -33988,7 +34456,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รัชดา",
@@ -34032,10 +34501,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศรีอุดม"
+      "MRT ศรีอุดม",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์"
+      "พัฒนาการ ศรีนครินทร์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -34150,15 +34622,11 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
+    "transit_verified": [],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "เจริญนคร"
+      "พระราม 9"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -34175,7 +34643,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -34240,6 +34709,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -34340,8 +34810,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
+      "BTS กรุงธนบุรี",
       "BTS วงเวียนใหญ่",
-      "BTS กรุงธนบุรี"
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -34448,7 +34919,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เยาวราช บางลำพู",
@@ -34513,7 +34985,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รัชดา",
@@ -34579,11 +35052,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "ARL รามคำแหง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
-      "รามคำแหง"
+      "รามคำแหง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -34706,10 +35182,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง แยกนนทบุรี 1"
+      "MRT สายสีม่วง แยกนนทบุรี 1",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า"
+      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -34924,10 +35403,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL บ้านทับช้าง"
+      "ARL บ้านทับช้าง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์"
+      "พัฒนาการ ศรีนครินทร์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -35120,10 +35602,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง แยกนนทบุรี 1"
+      "MRT สายสีม่วง แยกนนทบุรี 1",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า"
+      "รัตนาธิเบศร์ สนามบินน้ำ พระนั่งเกล้า",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -35140,10 +35625,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT บางยี่ขัน"
+      "MRT บางยี่ขัน",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "ปิ่นเกล้า จรัญสนิทวงศ์"
+      "ปิ่นเกล้า จรัญสนิทวงศ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -35182,10 +35670,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT กลันตัน"
+      "MRT กลันตัน",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์"
+      "พัฒนาการ ศรีนครินทร์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -35302,10 +35793,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา"
+      "MRT รามอินทรา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "นวมินทร์ รามอินทรา"
+      "นวมินทร์ รามอินทรา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -35405,7 +35899,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -35504,7 +35999,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -35669,11 +36165,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -35819,10 +36316,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ศรีด่าน",
-      "MRT ศรีเทพา"
+      "MRT ศรีเทพา",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สมุทรปราการ สำโรง"
+      "สมุทรปราการ สำโรง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -35979,10 +36478,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT บางกะปิ",
-      "MRT ลาดพร้าว"
+      "MRT ลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ลาดพร้าว"
+      "ลาดพร้าว",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -36019,7 +36520,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "บางนา",
@@ -36045,6 +36547,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -36241,11 +36744,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -36284,11 +36790,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ปุณณวิถี"
+      "BTS ปุณณวิถี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "ปุณณวิถี"
+      "อุดมสุข",
+      "ปุณณวิถี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -36367,11 +36877,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -36408,18 +36919,18 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL รามคำแหง"
+      "ARL รามคำแหง",
+      "BTS เอกมัย",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
-      "RCA",
-      "พระราม 9",
-      "รามคำแหง"
+      "เอกมัย",
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:ekamai_thonglor",
     "living_project_url": "https://www.livinginsider.com/living_project/14/1117/1/all/all/1/ศุภาลัยปาร์ค-เอกมัย-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -36495,6 +37006,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -36516,6 +37028,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -36608,11 +37121,12 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -36649,11 +37163,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ปุณณวิถี"
+      "BTS ปุณณวิถี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "ปุณณวิถี"
+      "อุดมสุข",
+      "ปุณณวิถี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -36708,7 +37226,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สะพานตากสิน"
+      "BTS สะพานตากสิน",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -36786,10 +37306,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
-      "MRT คลองเตย"
+      "MRT คลองเตย",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "คลองเตย กล้วยน้ำไท"
+      "คลองเตย กล้วยน้ำไท",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -36812,8 +37334,8 @@
     ],
     "zone_verified": [
       "วิทยุ",
-      "หลังสวน",
       "ชิดลม",
+      "หลังสวน",
       "เพลินจิต"
     ],
     "location_status": "verified",
@@ -37223,8 +37745,8 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
-      "MRT คลองเตย"
+      "BTS อโศก",
+      "MRT สุขุมวิท"
     ],
     "zone_verified": [
       "ทองหล่อ",
@@ -37386,10 +37908,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS บางนา"
+      "BTS บางนา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -37652,10 +38177,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ช่องนนทรี"
+      "BTS ช่องนนทรี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -37934,10 +38462,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา"
+      "MRT รามอินทรา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "นวมินทร์ รามอินทรา"
+      "นวมินทร์ รามอินทรา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -38007,7 +38538,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ลาดพร้าว",
       "BTS สะพานควาย"
     ],
     "zone_verified": [
@@ -38186,10 +38716,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง บางรักใหญ่"
+      "MRT สายสีม่วง บางรักใหญ่",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "พระราม 5 ราชพฤกษ์ บางกรวย"
+      "พระราม 5 ราชพฤกษ์ บางกรวย",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -38225,9 +38758,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "พระราม 3 สาธุประดิษฐ์"
+      "พระราม 3 สาธุประดิษฐ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -38265,7 +38802,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ตลาดพลู"
+      "BTS ตลาดพลู",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -38286,11 +38825,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT แยกลำสาลี",
-      "MRT บางกะปิ"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
-      "เสรีไทย-นิด้า"
+      "เสรีไทย-นิด้า",
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -38340,15 +38881,11 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
+    "transit_verified": [],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "เจริญนคร"
+      "พระราม 9"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -38365,19 +38902,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS ทองหล่อ",
+      "MRT เพชรบุรี",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
-      "RCA",
-      "พระราม 9",
-      "เจริญนคร"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร",
+      "RCA"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:lloyd_soonvijai",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
   {
@@ -38425,7 +38964,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL หัวหมาก",
       "MRT ศรีนุช"
     ],
     "zone_verified": [],
@@ -38454,8 +38992,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พญาไท",
-      "BTS ราชเทวี"
+      "BTS พญาไท"
     ],
     "zone_verified": [],
     "location_status": "verified",
@@ -38508,7 +39045,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -38529,7 +39067,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สำโรง",
       "BTS เอกมัย"
     ],
     "zone_verified": [
@@ -38548,7 +39085,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตร นวมินทร์ ลาดปลาเค้า",
@@ -38590,7 +39128,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS วงเวียนใหญ่"
+      "BTS วงเวียนใหญ่",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -38843,8 +39383,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS วงเวียนใหญ่",
-      "BTS สยาม"
+      "BTS วงเวียนใหญ่"
     ],
     "zone_verified": [
       "วงเวียนใหญ่"
@@ -38890,10 +39429,10 @@
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
       "เพลินจิต",
-      "นานา",
-      "ชิดลม"
+      "นานา"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -38932,10 +39471,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT พหลโยธิน",
-      "BTS ห้าแยกลาดพร้าว"
+      "BTS ห้าแยกลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "วิภาวดี ดอนเมือง หลักสี่"
+      "วิภาวดี ดอนเมือง หลักสี่",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -39037,12 +39578,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อุดมสุข",
-      "BTS บางนา"
+      "BTS อุดมสุข"
     ],
     "zone_verified": [
-      "อุดมสุข",
-      "บางนา"
+      "อุดมสุข"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -39100,10 +39639,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อารีย์",
-      "BTS สนามเป้า"
+      "BTS สนามเป้า",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "อารีย์"
+      "อารีย์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -39326,7 +39867,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตรศาสตร์ รัชโยธิน",
@@ -39561,7 +40103,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "นนทบุรี บางใหญ่ บางบัวทอง",
@@ -39735,12 +40278,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช",
-      "บางจาก"
+      "อ่อนนุช"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -39840,7 +40381,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "แจ้งวัฒนะ เมืองทอง",
@@ -39862,10 +40404,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ช่องนนทรี",
-      "BTS สุรศักดิ์"
+      "BTS สุรศักดิ์",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -39883,10 +40427,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -39967,15 +40513,11 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
-    ],
+    "transit_verified": [],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "เจริญนคร"
+      "พระราม 9"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -40034,7 +40576,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "วิภาวดี ดอนเมือง หลักสี่",
@@ -40075,12 +40618,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT เพชรบุรี",
-      "MRT พระราม 9"
+      "MRT เพชรบุรี"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
-      "พระราม 9"
+      "เพชรบุรีตัดใหม่"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -40401,9 +40942,14 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
+    ],
     "zone_verified": [
-      "พระราม 3 สาธุประดิษฐ์"
+      "พระราม 3 สาธุประดิษฐ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -40439,14 +40985,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -40542,7 +41088,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL หัวหมาก",
       "BTS อ่อนนุช"
     ],
     "zone_verified": [
@@ -40561,7 +41106,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตรศาสตร์ รัชโยธิน",
@@ -40618,7 +41164,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT บางกะปิ",
       "MRT พระราม 9"
     ],
     "zone_verified": [
@@ -40657,14 +41202,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -40681,7 +41226,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS โพธิ์นิมิตร",
-      "BTS วงเวียนใหญ่"
+      "BTS วงเวียนใหญ่",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -40784,6 +41330,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -40856,12 +41403,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -40957,10 +41505,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ช่องนนทรี"
+      "BTS ช่องนนทรี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -40978,7 +41529,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตรศาสตร์ รัชโยธิน",
@@ -40999,11 +41551,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ปุณณวิถี"
+      "BTS ปุณณวิถี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "ปุณณวิถี"
+      "อุดมสุข",
+      "ปุณณวิถี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -41175,7 +41731,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "บางนา",
@@ -41311,9 +41868,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "เกษตรศาสตร์ รัชโยธิน"
+      "เกษตรศาสตร์ รัชโยธิน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -41331,10 +41892,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT โชคชัย 4",
-      "MRT ลาดพร้าว"
+      "MRT ลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ลาดพร้าว"
+      "ลาดพร้าว",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -41454,7 +42017,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "วิภาวดี ดอนเมือง หลักสี่",
@@ -41515,12 +42079,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รัชดาภิเษก",
-      "MRT ลาดพร้าว"
+      "MRT รัชดาภิเษก"
     ],
     "zone_verified": [
-      "รัชดา",
-      "ลาดพร้าว"
+      "รัชดา"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -41615,7 +42177,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -41635,9 +42198,13 @@
     "aliases": [],
     "transit_unverified": [],
     "zone_unverified": [],
-    "transit_verified": [],
+    "transit_verified": [
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
+    ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -41805,7 +42372,8 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี"
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -41898,12 +42466,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS พระโขนง",
-      "BTS เอกมัย"
+      "BTS เอกมัย",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "พระโขนง",
-      "เอกมัย"
+      "เอกมัย",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -41964,11 +42535,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS บางนา",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "บางนา",
-      "อุดมสุข"
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -41985,7 +42558,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL หัวหมาก",
       "MRT บางกะปิ"
     ],
     "zone_verified": [
@@ -42004,12 +42576,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อุดมสุข",
-      "BTS ปุณณวิถี"
+      "BTS ปุณณวิถี",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
       "อุดมสุข",
-      "ปุณณวิถี"
+      "ปุณณวิถี",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -42039,12 +42613,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ห้วยขวาง",
-      "MRT รัชดาภิเษก"
+      "MRT ห้วยขวาง"
     ],
     "zone_verified": [
-      "ห้วยขวาง",
-      "รัชดา"
+      "ห้วยขวาง"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -42092,10 +42664,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สายสีม่วง บางซ่อน"
+      "MRT สายสีม่วง บางซ่อน",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางซื่อ วงศ์สว่าง เตาปูน"
+      "บางซื่อ วงศ์สว่าง เตาปูน",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -42203,7 +42778,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -42326,10 +42902,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS บางนา"
+      "BTS บางนา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -42467,10 +43046,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT บางกะปิ",
-      "MRT ลาดพร้าว"
+      "MRT ลาดพร้าว",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "ลาดพร้าว"
+      "ลาดพร้าว",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -42487,10 +43068,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ไฟฉาย"
+      "MRT ไฟฉาย",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "ปิ่นเกล้า จรัญสนิทวงศ์"
+      "ปิ่นเกล้า จรัญสนิทวงศ์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -42758,11 +43342,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -42874,8 +43461,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สะพานควาย",
-      "BTS พญาไท"
+      "BTS สะพานควาย"
     ],
     "zone_verified": [],
     "location_status": "verified",
@@ -42911,7 +43497,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "สมุทรปราการ สำโรง",
@@ -42972,10 +43559,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "วิทยุ",
+      "ชิดลม",
       "หลังสวน",
       "เจริญนคร"
     ],
@@ -42994,8 +43583,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS หมอชิต",
-      "MRT พหลโยธิน"
+      "BTS หมอชิต"
     ],
     "zone_verified": [],
     "location_status": "verified",
@@ -43010,8 +43598,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พญาไท",
-      "BTS ราชเทวี"
+      "BTS พญาไท"
     ],
     "zone_verified": [],
     "location_status": "verified",
@@ -43068,10 +43655,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ศรีกรีฑา",
-      "ARL หัวหมาก"
+      "ARL หัวหมาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "รามคำแหง"
+      "รามคำแหง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -43167,7 +43756,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -43189,7 +43779,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -43377,6 +43968,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -43452,7 +44044,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT พหลโยธิน",
       "BTS ห้าแยกลาดพร้าว"
     ],
     "zone_verified": [],
@@ -43515,7 +44106,8 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "เจริญนคร",
@@ -43698,10 +44290,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "ARL หัวหมาก"
+      "ARL หัวหมาก",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "รามคำแหง"
+      "รามคำแหง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -43898,7 +44493,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -44028,10 +44624,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช"
+      "BTS อ่อนนุช",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "อ่อนนุช"
+      "อ่อนนุช",
+      "อุดมสุข",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44048,10 +44648,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ช่องนนทรี"
+      "BTS ช่องนนทรี",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44068,14 +44671,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44144,10 +44747,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT หัวหมาก ( สีเหลือง )",
-      "ARL หัวหมาก"
+      "ARL หัวหมาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์"
+      "พัฒนาการ ศรีนครินทร์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44165,10 +44770,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT สวนหลวง ร.9",
-      "MRT ศรีนครินทร์ 38"
+      "MRT ศรีนครินทร์ 38",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "พัฒนาการ ศรีนครินทร์"
+      "พัฒนาการ ศรีนครินทร์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44238,12 +44845,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS อุดมสุข"
+      "BTS อุดมสุข",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "อุดมสุข"
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44339,12 +44948,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สุทธิสาร",
-      "MRT รัชดาภิเษก"
+      "MRT สุทธิสาร"
     ],
-    "zone_verified": [
-      "รัชดา"
-    ],
+    "zone_verified": [],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1
@@ -44373,10 +44979,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS สุรศักดิ์",
-      "BTS ช่องนนทรี"
+      "BTS ช่องนนทรี",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "สาทร"
+      "สาทร",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44448,11 +45056,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS แบริ่ง"
+      "BTS แบริ่ง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "บางนา",
-      "แบริ่ง"
+      "แบริ่ง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44567,14 +45178,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์",
-      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์"
+      "BTS อโศก",
+      "MRT สุขุมวิท"
     ],
     "zone_verified": [
       "ทองหล่อ",
       "อโศก",
-      "สุขุมวิท",
-      "พร้อมพงษ์"
+      "สุขุมวิท"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44935,11 +45545,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -44957,7 +45570,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตร นวมินทร์ ลาดปลาเค้า",
@@ -44979,7 +45593,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตร นวมินทร์ ลาดปลาเค้า",
@@ -45095,7 +45710,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตร นวมินทร์ ลาดปลาเค้า",
@@ -45160,10 +45776,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -45203,7 +45821,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตร นวมินทร์ ลาดปลาเค้า",
@@ -45282,7 +45901,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -45319,12 +45939,15 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS ปุณณวิถี",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "ปุณณวิถี",
-      "บางจาก"
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -45402,18 +46025,17 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS เอกมัย"
+      "BTS เอกมัย",
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
-      "RCA",
-      "พระราม 9",
-      "เอกมัย"
+      "เอกมัย",
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:capital_ekamai_thonglor",
     "living_project_url": "https://www.livinginsider.com/living_project/14/1116/1/all/all/1/เดอะ-แคปิตอล-เอกมัย-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -45426,7 +46048,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -45567,8 +46190,8 @@
     ],
     "zone_verified": [
       "วิทยุ",
-      "หลังสวน",
       "ชิดลม",
+      "หลังสวน",
       "เพลินจิต"
     ],
     "location_status": "verified",
@@ -45680,8 +46303,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อารีย์",
-      "BTS พญาไท"
+      "BTS อารีย์"
     ],
     "zone_verified": [
       "อารีย์"
@@ -45737,21 +46359,21 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พร้อมพงษ์",
       "MRT เพชรบุรี",
-      "BTS ทองหล่อ"
+      "BTS ทองหล่อ",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
+      "ทองหล่อ",
       "เพชรบุรีตัดใหม่",
       "RCA",
-      "พระราม 9",
-      "พร้อมพงษ์",
-      "ทองหล่อ"
+      "โรงพยาบาลกรุงเทพ",
+      "มศว ประสานมิตร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1,
-    "location_source": "livinginsider",
+    "location_source": "livinginsider+curated:base_phet_thonglor",
     "living_project_url": "https://www.livinginsider.com/living_project/14/3175/1/all/all/1/เดอะ-เบส-เพชรบุรี-ทองหล่อ.html",
     "living_zone": "พระราม 9 เพชรบุรีตัดใหม่ RCA"
   },
@@ -45764,7 +46386,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "อารีย์",
@@ -45919,6 +46542,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -45940,6 +46564,7 @@
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -46110,12 +46735,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "ลาดกระบัง สุวรรณภูมิ",
-      "เจริญนคร"
+      "พระราม 9",
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -46152,10 +46778,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อารีย์"
+      "BTS อารีย์",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "อารีย์"
+      "อารีย์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -46228,10 +46857,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา"
+      "MRT รามอินทรา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "นวมินทร์ รามอินทรา"
+      "นวมินทร์ รามอินทรา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -46499,11 +47131,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT เพชรบุรี",
       "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "เพชรบุรีตัดใหม่",
       "ทองหล่อ"
     ],
     "location_status": "verified",
@@ -46518,7 +47148,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา",
       "BTS เอกมัย"
     ],
     "zone_verified": [
@@ -46639,7 +47268,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สุรศักดิ์",
       "BTS ช่องนนทรี"
     ],
     "zone_verified": [
@@ -46680,11 +47308,15 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS พระโขนง"
+      "BTS พระโขนง",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "พระโขนง"
+      "อุดมสุข",
+      "พระโขนง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -46701,7 +47333,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT บางซื่อ",
       "BTS รัชโยธิน"
     ],
     "zone_verified": [],
@@ -46717,8 +47348,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ห้วยขวาง",
-      "MRT ศูนย์วัฒนธรรมแห่งประเทศไทย"
+      "MRT ห้วยขวาง"
     ],
     "zone_verified": [
       "ห้วยขวาง"
@@ -46735,12 +47365,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สะพานตากสิน",
       "BTS สุรศักดิ์"
     ],
-    "zone_verified": [
-      "สาทร"
-    ],
+    "zone_verified": [],
     "location_status": "verified",
     "is_thru_thonglor": false,
     "listing_count": 1
@@ -46775,10 +47402,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -46797,7 +47426,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พระราม 3 สาธุประดิษฐ์",
@@ -46874,7 +47504,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา",
       "BTS นานา"
     ],
     "zone_verified": [
@@ -46937,7 +47566,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "ลาดพร้าว",
@@ -47038,12 +47668,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS พร้อมพงษ์"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "พร้อมพงษ์"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -47115,8 +47743,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อารีย์",
-      "BTS พญาไท"
+      "BTS อารีย์"
     ],
     "zone_verified": [
       "อารีย์"
@@ -47152,7 +47779,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT สุทธิสาร",
       "MRT ห้วยขวาง"
     ],
     "zone_verified": [
@@ -47251,7 +47877,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT หัวลำโพง",
       "BTS พญาไท"
     ],
     "zone_verified": [],
@@ -47308,12 +47933,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS เอกมัย"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "เอกมัย"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -47401,7 +48024,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พัฒนาการ ศรีนครินทร์",
@@ -47445,10 +48069,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -47467,11 +48093,14 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อ่อนนุช",
-      "BTS บางจาก"
+      "BTS บางจาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "อ่อนนุช",
-      "บางจาก"
+      "อุดมสุข",
+      "บางจาก",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -47508,7 +48137,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT พหลโยธิน",
       "BTS ห้าแยกลาดพร้าว"
     ],
     "zone_verified": [],
@@ -47524,12 +48152,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS เอกมัย"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "เอกมัย"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -47544,7 +48170,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รามคำแหง",
@@ -47565,8 +48192,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อโศก",
-      "MRT สุขุมวิท"
+      "BTS อโศก"
     ],
     "zone_verified": [
       "อโศก",
@@ -47727,14 +48353,14 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "MRT พระราม 9",
+      "ARL มักกะสัน"
     ],
     "zone_verified": [
       "เพชรบุรีตัดใหม่",
       "RCA",
       "พระราม 9",
-      "เจริญนคร"
+      "มักกะสัน"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -47793,7 +48419,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS สยาม",
       "BTS นานา"
     ],
     "zone_verified": [
@@ -47830,7 +48455,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT หัวลำโพง",
       "BTS สยาม"
     ],
     "zone_verified": [],
@@ -47948,11 +48572,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT ลุมพินี",
       "BTS ช่องนนทรี"
     ],
     "zone_verified": [
-      "ลุมพินี",
       "สาทร"
     ],
     "location_status": "verified",
@@ -48029,7 +48651,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา",
       "BTS เอกมัย"
     ],
     "zone_verified": [
@@ -48049,7 +48670,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "พระราม 3 สาธุประดิษฐ์",
@@ -48189,8 +48811,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ชิดลม",
-      "BTS สยาม"
+      "BTS ชิดลม"
     ],
     "zone_verified": [
       "ชิดลม"
@@ -48267,7 +48888,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "รัชดา",
@@ -48290,7 +48912,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตรศาสตร์ รัชโยธิน",
@@ -48383,11 +49006,9 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ช่องนนทรี",
       "BTS นานา"
     ],
     "zone_verified": [
-      "สาทร",
       "นานา"
     ],
     "location_status": "verified",
@@ -48708,11 +49329,13 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS อารีย์",
-      "BTS สนามเป้า"
+      "BTS สนามเป้า",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
       "ราชเทวี พญาไท",
-      "อารีย์"
+      "อารีย์",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -48729,12 +49352,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช",
-      "พระโขนง"
+      "อ่อนนุช"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -48802,7 +49423,6 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "MRT รามอินทรา",
       "BTS เอกมัย"
     ],
     "zone_verified": [
@@ -48846,10 +49466,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "MRT ศรีกรีฑา",
-      "ARL หัวหมาก"
+      "ARL หัวหมาก",
+      "BTS กรุงธนบุรี"
     ],
     "zone_verified": [
-      "รามคำแหง"
+      "รามคำแหง",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -48887,8 +49509,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อโศก",
-      "MRT สุขุมวิท"
+      "BTS อโศก"
     ],
     "zone_verified": [
       "อโศก"
@@ -49309,12 +49930,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS ทองหล่อ",
-      "BTS พร้อมพงษ์"
+      "BTS ทองหล่อ"
     ],
     "zone_verified": [
-      "ทองหล่อ",
-      "พร้อมพงษ์"
+      "ทองหล่อ"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -49346,10 +49965,13 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS บางนา"
+      "BTS บางนา",
+      "BTS กรุงธนบุรี",
+      "BTS เจริญนคร"
     ],
     "zone_verified": [
-      "บางนา"
+      "บางนา",
+      "เจริญนคร"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -49367,7 +49989,8 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "เกษตร นวมินทร์ ลาดปลาเค้า",
@@ -49389,10 +50012,12 @@
     "zone_unverified": [],
     "transit_verified": [
       "BTS กรุงธนบุรี",
-      "BTS เจริญนคร"
+      "BTS เจริญนคร",
+      "BTS สายหลัก"
     ],
     "zone_verified": [
       "อ่อนนุช",
+      "อุดมสุข",
       "เจริญนคร"
     ],
     "location_status": "verified",
@@ -49430,12 +50055,10 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อ่อนนุช",
-      "BTS พระโขนง"
+      "BTS อ่อนนุช"
     ],
     "zone_verified": [
-      "อ่อนนุช",
-      "พระโขนง"
+      "อ่อนนุช"
     ],
     "location_status": "verified",
     "is_thru_thonglor": false,
@@ -49491,8 +50114,7 @@
     "transit_unverified": [],
     "zone_unverified": [],
     "transit_verified": [
-      "BTS อโศก",
-      "MRT สุขุมวิท"
+      "BTS อโศก"
     ],
     "zone_verified": [
       "อโศก",

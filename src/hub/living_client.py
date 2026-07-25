@@ -11,12 +11,22 @@ from html import unescape
 from pathlib import Path
 from typing import Iterable
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse, urlsplit, urlunsplit
 
 from src.hub.scraper import DESKTOP_UA, _http_get
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 CACHE_DIR = BASE_DIR / "data" / "living_cache"
+
+
+def encode_living_url(url: str) -> str:
+    """Percent-encode non-ASCII path segments (Living project slugs are Thai)."""
+    parts = urlsplit((url or "").strip())
+    if not parts.scheme or not parts.netloc:
+        return url
+    return urlunsplit(
+        (parts.scheme, parts.netloc, quote(parts.path, safe="/%"), parts.query, parts.fragment)
+    )
 
 # Map markers / titles that look like rail stations
 _STATION_TITLE_RE = re.compile(
@@ -82,6 +92,36 @@ def _uniq(items: Iterable[str]) -> list[str]:
         seen.add(key)
         out.append(label)
     return out
+
+
+def living_project_stations_trusted(stations: list[str], *, zone: str) -> bool:
+    """Reject Living *project* page map pins that are known SEO pollution."""
+    if not stations:
+        return True
+    blob_n = re.sub(r"[^a-z0-9ก-๙]", "", f"{zone}".lower())
+    station_n = re.sub(r"[^a-z0-9ก-๙]", "", " ".join(stations).lower())
+    inland = any(
+        x in blob_n
+        for x in (
+            "ทองหล่อ",
+            "thonglo",
+            "เอกมัย",
+            "ekkamai",
+            "พระราม9",
+            "rama9",
+            "เพชรบุรี",
+            "phetchaburi",
+            "อโศก",
+            "asok",
+            "รัชดา",
+            "ratchada",
+            "ห้วยขวาง",
+        )
+    )
+    riverside = any(x in station_n for x in ("เจริญนคร", "กรุงธนบุรี", "wongwian", "วงเวียน"))
+    if inland and riverside:
+        return False
+    return True
 
 
 def canonicalize_living_station(raw: str) -> str | None:
@@ -210,8 +250,9 @@ def fetch_living_location(
     if sleep_s > 0:
         time.sleep(sleep_s)
 
+    fetch_url = encode_living_url(url)
     try:
-        html = _http_get(url, DESKTOP_UA)
+        html = _http_get(fetch_url, DESKTOP_UA)
     except HTTPError as exc:
         return LivingLocation(source_url=url, error=f"http_{exc.code}")
     except URLError as exc:
@@ -220,6 +261,11 @@ def fetch_living_location(
         return LivingLocation(source_url=url, error=str(exc)[:120])
 
     loc = parse_living_html(html, source_url=url)
+    # Project list pages often pin far SEO stations (เจริญนคร/กรุงธนบุรี on
+    # Thonglor/Rama9 projects). Prefer listing pages for transit; keep zone.
+    if "/living_project/" in urlparse(url).path.lower() and loc.stations:
+        if not living_project_stations_trusted(loc.stations, zone=loc.zone):
+            loc.stations = []
     if use_cache:
         _save_cache(
             url,

@@ -1,0 +1,68 @@
+# Livinginsider ทำเล / BTS–MRT — วิธีรันซ้ำ
+
+Livinginsider เป็นแหล่งหลักสำหรับ `transit_verified` (1–3 สถานีใกล้สุด) และ `zone_verified` (ทำเล).
+โครงการที่ Living ไม่มี URL จะได้ corridor/override แบบสั้น หรือเว้นว่าง (ไม่ดึง SEO กองจากชีตเก่า).
+
+## สิ่งที่อัปเดต
+
+| ไฟล์ | ความหมาย |
+|------|----------|
+| `data/projects.json` | master โครงการ + `transit_verified` / `zone_verified` / `location_source` |
+| `data/properties.json` | `location_ref` + `transit_from_sheet` จาก master |
+| ชีต「ชีตสำหรับทำงาน」 | คอลัมน์ ทำเล + สถานีรถไฟฟ้า |
+| ชีต「ทรัพย์รวม」 | overview sync จาก Hub |
+
+## คำสั่ง (จาก root โปรเจกต์)
+
+ใช้ Python ใน `.venv` (มี `gspread`):
+
+```bash
+cd /Users/angkarn1996/Projects/pantip-property-automation
+source .venv/bin/activate
+
+# 1) วัดคุณภาพก่อน
+python scripts/measure_location_quality.py --sheet -o data/location_quality/before.json
+
+# 2) ดึง Living ใหม่ทั้งแคตตาล็อก (ข้ามแคชที่ยัง Living-verified แล้ว → ใส่ --force)
+python scripts/enrich_from_living.py --force --samples 2 --sleep 0.35 --fallback-corridors
+
+# หรือเฉพาะโครงการที่มี listing เยอะ (ถ้าระบบ rate-limit)
+python scripts/enrich_from_living.py --force --min-listings 5 --samples 2 --sleep 0.5
+
+# 3) เขียนกลับชีตทำงาน + ซิงค์「ทรัพย์รวม」
+python scripts/apply_living_locations_to_sheet.py
+
+# เฉพาะชีตทำงาน (ไม่แตะ overview)
+python scripts/apply_living_locations_to_sheet.py --work-only
+
+# 4) วัดหลัง
+python scripts/measure_location_quality.py --sheet -o data/location_quality/after.json
+```
+
+## Flags ที่ใช้บ่อย
+
+| Flag | ความหมาย |
+|------|----------|
+| `--force` | รีเฟรชแม้เคย Living-verified แล้ว (ใช้เมื่อเปลี่ยนกฎ curation) |
+| `--samples N` | จำนวนหน้า listing ต่อโครงการ (consensus) |
+| `--sleep S` | หน่วงระหว่าง HTTP ที่ไม่ติดแคช |
+| `--fallback-corridors` | หลัง Living แล้วเติมโครงการที่เหลือด้วย corridor/override |
+| `--min-listings N` | ข้ามโครงการ listing น้อย |
+| `--max-projects N` | จำกัดจำนวนรอบนี้ (batch) |
+| `--dry-run` | ไม่เขียนไฟล์/ชีต |
+
+## คุณภาพ (กฎสั้น)
+
+- Living listing (`istockdetail`) ก่อน — หน้า `living_project` มักมี pin SEO ไกล (เช่น เจริญนคร) จะถูกตัด
+- สถานีสูงสุด 3 · ทำเลสูงสุด 5
+- Corridor curation (แบบ Life Asoke / Thru Thonglor / Base Phet) เติมสถานีใกล้ + landmark ที่ถูกต้องทางภูมิศาสตร์ — ไม่แต่งทำเลไกล
+- Hub / sheet แสดง **verified เท่านั้น** (ไม่โชว์กอง `transit_unverified` จากชีตเก่า)
+
+## Credentials
+
+- Google Sheet: `SOURCE_GOOGLE_SHEETS_ID` หรือ default ในสคริปต์
+- Service account: `credentials/service_account.json` (แชร์ชีตให้ SA)
+
+## Gaps
+
+โครงการที่ Living ไม่มี listing URL ใน `properties.json` จะอยู่ใน `gaps_no_url` ของผล `enrich_from_living` และ `gaps_unverified_top` ของ `measure_location_quality` — ต้องผูกลิงก์ Living หรือตั้งทำเลมือใน Hub.

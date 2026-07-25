@@ -1,0 +1,280 @@
+{
+  "projects": {
+    "projects_total": 2436,
+    "properties_total": 7292,
+    "pct_transit_verified": 89.9,
+    "pct_zone_verified": 88.1,
+    "pct_both_verified": 86.8,
+    "count_transit_verified": 2191,
+    "count_zone_verified": 2146,
+    "count_both_verified": 2115,
+    "count_empty_zone": 290,
+    "count_empty_both": 214,
+    "count_living_project_url": 740,
+    "count_stations_ge4": 0,
+    "count_stations_ge5": 0,
+    "source_counts": {
+      "livinginsider": 1000,
+      "livinginsider+curated": 3,
+      "empty": 824,
+      "corridor": 608,
+      "override": 1
+    },
+    "incompatible_clusters": {
+      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์ + BTS ทองหล่อ": 1,
+      "BTS อโศก + MRT พระราม 9": 1
+    },
+    "incompatible_examples": {
+      "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์ + BTS ทองหล่อ": [
+        "OKA HAUS Sukhumvit 36 (โอกะ เฮาส์ สุขุมวิท 36)"
+      ],
+      "BTS อโศก + MRT พระราม 9": [
+        "NUE District R9 (นิว ดิสทริค อาร์ 9)"
+      ]
+    },
+    "properties_empty_location_ref": 184,
+    "properties_dirty_location_signals": 71,
+    "gaps_unverified_top": [
+      {
+        "name": "Tait 12 (เทตต์ ทเวลฟ์)",
+        "listings": 4,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Burasiri Krungthep Kreetha  บุราสิริ กรุงเทพ กรีฑา",
+        "listings": 4,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "BURASIRI KRUNGTHEP KREETHA (บุราสิริ กรุงเทพกรีฑา)",
+        "listings": 3,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Xim Condo Suksawat – Rama 3 (ซิม คอนโด สุขสวัสดิ์ – พระราม 3)",
+        "listings": 3,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "ทาวน์เฮาส์ 3 ชั้น",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "City Villa (ซิตี้ วิลล่า)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Blossom Condo @ Fashion (บลอสซั่ม คอนโด แอท แฟชั่น)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "KAVE Town Space (เคฟ ทาวน์ สเปซ)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Rich Park @ Triple Station (ริชพาร์ค @ ทริปเปิ้ล สเตชั่น)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Supalai Veranda Phasi Charoen Station (ศุภาลัย เวอเรนด้า สถานีภาษีเจริญ)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Nue Noble Srinakarin - Lasalle (นิว โนเบิล ศรีนครินทร์ - ลาซาล)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "KnightsBridge Sky River Ocean (ไนท์บริดจ์ สกาย ริเวอร์ โอเชี่ยน)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "The Origin Phahol - Saphanmai (ดิ ออริจิ้น พหลฯ - สะพานใหม่)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Chewathai Kaset - Nawamin (ชีวาทัย เกษตร - นวมินทร์)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Supalai Riva Grande (ศุภาลัย ริวา แกรนด์)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "S.C.C. Residence (เอส.ซี.ซี เรสซิเดนซ์)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "St. Louis Grand Terrace (เซ็นต์หลุยส์ แกรนด์ เทอเรส)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "The Parkland Charan - Pinklao (เดอะ พาร์คแลนด์ จรัญ - ปิ่นเกล้า)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Canapaya Residences (คณาพญา เรสซิเดนซ์)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Nue Cross Khu Khot Station (นิว ครอส คูคต สเตชัน)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Regent Home Bangson Phase 28 (รีเจ้นท์ โฮม บางซ่อน โครงการ 2 เฟส 28)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "The Base Phetkasem (เดอะ เบส เพชรเกษม)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "VIVE Krungthep Kreetha (วีเว่ กรุงเทพกรีฑา)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Bodin Suite Home (บดินทร์ สวีท โฮม)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "The Four Wings Residence (เดอะ โฟร์ วิงส์ เรสสิเด้นส์)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "The Parkland Phetkasem 56 (เดอะ พาร์คแลนด์ เพชรเกษม 56)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Nirvana ABSOLUTE Krungthep Kreetha (เนอวานา แอปโซลูท กรุงเทพกรีฑา)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Thana Cluster Westgate (ธนาคลัสเตอร์ เวสต์เกต)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "A Space Mega 2 (เอ สเปซ เมกา 2)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Centro Suksawat–Rama 3 (เซนโทร สุขสวัสดิ์–พระราม 3)",
+        "listings": 2,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "อาคารสำนักงาน",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Supalai PRIMA RIVA พระราม 3 (ศุภาลัย พรีมา ริวา พระราม 3 - นราธิวาส)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "A Space Me Rattanathibet (เอ สเปซ มี รัตนาธิเบศร์)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Aspire Pinklao - Arunammarin (แอสปาย ปิ่นเกล้า - อรุณอมรินทร์)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Oriental Residence (โอเรียนเต็ล เรสซิเด็นซ์)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Buathong Thani Park Ville 2 (บัวทองธานี พาร์ควิลล์ 2)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Sunshine (ซันชายน์)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Prueksa Thani Fifth Condotel (พฤกษาธานี ฟิฟ คอนโดเทล)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "City Home Tha Phra Intersection (ซิตี้ โฮม สี่แยกท่าพระ)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      },
+      {
+        "name": "Cool Condo Rama 7 (คูล คอนโด พระราม 7)",
+        "listings": 1,
+        "source": "",
+        "has_living_url": false
+      }
+    ]
+  }
+}

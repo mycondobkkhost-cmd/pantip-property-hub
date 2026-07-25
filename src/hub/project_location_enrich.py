@@ -114,10 +114,12 @@ ZONE_ALIASES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"ลาดพร้าว|ladprao|lat\s*phrao", re.I), "ลาดพร้าว"),
     (re.compile(r"บางนา|bangna|bang\s*na", re.I), "บางนา"),
     (re.compile(r"อ่อนนุช|onnut|on\s*nut", re.I), "อ่อนนุช"),
+    (re.compile(r"อุดมสุข|udom\s*suk|udomsuk", re.I), "อุดมสุข"),
     (re.compile(r"สาทร|sathorn|sathon", re.I), "สาทร"),
     (re.compile(r"สีลม|silom", re.I), "สีลม"),
     (re.compile(r"อารีย์|ari(?![a-z])", re.I), "อารีย์"),
     (re.compile(r"วิทยุ|wireless", re.I), "วิทยุ"),
+    (re.compile(r"ชิดลม|chidlom|chitlom", re.I), "ชิดลม"),
     (re.compile(r"หลังสวน|langsuan", re.I), "หลังสวน"),
     (re.compile(r"จุฬา|chula|samyan|สามย่าน", re.I), "สามย่าน"),
     (re.compile(r"รามคำแหง|ramkhamhaeng", re.I), "รามคำแหง"),
@@ -616,6 +618,11 @@ def zones_from_living_label(zone_label: str, *, stations: list[str] | None = Non
     return [z for z in dedupe_transit(zones) if not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I)][:5]
 
 
+def _is_living_source(source: str) -> bool:
+    s = (source or "").strip()
+    return s == "livinginsider" or s.startswith("livinginsider+")
+
+
 def living_stations_plausible(
     stations: list[str],
     *,
@@ -627,29 +634,118 @@ def living_stations_plausible(
         return True
     blob = f"{zone} {project_name}".lower()
     blob_n = _norm(blob)
-    # Known conflict pairs: riverside vs thonglor belt
+    station_blob = " ".join(stations).lower()
+    station_n = _norm(station_blob)
+
     riverside = any(
         x in blob_n
         for x in ("เจริญนคร", "charoennakhon", "charoennakorn", "riverside", "วงเวียนใหญ่", "krungthon")
     )
     thonglor_belt = any(
         x in blob_n
-        for x in ("ทองหล่อ", "thonglor", "thonglo", "เอกมัย", "ekkamai", "ekamai", "พร้อมพงษ์")
+        for x in (
+            "ทองหล่อ",
+            "thonglor",
+            "thonglo",
+            "เอกมัย",
+            "ekkamai",
+            "ekamai",
+            "พร้อมพงษ์",
+            "phromphong",
+            "เพชรบุรี",
+            "phetchaburi",
+            "phetburi",
+        )
     )
-    station_blob = " ".join(stations).lower()
-    station_n = _norm(station_blob)
+    rama9_belt = any(
+        x in blob_n
+        for x in ("พระราม9", "rama9", "มักกะสัน", "makkasan", "rca", "อโศก", "asoke", "asok")
+    )
+    thaphra = any(x in blob_n for x in ("ท่าพระ", "ตลาดพลู", "วุฒากาศ", "thaphra", "talatphlu"))
+
     if thonglor_belt and not riverside:
-        if any(x in station_n for x in ("เจริญนคร", "กรุงธนบุรี", "wongwian", "วงเวียน")):
+        if any(x in station_n for x in ("เจริญนคร", "กรุงธนบุรี", "wongwian", "วงเวียน", "ตลาดพลู", "โพธิ์นิมิตร")):
             return False
     if riverside and not thonglor_belt:
-        if any(x in station_n for x in ("ทองหล่อ", "เอกมัย", "พร้อมพงษ์", "thonglo")):
+        if any(x in station_n for x in ("ทองหล่อ", "เอกมัย", "พร้อมพงษ์", "thonglo", "เพชรบุรี")):
+            return False
+    if rama9_belt and not riverside and not thaphra:
+        if any(x in station_n for x in ("เจริญนคร", "กรุงธนบุรี", "ตลาดพลู", "โพธิ์นิมิตร", "วุฒากาศ")):
+            return False
+    # Thonglor / Asoke name but only Sirikit (common Living pin error)
+    if any(x in blob_n for x in ("ทองหล่อ", "thonglor", "thonglo", "thonglortower")):
+        if "สิริกิติ์" in station_n or "sirikit" in station_blob:
+            if not any(x in station_n for x in ("ทองหล่อ", "เอกมัย", "thonglo", "ekkamai", "เพชรบุรี")):
+                return False
+    # Project name says Thonglor/Phet but Living returned Tha Phra cluster
+    if any(x in blob_n for x in ("ทองหล่อ", "thonglor", "เพชรบุรี", "phetchaburi")) and not thaphra:
+        if any(x in station_n for x in ("ตลาดพลู", "โพธิ์นิมิตร", "วุฒากาศ", "ท่าพระ")):
             return False
     return True
 
 
-def _is_living_source(source: str) -> bool:
-    s = (source or "").strip()
-    return s == "livinginsider" or s.startswith("livinginsider+")
+def curated_pack_for_project(proj: dict) -> tuple[list[str], list[str], str] | None:
+    """Return (zones, transit, source_tag) when a researched corridor/override applies."""
+    name = proj.get("canonical_name") or ""
+    bucket = proj.get("bucket_key") or project_bucket(name) or ""
+    if bucket in LIFE_ASOKE_BUCKETS:
+        return list(LIFE_ASOKE_CURATED_ZONES), list(LIFE_ASOKE_CURATED_TRANSIT), "life_asoke"
+    override = PROJECT_OVERRIDES.get(bucket)
+    if override:
+        return (
+            list(override["zones"]),
+            list(override["transit"]),
+            str(override.get("source") or "override").replace("override:", ""),
+        )
+    corridor = match_corridor(proj)
+    if corridor and (
+        corridor.id in PETH_LANDMARK_CORRIDORS
+        or corridor.priority <= 25
+        or corridor.id in {"thru_thonglor", "capital_ekamai_thonglor", "ekamai_thonglor"}
+    ):
+        zones = list(corridor.zones)
+        transit = list(corridor.transit)
+        if corridor.id in PETH_LANDMARK_CORRIDORS:
+            for z in ["เพชรบุรีตัดใหม่", "RCA", "โรงพยาบาลกรุงเทพ", "มศว ประสานมิตร"]:
+                if z not in zones:
+                    zones.append(z)
+            for t in ["MRT เพชรบุรี", "ARL มักกะสัน"]:
+                if t not in transit:
+                    transit.append(t)
+        return zones[:5], dedupe_stations(transit)[:3], corridor.id
+    return None
+
+
+def merge_living_with_curated(
+    zones: list[str],
+    transit: list[str],
+    *,
+    curated_zones: list[str],
+    curated_transit: list[str],
+    blocked: set[str] | None = None,
+    prefer_curated_zones: bool = False,
+) -> tuple[list[str], list[str]]:
+    """Living stations first; fill curated nearest stations; drop blocked/far pins."""
+    blocked = blocked or set()
+    ordered_transit: list[str] = []
+    for t in list(transit) + list(curated_transit):
+        if t and t not in ordered_transit and t not in blocked:
+            ordered_transit.append(t)
+    for t in curated_transit:
+        if t not in ordered_transit and t not in blocked:
+            ordered_transit.append(t)
+    transit_out = dedupe_stations(ordered_transit)[:3]
+
+    ordered_zones: list[str] = []
+    if prefer_curated_zones:
+        zone_order = list(curated_zones) + list(zones)
+    else:
+        zone_order = list(zones) + list(curated_zones)
+    for z in zone_order:
+        if z and z not in ordered_zones and not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I):
+            ordered_zones.append(z)
+    ordered_zones = [z for z in ordered_zones if z != "มักกะสัน"]
+    return ordered_zones[:5], transit_out
 
 
 def merge_life_asoke_corridor(
@@ -659,27 +755,29 @@ def merge_life_asoke_corridor(
     living_stations: list[str] | None = None,
 ) -> tuple[list[str], list[str]]:
     """Living transit first; merge curated Life Asoke corridor ทำเล chips."""
-    # Prefer Living station order when it already has the required trio
-    ordered_transit: list[str] = []
-    for t in list(living_stations or []) + list(transit) + list(LIFE_ASOKE_CURATED_TRANSIT):
-        if t and t not in ordered_transit:
-            ordered_transit.append(t)
-    # Drop far stations — Life Asoke is never ลาดพร้าว / BTS อโศก
     blocked = {"MRT ลาดพร้าว", "BTS ห้าแยกลาดพร้าว", "BTS อโศก", "MRT สุขุมวิท"}
-    ordered_transit = [t for t in ordered_transit if t not in blocked]
-    for t in LIFE_ASOKE_CURATED_TRANSIT:
-        if t not in ordered_transit:
-            ordered_transit.append(t)
-    transit_out = dedupe_stations(ordered_transit)[:3]
+    return merge_living_with_curated(
+        zones,
+        list(living_stations or []) + list(transit),
+        curated_zones=LIFE_ASOKE_CURATED_ZONES,
+        curated_transit=LIFE_ASOKE_CURATED_TRANSIT,
+        blocked=blocked,
+        prefer_curated_zones=True,
+    )
 
-    ordered_zones: list[str] = []
-    for z in list(LIFE_ASOKE_CURATED_ZONES) + list(zones):
-        if z and z not in ordered_zones and not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I):
-            ordered_zones.append(z)
-    # Drop มักกะสัน area chip if present — covered by ARL transit; free a slot for มศว/อโศก
-    ordered_zones = [z for z in ordered_zones if z != "มักกะสัน"]
-    zones_out = ordered_zones[:5]
-    return zones_out, transit_out
+
+# Far stations that should never ride along Phetchaburi / Thonglor belt packs
+PETH_BLOCKED_STATIONS = {
+    "BTS พร้อมพงษ์",
+    "BTS นานา",
+    "BTS อโศก",
+    "MRT สุขุมวิท",
+    "MRT ศูนย์ประชุมแห่งชาติสิริกิติ์",
+    "BTS กรุงธนบุรี",
+    "BTS เจริญนคร",
+    "BTS วงเวียนใหญ่",
+    "BTS ตลาดพลู",
+}
 
 
 def apply_living_to_project(
@@ -695,7 +793,9 @@ def apply_living_to_project(
     use_stations = list(stations or [])
     if not living_stations_plausible(use_stations, zone=zone, project_name=name):
         # Keep Living zone; replace stations with name/corridor inference
-        _, inferred, _ = enrich_project({**proj, "location_source": "", "transit_verified": [], "zone_verified": []})
+        _, inferred, _ = enrich_project(
+            {**proj, "location_source": "", "transit_verified": [], "zone_verified": []}
+        )
         use_stations = inferred or []
     transit = dedupe_stations(use_stations)[:3]
     zones = zones_from_living_label(zone, stations=transit)
@@ -704,10 +804,75 @@ def apply_living_to_project(
         for z in extract_zones_from_text(name):
             if z not in zones:
                 zones.append(z)
+
     source = "livinginsider"
+    pack = curated_pack_for_project(proj)
     if bucket in LIFE_ASOKE_BUCKETS:
         zones, transit = merge_life_asoke_corridor(zones, transit, living_stations=use_stations)
         source = LIFE_ASOKE_SOURCE
+    elif pack:
+        curated_zones, curated_transit, pack_id = pack
+        # Prefer curated zone chips when Living breadcrumb is a broad corridor string
+        # (e.g. Capital Ekamai wrongly under "พระราม 9 เพชรบุรีตัดใหม่ RCA")
+        broad_living = bool(
+            zone
+            and (
+                "พระราม 9" in zone
+                or "เพชรบุรีตัดใหม่" in zone
+                or "สุขุมวิท อโศก ทองหล่อ" in zone
+            )
+        )
+        peth_like = (
+            pack_id in PETH_LANDMARK_CORRIDORS
+            or pack_id.startswith("life_asoke")
+            or "thru" in pack_id
+            or pack_id
+            in {
+                "thru_thonglor",
+                "capital_ekamai_thonglor",
+                "ekamai_thonglor",
+                "thonglor",
+                "livinginsider-thru",
+                "maps-nearest",
+                "livinginsider-bangchak",
+            }
+        )
+        prefer = peth_like or (
+            broad_living
+            and pack_id
+            in {
+                "thru_thonglor",
+                "capital_ekamai_thonglor",
+                "ekamai_thonglor",
+                "thonglor",
+                "livinginsider-thru",
+            }
+        )
+        blocked = set(PETH_BLOCKED_STATIONS) if (
+            pack_id in PETH_LANDMARK_CORRIDORS
+            or "thru" in pack_id
+            or pack_id == "thru_thonglor"
+        ) else set()
+        # Thonglor Tower / maps-nearest: drop Sirikit
+        if "thonglor" in pack_id or pack_id.endswith("maps-nearest") or pack_id == "maps-nearest":
+            blocked |= {"MRT ศูนย์ประชุมแห่งชาติสิริกิติ์", "BTS พร้อมพงษ์"}
+        zones, transit = merge_living_with_curated(
+            zones,
+            transit,
+            curated_zones=curated_zones,
+            curated_transit=curated_transit,
+            blocked=blocked,
+            prefer_curated_zones=prefer,
+        )
+        # When Living zone is a broad SEO corridor, drop non-local chips not in curated pack
+        if prefer and broad_living:
+            allow = set(curated_zones)
+            # Keep short local chips derived from project name
+            for z in extract_zones_from_text(name):
+                allow.add(z)
+            zones = [z for z in zones if z in allow][:5] or list(curated_zones)[:5]
+        source = f"livinginsider+curated:{pack_id}"
+
     proj["zone_verified"] = zones
     proj["zone_unverified"] = []
     proj["transit_verified"] = transit
@@ -846,8 +1011,21 @@ def enrich_projects_from_living(
         url = str(prop.get("source_url") or "")
         if not pid or "livinginsider" not in url.lower():
             continue
+        # Prefer listing pages (istockdetail) — project pages often have SEO pins
         if url not in urls_by_pid[pid]:
-            urls_by_pid[pid].append(url)
+            if "/living_project/" in url.lower():
+                urls_by_pid[pid].append(url)  # keep at end
+            else:
+                urls_by_pid[pid].insert(0, url)
+
+    # Projects that already have a Living project URL but no listing samples
+    for proj in projects:
+        purl = str(proj.get("living_project_url") or "").strip()
+        if not purl or "livinginsider" not in purl.lower():
+            continue
+        pid = proj["id"]
+        if purl not in urls_by_pid[pid]:
+            urls_by_pid[pid].append(purl)
 
     ranked = sorted(
         projects,
@@ -878,8 +1056,12 @@ def enrich_projects_from_living(
         if int(proj.get("listing_count") or 0) < min_listings:
             continue
         urls = urls_by_pid.get(proj["id"]) or []
+        # Prefer istockdetail listing URLs over living_project pages
+        listing_urls = [u for u in urls if "/living_project/" not in u.lower()]
+        project_urls = [u for u in urls if "/living_project/" in u.lower()]
+        urls = listing_urls + project_urls
         if not urls:
-            if int(proj.get("listing_count") or 0) >= max(min_listings, 10):
+            if int(proj.get("listing_count") or 0) >= max(min_listings, 5):
                 stats["gaps_no_url"].append(
                     {
                         "name": proj.get("canonical_name"),
@@ -917,6 +1099,7 @@ def enrich_projects_from_living(
             living_samples.append(loc)
 
         consensus = consensus_location(living_samples)
+        # If only project-page samples wiped stations, keep zone and let corridor fill
         if not consensus.ok:
             stats["projects_failed"] += 1
             if len(stats["failed"]) < 40:
@@ -933,8 +1116,11 @@ def enrich_projects_from_living(
             proj,
             zone=consensus.zone,
             stations=consensus.stations,
-            living_project_url=consensus.project_url,
+            living_project_url=consensus.project_url
+            or (project_urls[0] if project_urls else "")
+            or str(proj.get("living_project_url") or ""),
         )
+        n = 0
         if not dry_run:
             n = sync_project_listings_location_ref(proj, properties)
             # Checkpoint every 25 projects so long runs don't lose progress
@@ -964,6 +1150,9 @@ def enrich_projects_from_living(
                 "แชปเตอร์",
                 "โนเบิล รีวอล",
                 "เอ็กซ์ที เอก",
+                "the base phet",
+                "thonglor tower",
+                "capital ekamai",
             )
         ) or int(proj.get("listing_count") or 0) >= 40:
             stats["samples"].append(
@@ -972,6 +1161,7 @@ def enrich_projects_from_living(
                     "zones": zones,
                     "transit": transit,
                     "living_zone": consensus.zone,
+                    "source": proj.get("location_source"),
                     "listings": n,
                 }
             )
@@ -979,7 +1169,9 @@ def enrich_projects_from_living(
     if not dry_run:
         persist(projects, properties)
 
-    stats["gaps_no_url"] = stats["gaps_no_url"][:40]
+    stats["gaps_no_url"] = sorted(
+        stats["gaps_no_url"], key=lambda g: -int(g.get("listings") or 0)
+    )[:60]
     return stats
 
 

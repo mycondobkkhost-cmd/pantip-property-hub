@@ -1,19 +1,23 @@
 /**
- * Property Hub — หน้า「ทรัพย์รวม · แอป」
+ * Property Hub — หน้า「ทรัพย์รวม」/「ทรัพย์รวม · แอป」
  * รวม PTP (ชีทหลัก) + RXT (ทรัพย์ Hub) · เรียงใหม่→เก่า · ค้นหา 2 ช่อง · ล็อกแก้
  *
- * สี: เขียว Property Hub (#188038) / slate — ไม่ใช้ม่วง
+ * แนะนำ: ใช้ Python/Sheets API แทน (scripts/install_overview_search_chrome.py)
+ * สร้าง chrome + FILTER โดยไม่ต้องติดตั้ง Apps Script
+ *
+ * สี: ทองหัวตาราง「ชีตสำหรับทำงาน」(#fbbc04) + ช่องค้นหาเหลือง
  * C2 = ค้นหาทั่วไป (รหัส + โครงการ) · C3 = ค้นหาทำเล/BTS
  * ทั้งคู่ว่าง = ทั้งหมด · กรอกทั้งคู่ = AND
  *
- * ติดตั้ง (ครั้งเดียว):
- * 1. เปิดชีททดลอง → Extensions → Apps Script
+ * ติดตั้ง (ครั้งเดียว — ทางเลือก):
+ * 1. เปิดชีท → Extensions → Apps Script
  * 2. วางไฟล์นี้ → Save
  * 3. รัน setupAppDashboard ครั้งแรก (Allow permissions)
  * 4. ช่องเหลือง C2 / C3 เท่านั้นที่แก้ได้
  */
 
-var APP_DASH_NAME = 'ทรัพย์รวม · แอป';
+var APP_DASH_NAME = 'ทรัพย์รวม';
+var APP_DASH_FALLBACK = 'ทรัพย์รวม · แอป';
 var APP_SEARCH_CELL = 'C2';
 var APP_LOC_SEARCH_CELL = 'C3';
 var APP_HEADER_ROW = 5;
@@ -23,19 +27,19 @@ var MAIN_SHEET_CANDIDATES = ['ชีทสำหรับทำงาน', 'ช�
 var HUB_SHEET_NAME = 'ทรัพย์ Hub';
 var PROJ_LOC_SHEET = '_proj_loc';
 
-var CLR_TITLE_BG = '#e6f4ea';
-var CLR_TITLE_FG = '#137333';
-var CLR_HEADER_BG = '#188038';
-var CLR_HEADER_FG = '#ffffff';
+var CLR_TITLE_BG = '#fff8e1';
+var CLR_TITLE_FG = '#5d4037';
+var CLR_HEADER_BG = '#fbbc04';
+var CLR_HEADER_FG = '#202124';
 var CLR_SEARCH_BG = '#fff9c4';
 var CLR_SEARCH_BORDER = '#f9ab00';
 var CLR_HINT = '#5f6368';
 var CLR_MUTED = '#80868b';
-var CLR_ZEBRA = '#f4f7f5';
+var CLR_ZEBRA = '#fffdf5';
 var CLR_HUB_BG = '#e8f0fe';
 var CLR_HUB_FG = '#1967d2';
-var CLR_SHEET_BG = '#e6f4ea';
-var CLR_SHEET_FG = '#137333';
+var CLR_SHEET_BG = '#fff8e1';
+var CLR_SHEET_FG = '#5d4037';
 
 var APP_HEADERS = [
   'รหัส', 'ที่มา', 'วันที่', 'โครงการ', 'ประเภท', 'ห้อง',
@@ -46,14 +50,20 @@ var APP_HEADERS = [
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Property Hub')
-    .addItem('สร้าง/จัดหน้า ทรัพย์รวม · แอป', 'setupAppDashboard')
+    .addItem('สร้าง/จัดหน้า ทรัพย์รวม', 'setupAppDashboard')
     .addItem('รีเฟรชหน้าทรัพย์รวม', 'refreshAppDashboard')
     .addToUi();
 }
 
+function findAppDashSheet_(ss) {
+  var sh = ss.getSheetByName(APP_DASH_NAME);
+  if (sh) return sh;
+  return ss.getSheetByName(APP_DASH_FALLBACK);
+}
+
 function setupAppDashboard() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName(APP_DASH_NAME);
+  var sh = findAppDashSheet_(ss);
   if (!sh) {
     sh = ss.insertSheet(APP_DASH_NAME);
   }
@@ -166,7 +176,8 @@ function onEdit(e) {
   try {
     if (!e || !e.range) return;
     var sh = e.range.getSheet();
-    if (sh.getName() !== APP_DASH_NAME) return;
+    var name = sh.getName();
+    if (name !== APP_DASH_NAME && name !== APP_DASH_FALLBACK) return;
     var a1 = e.range.getA1Notation();
     if (a1 !== APP_SEARCH_CELL && a1 !== APP_LOC_SEARCH_CELL) return;
     refreshAppDashboard();
@@ -177,7 +188,7 @@ function onEdit(e) {
 
 function refreshAppDashboard() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName(APP_DASH_NAME);
+  var sh = findAppDashSheet_(ss);
   if (!sh) {
     setupAppDashboard();
     return;
@@ -443,7 +454,7 @@ function findSheet_(ss, names) {
   var all = ss.getSheets();
   for (var j = 0; j < all.length; j++) {
     var name = all[j].getName();
-    if (name === APP_DASH_NAME || name === HUB_SHEET_NAME) continue;
+    if (name === APP_DASH_NAME || name === APP_DASH_FALLBACK || name === HUB_SHEET_NAME) continue;
     var h = String(all[j].getRange(1, 1).getDisplayValue() || '');
     if (h.indexOf('รหัสทรัพย์') === 0 || h === 'รหัสทรัพย์') return all[j];
   }

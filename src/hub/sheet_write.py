@@ -80,7 +80,41 @@ _FORBIDDEN_TAB_NAMES = {
     "focus",
     "focus🚨",
     "_proj_loc",
+    "_overview_src",
 }
+
+# Hidden backing tab for「ทรัพย์รวม」FILTER search (sync writes here; chrome stays on overview).
+OVERVIEW_SRC_SHEET = "_overview_src"
+OVERVIEW_HEADER_ROW = 5
+OVERVIEW_DATA_START = 6
+
+# Match「ชีตสำหรับทำงาน」header gold (#fbbc04) + yellow search inputs.
+CLR_TITLE_BG = "#fff8e1"
+CLR_TITLE_FG = "#5d4037"
+CLR_HEADER_BG = "#fbbc04"
+CLR_HEADER_FG = "#202124"
+CLR_SEARCH_BG = "#fff9c4"
+CLR_SEARCH_BORDER = "#f9ab00"
+CLR_ROW_BG = "#fffdf5"
+CLR_STATUS_BG = "#faf6e9"
+CLR_MUTED = "#80868b"
+
+# FILTER over _overview_src: C2 = รหัส/โครงการ · C3 = ทำเล/สถานี · empty = all · both = AND
+# (Must use IF(q="",1,…) — SEARCH("", "") on blank ทำเล/สถานี is #VALUE! and drops rows.)
+OVERVIEW_FILTER_FORMULA = (
+    "=IFERROR("
+    "FILTER('_overview_src'!A2:P,"
+    "('_overview_src'!A2:A<>\"\")*"
+    "IF(TRIM($C$2)=\"\",1,"
+    "((ISNUMBER(SEARCH($C$2,'_overview_src'!A2:A)))+"
+    "(ISNUMBER(SEARCH($C$2,'_overview_src'!D2:D)))+"
+    "IF(REGEXMATCH(LOWER(TRIM($C$2)),\"thru|ทรู\"),"
+    "IF(REGEXMATCH(LOWER('_overview_src'!D2:D),\"thru|ทรู\"),1,0),0)>0))*"
+    "IF(TRIM($C$3)=\"\",1,"
+    "((ISNUMBER(SEARCH($C$3,'_overview_src'!K2:K)))+"
+    "(ISNUMBER(SEARCH($C$3,'_overview_src'!L2:L)))>0))),"
+    "IF(AND(TRIM($C$2)=\"\",TRIM($C$3)=\"\"),\"ยังไม่มีข้อมูล\",\"ไม่พบรายการที่ตรงคำค้น\"))"
+)
 
 _TYPE_TH = {
     "condo": "คอนโด",
@@ -487,8 +521,17 @@ def _resolve_overview_worksheet(ss, *, rows: int):
     return ws, created
 
 
+def _hex_rgb(hex_color: str) -> dict:
+    h = hex_color.lstrip("#")
+    return {
+        "red": int(h[0:2], 16) / 255.0,
+        "green": int(h[2:4], 16) / 255.0,
+        "blue": int(h[4:6], 16) / 255.0,
+    }
+
+
 def _worksheet_has_dashboard_chrome(ws) -> bool:
-    """True when rows 1–5 look like the Apps Script dashboard chrome."""
+    """True when rows 1–5 look like the overview search chrome."""
     try:
         probe = ws.get("A1:P5")
     except Exception:
@@ -496,10 +539,18 @@ def _worksheet_has_dashboard_chrome(ws) -> bool:
     if not probe or len(probe) < 5:
         return False
     a1 = str((probe[0] or [""])[0] or "")
+    a2 = str((probe[1] or [""])[0] or "") if len(probe) > 1 else ""
     header = [str(c or "").strip() for c in (probe[4] if len(probe) > 4 else [])]
-    if "Property Hub" in a1 or "ทรัพย์รวม" in a1:
+    if "Property Hub" in a1:
         return True
-    return bool(header) and header[:4] == OVERVIEW_HEADERS[:4]
+    if "ค้นหาทั่วไป" in a2 or "ค้นหา" in a2:
+        return True
+    if bool(header) and header[: len(OVERVIEW_HEADERS)] == OVERVIEW_HEADERS:
+        # Row 5 is the overview header strip (chrome), not a data header at row 1
+        row1 = [str(c or "").strip() for c in (probe[0] or [])]
+        if row1[:4] != OVERVIEW_HEADERS[:4]:
+            return True
+    return False
 
 
 def _col_a1(n: int) -> str:
@@ -535,27 +586,438 @@ def _update_values_chunked(ws, values: list[list], *, start_row: int = 1) -> Non
         ws.update(range_name, part, value_input_option="USER_ENTERED")
 
 
-def _write_overview_values(ws, values: list[list], *, synced_at: str) -> dict:
-    """Replace overview data; preserve dashboard chrome when present."""
+def _open_or_create_src_sheet(ss, *, rows: int):
+    """Open/create hidden `_overview_src` (internal; not a sync target)."""
+    try:
+        src = ss.worksheet(OVERVIEW_SRC_SHEET)
+    except Exception:
+        src = ss.add_worksheet(
+            title=OVERVIEW_SRC_SHEET,
+            rows=max(100, rows + 20),
+            cols=len(OVERVIEW_HEADERS),
+        )
+    try:
+        if hasattr(src, "hide"):
+            src.hide()
+        else:
+            ss.batch_update(
+                {
+                    "requests": [
+                        {
+                            "updateSheetProperties": {
+                                "properties": {
+                                    "sheetId": src.id,
+                                    "hidden": True,
+                                },
+                                "fields": "hidden",
+                            }
+                        }
+                    ]
+                }
+            )
+    except Exception:
+        pass
+    return src
+
+
+def _format_overview_chrome(ss, ws) -> None:
+    """Apply ชีตสำหรับทำงาน-style gold header + yellow search chrome via Sheets API."""
+    sid = ws.id
+    cols = len(OVERVIEW_HEADERS)
+    end_col = cols  # 1-based inclusive for GridRange endColumnIndex is exclusive
+
+    def rng(r0: int, r1: int, c0: int = 0, c1: int | None = None):
+        return {
+            "sheetId": sid,
+            "startRowIndex": r0,
+            "endRowIndex": r1,
+            "startColumnIndex": c0,
+            "endColumnIndex": end_col if c1 is None else c1,
+        }
+
+    requests: list[dict] = [
+        {
+            "updateSheetProperties": {
+                "properties": {
+                    "sheetId": sid,
+                    "gridProperties": {"frozenRowCount": OVERVIEW_HEADER_ROW},
+                },
+                "fields": "gridProperties.frozenRowCount",
+            }
+        },
+        {
+            "mergeCells": {
+                "range": rng(0, 1),
+                "mergeType": "MERGE_ALL",
+            }
+        },
+        {
+            "mergeCells": {
+                "range": rng(1, 2, 3, cols),
+                "mergeType": "MERGE_ALL",
+            }
+        },
+        {
+            "mergeCells": {
+                "range": rng(2, 3, 3, cols),
+                "mergeType": "MERGE_ALL",
+            }
+        },
+        {
+            "mergeCells": {
+                "range": rng(3, 4),
+                "mergeType": "MERGE_ALL",
+            }
+        },
+        {
+            "repeatCell": {
+                "range": rng(0, 1),
+                "cell": {
+                    "userEnteredFormat": {
+                        "backgroundColor": _hex_rgb(CLR_TITLE_BG),
+                        "textFormat": {
+                            "foregroundColor": _hex_rgb(CLR_TITLE_FG),
+                            "fontSize": 14,
+                            "bold": True,
+                        },
+                        "verticalAlignment": "MIDDLE",
+                    }
+                },
+                "fields": "userEnteredFormat(backgroundColor,textFormat,verticalAlignment)",
+            }
+        },
+        {
+            "repeatCell": {
+                "range": rng(1, 3),
+                "cell": {
+                    "userEnteredFormat": {
+                        "backgroundColor": _hex_rgb(CLR_ROW_BG),
+                    }
+                },
+                "fields": "userEnteredFormat.backgroundColor",
+            }
+        },
+        {
+            "repeatCell": {
+                "range": {
+                    "sheetId": sid,
+                    "startRowIndex": 1,
+                    "endRowIndex": 3,
+                    "startColumnIndex": 2,
+                    "endColumnIndex": 3,
+                },
+                "cell": {
+                    "userEnteredFormat": {
+                        "backgroundColor": _hex_rgb(CLR_SEARCH_BG),
+                        "textFormat": {"fontSize": 12, "bold": True},
+                        "borders": {
+                            "top": {
+                                "style": "SOLID_MEDIUM",
+                                "color": _hex_rgb(CLR_SEARCH_BORDER),
+                            },
+                            "bottom": {
+                                "style": "SOLID_MEDIUM",
+                                "color": _hex_rgb(CLR_SEARCH_BORDER),
+                            },
+                            "left": {
+                                "style": "SOLID_MEDIUM",
+                                "color": _hex_rgb(CLR_SEARCH_BORDER),
+                            },
+                            "right": {
+                                "style": "SOLID_MEDIUM",
+                                "color": _hex_rgb(CLR_SEARCH_BORDER),
+                            },
+                        },
+                    }
+                },
+                "fields": (
+                    "userEnteredFormat(backgroundColor,textFormat,borders)"
+                ),
+            }
+        },
+        {
+            "repeatCell": {
+                "range": rng(3, 4),
+                "cell": {
+                    "userEnteredFormat": {
+                        "backgroundColor": _hex_rgb(CLR_STATUS_BG),
+                        "textFormat": {
+                            "foregroundColor": _hex_rgb(CLR_MUTED),
+                            "fontSize": 10,
+                        },
+                    }
+                },
+                "fields": "userEnteredFormat(backgroundColor,textFormat)",
+            }
+        },
+        {
+            "repeatCell": {
+                "range": rng(4, 5),
+                "cell": {
+                    "userEnteredFormat": {
+                        "backgroundColor": _hex_rgb(CLR_HEADER_BG),
+                        "textFormat": {
+                            "foregroundColor": _hex_rgb(CLR_HEADER_FG),
+                            "bold": True,
+                            "fontSize": 10,
+                        },
+                        "horizontalAlignment": "CENTER",
+                        "verticalAlignment": "MIDDLE",
+                        "wrapStrategy": "WRAP",
+                    }
+                },
+                "fields": (
+                    "userEnteredFormat(backgroundColor,textFormat,"
+                    "horizontalAlignment,verticalAlignment,wrapStrategy)"
+                ),
+            }
+        },
+        {
+            "updateDimensionProperties": {
+                "range": {
+                    "sheetId": sid,
+                    "dimension": "ROWS",
+                    "startIndex": 0,
+                    "endIndex": 1,
+                },
+                "properties": {"pixelSize": 38},
+                "fields": "pixelSize",
+            }
+        },
+        {
+            "updateDimensionProperties": {
+                "range": {
+                    "sheetId": sid,
+                    "dimension": "ROWS",
+                    "startIndex": 1,
+                    "endIndex": 3,
+                },
+                "properties": {"pixelSize": 34},
+                "fields": "pixelSize",
+            }
+        },
+        {
+            "updateDimensionProperties": {
+                "range": {
+                    "sheetId": sid,
+                    "dimension": "ROWS",
+                    "startIndex": 3,
+                    "endIndex": 4,
+                },
+                "properties": {"pixelSize": 22},
+                "fields": "pixelSize",
+            }
+        },
+        {
+            "updateDimensionProperties": {
+                "range": {
+                    "sheetId": sid,
+                    "dimension": "ROWS",
+                    "startIndex": 4,
+                    "endIndex": 5,
+                },
+                "properties": {"pixelSize": 30},
+                "fields": "pixelSize",
+            }
+        },
+    ]
+
+    widths = [
+        96, 56, 92, 220, 72, 110, 64, 52, 88, 100, 120, 180, 68, 68, 68, 68
+    ]
+    for i, w in enumerate(widths):
+        requests.append(
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sid,
+                        "dimension": "COLUMNS",
+                        "startIndex": i,
+                        "endIndex": i + 1,
+                    },
+                    "properties": {"pixelSize": w},
+                    "fields": "pixelSize",
+                }
+            }
+        )
+
+    try:
+        ss.batch_update({"requests": requests})
+    except Exception:
+        # Formatting is best-effort; values/formula still work.
+        pass
+
+
+def ensure_overview_search_chrome(
+    ss,
+    ws,
+    *,
+    synced_at: str = "",
+    row_count: int | None = None,
+) -> dict:
+    """
+    Install/restore rows 1–5 search chrome + FILTER formula on overview tab.
+
+    Uses gold header like「ชีตสำหรับทำงาน」. Data lives on hidden `_overview_src`.
+    """
+    cols = len(OVERVIEW_HEADERS)
+    status = (
+        f"ว่างทั้ง C2+C3 = ทั้งหมด · กรอกทั้งคู่ = AND · ซิงค์จากแอป"
+        + (f" · อัปเดต: {synced_at}" if synced_at else "")
+        + (f" · {row_count:,} รายการ" if row_count is not None else "")
+        + " · เรียงใหม่→เก่า"
+    )
+    chrome_rows = [
+        [
+            "Property Hub · ทรัพย์รวม (PTP + RXT) — เรียงใหม่→เก่า · ค้นหาด้านบน"
+        ]
+        + [""] * (cols - 1),
+        [
+            "ค้นหาทั่วไป",
+            "→",
+            "",
+            "เช่น PTP8088 · Life Asoke · Thru / ทรู (ไม่บังคับ)",
+        ]
+        + [""] * (cols - 4),
+        [
+            "ค้นหาทำเล/BTS",
+            "→",
+            "",
+            "เช่น ทองหล่อ · อโศก · BTS อ่อนนุช (ไม่บังคับ)",
+        ]
+        + [""] * (cols - 4),
+        [status] + [""] * (cols - 1),
+        list(OVERVIEW_HEADERS),
+    ]
+
+    # Preserve existing search terms when re-applying chrome
+    try:
+        prev = ws.get("C2:C3")
+        c2 = str((prev[0] or [""])[0] or "") if prev else ""
+        c3 = str((prev[1] or [""])[0] or "") if prev and len(prev) > 1 else ""
+    except Exception:
+        c2, c3 = "", ""
+
+    try:
+        last = max(ws.row_count, OVERVIEW_DATA_START)
+        if last >= OVERVIEW_DATA_START:
+            ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
+    except Exception:
+        pass
+
+    ws.update("A1:P5", chrome_rows, value_input_option="USER_ENTERED")
+    if c2 or c3:
+        ws.update("C2:C3", [[c2], [c3]], value_input_option="USER_ENTERED")
+
+    ws.update(
+        "A6",
+        [[OVERVIEW_FILTER_FORMULA]],
+        value_input_option="USER_ENTERED",
+    )
+    _format_overview_chrome(ss, ws)
+    try:
+        ws.hide_gridlines()
+    except Exception:
+        pass
+    return {"chrome_installed": True, "filter_cell": "A6"}
+
+
+def _write_overview_src(ss, values: list[list]) -> dict:
+    """Replace hidden `_overview_src` table (headers + data)."""
+    data_rows = values[1:] if values and values[0] == OVERVIEW_HEADERS else values
+    full = [list(OVERVIEW_HEADERS)] + list(data_rows)
+    src = _open_or_create_src_sheet(ss, rows=len(full) + 10)
+    try:
+        last = max(src.row_count, 1)
+        src.batch_clear([f"A1:P{last}"])
+    except Exception:
+        try:
+            src.clear()
+        except Exception:
+            pass
+    _update_values_chunked(src, full, start_row=1)
+    return {
+        "sheet_title": src.title,
+        "rows_written": len(data_rows),
+        "gid": src.id,
+    }
+
+
+def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -> dict:
+    """Replace overview data; preserve search chrome + FILTER when present."""
     meta: dict = {"sheet_title": ws.title, "data_start_row": 1}
     if _tab_forbidden(ws.title):
         raise ValueError(f"ห้ามเขียนแท็บ「{ws.title}」")
 
+    data_rows = values[1:] if values and values[0] == OVERVIEW_HEADERS else values
+    spreadsheet = ss or getattr(ws, "spreadsheet", None)
+
+    # Prefer chrome + FILTER path whenever we can access the parent spreadsheet.
+    if spreadsheet is not None:
+        try:
+            if not _worksheet_has_dashboard_chrome(ws):
+                ensure_overview_search_chrome(
+                    spreadsheet,
+                    ws,
+                    synced_at=synced_at,
+                    row_count=len(data_rows),
+                )
+            else:
+                # Refresh status + ensure FILTER formula still at A6
+                try:
+                    ws.update(
+                        "A4",
+                        [[
+                            f"ว่างทั้ง C2+C3 = ทั้งหมด · กรอกทั้งคู่ = AND · "
+                            f"ซิงค์จากแอป · อัปเดต: {synced_at} · "
+                            f"{len(data_rows):,} รายการ · เรียงใหม่→เก่า"
+                        ]],
+                        value_input_option="USER_ENTERED",
+                    )
+                except Exception:
+                    pass
+                try:
+                    a6 = ws.acell("A6", value_render_option="FORMULA").value or ""
+                except Exception:
+                    a6 = ""
+                if not str(a6).startswith("="):
+                    try:
+                        last = max(ws.row_count, OVERVIEW_DATA_START)
+                        if last >= OVERVIEW_DATA_START:
+                            ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
+                    except Exception:
+                        pass
+                    ws.update(
+                        "A6",
+                        [[OVERVIEW_FILTER_FORMULA]],
+                        value_input_option="USER_ENTERED",
+                    )
+
+            src_meta = _write_overview_src(spreadsheet, values)
+            meta["data_start_row"] = OVERVIEW_DATA_START
+            meta["chrome_preserved"] = True
+            meta["filter_mode"] = True
+            meta["src_sheet"] = src_meta.get("sheet_title")
+            meta["rows_written"] = int(src_meta.get("rows_written") or 0)
+            return meta
+        except Exception as exc:  # noqa: BLE001
+            meta["chrome_error"] = str(exc)
+
+    # Fallback: legacy flat write (no search chrome)
     if _worksheet_has_dashboard_chrome(ws):
-        # Keep rows 1–5 (title/search/status/header); rewrite data from row 6
-        data_rows = values[1:] if values and values[0] == OVERVIEW_HEADERS else values
-        meta["data_start_row"] = 6
+        meta["data_start_row"] = OVERVIEW_DATA_START
         meta["chrome_preserved"] = True
         try:
-            last = max(ws.row_count, 6)
-            if last >= 6:
-                ws.batch_clear([f"A6:P{last}"])
+            last = max(ws.row_count, OVERVIEW_DATA_START)
+            if last >= OVERVIEW_DATA_START:
+                ws.batch_clear([f"A{OVERVIEW_DATA_START}:P{last}"])
         except Exception:
             try:
                 ws.clear()
                 meta["chrome_preserved"] = False
                 meta["data_start_row"] = 1
                 _update_values_chunked(ws, values, start_row=1)
+                meta["rows_written"] = max(0, len(values) - 1)
                 return meta
             except Exception:
                 raise
@@ -571,7 +1033,7 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str) -> dict:
         except Exception:
             pass
         if data_rows:
-            _update_values_chunked(ws, data_rows, start_row=6)
+            _update_values_chunked(ws, data_rows, start_row=OVERVIEW_DATA_START)
         meta["rows_written"] = len(data_rows)
         return meta
 
@@ -697,7 +1159,7 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
             )
             overview_values = [OVERVIEW_HEADERS] + overview_rows
             ov_meta = _write_overview_values(
-                overview_ws, overview_values, synced_at=synced
+                overview_ws, overview_values, synced_at=synced, ss=ss
             )
             result["pushed"] = True
             result["via"] = "gspread"

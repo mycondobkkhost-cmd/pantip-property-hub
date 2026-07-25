@@ -174,9 +174,12 @@
       display: inline-flex; align-items: center; gap: 3px;
       padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 500;
       background: #f1f3f5; color: #3c4043; border: 1px solid #e3e8ee;
+      max-width: 100%; line-height: 1.35;
     }
     .meta-chip.loc { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
-    .meta-chip strong { font-weight: 600; color: var(--muted); font-size: 9px; }
+    .meta-chip.station { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+    .meta-chip strong { font-weight: 600; color: var(--muted); font-size: 9px; flex-shrink: 0; }
+    .meta-chip.loc strong, .meta-chip.station strong { color: inherit; opacity: .72; }
     .side { text-align: right; min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .rent { color: var(--accent); font-weight: 700; font-size: 13px; }
     .sale { color: #475569; font-weight: 600; font-size: 11px; }
@@ -284,7 +287,7 @@
         <span>เรียงใหม่ → เก่า · กดแถวเปิดโพสต์</span>
       </div>
       <div class="table-wrap">
-        <div class="list-head"><span>รูป</span><span>รหัส · วันที่ · โครงการ</span><span style="text-align:right">ราคา</span></div>
+        <div class="list-head"><span>รูป</span><span>รหัส · วันที่ · โครงการ · ทำเล · สถานี</span><span style="text-align:right">ราคา</span></div>
         <div id="stock-list" class="prop-list">
           <div class="empty"><span>กำลังโหลดสต็อก</span>ดึงข้อมูลจาก Hub…</div>
         </div>
@@ -351,7 +354,7 @@
         <span>เรียงใหม่ → เก่า · คัดลอกรหัสส่งแอดมินได้</span>
       </div>
       <div class="table-wrap">
-        <div class="list-head"><span>รูป</span><span>รหัส · วันที่ · โครงการ</span><span style="text-align:right">ราคา</span></div>
+        <div class="list-head"><span>รูป</span><span>รหัส · วันที่ · โครงการ · ทำเล · สถานี</span><span style="text-align:right">ราคา</span></div>
         <div id="match-list" class="prop-list">
           <div class="empty"><span>ยังไม่มีผล Match</span>เลือกเงื่อนไขแล้วกด Match</div>
         </div>
@@ -704,7 +707,8 @@
   function rowHtml(p, extra) {
     var rent = fmtPrice(p.rent_price);
     var sale = fmtPrice(p.sale_price);
-    var loc = (p.zones || []).slice(0, 2).concat((p.transit || []).slice(0, 1)).join(" · ");
+    var zoneTxt = (p.zones || []).slice(0, 2).join(", ");
+    var stationTxt = (p.transit || []).slice(0, 2).join(", ");
     var priceHtml = "";
     if (rent) priceHtml += '<div class="rent">เช่า ' + esc(rent) + "</div>";
     if (sale) priceHtml += '<div class="sale">ขาย ' + esc(sale) + "</div>";
@@ -722,7 +726,8 @@
         '<div class="meta">' +
           (p.bedrooms ? '<span class="meta-chip"><strong>ห้อง</strong> ' + esc(p.bedrooms) + "</span>" : "") +
           (p.size_sqm ? '<span class="meta-chip"><strong>ขนาด</strong> ' + esc(String(p.size_sqm)) + "</span>" : "") +
-          (loc ? '<span class="meta-chip loc">' + esc(loc) + "</span>" : "") +
+          (zoneTxt ? '<span class="meta-chip loc"><strong>ทำเล</strong> ' + esc(zoneTxt) + "</span>" : "") +
+          (stationTxt ? '<span class="meta-chip station"><strong>สถานี</strong> ' + esc(stationTxt) + "</span>" : "") +
         "</div>" +
         (extra ? '<div class="reasons">' + esc(extra) + "</div>" : "") +
       "</div>" +

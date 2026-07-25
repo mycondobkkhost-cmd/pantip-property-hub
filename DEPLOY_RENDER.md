@@ -79,17 +79,30 @@ gh repo create pantip-property-hub --private --source=. --remote=origin --push
 
 ### 3) ได้ลิงก์ใช้งาน
 
-Render จะให้ URL แบบ:
+**โดเมนหลักสำหรับแอดมิน (แนะนำ):**
 
-`https://property-hub-xxxx.onrender.com`
+`https://hub.realxtateth.com/`  
+Co-Agent: `https://hub.realxtateth.com/co/`
 
-ส่งให้แอดมินทั้ง 2 คน เปิดจากมือถือได้เลย
+- ผูกแล้วผ่าน Cloudflare DNS (`CNAME hub` → Render) + Render Custom Domain  
+- **ไม่แตะ** `https://realxtateth.com` (หน้าทางการ LivingBKK / Netlify เหมือนเดิม)  
+- Cookie / login ของ Hub อยู่ที่ซับโดเมนเท่านั้น — ไม่ปนกับ LivingBKK / LINE OA
+
+URL เดิมยังใช้ได้ชั่วคราว:
+
+`https://property-hub-y7ai.onrender.com`
+
+ส่ง `hub.realxtateth.com` ให้แอดมินทั้ง 2 คนเปิดจากมือถือได้เลย
 
 ### 4) (แนะนำ) ลดการหลับ — ping ฟรี
 
-1. สมัคร https://cron-job.org (ฟรี)
-2. สร้างจ็อบเรียก `https://YOUR-APP.onrender.com/api/health` ทุก **10 นาที**
-3. ช่วยให้เครื่องตื่นบ่อยขึ้น (ยังอยู่ในโควต้าฟรีของ Render โดยประมาณ)
+มี GitHub Action `Hub keepalive` ยิง `/api/health` ทุก 10 นาทีแล้ว (หลัง push workflow นี้)
+
+หรือสมัคร https://cron-job.org (ฟรี) แล้วเรียก `https://hub.realxtateth.com/api/health` ทุก **10 นาที**
+
+ช่วยให้เครื่องตื่นบ่อยขึ้น (ยังอยู่ในโควต้าฟรีของ Render โดยประมาณ)
+
+> ถ้ายังล่ม/ช้าบ่อย: อัปเกรด Render เป็น **Starter** (always-on) — โดเมน `hub.realxtateth.com` ใช้ต่อได้ทันที ไม่ต้องย้าย LivingBKK
 
 ## ข้อควรรู้แผนฟรี
 

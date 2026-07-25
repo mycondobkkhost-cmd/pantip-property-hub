@@ -161,7 +161,10 @@ OVERVIEW_LINK_FORMULAS = {
     "M6": (
         '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
         "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE)=\"\",\"\","
-        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE),\"ต้นทาง\")),)))"
+        "IF(REGEXMATCH(VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE)&\"\","
+        '"(?i)^https?://"),'
+        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE),\"ต้นทาง\"),"
+        "VLOOKUP(A6:A,'_overview_src'!$A$2:$M,13,FALSE))),)))"
     ),
     "N6": (
         '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
@@ -174,12 +177,18 @@ OVERVIEW_LINK_FORMULAS = {
     "O6": (
         '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
         "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE)=\"\",\"\","
-        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE),\"โพสต์\")),)))"
+        "IF(REGEXMATCH(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE)&\"\","
+        '"(?i)^https?://"),'
+        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$O,15,FALSE),\"โพสต์\"),"
+        '""))),)))'
     ),
     "P6": (
         '=ARRAYFORMULA(IF(A6:A="",,IFERROR('
         "IF(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE)=\"\",\"\","
-        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE),\"เพจ\")),)))"
+        "IF(REGEXMATCH(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE)&\"\","
+        '"(?i)^https?://"),'
+        "HYPERLINK(VLOOKUP(A6:A,'_overview_src'!$A$2:$P,16,FALSE),\"เพจ\"),"
+        '""))),)))'
     ),
 }
 # Notes column (Q6) — plain text from `_overview_src` col 17.
@@ -450,14 +459,18 @@ def prop_to_hub_row(
     projects_by_id: dict[str, dict] | None = None,
     link_as_hyperlink: bool = False,
 ) -> list[str]:
+    from src.hub.sheet_links import http_url_or_empty
+
     zone_s, transit_s = resolve_prop_location_for_sheet(prop, projects_by_id)
-    post_url = str(prop.get("post_url") or "")
-    pages_url = str(prop.get("post_pages_url") or "")
-    source_url = str(prop.get("source_url") or "")
+    # Main-sheet mapping: ลิ้งค์โพส / ลิ้งค์โพส Pages / ลิ้งค์ต้นโพสต์ / เฟสเจ้าของ
+    post_url = http_url_or_empty(str(prop.get("post_url") or ""))
+    pages_url = http_url_or_empty(str(prop.get("post_pages_url") or ""))
+    source_raw = str(prop.get("source_url") or "").strip()
+    source_url = http_url_or_empty(source_raw) or source_raw
     if link_as_hyperlink:
         post_url = _hyperlink_cell(post_url, "โพสต์")
         pages_url = _hyperlink_cell(pages_url, "เพจ")
-        source_url = _hyperlink_cell(source_url, "ต้นทาง")
+        source_url = _hyperlink_cell(http_url_or_empty(source_raw), "ต้นทาง")
     return [
         str(prop.get("code") or ""),
         str(prop.get("last_listed_at") or ""),
@@ -491,13 +504,18 @@ def prop_to_overview_row(
     projects_by_id: dict[str, dict] | None = None,
     link_as_hyperlink: bool = False,
 ) -> list[str]:
+    from src.hub.sheet_links import http_url_or_empty
+
     zone_s, transit_s = resolve_prop_location_for_sheet(prop, projects_by_id)
     source = "Hub" if is_hub_owned(prop) else "ชีท"
     # Prefer URL in「เจ้าของ」so `_overview_src` + ARRAYFORMULA make a short link
     owner_link = _owner_display(prop)
-    source_url = str(prop.get("source_url") or "")
-    post_url = str(prop.get("post_url") or "")
-    pages_url = str(prop.get("post_pages_url") or "")
+    # Preferred mapping (do not drop pages/post when present):
+    # ต้นทาง←source_url(ลิ้งค์ต้นโพสต์/living), เจ้าของ←เฟสเจ้าของ,
+    # ที่โพสต์←post_url(ลิ้งค์โพส), เพจ←post_pages_url(ลิ้งค์โพส Pages)
+    source_url = http_url_or_empty(str(prop.get("source_url") or ""))
+    post_url = http_url_or_empty(str(prop.get("post_url") or ""))
+    pages_url = http_url_or_empty(str(prop.get("post_pages_url") or ""))
     if link_as_hyperlink:
         source_url = _hyperlink_cell(source_url, "ต้นทาง")
         owner_link = _maybe_hyperlink(

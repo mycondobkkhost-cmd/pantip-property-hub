@@ -39,6 +39,11 @@ from src.hub.owner_facebook import (  # noqa: E402
     resolve_owner_facebook,
     source_column_index,
 )
+from src.hub.sheet_links import (  # noqa: E402
+    http_url_or_empty,
+    pages_header_match,
+    unwrap_link_cell,
+)
 
 
 def norm_key(name: str) -> str:
@@ -176,17 +181,32 @@ def load_rows() -> list[dict[str, str]]:
             return ""
         return (r[i] or "").strip()
 
+    # 「ลิ้งค์โพส Pages」often has a trailing space in the header
+    pages_i = None
+    for i, h in enumerate(headers):
+        if pages_header_match(h or ""):
+            pages_i = i
+            break
+
     out: list[dict[str, str]] = []
     for idx, r in enumerate(sheet[1:], start=2):
         code = col(r, "รหัสทรัพย์").upper().replace(" ", "")
-        source = at(r, src_i) if src_i is not None else col(r, "ลิ้งค์ต้นโพสต์")
-        adjacent = at(r, adj_i)
-        owner_raw = col(r, "เฟสเจ้าของ")
+        source = unwrap_link_cell(
+            at(r, src_i) if src_i is not None else col(r, "ลิ้งค์ต้นโพสต์")
+        )
+        adjacent = unwrap_link_cell(at(r, adj_i))
+        owner_raw = unwrap_link_cell(col(r, "เฟสเจ้าของ"))
         resolved = resolve_owner_facebook(
             owner_raw=owner_raw,
             adjacent_raw=adjacent,
             source_raw=source,
         )
+        post_raw = unwrap_link_cell(col(r, "ลิ้งค์โพส"))
+        pages_raw = unwrap_link_cell(at(r, pages_i) if pages_i is not None else "")
+        if not pages_raw:
+            pages_raw = unwrap_link_cell(
+                col(r, "ลิ้งค์โพส Pages") or col(r, "ลิ้งค์โพส Pages ")
+            )
         out.append(
             {
                 "row": str(idx),
@@ -207,8 +227,9 @@ def load_rows() -> list[dict[str, str]]:
                 "source_adjacent": adjacent,
                 "owner_fb": resolved.owner,
                 "owner_fb_action": resolved.action,
-                "post_link": col(r, "ลิ้งค์โพส"),
-                "post_pages": col(r, "ลิ้งค์โพส Pages") or col(r, "ลิ้งค์โพส Pages "),
+                # Prefer real http URLs for post/pages (drop placeholders like "-")
+                "post_link": http_url_or_empty(post_raw) or post_raw,
+                "post_pages": http_url_or_empty(pages_raw),
                 "notes": col(r, "หมายเหตุ"),
             }
         )
@@ -366,7 +387,7 @@ def annotate_duplicates(properties: list[dict]) -> Counter:
 
 def owner_facebook_from_sheet(raw: str) -> list[str]:
     """Parse main-sheet「เฟสเจ้าของ」into owner_facebook list (URLs and/or short names)."""
-    s = (raw or "").strip()
+    s = unwrap_link_cell(raw or "")
     if not s or s in {".", "-", "—", "n/a", "N/A", "NA"}:
         return []
     parts = [p.strip() for p in re.split(r"[\n,]+", s) if p.strip()]
@@ -374,7 +395,7 @@ def owner_facebook_from_sheet(raw: str) -> list[str]:
     for p in parts:
         if p in {".", "-", "—"}:
             continue
-        out.append(p)
+        out.append(unwrap_link_cell(p) or p)
     return out
 
 
@@ -424,8 +445,11 @@ def build_properties(
             import_status = "needs_review"
             stats["import_needs_review"] += 1
 
-        post = row.get("post_link", "")
-        post_pages = row.get("post_pages", "")
+        # Mapping: ลิ้งค์โพส→post_url, ลิ้งค์โพส Pages→post_pages_url,
+        # ลิ้งค์ต้นโพสต์→source_url, เฟสเจ้าของ→owner_facebook
+        post = http_url_or_empty(row.get("post_link", ""))
+        post_pages = http_url_or_empty(row.get("post_pages", ""))
+        source_url = unwrap_link_cell(row.get("source", ""))
         media_status = "has_link" if post.startswith("http") else "none"
         owner_fb = owner_facebook_from_sheet(row.get("owner_fb", ""))
         if owner_fb:
@@ -441,6 +465,12 @@ def build_properties(
             stats["owner_from_source_profile"] += 1
         elif action == "empty":
             stats["owner_empty"] += 1
+        if post:
+            stats["with_post_url"] += 1
+        if post_pages:
+            stats["with_post_pages_url"] += 1
+        if source_url.startswith("http"):
+            stats["with_source_url"] += 1
 
         properties.append(
             {
@@ -458,7 +488,7 @@ def build_properties(
                 "floor": row.get("floor", ""),
                 "rent_price": row.get("rent", ""),
                 "sale_price": row.get("sale", ""),
-                "source_url": row.get("source", ""),
+                "source_url": source_url,
                 "post_url": post,
                 "post_pages_url": post_pages,
                 "owner_facebook": owner_fb,
@@ -618,6 +648,9 @@ def rebuild_from_csv() -> dict:
         "incomplete_skipped": stats["incomplete_skipped"],
         "partial_imported": stats["partial_imported"],
         "with_owner_facebook": stats["with_owner_facebook"],
+        "with_post_url": stats["with_post_url"],
+        "with_post_pages_url": stats["with_post_pages_url"],
+        "with_source_url": stats["with_source_url"],
         "owner_already": stats["owner_already"],
         "owner_from_adjacent": stats["owner_from_adjacent"],
         "owner_from_adjacent_over_post": stats["owner_from_adjacent_over_post"],

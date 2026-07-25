@@ -122,10 +122,15 @@ def download_sheet_via_service_account(
     sheet_name: str = "",
     gid: str = "",
 ) -> int:
-    """Pull a worksheet via Service Account (private sheets). Returns bytes written."""
+    """Pull a worksheet via Service Account (private sheets). Returns bytes written.
+
+    Merges FORMULA + FORMATTED renders so ``=HYPERLINK("url","label")`` cells
+    keep the real URL instead of only the short display label.
+    """
     import csv
     import io
 
+    from src.hub.sheet_links import merge_formula_and_formatted
     from src.hub.sheet_write import _gspread_client
 
     sid = (spreadsheet_id or "").strip()
@@ -145,7 +150,13 @@ def download_sheet_via_service_account(
     if ws is None:
         ws = ss.get_worksheet(0)
 
-    values = ws.get_all_values()
+    try:
+        formula_rows = ws.get_all_values(value_render_option="FORMULA")
+        formatted_rows = ws.get_all_values(value_render_option="FORMATTED_VALUE")
+        values = merge_formula_and_formatted(formula_rows, formatted_rows)
+    except TypeError:
+        # Older gspread without value_render_option kw
+        values = ws.get_all_values()
     buf = io.StringIO()
     csv.writer(buf).writerows(values)
     text = buf.getvalue().encode("utf-8")

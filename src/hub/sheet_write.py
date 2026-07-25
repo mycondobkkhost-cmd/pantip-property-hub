@@ -1467,8 +1467,14 @@ def _install_overview_data_formulas(ws) -> None:
     ws.update(f"M6:{OVERVIEW_END_COL}6", link_rows, value_input_option="USER_ENTERED")
 
 
-def _write_overview_src(ss, values: list[list]) -> dict:
-    """Replace hidden `_overview_src` table (headers + data)."""
+def _write_overview_src(
+    ss, values: list[list], *, format_sheet: bool = True
+) -> dict:
+    """Replace hidden `_overview_src` table (headers + data).
+
+    Writes first, then clears only leftover rows below — never clear-all-then-write,
+    which left FILTER showing blank ทำเล/สถานี when a sync timed out mid-update.
+    """
     n = len(OVERVIEW_HEADERS)
     data_rows = values[1:] if values and list(values[0])[:n] == OVERVIEW_HEADERS else values
     # Pad/truncate every row so FILTER/VLOOKUP column indexes stay aligned
@@ -1479,16 +1485,15 @@ def _write_overview_src(ss, values: list[list]) -> dict:
         normalized.append(r[:n])
     full = [list(OVERVIEW_HEADERS)] + normalized
     src = _open_or_create_src_sheet(ss, rows=len(full) + 10)
-    try:
-        last = max(src.row_count, 1)
-        src.batch_clear([f"A1:{OVERVIEW_END_COL}{last}"])
-    except Exception:
-        try:
-            src.clear()
-        except Exception:
-            pass
     _update_values_chunked(src, full, start_row=1)
-    _format_overview_src(ss, src)
+    try:
+        last = max(int(src.row_count or 0), len(full))
+        if last > len(full):
+            src.batch_clear([f"A{len(full) + 1}:{OVERVIEW_END_COL}{last}"])
+    except Exception:
+        pass
+    if format_sheet:
+        _format_overview_src(ss, src)
     return {
         "sheet_title": src.title,
         "rows_written": len(normalized),
@@ -1510,13 +1515,22 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
     if spreadsheet is not None:
         try:
             if not _worksheet_has_dashboard_chrome(ws):
+                # Install chrome first (includes FILTER); then fill backing data.
                 ensure_overview_search_chrome(
                     spreadsheet,
                     ws,
                     synced_at=synced_at,
                     row_count=len(data_rows),
                 )
+                src_meta = _write_overview_src(
+                    spreadsheet, values, format_sheet=False
+                )
             else:
+                # Write backing data FIRST so a timeout cannot leave FILTER over
+                # an empty `_overview_src` after formula reinstall clears A6:Q.
+                src_meta = _write_overview_src(
+                    spreadsheet, values, format_sheet=False
+                )
                 # Refresh status + keep FILTER / link / notes formulas current
                 try:
                     ws.update(
@@ -1526,7 +1540,6 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                             f"ซิงค์จากแอป · อัปเดต: {synced_at} · "
                             f"{len(data_rows):,} รายการ · เรียงใหม่→เก่า"
                         ]],
-                        # RAW — USER_ENTERED can mangle "dd/mm/yyyy HH:MM" into "timing"
                         value_input_option="RAW",
                     )
                 except Exception:
@@ -1540,17 +1553,18 @@ def _write_overview_values(ws, values: list[list], *, synced_at: str, ss=None) -
                     )
                 except Exception:
                     pass
-                # Always re-apply formulas so upgrades (clickable HYPERLINKs) deploy.
+                # Re-apply formulas so upgrades (clickable HYPERLINKs + หมายเหตุ) deploy.
+                # Skip heavy decoration on routine syncs (Render ~30s limit).
                 _install_overview_data_formulas(ws)
-                # Re-apply work-sheet-matched decoration on every sync.
-                _format_overview_chrome(spreadsheet, ws)
 
-            src_meta = _write_overview_src(spreadsheet, values)
             meta["data_start_row"] = OVERVIEW_DATA_START
             meta["chrome_preserved"] = True
             meta["filter_mode"] = True
             meta["src_sheet"] = src_meta.get("sheet_title")
             meta["rows_written"] = int(src_meta.get("rows_written") or 0)
+            meta["overview_columns"] = int(
+                src_meta.get("columns") or len(OVERVIEW_HEADERS)
+            )
             return meta
         except Exception as exc:  # noqa: BLE001
             meta["chrome_error"] = str(exc)

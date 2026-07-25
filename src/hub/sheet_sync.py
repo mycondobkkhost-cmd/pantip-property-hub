@@ -219,10 +219,31 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
 
     # Snapshot Hub-owned rows before rebuild wipes properties.json
     preserved: list[dict] = []
+    preserved_loc_by_bucket: dict[str, dict] = {}
     try:
         preserved = [dict(p) for p in load_properties() if is_hub_owned(p)]
     except Exception:
         preserved = []
+    try:
+        for proj in load_projects():
+            bucket = proj.get("bucket_key") or ""
+            if not bucket:
+                continue
+            if (proj.get("location_source") or "") == "livinginsider" or (
+                proj.get("transit_verified") or proj.get("zone_verified")
+            ):
+                preserved_loc_by_bucket[bucket] = {
+                    "transit_verified": list(proj.get("transit_verified") or []),
+                    "zone_verified": list(proj.get("zone_verified") or []),
+                    "transit_unverified": list(proj.get("transit_unverified") or []),
+                    "zone_unverified": list(proj.get("zone_unverified") or []),
+                    "location_status": proj.get("location_status") or "pending_verification",
+                    "location_source": proj.get("location_source") or "",
+                    "living_zone": proj.get("living_zone") or "",
+                    "living_project_url": proj.get("living_project_url") or "",
+                }
+    except Exception:
+        preserved_loc_by_bucket = {}
 
     downloaded = False
     download_error = ""
@@ -295,6 +316,23 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
             p.setdefault("data_source", "sheet")
             p.setdefault("code_prefix", "PTP")
 
+        # Restore Living / verified location fields wiped by rebuild_from_csv
+        restored_loc = 0
+        for proj in projects:
+            bucket = proj.get("bucket_key") or ""
+            snap = preserved_loc_by_bucket.get(bucket)
+            if not snap:
+                continue
+            for key, val in snap.items():
+                if val not in ("", None, [], {}):
+                    proj[key] = val
+            if snap.get("transit_verified") or snap.get("zone_verified"):
+                from src.hub.project_store import sync_project_listings_location_ref
+
+                sync_project_listings_location_ref(proj, properties)
+                restored_loc += 1
+        summary["preserved_locations"] = restored_loc
+
         existing = {(p.get("code") or "").upper() for p in properties}
         restored = 0
         for hp in preserved:
@@ -310,7 +348,7 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
             existing.add(code)
             restored += 1
             # bump project listing_count lightly is skipped — rebuild already set counts
-        if restored:
+        if restored or restored_loc:
             # recount listing_count from merged properties
             counts: dict[str, int] = {}
             for p in properties:

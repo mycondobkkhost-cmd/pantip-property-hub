@@ -64,7 +64,8 @@ STATION_ALIASES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"(bts\s*)?(สถานี\s*)?สะพานตากสิน|saphan\s*taksin", re.I), "BTS สะพานตากสิน"),
     (re.compile(r"(bts\s*)?(สถานี\s*)?วงเวียนใหญ่|wongwian\s*yai|wong\s*wian\s*yai", re.I), "BTS วงเวียนใหญ่"),
     (re.compile(r"(bts\s*)?(สถานี\s*)?สนามกีฬาแห่งชาติ|national\s*stadium", re.I), "BTS สนามกีฬาแห่งชาติ"),
-    (re.compile(r"(bts\s*)?(สถานี\s*)?สยาม|siam(?![a-z])", re.I), "BTS สยาม"),
+    # Negative lookbehind avoids ICONSIAM / Siam Paragon false hits → BTS สยาม
+    (re.compile(r"(?<![a-z])(bts\s*)?(สถานี\s*)?สยาม(?![a-zก-๙])|(?<![a-z])siam(?![a-z])", re.I), "BTS สยาม"),
     (re.compile(r"(bts\s*)?(สถานี\s*)?หมอชิต|mo\s*chit", re.I), "BTS หมอชิต"),
     (re.compile(r"(bts\s*)?(สถานี\s*)?รัชโยธิน|ratchayothin", re.I), "BTS รัชโยธิน"),
     (re.compile(r"(?:mrt\s*)?(สถานี\s*)?รามอินทรา|ramintra", re.I), "MRT รามอินทรา"),
@@ -122,6 +123,9 @@ ZONE_ALIASES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"รามคำแหง|ramkhamhaeng", re.I), "รามคำแหง"),
     (re.compile(r"ห้วยขวาง|huai\s*khwang", re.I), "ห้วยขวาง"),
     (re.compile(r"สุขุมวิท|sukhumvit", re.I), "สุขุมวิท"),
+    (re.compile(r"เจริญนคร|charoen\s*nakhon", re.I), "เจริญนคร"),
+    (re.compile(r"วงเวียนใหญ่|wongwian\s*yai", re.I), "วงเวียนใหญ่"),
+    (re.compile(r"มักกะสัน|makkasan", re.I), "มักกะสัน"),
 ]
 
 STATION_TO_ZONE = {
@@ -142,6 +146,10 @@ STATION_TO_ZONE = {
     "BTS เพลินจิต": "เพลินจิต",
     "BTS ศาลาแดง": "สีลม",
     "BTS ช่องนนทรี": "สาทร",
+    "BTS กรุงธนบุรี": "เจริญนคร",
+    "BTS เจริญนคร": "เจริญนคร",
+    "BTS สะพานตากสิน": "สาทร",
+    "BTS วงเวียนใหญ่": "วงเวียนใหญ่",
     "MRT เพชรบุรี": "เพชรบุรีตัดใหม่",
     "MRT พระราม 9": "พระราม 9",
     "MRT สุขุมวิท": "อโศก",
@@ -149,6 +157,8 @@ STATION_TO_ZONE = {
     "MRT รัชดาภิเษก": "รัชดา",
     "MRT ลาดพร้าว": "ลาดพร้าว",
     "MRT ลุมพินี": "ลุมพินี",
+    "MRT ศูนย์วัฒนธรรมแห่งประเทศไทย": "ห้วยขวาง",
+    "MRT รามคำแหง": "รามคำแหง",
     "ARL มักกะสัน": "มักกะสัน",
     "ARL รามคำแหง": "รามคำแหง",
 }
@@ -551,17 +561,111 @@ def infer_from_soi(name: str) -> tuple[list[str], list[str]]:
     return [], []
 
 
+def zones_from_living_label(zone_label: str, *, stations: list[str] | None = None) -> list[str]:
+    """Turn Living breadcrumb zone into filterable ทำเล tags."""
+    zones: list[str] = []
+    for z in extract_zones_from_text(zone_label or ""):
+        if z not in zones:
+            zones.append(z)
+    # Keep Living compound label when no alias hit (still useful as ทำเล)
+    label = re.sub(r"\s+", " ", (zone_label or "").strip())
+    if label and not zones and len(label) <= 40:
+        zones.append(label)
+    for t in stations or []:
+        z = STATION_TO_ZONE.get(t)
+        if z and z not in zones:
+            zones.append(z)
+    return [z for z in dedupe_transit(zones) if not re.match(r"^(BTS|MRT|ARL|APL)\b", z, re.I)][:5]
+
+
+def living_stations_plausible(
+    stations: list[str],
+    *,
+    zone: str,
+    project_name: str,
+) -> bool:
+    """Reject Living map stations that clash with zone/project (Living SEO bugs)."""
+    if not stations:
+        return True
+    blob = f"{zone} {project_name}".lower()
+    blob_n = _norm(blob)
+    # Known conflict pairs: riverside vs thonglor belt
+    riverside = any(
+        x in blob_n
+        for x in ("เจริญนคร", "charoennakhon", "charoennakorn", "riverside", "วงเวียนใหญ่", "krungthon")
+    )
+    thonglor_belt = any(
+        x in blob_n
+        for x in ("ทองหล่อ", "thonglor", "thonglo", "เอกมัย", "ekkamai", "ekamai", "พร้อมพงษ์")
+    )
+    station_blob = " ".join(stations).lower()
+    station_n = _norm(station_blob)
+    if thonglor_belt and not riverside:
+        if any(x in station_n for x in ("เจริญนคร", "กรุงธนบุรี", "wongwian", "วงเวียน")):
+            return False
+    if riverside and not thonglor_belt:
+        if any(x in station_n for x in ("ทองหล่อ", "เอกมัย", "พร้อมพงษ์", "thonglo")):
+            return False
+    return True
+
+
+def apply_living_to_project(
+    proj: dict,
+    *,
+    zone: str,
+    stations: list[str],
+    living_project_url: str = "",
+) -> tuple[list[str], list[str]]:
+    """Write Living-verified zone/transit onto a project dict. Returns (zones, transit)."""
+    name = proj.get("canonical_name") or ""
+    use_stations = list(stations or [])
+    if not living_stations_plausible(use_stations, zone=zone, project_name=name):
+        # Keep Living zone; replace stations with name/corridor inference
+        _, inferred, _ = enrich_project({**proj, "location_source": "", "transit_verified": [], "zone_verified": []})
+        use_stations = inferred or []
+    transit = dedupe_stations(use_stations)[:3]
+    zones = zones_from_living_label(zone, stations=transit)
+    # If Living zone empty, still derive zones from stations / name
+    if not zones:
+        for z in extract_zones_from_text(name):
+            if z not in zones:
+                zones.append(z)
+    proj["zone_verified"] = zones
+    proj["zone_unverified"] = []
+    proj["transit_verified"] = transit
+    # Keep raw sheet pile out of primary display once Living verified
+    proj["transit_unverified"] = []
+    proj["location_status"] = "verified"
+    proj["location_source"] = "livinginsider"
+    if living_project_url:
+        proj["living_project_url"] = living_project_url
+    if zone:
+        proj["living_zone"] = zone
+    return zones, transit
+
+
 def enrich_project(proj: dict, property_hints: list[str] | None = None) -> tuple[list[str], list[str], str]:
     """Return (zones, transit, source_note).
 
-    Conservative rules:
-    - Project overrides win (researched nearest stations).
-    - Corridor match → use corridor pack ONLY (ignore sheet SEO noise).
-    - Otherwise → at most 2 stations inferred from name / property hints.
+    Authority order:
+    1. Livinginsider already applied (location_source=livinginsider + verified)
+    2. Project overrides (researched; often Living-backed)
+    3. Corridor pack ONLY (ignore sheet SEO noise)
+    4. Otherwise ≤2 stations from name / property hints
     """
     name = proj.get("canonical_name") or ""
     aliases = list(proj.get("aliases") or [])
     bucket = proj.get("bucket_key") or project_bucket(name) or ""
+
+    # Prefer Living-verified if already written by enrich_from_living
+    if (proj.get("location_source") or "") == "livinginsider" and (
+        proj.get("transit_verified") or proj.get("zone_verified")
+    ):
+        return (
+            list(proj.get("zone_verified") or []),
+            list(proj.get("transit_verified") or []),
+            "livinginsider",
+        )
 
     override = PROJECT_OVERRIDES.get(bucket)
     if override:
@@ -636,6 +740,171 @@ def enrich_project(proj: dict, property_hints: list[str] | None = None) -> tuple
     return zones, stations, source
 
 
+def enrich_projects_from_living(
+    *,
+    dry_run: bool = False,
+    min_listings: int = 0,
+    max_projects: int | None = None,
+    samples_per_project: int = 2,
+    sleep_s: float = 0.45,
+    use_cache: bool = True,
+    force: bool = False,
+) -> dict:
+    """Fetch Livinginsider listing pages and set verified zone/transit.
+
+    Prioritizes high listing_count projects. Skips projects already Living-verified
+    unless force=True.
+    """
+    from collections import defaultdict
+
+    from src.hub.living_client import consensus_location, fetch_living_location
+
+    projects = load_projects()
+    properties = load_properties()
+
+    urls_by_pid: dict[str, list[str]] = defaultdict(list)
+    for prop in properties:
+        pid = prop.get("project_id")
+        url = str(prop.get("source_url") or "")
+        if not pid or "livinginsider" not in url.lower():
+            continue
+        if url not in urls_by_pid[pid]:
+            urls_by_pid[pid].append(url)
+
+    ranked = sorted(
+        projects,
+        key=lambda p: (
+            -int(p.get("listing_count") or 0),
+            -(len(p.get("transit_unverified") or [])),
+            p.get("canonical_name") or "",
+        ),
+    )
+
+    stats: dict = {
+        "projects_total": len(projects),
+        "projects_with_living_url": 0,
+        "projects_fetched": 0,
+        "projects_verified": 0,
+        "projects_skipped_already": 0,
+        "projects_failed": 0,
+        "listings_synced": 0,
+        "http_fetches": 0,
+        "cache_hits": 0,
+        "failed": [],
+        "samples": [],
+        "gaps_no_url": [],
+    }
+
+    processed = 0
+    for proj in ranked:
+        if int(proj.get("listing_count") or 0) < min_listings:
+            continue
+        urls = urls_by_pid.get(proj["id"]) or []
+        if not urls:
+            if int(proj.get("listing_count") or 0) >= max(min_listings, 10):
+                stats["gaps_no_url"].append(
+                    {
+                        "name": proj.get("canonical_name"),
+                        "listings": proj.get("listing_count"),
+                    }
+                )
+            continue
+
+        stats["projects_with_living_url"] += 1
+        if (
+            not force
+            and (proj.get("location_source") or "") == "livinginsider"
+            and (proj.get("transit_verified") or proj.get("zone_verified"))
+        ):
+            stats["projects_skipped_already"] += 1
+            continue
+
+        if max_projects is not None and processed >= max_projects:
+            break
+        processed += 1
+        stats["projects_fetched"] += 1
+
+        sample_urls = urls[: max(1, samples_per_project)]
+        living_samples = []
+        for u in sample_urls:
+            # Cache hit detection: try fetch; living_client caches internally
+            from src.hub.living_client import _load_cache
+
+            had_cache = bool(use_cache and _load_cache(u))
+            loc = fetch_living_location(u, use_cache=use_cache, sleep_s=0 if had_cache else sleep_s)
+            if had_cache:
+                stats["cache_hits"] += 1
+            else:
+                stats["http_fetches"] += 1
+            living_samples.append(loc)
+
+        consensus = consensus_location(living_samples)
+        if not consensus.ok:
+            stats["projects_failed"] += 1
+            if len(stats["failed"]) < 40:
+                stats["failed"].append(
+                    {
+                        "name": proj.get("canonical_name"),
+                        "error": consensus.error,
+                        "url": sample_urls[0],
+                    }
+                )
+            continue
+
+        zones, transit = apply_living_to_project(
+            proj,
+            zone=consensus.zone,
+            stations=consensus.stations,
+            living_project_url=consensus.project_url,
+        )
+        if not dry_run:
+            n = sync_project_listings_location_ref(proj, properties)
+            # Checkpoint every 25 projects so long runs don't lose progress
+            if stats["projects_verified"] % 25 == 0:
+                persist(projects, properties)
+                print(
+                    f"… checkpoint verified={stats['projects_verified']} "
+                    f"fetches={stats['http_fetches']} cache={stats['cache_hits']}",
+                    file=__import__("sys").stderr,
+                    flush=True,
+                )
+        stats["projects_verified"] += 1
+        stats["listings_synced"] += n
+
+        name = proj.get("canonical_name") or ""
+        if any(
+            k in name.lower()
+            for k in (
+                "life asoke",
+                "thru thonglor",
+                "chapter charoen",
+                "noble revolve",
+                "xt ekkamai",
+                "xt ekamai",
+                "ไลฟ์ อโศก",
+                "ทรู ทอง",
+                "แชปเตอร์",
+                "โนเบิล รีวอล",
+                "เอ็กซ์ที เอก",
+            )
+        ) or int(proj.get("listing_count") or 0) >= 40:
+            stats["samples"].append(
+                {
+                    "name": name,
+                    "zones": zones,
+                    "transit": transit,
+                    "living_zone": consensus.zone,
+                    "listings": n,
+                }
+            )
+
+    if not dry_run:
+        persist(projects, properties)
+
+    stats["gaps_no_url"] = stats["gaps_no_url"][:40]
+    return stats
+
+
 def enrich_all_projects(*, dry_run: bool = False, min_listings: int = 0) -> dict:
     projects = load_projects()
     properties = load_properties()
@@ -661,11 +930,19 @@ def enrich_all_projects(*, dry_run: bool = False, min_listings: int = 0) -> dict
         "listings_synced": 0,
         "by_source": {},
         "empty": 0,
+        "skipped_living": 0,
         "samples": [],
     }
 
     for proj in projects:
         if int(proj.get("listing_count") or 0) < min_listings:
+            continue
+        # Never overwrite Living-verified with corridor/sheet heuristics
+        if (proj.get("location_source") or "") == "livinginsider" and (
+            proj.get("transit_verified") or proj.get("zone_verified")
+        ):
+            stats["skipped_living"] += 1
+            stats["by_source"]["livinginsider"] = stats["by_source"].get("livinginsider", 0) + 1
             continue
         zones, transit, source = enrich_project(proj, hints_by_pid.get(proj["id"]))
         stats["by_source"][source] = stats["by_source"].get(source, 0) + 1
@@ -678,6 +955,8 @@ def enrich_all_projects(*, dry_run: bool = False, min_listings: int = 0) -> dict
         proj["transit_verified"] = transit
         proj["transit_unverified"] = []
         proj["location_status"] = "verified"
+        if source.startswith("override:") or source.startswith("corridor:"):
+            proj["location_source"] = source
         n = sync_project_listings_location_ref(proj, properties)
         stats["projects_updated"] += 1
         stats["listings_synced"] += n

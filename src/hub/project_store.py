@@ -115,17 +115,19 @@ def load_properties() -> list[dict]:
 
 
 def project_transit_display(proj: dict) -> list[str]:
+    """Prefer verified stations only — never concatenate unverified once verified exists."""
     verified = proj.get("transit_verified") or []
     if verified:
         return dedupe_stations(verified)
-    return dedupe_stations(proj.get("transit_unverified") or [])
+    # Living-pending: expose at most 2 unverified as weak hint (sheet mode)
+    return dedupe_stations(proj.get("transit_unverified") or [])[:2]
 
 
 def project_zone_display(proj: dict) -> list[str]:
     verified = proj.get("zone_verified") or []
     if verified:
         return parse_tag_list(verified)
-    return parse_tag_list(proj.get("zone_unverified") or [])
+    return parse_tag_list(proj.get("zone_unverified") or [])[:3]
 
 
 def project_location_label(project: dict) -> str:

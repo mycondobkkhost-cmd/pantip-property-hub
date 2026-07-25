@@ -2485,7 +2485,9 @@
     }
 
     function locationHtml(p, proj) {
-      var loc = p.location_ref || (proj.transit_unverified || []).slice(0, 2).join(", ");
+      // ทำเล only — prefer verified zones / location_ref; never fall back to station piles
+      var zones = masterZoneAll(proj || {});
+      var loc = (zones && zones.length) ? zones.slice(0, 4).join(", ") : (p.location_ref || "");
       if (!loc) return '<span class="muted">—</span>';
       return '<span class="loc-ref" title="' + esc(loc) + '">' + esc(loc) + '</span>';
     }
@@ -2837,9 +2839,11 @@
       if (!transitFilter) return true;
       var want = transitNormKey(transitFilter);
       if (!want) return true;
-      var all = (proj.transit_verified || [])
-        .concat(proj.transit_unverified || [])
-        .concat(p.transit_from_sheet || []);
+      // Prefer verified only once present — stop matching SEO unverified piles
+      var all = masterTransitAll(proj || {});
+      if (!all.length && !(proj.transit_verified && proj.transit_verified.length)) {
+        all = (p.transit_from_sheet || []).slice(0, 2);
+      }
       var exploded = [];
       all.forEach(function (x) {
         explodeTransitParts(x).forEach(function (part) {
@@ -3522,7 +3526,7 @@
           projects[p.project_id] = pmap[p.project_id].canonical_name;
         }
         var proj = pmap[p.project_id] || {};
-        (proj.transit_verified || []).concat(proj.transit_unverified || []).concat(p.transit_from_sheet || []).forEach(function (t) {
+        masterTransitAll(proj).forEach(function (t) {
           if (!/(?:BTS|MRT|ARL|Airport\s*Link|APL)/i.test(t || "")) return;
           // แยกสถานีที่คั่นด้วย , / | และ
           explodeTransitParts(t).forEach(function (part) {
@@ -3966,16 +3970,8 @@
     }
 
     function masterLocationLabel(proj) {
-      var seen = {};
-      var out = [];
-      masterTransitAll(proj).concat(masterZoneAll(proj)).forEach(function (t) {
-        var k = normProjectKey(t);
-        if (!seen[k]) {
-          seen[k] = 1;
-          out.push(t);
-        }
-      });
-      return out.join(", ");
+      // ทำเล = zones only (never concatenate stations)
+      return masterZoneAll(proj).slice(0, 5).join(", ");
     }
 
     /* ---- Tag / bubble fields for ทำเล + BTS ---- */
@@ -6624,7 +6620,7 @@
       props.forEach(function (p) {
         if (p.property_type) types[p.property_type] = (types[p.property_type] || 0) + 1;
         var proj = pmap[p.project_id] || {};
-        (proj.transit_verified || []).concat(proj.transit_unverified || []).concat(p.transit_from_sheet || []).forEach(function (t) {
+        masterTransitAll(proj).forEach(function (t) {
           if (!/(?:BTS|MRT|ARL|Airport\s*Link|APL)/i.test(t || "")) return;
           explodeTransitParts(t).forEach(function (part) {
             if (!/(?:BTS|MRT|ARL|Airport\s*Link|APL)/i.test(part)) return;

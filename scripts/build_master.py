@@ -316,8 +316,9 @@ def annotate_duplicates(properties: list[dict]) -> Counter:
             flags.append("relist")
 
         prop["duplicate_flags"] = flags
-        transit = prop.get("transit_from_sheet") or []
-        prop["location_ref"] = ", ".join(transit) if transit else ""
+        # location_ref = ทำเล only — never dump station SEO piles here.
+        # Living / enrich sync fills this from project zone_verified later.
+        prop["location_ref"] = ""
 
         if flags:
             stats["properties_flagged"] += 1

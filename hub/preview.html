@@ -7747,7 +7747,8 @@
 
       async function pollSyncResult(startedAt, expectGen) {
         // Startup pull can take ~2–4 min; overview push another ~1–2 min.
-        var deadline = Date.now() + 420000;
+        // Allow ~10 min on fresh hosts so manual sync does not false-timeout.
+        var deadline = Date.now() + 600000;
         var lastLabel = "";
         var requeued = false;
         while (Date.now() < deadline) {

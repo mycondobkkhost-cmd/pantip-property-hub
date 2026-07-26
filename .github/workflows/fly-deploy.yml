@@ -1,0 +1,30 @@
+# Deploy Property Hub to Fly.io on push to main (after FLY_API_TOKEN is set).
+# Does not touch LivingBKK / apex realxtateth.com.
+name: Fly deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - "fly.toml"
+      - "requirements-hub.txt"
+      - "scripts/hub_server.py"
+      - "src/hub/**"
+      - "hub/**"
+      - "data/properties.json"
+      - "data/projects.json"
+      - ".github/workflows/fly-deploy.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.FLY_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

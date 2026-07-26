@@ -1,10 +1,10 @@
-# Ping Property Hub so Render free tier sleeps less often.
-# Does not touch LivingBKK / realxtateth.com apex.
+# Health check for Property Hub custom domain (Fly / primary host).
+# Does not touch LivingBKK / realxtateth.com apex. Do not rely on Render.
 name: Hub keepalive
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -14,16 +14,11 @@ jobs:
       - name: Ping hub.realxtateth.com
         run: |
           set -e
-          for url in \
-            "https://hub.realxtateth.com/api/health" \
-            "https://property-hub-y7ai.onrender.com/api/health"
-          do
-            code=$(curl -sS -o /tmp/hub_health.json -w "%{http_code}" --max-time 60 "$url" || echo "000")
-            echo "$url -> HTTP $code"
-            head -c 200 /tmp/hub_health.json; echo
-            if [ "$code" = "200" ]; then
-              exit 0
-            fi
-          done
-          echo "keepalive failed"
-          exit 1
+          url="https://hub.realxtateth.com/api/health"
+          code=$(curl -sS -o /tmp/hub_health.json -w "%{http_code}" --max-time 60 "$url" || echo "000")
+          echo "$url -> HTTP $code"
+          head -c 200 /tmp/hub_health.json; echo
+          if [ "$code" != "200" ]; then
+            echo "keepalive failed — admins should use hub.realxtateth.com only"
+            exit 1
+          fi

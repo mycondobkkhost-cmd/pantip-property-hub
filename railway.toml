@@ -1,0 +1,17 @@
+# Railway (fallback if Fly unavailable)
+# Deploy: railway up --dockerfile Dockerfile
+# Set root domain / custom domain hub.realxtateth.com in Railway dashboard
+# or via: railway domain
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+[service]
+internalPort = 8080

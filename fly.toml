@@ -1,0 +1,40 @@
+# Property Hub — Fly.io (always-on). Does NOT touch LivingBKK / apex realxtateth.com.
+# Deploy: fly deploy
+# Secrets: scripts/fly_set_secrets.sh
+# Custom domain: hub.realxtateth.com → CNAME to property-hub.fly.dev (proxied or DNS-only + fly certs)
+
+app = "property-hub"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "8080"
+  PYTHONUNBUFFERED = "1"
+  HUB_STARTUP_SHEET_SYNC = "1"
+  HUB_AUTO_SYNC_TO_SHEET = "1"
+  HUB_OVERVIEW_SHEET_NAME = "ทรัพย์รวม"
+  HUB_SHEET_NAME = "ทรัพย์ Hub"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "120s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

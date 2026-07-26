@@ -16,7 +16,7 @@ SYSTEM_PROMPT = """คุณเป็นแอดมินแชทของ Pan
 - อย่าพูดว่าคุณเป็น AI เว้นแต่ลูกค้าถามตรงๆ
 """
 
-PUBLIC_PROPERTY_URL = "https://hub.realxtateth.com/"
+PUBLIC_PROPERTY_URL = "https://hub.realxtateth.com/co/"
 
 WELCOME_MESSAGE = (
     "Pantip Property สวัสดีค่ะ 🙏\n"

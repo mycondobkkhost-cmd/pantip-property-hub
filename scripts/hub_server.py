@@ -260,10 +260,14 @@ def _auto_sync_to_sheet_worker_loop() -> None:
             if wait > 0:
                 continue
             # Don't fight startup sheet pull (same Sheets API / memory).
+            # Still keep pending=True so clients keep polling instead of
+            # timing out while boot refresh holds the sheet lock.
             startup = (_STARTUP_SHEET_SYNC.get("status") or "").strip()
             if startup == "running":
+                _AUTO_SYNC_TO_SHEET["status"] = "queued"
                 _AUTO_SYNC_TO_SHEET["message"] = "waiting for startup sheet pull…"
                 continue
+            # Manual sync: start as soon as startup finished (or timed out).
             reason = _AUTO_SYNC_TO_SHEET.get("reason") or "hub_write"
             _AUTO_SYNC_TO_SHEET["pending"] = False
             _AUTO_SYNC_TO_SHEET["running"] = True

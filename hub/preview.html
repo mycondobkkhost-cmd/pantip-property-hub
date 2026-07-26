@@ -7746,7 +7746,10 @@
       }
 
       async function pollSyncResult(startedAt, expectGen) {
-        var deadline = Date.now() + 180000;
+        // Startup pull can take ~2–4 min; overview push another ~1–2 min.
+        var deadline = Date.now() + 420000;
+        var lastLabel = "";
+        var requeued = false;
         while (Date.now() < deadline) {
           await sleep(2000);
           var stRes = await fetch((API_BASE || "") + "/api/properties/sync-status", {
@@ -7756,18 +7759,61 @@
           var st = await stRes.json().catch(function () { return null; });
           if (!st || !st.ok) continue;
           var a = st.auto_sync_to_sheet || {};
-          label.textContent = "กำลังซิงค์…";
-          var busy = a.pending || a.running || a.status === "queued" || a.status === "running";
-          if (busy) continue;
-          var doneGen = Number(a.completed_generation || 0);
-          var wantGen = Number(expectGen || 0);
-          if (wantGen && doneGen < wantGen) {
-            if (Date.now() - startedAt < 8000) continue;
+          var startup = st.startup_sheet_sync || {};
+          var msg = String(a.message || "");
+          var nextLabel = "กำลังซิงค์…";
+          if (startup.status === "running" || /waiting for startup/i.test(msg)) {
+            nextLabel = "รอโหลดชีท…";
+          } else if (a.running || /pushing/i.test(msg)) {
+            nextLabel = "กำลังเขียนชีท…";
+          } else if (a.pending || a.status === "queued") {
+            nextLabel = "รอคิวซิงค์…";
           }
-          if (a.status === "ok" && a.pushed && (!wantGen || doneGen >= wantGen)) {
+          if (nextLabel !== lastLabel) {
+            label.textContent = nextLabel;
+            lastLabel = nextLabel;
+          }
+          var busy = a.pending || a.running || a.status === "queued" || a.status === "running";
+          var doneGen = Number(a.completed_generation || 0);
+          var curGen = Number(a.generation || 0);
+          var wantGen = Number(expectGen || 0);
+
+          // Redeploy/restart wiped in-memory queue — re-queue once.
+          if (
+            wantGen &&
+            doneGen < wantGen &&
+            !busy &&
+            curGen < wantGen &&
+            !requeued &&
+            Date.now() - startedAt > 10000
+          ) {
+            requeued = true;
+            label.textContent = "คิวซิงค์ใหม่…";
+            try {
+              var again = await fetch((API_BASE || "") + "/api/properties/sync-to-sheet", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: "{}",
+              });
+              var againData = await again.json().catch(function () { return null; });
+              if (againData && againData.generation) {
+                expectGen = againData.generation;
+                wantGen = Number(expectGen);
+              }
+            } catch (_e) { /* keep waiting */ }
+            continue;
+          }
+
+          // Keep waiting for this queued generation.
+          if (wantGen && doneGen < wantGen) {
+            continue;
+          }
+          if (busy) continue;
+          if (a.status === "ok" && a.pushed) {
             return { ok: true, data: a.result || a };
           }
-          if ((a.status === "error" || (a.status === "ok" && !a.pushed)) && (!wantGen || doneGen >= wantGen)) {
+          if (a.status === "error" || (a.status === "ok" && !a.pushed)) {
             return {
               ok: false,
               data: a.result || {
@@ -7777,19 +7823,23 @@
               },
             };
           }
-          if (Date.now() - startedAt < 8000) continue;
-          return {
-            ok: false,
-            data: {
-              error: a.message || "หมดเวลารอผลซิงค์ — ลองกดซิงค์อีกครั้งหรือรีเฟรชหน้า",
-              pushed: false,
-            },
-          };
+          // No generation tracking and idle — give it a short grace, then fail.
+          if (!wantGen && Date.now() - startedAt < 15000) continue;
+          if (!wantGen) {
+            return {
+              ok: false,
+              data: {
+                error: a.message || "หมดเวลารอผลซิงค์ — ลองกดซิงค์อีกครั้งหรือรีเฟรชหน้า",
+                pushed: false,
+              },
+            };
+          }
         }
         return {
           ok: false,
           data: {
-            error: "หมดเวลารอผลซิงค์ (ประมาณ 3 นาที) — เซิร์ฟเวอร์อาจยังเขียนชีทอยู่ ลองเช็คชีทหรือกดอีกครั้ง",
+            error:
+              "หมดเวลารอผลซิงค์ (ประมาณ 7 นาที) — เซิร์ฟอาจกำลังโหลดชีทตอนบูตหรือเขียน 7,000+ แถว ลองกดซิงค์อีกครั้ง",
             pushed: false,
           },
         };

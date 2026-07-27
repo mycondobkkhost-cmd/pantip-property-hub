@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import random
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from loguru import logger
@@ -26,7 +27,15 @@ class FacebookAuth:
     """
 
     FACEBOOK_URL = "https://www.facebook.com/"
-    LOGIN_CHECK_SELECTOR = '[aria-label="Your profile"], [aria-label="บัญชีของคุณ"]'
+    LOGIN_CHECK_SELECTORS = (
+        '[aria-label="Your profile"]',
+        '[aria-label="บัญชีของคุณ"]',
+        '[aria-label="Profile"]',
+        '[aria-label="โปรไฟล์ของคุณ"]',
+        '[aria-label="Account"]',
+        'div[role="navigation"] [aria-label*="profile" i]',
+        'div[role="banner"] [aria-label*="บัญชี"]',
+    )
 
     def __init__(
         self,
@@ -82,10 +91,33 @@ class FacebookAuth:
         self._page = self._context.pages[0] if self._context.pages else self._context.new_page()
         return self._page
 
-    def _is_logged_in(self, page: Page) -> bool:
-        page.goto(self.FACEBOOK_URL, wait_until="domcontentloaded")
-        self._human_delay(1.5, 3.0)
-        return page.locator(self.LOGIN_CHECK_SELECTOR).count() > 0
+    def _has_session_cookie(self) -> bool:
+        if not self._context:
+            return False
+        try:
+            return any(c.get("name") == "c_user" for c in self._context.cookies())
+        except Exception:  # noqa: BLE001
+            return False
+
+    def _is_logged_in(self, page: Page, *, navigate: bool = True) -> bool:
+        if navigate:
+            page.goto(self.FACEBOOK_URL, wait_until="domcontentloaded")
+            self._human_delay(1.5, 3.0)
+
+        if self._has_session_cookie():
+            # Cookie alone is strong signal; still verify not stuck on login form.
+            email_box = page.locator('input[name="email"]')
+            pass_box = page.locator('input[name="pass"]')
+            if email_box.count() == 0 or pass_box.count() == 0:
+                return True
+
+        for sel in self.LOGIN_CHECK_SELECTORS:
+            try:
+                if page.locator(sel).count() > 0:
+                    return True
+            except Exception:  # noqa: BLE001
+                continue
+        return False
 
     def _restore_cookies(self, page: Page) -> bool:
         if not self.cookies_path.exists():
@@ -112,7 +144,7 @@ class FacebookAuth:
 
     def _perform_login(self, page: Page) -> None:
         if not self.email or not self.password:
-            raise ValueError("FACEBOOK_EMAIL and FACEBOOK_PASSWORD must be set in .env")
+            raise ValueError("ยังไม่มีอีเมล/รหัสเฟส — บันทึกใน Hub แท็บเชื่อมต่อเฟสก่อน")
 
         page.goto(self.FACEBOOK_URL, wait_until="domcontentloaded")
         self._human_delay()
@@ -130,48 +162,99 @@ class FacebookAuth:
         self._human_delay(0.5, 1.2)
         page.locator('button[name="login"]').click()
 
-        logger.info(
-            "Submitted login. If 2FA/checkpoint appears, complete it in the browser "
-            "(set HEADLESS=false for first login)."
-        )
-        page.wait_for_load_state("networkidle", timeout=120_000)
+        logger.info("ส่งฟอร์มล็อกอินแล้ว — ถ้ามี 2FA/checkpoint ให้ทำในหน้าต่างเบราว์เซอร์")
+        try:
+            page.wait_for_load_state("domcontentloaded", timeout=60_000)
+        except Exception:  # noqa: BLE001
+            pass
         self._human_delay(2.0, 4.0)
 
-    def login(self) -> Page:
+    def _wait_for_manual_verification(
+        self,
+        page: Page,
+        *,
+        timeout_sec: float = 600,
+        on_status: Callable[[str], None] | None = None,
+    ) -> bool:
+        """Keep browser open so user can finish 2FA / checkpoint."""
+        deadline = time.time() + max(60.0, float(timeout_sec))
+        last_msg_at = 0.0
+        while time.time() < deadline:
+            remaining = int(deadline - time.time())
+            if on_status and (time.time() - last_msg_at) >= 15:
+                on_status(
+                    f"รอยืนยันในหน้าต่างเฟส (2FA/รหัส) · เหลือ ~{remaining // 60} นาที — อย่าปิดหน้าต่าง Chrome"
+                )
+                last_msg_at = time.time()
+            try:
+                # Do not navigate away while user is mid-2FA/checkpoint.
+                if self._has_session_cookie():
+                    if self._is_logged_in(page, navigate=True):
+                        return True
+                elif self._is_logged_in(page, navigate=False):
+                    return True
+            except Exception:  # noqa: BLE001
+                pass
+            time.sleep(5)
+        return False
+
+    def login(
+        self,
+        *,
+        wait_manual_sec: float = 600,
+        on_status: Callable[[str], None] | None = None,
+    ) -> Page:
         """
         Ensure an authenticated Facebook session.
 
         Flow:
-          1. Start persistent browser context
+          1. Start persistent browser context (visible for first login)
           2. Try existing session in user_data_dir
           3. Fallback: restore cookies from file
-          4. Fallback: credential login (manual 2FA if needed)
+          4. Fallback: credential login + wait for manual 2FA/checkpoint
           5. Persist cookies after success
         """
+        def say(msg: str) -> None:
+            logger.info(msg)
+            if on_status:
+                try:
+                    on_status(msg)
+                except Exception:  # noqa: BLE001
+                    pass
+
         page = self.start_browser()
 
         if self._is_logged_in(page):
-            logger.info("Already logged in via persistent session")
+            say("ล็อกอินอยู่แล้วจากเซสชันเดิม")
             self._save_cookies()
             return page
 
         if self._restore_cookies(page) and self._is_logged_in(page):
-            logger.info("Logged in via restored cookies")
+            say("ล็อกอินด้วยคุกกี้ที่บันทึกไว้")
             self._save_cookies()
             return page
 
-        logger.info("No valid session found — performing credential login")
+        say("กำลังใส่บัญชีเฟส — ถ้ามีรหัสยืนยัน ให้ใส่ในหน้าต่าง Chrome ที่เปิด")
         self._perform_login(page)
 
-        if not self._is_logged_in(page):
-            raise RuntimeError(
-                "Login failed or requires manual verification. "
-                "Run with HEADLESS=false, complete 2FA/checkpoint, then retry."
-            )
+        if self._is_logged_in(page):
+            self._save_cookies()
+            say("ล็อกอินเฟสสำเร็จ")
+            return page
 
-        self._save_cookies()
-        logger.success("Facebook login successful")
-        return page
+        say("เฟสขอตรวจเพิ่ม — กรุณาใส่ 2FA / ยืนยันในหน้าต่าง Chrome (รอได้นานสุด ~10 นาที)")
+        if self._wait_for_manual_verification(
+            page,
+            timeout_sec=wait_manual_sec,
+            on_status=on_status,
+        ):
+            self._save_cookies()
+            say("ล็อกอินเฟสสำเร็จหลังยืนยันมือ")
+            return page
+
+        raise RuntimeError(
+            "ยังล็อกอินไม่สำเร็จ — ใส่รหัสยืนยันในหน้าต่างเฟสให้ครบ แล้วกดปุ่มล็อกอินใน Hub อีกครั้ง"
+        )
 
     def close(self) -> None:
         if self._context:

@@ -101,6 +101,7 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
     from src.facebook.ensure_runtime import ensure_playwright_chromium
 
     def progress(msg: str) -> None:
+        print(msg, flush=True)
         try:
             heartbeat(hub, token, status="logging_in", message=msg)
         except Exception:  # noqa: BLE001
@@ -120,10 +121,10 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
         logger.error("ensure browser failed: {}", exc)
         return False
 
-    heartbeat(hub, token, status="logging_in", message="กำลังเปิดหน้าต่าง Facebook…")
+    progress("กำลังเปิดหน้าต่าง Facebook — อย่าปิด Chrome ที่เด้งขึ้น")
     auth = FacebookAuth(email=email or None, password=password or None, headless=False)
     try:
-        auth.login()
+        auth.login(wait_manual_sec=600, on_status=progress)
         heartbeat(
             hub,
             token,
@@ -144,6 +145,11 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
             clear_login_request=True,
         )
         logger.error("Login failed: {}", exc)
+        print("")
+        print("===== ล็อกอินเฟสยังไม่สำเร็จ =====")
+        print(str(exc))
+        print("ดูหน้าต่าง Chrome ที่เปิดไว้ — ใส่รหัสยืนยันให้ครบ แล้วกดปุ่มล็อกอินใน Hub อีกครั้ง")
+        print("")
         return False
     finally:
         auth.close()

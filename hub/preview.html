@@ -2562,9 +2562,13 @@
               <ol style="margin:0 0 10px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
                 <li>ตรวจว่าขั้นที่ 2 เปิดอยู่ (สถานะ「ทำงานอยู่」)</li>
                 <li>กดปุ่มเปิดหน้าต่างล็อกอินเฟส</li>
-                <li>บนคอมที่เปิดระบบไว้ จะมีหน้าต่าง Facebook เด้ง — มี 2FA ให้ใส่ที่เครื่องนั้น</li>
+                <li>บนคอมที่เปิดระบบไว้ จะมีหน้าต่าง Chrome เด้ง — <strong>ใส่รหัส 2FA / ยืนยันตามที่เฟสถาม</strong> ในหน้านั้น</li>
+                <li>ระบบรอได้นานถึง ~10 นาที — <strong>อย่าปิดหน้าต่าง Chrome</strong> จนกว่า Hub จะขึ้น「ล็อกอินแล้ว」</li>
                 <li>พอขึ้น「ล็อกอินแล้ว」→ ไปแท็บ <strong>คอมเมนต์กลุ่ม</strong> เพื่อเพิ่มคิว</li>
               </ol>
+              <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#fff8eb;border:1px solid #f0d9a8;font-size:12px;color:#5c4a1f;line-height:1.55">
+                ถ้า Mac ถามอนุญาตการแจ้งเตือนของ Chrome → กดอนุญาตได้ · ไม่กระทบการล็อกอิน
+              </div>
               <div class="toolbar-row" style="gap:8px;flex-wrap:wrap">
                 <button type="button" class="btn-sm primary" id="fb-agent-request-login">เปิดหน้าต่างล็อกอินเฟส</button>
                 <button type="button" class="btn-sm" id="fbconnect-goto-comments">ไปแท็บคอมเมนต์กลุ่ม →</button>
@@ -8376,7 +8380,7 @@
       try {
         var data = await apiPost("/api/fb-agent/request-login", {});
         renderFbAgentStatus(data);
-        alert("สั่งเปิดหน้าต่างเฟสแล้ว\n\nไปที่คอมที่เปิดระบบไว้ — จะมีหน้าต่าง Facebook เด้งขึ้น\nถ้ามีรหัสยืนยัน ให้ใส่บนคอมเครื่องนั้น");
+        alert("สั่งเปิดหน้าต่างเฟสแล้ว\n\nไปที่คอมที่เปิดระบบไว้ — จะมีหน้าต่าง Chrome เด้งขึ้น\nใส่รหัสยืนยัน/2FA ในหน้านั้นให้ครบ\nอย่าปิด Chrome จนกว่า Hub จะขึ้น「ล็อกอินแล้ว」(รอได้ ~10 นาที)");
       } catch (e) {
         alert(e.message || "สั่งล็อกอินไม่ได้ — ทำขั้นที่ 1 ให้ครบก่อน");
       }

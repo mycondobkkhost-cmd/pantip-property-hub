@@ -2503,54 +2503,56 @@
             <div style="margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid #e5e7eb">
               <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 2 — เปิดระบบบนคอมที่จะทำงาน</div>
               <p style="margin:0 0 10px;font-size:13px;color:#3f3f46;line-height:1.65">
-                เลือกคอมเครื่องหนึ่งที่จะเปิดทิ้งไว้ · กดดาวน์โหลดตามระบบ · ไฟล์ตั้งค่าให้แล้ว ไม่ต้องพิมพ์รหัสเอง
+                เลือก<strong>คอมเครื่องใดเครื่องหนึ่ง</strong>เปิดทิ้งไว้ได้ (Windows หรือ Mac) ·
+                ระบบเตรียมโค้ด / โปรแกรมที่จำเป็น / เบราว์เซอร์ให้อัตโนมัติ
               </p>
-              <p style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:12px;color:#065f46;line-height:1.55">
-                <strong>น้องแอดมินทำแค่เปิดไฟล์:</strong> ระบบจะดาวน์โหลดโค้ด + ไลบรารี + เบราว์เซอร์ให้อัตโนมัติในครั้งแรก (ใช้เวลาหลายนาที — อย่าปิดหน้าต่าง)
+              <p id="fb-guide-detected" style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
+                กำลังตรวจว่าคอมเครื่องนี้เป็นระบบอะไร…
               </p>
+
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-                <button type="button" class="btn-sm primary" id="fb-guide-tab-win">Windows (น้องแอดมิน)</button>
+                <button type="button" class="btn-sm primary" id="fb-guide-tab-win">Windows</button>
                 <button type="button" class="btn-sm" id="fb-guide-tab-mac">Mac</button>
               </div>
+
               <div id="fb-guide-win">
-                <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Windows (ให้น้องแอดมิน)</div>
+                <div style="font-weight:600;font-size:13px;margin-bottom:8px">Windows — เปิดบนคอมเครื่องนี้ หรือส่งให้น้อง</div>
                 <ol style="margin:0 0 12px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                  <li>กดปุ่มดาวน์โหลด Windows ด้านล่าง → ส่งไฟล์ให้น้องแอดมิน (แชท/เมล/USB ก็ได้)</li>
-                  <li>บนคอมน้อง: ดับเบิลคลิกไฟล์「เปิดระบบคอมเมนต์」
-                    <br/><span style="font-size:12px;color:#71717a">ถ้า Windows กัน: กด More info → Run anyway</span>
-                  </li>
-                  <li>ครั้งแรกหน้าต่างดำจะเตรียมระบบเอง — <strong>รอให้เสร็จ อย่าปิด</strong></li>
-                  <li>พอสถานะใน Hub ขึ้น「ทำงานอยู่」= พร้อม</li>
+                  <li>กด<strong>ดาวน์โหลดไฟล์ Windows</strong> (หรือคัดลอกคำสั่ง PowerShell)</li>
+                  <li>ดับเบิลคลิกไฟล์「เปิดระบบคอมเมนต์」· ถ้า Windows กัน → More info → Run anyway</li>
+                  <li>ครั้งแรกเตรียมเอง — <strong>อย่าปิดหน้าต่างดำ</strong></li>
+                  <li>พอ Hub ขึ้น「ทำงานอยู่」= พร้อมไปขั้นที่ 3</li>
                 </ol>
-                <div style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
-                  ไม่ต้องย้ายไฟล์ · ไม่ต้องติดตั้งอะไรเอง · แค่เปิดทิ้งไว้แล้วดูสถานะใน Hub
+                <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                  <button type="button" class="btn-sm primary" id="fb-agent-download-win">⬇ ดาวน์โหลดไฟล์ Windows</button>
+                  <button type="button" class="btn-sm" id="fb-agent-copy-win-cmd">📋 คัดลอกคำสั่ง PowerShell</button>
+                  <span id="fb-agent-copy-win-ok" style="font-size:12px;color:#137333;align-self:center"></span>
                 </div>
-                <button type="button" class="btn-sm primary" id="fb-agent-download-win">⬇ ดาวน์โหลดไฟล์ Windows</button>
+                <div style="padding:10px 12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;color:#334155;line-height:1.55">
+                  ส่งไฟล์ให้น้องแอดมินทางแชท/เมล/USB ได้เลย · ไม่ต้องย้ายไปโฟลเดอร์พิเศษ · เครื่องน้องยังไม่ต้องมีอะไรติดตั้งไว้ก่อน
+                </div>
               </div>
+
               <div id="fb-guide-mac" class="hidden">
-                <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Mac</div>
-                <div style="margin:0 0 12px;padding:12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:13px;color:#065f46;line-height:1.65">
-                  <strong>แนะนำ (ไม่ติดบล็อกเหลืองของ Mac):</strong>
-                  <ol style="margin:8px 0 0;padding-left:20px">
-                    <li>กดปุ่ม <strong>คัดลอกคำสั่งเปิดระบบ</strong> ด้านล่าง</li>
-                    <li>เปิดแอป <strong>Terminal</strong> (กด Cmd+Space พิมพ์ Terminal)</li>
-                    <li>วางคำสั่ง (Cmd+V) แล้วกด Enter — อย่าปิดหน้าต่าง</li>
-                  </ol>
-                </div>
-                <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">
+                <div style="font-weight:600;font-size:13px;margin-bottom:8px">Mac — วิธีที่เปิดได้ทุกเครื่อง (ไม่ติดบล็อกเหลือง)</div>
+                <ol style="margin:0 0 12px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
+                  <li>กด<strong>คัดลอกคำสั่งเปิดระบบ</strong></li>
+                  <li>เปิดแอป <strong>Terminal</strong> (Cmd+Space พิมพ์ Terminal)</li>
+                  <li>วางคำสั่ง (Cmd+V) กด Enter — <strong>อย่าปิดหน้าต่าง</strong></li>
+                  <li>พอ Hub ขึ้น「ทำงานอยู่」= พร้อมไปขั้นที่ 3</li>
+                </ol>
+                <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">
                   <button type="button" class="btn-sm primary" id="fb-agent-copy-mac-cmd">📋 คัดลอกคำสั่งเปิดระบบ</button>
                   <span id="fb-agent-copy-mac-ok" style="font-size:12px;color:#137333;align-self:center"></span>
                 </div>
-                <details style="margin:0 0 12px;font-size:13px;color:#3f3f46">
-                  <summary style="cursor:pointer;font-weight:600">หรือดาวน์โหลดไฟล์แล้วเปิดเอง (ถ้าขึ้นเหลือง ทำตามนี้)</summary>
+                <details style="font-size:13px;color:#3f3f46">
+                  <summary style="cursor:pointer;font-weight:600">หรือดาวน์โหลดไฟล์ (ถ้าขึ้นเหลือง ทำตามนี้)</summary>
                   <ol style="margin:10px 0 0;padding-left:20px;line-height:1.7">
-                    <li>กดปุ่มดาวน์โหลดด้านล่าง</li>
-                    <li>ถ้าขึ้นสามเหลี่ยมเหลือง「ไม่ได้เปิด…」→ กด <strong>เสร็จสิ้น</strong> (อย่ากดย้ายถังขยะ)</li>
-                    <li>เปิด <strong>การตั้งค่าระบบ</strong> → <strong>ความเป็นส่วนตัวและความปลอดภัย</strong></li>
-                    <li>เลื่อนลงล่างสุด → เจอข้อความถูกบล็อก → กด <strong>เปิดอยู่แล้ว</strong> / Open Anyway → ยืนยันเปิด</li>
-                    <li>อย่าใช้เมนู「เปิดด้วย → Terminal」อย่างเดียว</li>
+                    <li>กดดาวน์โหลด → ถ้าขึ้นสามเหลี่ยมเหลือง กด <strong>เสร็จสิ้น</strong> (อย่ากดถังขยะ)</li>
+                    <li>การตั้งค่าระบบ → ความเป็นส่วนตัวและความปลอดภัย → เลื่อนลง → <strong>เปิดอยู่แล้ว</strong></li>
+                    <li>อย่าใช้แค่เมนู「เปิดด้วย → Terminal」</li>
                   </ol>
-                  <button type="button" class="btn-sm" id="fb-agent-download-mac" style="margin-top:10px">⬇ ดาวน์โหลดไฟล์เปิดระบบ (Mac)</button>
+                  <button type="button" class="btn-sm" id="fb-agent-download-mac" style="margin-top:10px">⬇ ดาวน์โหลดไฟล์ Mac</button>
                 </details>
               </div>
             </div>
@@ -2575,7 +2577,7 @@
                 <li>「ยังไม่เปิด」= ยังไม่ได้เปิดไฟล์ หรือปิดหน้าต่างไปแล้ว → เปิดใหม่</li>
                 <li>Mac ขึ้นสามเหลี่ยมเหลือง = กดเสร็จสิ้น แล้วไป การตั้งค่าระบบ → ความเป็นส่วนตัวและความปลอดภัย → เปิดอยู่แล้ว (หรือใช้ปุ่มคัดลอกคำสั่งในแท็บ Mac)</li>
                 <li>หน้าต่างขึ้น error เรื่อง Browser/Executable = ปิดแล้วเปิดไฟล์ใหม่ ระบบจะดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ</li>
-                <li>ขึ้นว่าไม่มี Python = ติดตั้งตามลิงก์ที่ไฟล์เปิดให้ แล้วเปิดไฟล์อีกครั้ง (Windows มักติ๊ก Add to PATH)</li>
+                <li>ขึ้นว่าไม่มี Python = ระบบจะติดตั้งให้อัตโนมัติส่วนใหญ่ · ถ้ายังไม่ได้ ให้ติดตั้งตามลิงก์แล้วเปิดใหม่</li>
                 <li>ดาวน์โหลดโปรเจกต์ไม่สำเร็จ = เช็คเน็ตแล้วเปิดไฟล์ใหม่</li>
                 <li>กดล็อกอินแล้วไม่เด้งเฟส = ขั้นที่ 2 ยังไม่เปิด หรือรอให้เตรียมระบบครั้งแรกเสร็จก่อน</li>
               </ul>
@@ -8452,8 +8454,45 @@
       }
     }
 
+    async function copyWinBootstrapCommand() {
+      var hub = window.location.origin || "https://hub.realxtateth.com";
+      var okEl = document.getElementById("fb-agent-copy-win-ok");
+      try {
+        var data = await apiGet("/api/fb-agent/status");
+        var token = (data && data.agent_token) || "";
+        if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
+        var url = hub + "/api/fb-agent/download-windows?hub=" + encodeURIComponent(hub) + "&t=" + encodeURIComponent(token);
+        var cmd =
+          "$u='" + url.replace(/'/g, "''") + "'; " +
+          "$f=Join-Path $env:TEMP 'ptp-comment.bat'; " +
+          "Invoke-WebRequest -Uri $u -OutFile $f -UseBasicParsing; " +
+          "Start-Process $f";
+        await navigator.clipboard.writeText(cmd);
+        if (okEl) okEl.textContent = "คัดลอกแล้ว — วางใน PowerShell ได้เลย";
+        alert(
+          "คัดลอกคำสั่งแล้ว\n\n" +
+          "1) คลิกขวา Start → Windows PowerShell / Terminal\n" +
+          "2) วางคำสั่ง (Ctrl+V) แล้วกด Enter\n" +
+          "3) อย่าปิดหน้าต่างดำ — รอจน Hub ขึ้น「ทำงานอยู่」"
+        );
+      } catch (e) {
+        if (okEl) okEl.textContent = "";
+        alert(e.message || "คัดลอกไม่ได้");
+      }
+    }
+
     function downloadFbAgentWindows() {
       downloadFbAgentStarter("windows");
+    }
+
+    function detectClientOs() {
+      var ua = navigator.userAgentData && navigator.userAgentData.platform
+        ? navigator.userAgentData.platform
+        : (navigator.platform || navigator.userAgent || "");
+      if (/Mac|iPhone|iPad/i.test(ua)) return "mac";
+      if (/Win/i.test(ua)) return "win";
+      if (/Linux|Android/i.test(ua)) return "win"; // fallback: Windows guide is most shareable
+      return "win";
     }
 
     function setFbGuideOs(os) {
@@ -8461,14 +8500,16 @@
       var mac = document.getElementById("fb-guide-mac");
       var tabWin = document.getElementById("fb-guide-tab-win");
       var tabMac = document.getElementById("fb-guide-tab-mac");
+      var detected = document.getElementById("fb-guide-detected");
       var isMac = os === "mac";
       if (win) win.classList.toggle("hidden", isMac);
       if (mac) mac.classList.toggle("hidden", !isMac);
-      if (tabWin) {
-        tabWin.classList.toggle("primary", !isMac);
-      }
-      if (tabMac) {
-        tabMac.classList.toggle("primary", isMac);
+      if (tabWin) tabWin.classList.toggle("primary", !isMac);
+      if (tabMac) tabMac.classList.toggle("primary", isMac);
+      if (detected) {
+        detected.innerHTML = isMac
+          ? "คอมเครื่องนี้ดูเป็น <strong>Mac</strong> — ใช้ปุ่มคัดลอกคำสั่งด้านล่าง (ไม่ติดบล็อกเหลือง)"
+          : "คอมเครื่องนี้ดูเป็น <strong>Windows</strong> — ดาวน์โหลดไฟล์แล้วดับเบิลคลิกได้เลย · หรือส่งไฟล์ให้น้องแอดมิน";
       }
     }
 
@@ -11189,6 +11230,8 @@
     if (fbAgentDownloadMac) fbAgentDownloadMac.addEventListener("click", function () { downloadFbAgentStarter("mac"); });
     var fbAgentCopyMac = document.getElementById("fb-agent-copy-mac-cmd");
     if (fbAgentCopyMac) fbAgentCopyMac.addEventListener("click", function () { copyMacBootstrapCommand(); });
+    var fbAgentCopyWin = document.getElementById("fb-agent-copy-win-cmd");
+    if (fbAgentCopyWin) fbAgentCopyWin.addEventListener("click", function () { copyWinBootstrapCommand(); });
     var fbGuideTabWin = document.getElementById("fb-guide-tab-win");
     if (fbGuideTabWin) fbGuideTabWin.addEventListener("click", function () { setFbGuideOs("win"); });
     var fbGuideTabMac = document.getElementById("fb-guide-tab-mac");
@@ -11199,7 +11242,7 @@
     if (fbGotoComments) fbGotoComments.addEventListener("click", function () { switchDbTab("comments"); });
     // Default guide tab by platform
     try {
-      setFbGuideOs(/Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || "") ? "mac" : "win");
+      setFbGuideOs(detectClientOs());
     } catch (e) {
       setFbGuideOs("win");
     }

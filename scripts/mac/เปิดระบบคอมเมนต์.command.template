@@ -1,5 +1,5 @@
 #!/bin/bash
-# ดาวน์โหลดจาก Hub — เปิดจาก Downloads ได้เลย (ระบบเตรียมเอง)
+# ดาวน์โหลดจาก Hub — ใช้ได้กับ Mac ทั่วไป (ระบบเตรียมเอง)
 HUB_URL="__HUB_URL__"
 COMMENT_AGENT_TOKEN="__AGENT_TOKEN__"
 BAKED_PROJECT_DIR="__PROJECT_DIR__"
@@ -14,7 +14,8 @@ echo "========================================"
 echo "  ระบบคอมเมนต์เฟสอัตโนมัติ (Mac)"
 echo "========================================"
 echo ""
-echo "ครั้งแรกระบบจะเตรียมเอง (โค้ด / ไลบรารี / เบราว์เซอร์)"
+echo "ใช้ได้กับ Mac ทั่วไป — ครั้งแรกจะเตรียมเอง"
+echo "(โค้ด / ไลบรารี / เบราว์เซอร์)"
 echo "อาจใช้เวลาหลายนาที — อย่าปิดหน้าต่างนี้"
 echo ""
 
@@ -34,7 +35,9 @@ find_project() {
     "$HOME/Projects/pantip-property-hub" \
     "$HOME/pantip-property-automation" \
     "$HOME/Desktop/pantip-property-automation" \
-    "$HOME/Documents/pantip-property-automation"
+    "$HOME/Documents/pantip-property-automation" \
+    "$HOME/Downloads/pantip-property-automation" \
+    "$HOME/Downloads/pantip-property-hub"
   do
     if [ -f "$cand/scripts/comment_agent.py" ]; then
       PROJECT_DIR="$cand"
@@ -75,11 +78,54 @@ install_project() {
   return 0
 }
 
+resolve_python() {
+  PY=""
+  for cand in python3 python3.12 python3.13 python3.11; do
+    if command -v "$cand" >/dev/null 2>&1; then
+      PY="$cand"
+      return 0
+    fi
+  done
+  for cand in \
+    /opt/homebrew/bin/python3 \
+    /usr/local/bin/python3 \
+    /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 \
+    /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 \
+    /Library/Frameworks/Python.framework/Versions/3.11/bin/python3
+  do
+    if [ -x "$cand" ]; then
+      PY="$cand"
+      return 0
+    fi
+  done
+  return 1
+}
+
+ensure_python() {
+  if resolve_python; then
+    return 0
+  fi
+  echo "ยังไม่มี Python — กำลังลองติดตั้งให้อัตโนมัติ..."
+  if command -v brew >/dev/null 2>&1; then
+    brew install python@3.12 2>/dev/null || brew install python || true
+    # refresh common brew paths
+    export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+    if resolve_python; then
+      return 0
+    fi
+  fi
+  echo "[ผิดพลาด] เครื่องนี้ยังไม่มี Python3"
+  echo "กำลังเปิดหน้าดาวน์โหลด Python ให้..."
+  open "https://www.python.org/downloads/macos/" 2>/dev/null || open "https://www.python.org/downloads/" 2>/dev/null || true
+  echo "ติดตั้งเสร็จแล้วค่อยเปิดไฟล์นี้อีกครั้ง"
+  return 1
+}
+
 find_project
 if [ -z "$PROJECT_DIR" ]; then
   if ! install_project; then
     echo "[ผิดพลาด] ดาวน์โหลดโปรเจกต์ไม่สำเร็จ"
-    echo "เช็คเน็ตแล้วเปิดไฟล์นี้อีกครั้ง หรือให้หัวหน้าทีมช่วยครั้งเดียว"
+    echo "เช็คเน็ตแล้วเปิดไฟล์นี้อีกครั้ง"
     echo ""
     read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
     exit 1
@@ -92,15 +138,13 @@ echo ""
 
 cd "$PROJECT_DIR" || exit 1
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "[ผิดพลาด] เครื่องนี้ยังไม่มี Python3"
-  echo "กำลังเปิดหน้าดาวน์โหลด Python ให้..."
-  open "https://www.python.org/downloads/" 2>/dev/null || true
-  echo "ติดตั้งเสร็จแล้วค่อยเปิดไฟล์นี้อีกครั้ง"
+if ! ensure_python; then
   echo ""
   read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
   exit 1
 fi
+
+echo "ใช้ Python: $PY"
 
 # ดึงโค้ดล่าสุดถ้ามี git (เงียบๆ)
 if command -v git >/dev/null 2>&1 && [ -d .git ]; then
@@ -109,8 +153,8 @@ if command -v git >/dev/null 2>&1 && [ -d .git ]; then
 fi
 
 echo "กำลังติดตั้งไลบรารีที่จำเป็น (ครั้งแรกอาจนานหน่อย)..."
-python3 -m pip install --user -q -r requirements-agent.txt 2>/dev/null \
-  || python3 -m pip install -q -r requirements-agent.txt \
+"$PY" -m pip install --user -q -r requirements-agent.txt 2>/dev/null \
+  || "$PY" -m pip install -q -r requirements-agent.txt \
   || {
     echo "[ผิดพลาด] ติดตั้งไลบรารีไม่สำเร็จ"
     echo "ลองเปิดไฟล์นี้อีกครั้งเมื่อเน็ตพร้อม"
@@ -119,7 +163,7 @@ python3 -m pip install --user -q -r requirements-agent.txt 2>/dev/null \
     exit 1
   }
 
-python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN"
+"$PY" scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN"
 echo ""
 echo "ระบบหยุดแล้ว — เปิดไฟล์นี้อีกครั้งเพื่อทำงานต่อ"
 read -r -p "กด Enter เพื่อปิดหน้าต่าง..."

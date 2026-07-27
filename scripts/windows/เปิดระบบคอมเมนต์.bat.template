@@ -8,13 +8,16 @@ set "BAKED_PROJECT_DIR=__PROJECT_DIR__"
 set "REPO_URL=https://github.com/mycondobkkhost-cmd/pantip-property-hub.git"
 set "REPO_ZIP=https://github.com/mycondobkkhost-cmd/pantip-property-hub/archive/refs/heads/main.zip"
 set "DEFAULT_PROJECT=%USERPROFILE%\Projects\pantip-property-automation"
+set "PY_HOME=%LOCALAPPDATA%\Programs\Python\Python312"
+set "PY_SETUP_URL=https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe"
 
 echo.
 echo ========================================
 echo   ระบบคอมเมนต์เฟสอัตโนมัติ (Windows)
 echo ========================================
 echo.
-echo ครั้งแรกระบบจะเตรียมเอง (โค้ด / ไลบรารี / เบราว์เซอร์)
+echo ใช้ได้กับคอมทั่วไป — ครั้งแรกจะเตรียมเอง
+echo (โค้ด / Python / ไลบรารี / เบราว์เซอร์)
 echo อาจใช้เวลาหลายนาที — อย่าปิดหน้าต่างนี้
 echo.
 
@@ -29,6 +32,7 @@ if not defined PROJECT_DIR if exist "%DEFAULT_PROJECT%\scripts\comment_agent.py"
 if not defined PROJECT_DIR if exist "%USERPROFILE%\Projects\pantip-property-hub\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Projects\pantip-property-hub"
 if not defined PROJECT_DIR if exist "%USERPROFILE%\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\pantip-property-automation"
 if not defined PROJECT_DIR if exist "%USERPROFILE%\Desktop\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Desktop\pantip-property-automation"
+if not defined PROJECT_DIR if exist "%USERPROFILE%\Documents\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Documents\pantip-property-automation"
 
 if not defined PROJECT_DIR (
   echo ยังไม่มีโฟลเดอร์โปรเจกต์ — กำลังดาวน์โหลดให้อัตโนมัติ...
@@ -45,13 +49,13 @@ if not defined PROJECT_DIR (
   set "TMPZIP=%TEMP%\ptp-hub-main.zip"
   set "TMPDIR=%TEMP%\ptp-hub-extract"
   powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "try { Invoke-WebRequest -Uri $env:REPO_ZIP -OutFile $env:TMPZIP -UseBasicParsing; if (Test-Path $env:TMPDIR) { Remove-Item -Recurse -Force $env:TMPDIR }; Expand-Archive -Path $env:TMPZIP -DestinationPath $env:TMPDIR -Force; $src = Get-ChildItem $env:TMPDIR -Directory | Select-Object -First 1; if (-not $src) { exit 1 }; if (Test-Path $env:DEFAULT_PROJECT) { Remove-Item -Recurse -Force $env:DEFAULT_PROJECT }; Move-Item $src.FullName $env:DEFAULT_PROJECT; exit 0 } catch { Write-Host $_; exit 1 }"
+    "try { Invoke-WebRequest -Uri $env:REPO_ZIP -OutFile $env:TMPZIP -UseBasicParsing; if (Test-Path $env:TMPDIR) { Remove-Item -Recurse -Force $env:TMPDIR }; Expand-Archive -Path $env:TMPZIP -DestinationPath $env:TMPDIR -Force; $src = Get-ChildItem $env:TMPDIR -Directory | Select-Object -First 1; if (-not $src) { exit 1 }; if (Test-Path $env:DEFAULT_PROJECT) { Remove-Item -Recurse -Force $env:DEFAULT_PROJECT }; New-Item -ItemType Directory -Force -Path (Split-Path $env:DEFAULT_PROJECT) | Out-Null; Move-Item $src.FullName $env:DEFAULT_PROJECT; exit 0 } catch { Write-Host $_; exit 1 }"
   if exist "%DEFAULT_PROJECT%\scripts\comment_agent.py" set "PROJECT_DIR=%DEFAULT_PROJECT%"
 )
 
 if not defined PROJECT_DIR (
   echo [ผิดพลาด] ดาวน์โหลดโปรเจกต์ไม่สำเร็จ
-  echo เช็คเน็ตแล้วดับเบิลคลิกไฟล์นี้อีกครั้ง หรือให้หัวหน้าทีมช่วยครั้งเดียว
+  echo เช็คเน็ตแล้วดับเบิลคลิกไฟล์นี้อีกครั้ง
   echo.
   pause
   exit /b 1
@@ -63,35 +67,58 @@ echo.
 cd /d "%PROJECT_DIR%"
 
 set "PY="
-where python >nul 2>&1
-if not errorlevel 1 set "PY=python"
+if exist "%PY_HOME%\python.exe" set "PY=%PY_HOME%\python.exe"
+if not defined PY if exist "%LOCALAPPDATA%\Programs\Python\Python313\python.exe" set "PY=%LOCALAPPDATA%\Programs\Python\Python313\python.exe"
+if not defined PY if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" set "PY=%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
+if not defined PY (
+  where python >nul 2>&1
+  if not errorlevel 1 for /f "delims=" %%i in ('where python') do (
+    if not defined PY set "PY=%%i"
+  )
+)
 if not defined PY (
   where py >nul 2>&1
   if not errorlevel 1 set "PY=py -3"
 )
 
 if not defined PY (
-  echo ยังไม่มี Python — กำลังลองติดตั้งให้อัตโนมัติ...
+  echo ยังไม่มี Python — กำลังติดตั้งให้อัตโนมัติ (เงียบๆ)...
   where winget >nul 2>&1
   if not errorlevel 1 (
     winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements
+  )
+  if exist "%PY_HOME%\python.exe" set "PY=%PY_HOME%\python.exe"
+  if not defined PY (
     where python >nul 2>&1
     if not errorlevel 1 set "PY=python"
-    if not defined PY (
-      where py >nul 2>&1
-      if not errorlevel 1 set "PY=py -3"
-    )
+  )
+  if not defined PY (
+    where py >nul 2>&1
+    if not errorlevel 1 set "PY=py -3"
   )
 )
 
 if not defined PY (
-  echo [ผิดพลาด] เครื่องนี้ยังไม่มี Python
-  echo กำลังเปิดหน้าดาวน์โหลดให้ — ติดตั้งแล้วติ๊ก "Add python.exe to PATH" แล้วเปิดไฟล์นี้อีกครั้ง
+  echo กำลังดาวน์โหลดตัวติดตั้ง Python...
+  set "PYSETUP=%TEMP%\ptp-python-setup.exe"
+  powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "try { Invoke-WebRequest -Uri $env:PY_SETUP_URL -OutFile $env:PYSETUP -UseBasicParsing; exit 0 } catch { Write-Host $_; exit 1 }"
+  if exist "%PYSETUP%" (
+    "%PYSETUP%" /quiet InstallAllUsers=0 PrependPath=1 Include_pip=1 Include_test=0 SimpleInstall=1
+    if exist "%PY_HOME%\python.exe" set "PY=%PY_HOME%\python.exe"
+  )
+)
+
+if not defined PY (
+  echo [ผิดพลาด] ติดตั้ง Python ไม่สำเร็จ
+  echo กำลังเปิดหน้าดาวน์โหลด — ติดตั้งแล้วติ๊ก "Add python.exe to PATH" แล้วเปิดไฟล์นี้อีกครั้ง
   start "" "https://www.python.org/downloads/windows/"
   echo.
   pause
   exit /b 1
 )
+
+echo ใช้ Python: %PY%
 
 if exist ".git" (
   where git >nul 2>&1

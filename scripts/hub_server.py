@@ -940,7 +940,13 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
     if not hub_url:
         host = (handler.headers.get("Host") or "127.0.0.1:8765").strip()
         hub_url = f"http://{host}"
-    project_dir = str(BASE_DIR.resolve())
+    # Bake local project path only when Hub runs on a real user machine.
+    # On Fly/Docker (/app) leave blank so the starter auto-finds / auto-downloads.
+    raw_project = str(BASE_DIR.resolve())
+    if raw_project in {"/app", "/"} or raw_project.startswith("/app/"):
+        project_dir = ""
+    else:
+        project_dir = raw_project
 
     kind = (kind or "windows").strip().lower()
     if kind in {"mac", "macos", "darwin"}:

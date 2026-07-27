@@ -1,8 +1,11 @@
 #!/bin/bash
-# ดาวน์โหลดจาก Hub — เปิดจาก Downloads ได้เลย
+# ดาวน์โหลดจาก Hub — เปิดจาก Downloads ได้เลย (ระบบเตรียมเอง)
 HUB_URL="__HUB_URL__"
 COMMENT_AGENT_TOKEN="__AGENT_TOKEN__"
 BAKED_PROJECT_DIR="__PROJECT_DIR__"
+REPO_URL="https://github.com/mycondobkkhost-cmd/pantip-property-hub.git"
+REPO_ZIP="https://github.com/mycondobkkhost-cmd/pantip-property-hub/archive/refs/heads/main.zip"
+DEFAULT_PROJECT="$HOME/Projects/pantip-property-automation"
 
 xattr -d com.apple.quarantine "$0" 2>/dev/null || true
 
@@ -11,23 +14,23 @@ echo "========================================"
 echo "  ระบบคอมเมนต์เฟสอัตโนมัติ (Mac)"
 echo "========================================"
 echo ""
-echo "ครั้งแรกอาจดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ"
-echo "ใช้เวลา 1–3 นาที — อย่าปิดหน้าต่างนี้"
+echo "ครั้งแรกระบบจะเตรียมเอง (โค้ด / ไลบรารี / เบราว์เซอร์)"
+echo "อาจใช้เวลาหลายนาที — อย่าปิดหน้าต่างนี้"
 echo ""
 
-PROJECT_DIR=""
-if [ -d "$BAKED_PROJECT_DIR/scripts" ] && [ -f "$BAKED_PROJECT_DIR/scripts/comment_agent.py" ]; then
-  PROJECT_DIR="$BAKED_PROJECT_DIR"
-fi
-if [ -z "$PROJECT_DIR" ]; then
+find_project() {
+  PROJECT_DIR=""
+  if [ -n "$BAKED_PROJECT_DIR" ] && [ "$BAKED_PROJECT_DIR" != "/app" ] && [ -f "$BAKED_PROJECT_DIR/scripts/comment_agent.py" ]; then
+    PROJECT_DIR="$BAKED_PROJECT_DIR"
+    return
+  fi
   REL="$(cd "$(dirname "$0")/../.." 2>/dev/null && pwd)"
   if [ -f "$REL/scripts/comment_agent.py" ]; then
     PROJECT_DIR="$REL"
+    return
   fi
-fi
-if [ -z "$PROJECT_DIR" ]; then
   for cand in \
-    "$HOME/Projects/pantip-property-automation" \
+    "$DEFAULT_PROJECT" \
     "$HOME/Projects/pantip-property-hub" \
     "$HOME/pantip-property-automation" \
     "$HOME/Desktop/pantip-property-automation" \
@@ -35,17 +38,52 @@ if [ -z "$PROJECT_DIR" ]; then
   do
     if [ -f "$cand/scripts/comment_agent.py" ]; then
       PROJECT_DIR="$cand"
-      break
+      return
     fi
   done
-fi
+}
 
+install_project() {
+  echo "ยังไม่มีโฟลเดอร์โปรเจกต์ — กำลังดาวน์โหลดให้อัตโนมัติ..."
+  mkdir -p "$HOME/Projects"
+  if command -v git >/dev/null 2>&1; then
+    if git clone --depth 1 "$REPO_URL" "$DEFAULT_PROJECT"; then
+      PROJECT_DIR="$DEFAULT_PROJECT"
+      return 0
+    fi
+  fi
+  TMPZIP="$(mktemp -t ptp-hub.XXXXXX.zip)"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$TMPZIP" "$REPO_ZIP" || { rm -f "$TMPZIP"; return 1; }
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$TMPZIP" "$REPO_ZIP" || { rm -f "$TMPZIP"; return 1; }
+  else
+    rm -f "$TMPZIP"
+    return 1
+  fi
+  TMPDIR="$(mktemp -d -t ptp-hub.XXXXXX)"
+  unzip -q "$TMPZIP" -d "$TMPDIR" || { rm -rf "$TMPDIR" "$TMPZIP"; return 1; }
+  SRC="$(find "$TMPDIR" -maxdepth 1 -type d -name 'pantip-property-hub-*' | head -n 1)"
+  if [ -z "$SRC" ] || [ ! -f "$SRC/scripts/comment_agent.py" ]; then
+    rm -rf "$TMPDIR" "$TMPZIP"
+    return 1
+  fi
+  rm -rf "$DEFAULT_PROJECT"
+  mv "$SRC" "$DEFAULT_PROJECT"
+  rm -rf "$TMPDIR" "$TMPZIP"
+  PROJECT_DIR="$DEFAULT_PROJECT"
+  return 0
+}
+
+find_project
 if [ -z "$PROJECT_DIR" ]; then
-  echo "[ผิดพลาด] หาโฟลเดอร์โปรเจกต์บน Mac เครื่องนี้ไม่เจอ"
-  echo "ให้หัวหน้าทีมเตรียมโปรเจกต์ไว้ เช่น ~/Projects/pantip-property-automation"
-  echo ""
-  read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
-  exit 1
+  if ! install_project; then
+    echo "[ผิดพลาด] ดาวน์โหลดโปรเจกต์ไม่สำเร็จ"
+    echo "เช็คเน็ตแล้วเปิดไฟล์นี้อีกครั้ง หรือให้หัวหน้าทีมช่วยครั้งเดียว"
+    echo ""
+    read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
+    exit 1
+  fi
 fi
 
 echo "โฟลเดอร์โปรเจกต์: $PROJECT_DIR"
@@ -56,17 +94,30 @@ cd "$PROJECT_DIR" || exit 1
 
 if ! command -v python3 >/dev/null 2>&1; then
   echo "[ผิดพลาด] เครื่องนี้ยังไม่มี Python3"
-  echo "ให้หัวหน้าทีมติดตั้ง Python แล้วเปิดไฟล์นี้อีกครั้ง"
+  echo "กำลังเปิดหน้าดาวน์โหลด Python ให้..."
+  open "https://www.python.org/downloads/" 2>/dev/null || true
+  echo "ติดตั้งเสร็จแล้วค่อยเปิดไฟล์นี้อีกครั้ง"
   echo ""
   read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
   exit 1
 fi
 
-# ดึงโค้ดล่าสุดถ้ามี git (เงียบๆ — ล้มเหลวไม่เป็นไร)
+# ดึงโค้ดล่าสุดถ้ามี git (เงียบๆ)
 if command -v git >/dev/null 2>&1 && [ -d .git ]; then
   echo "กำลังอัปเดตระบบ (ถ้ามี)..."
   git pull --ff-only 2>/dev/null || true
 fi
+
+echo "กำลังติดตั้งไลบรารีที่จำเป็น (ครั้งแรกอาจนานหน่อย)..."
+python3 -m pip install --user -q -r requirements-agent.txt 2>/dev/null \
+  || python3 -m pip install -q -r requirements-agent.txt \
+  || {
+    echo "[ผิดพลาด] ติดตั้งไลบรารีไม่สำเร็จ"
+    echo "ลองเปิดไฟล์นี้อีกครั้งเมื่อเน็ตพร้อม"
+    echo ""
+    read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
+    exit 1
+  }
 
 python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN"
 echo ""

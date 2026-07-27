@@ -1,0 +1,6 @@
+# Minimal deps for Facebook comment agent (PC that stays on)
+playwright>=1.49.0
+python-dotenv>=1.0.1
+loguru>=0.7.3
+requests>=2.32.0
+Pillow>=11.0.0

@@ -2505,8 +2505,8 @@
               <p style="margin:0 0 10px;font-size:13px;color:#3f3f46;line-height:1.65">
                 เลือกคอมเครื่องหนึ่งที่จะเปิดทิ้งไว้ · กดดาวน์โหลดตามระบบ · ไฟล์ตั้งค่าให้แล้ว ไม่ต้องพิมพ์รหัสเอง
               </p>
-              <p style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#fff8eb;border:1px solid #f0d9a8;font-size:12px;color:#5c4a1f;line-height:1.55">
-                <strong>ก่อนเริ่ม:</strong> คอมเครื่องนั้นต้องมีโฟลเดอร์โปรเจกต์นี้ + Python ติดตั้งแล้ว (หัวหน้าทีมเตรียมครั้งเดียว)
+              <p style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:12px;color:#065f46;line-height:1.55">
+                <strong>น้องแอดมินทำแค่เปิดไฟล์:</strong> ระบบจะดาวน์โหลดโค้ด + ไลบรารี + เบราว์เซอร์ให้อัตโนมัติในครั้งแรก (ใช้เวลาหลายนาที — อย่าปิดหน้าต่าง)
               </p>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
                 <button type="button" class="btn-sm primary" id="fb-guide-tab-win">Windows (น้องแอดมิน)</button>
@@ -2515,15 +2515,15 @@
               <div id="fb-guide-win">
                 <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Windows (ให้น้องแอดมิน)</div>
                 <ol style="margin:0 0 12px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                  <li>กดปุ่มดาวน์โหลด Windows ด้านล่าง → ส่งไฟล์ให้น้องแอดมิน</li>
+                  <li>กดปุ่มดาวน์โหลด Windows ด้านล่าง → ส่งไฟล์ให้น้องแอดมิน (แชท/เมล/USB ก็ได้)</li>
                   <li>บนคอมน้อง: ดับเบิลคลิกไฟล์「เปิดระบบคอมเมนต์」
                     <br/><span style="font-size:12px;color:#71717a">ถ้า Windows กัน: กด More info → Run anyway</span>
                   </li>
-                  <li>ครั้งแรกหน้าต่างดำอาจขึ้นว่ากำลังดาวน์โหลดเบราว์เซอร์ — <strong>รอ 1–3 นาที อย่าปิด</strong></li>
+                  <li>ครั้งแรกหน้าต่างดำจะเตรียมระบบเอง — <strong>รอให้เสร็จ อย่าปิด</strong></li>
                   <li>พอสถานะใน Hub ขึ้น「ทำงานอยู่」= พร้อม</li>
                 </ol>
                 <div style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
-                  ระบบจะเตรียมเบราว์เซอร์ให้อัตโนมัติ · น้องไม่ต้องติดตั้งเอง · แค่เปิดไฟล์ทิ้งไว้
+                  ไม่ต้องย้ายไฟล์ · ไม่ต้องติดตั้งอะไรเอง · แค่เปิดทิ้งไว้แล้วดูสถานะใน Hub
                 </div>
                 <button type="button" class="btn-sm primary" id="fb-agent-download-win">⬇ ดาวน์โหลดไฟล์ Windows</button>
               </div>
@@ -2534,11 +2534,11 @@
                   <li>เปิด Downloads → <strong>คลิกขวา</strong> ไฟล์「เปิดระบบคอมเมนต์」→ <strong>เปิด</strong> → กดเปิดอีกครั้ง
                     <br/><span style="font-size:12px;color:#71717a">ถ้าขึ้นข้อความเหลือง: กด「เสร็จสิ้น」แล้วคลิกขวา → เปิด อีกครั้ง (หรือ การตั้งค่าระบบ → ความเป็นส่วนตัว → Open Anyway)</span>
                   </li>
-                  <li>ครั้งแรกอาจดาวน์โหลดเบราว์เซอร์เอง — <strong>รอ 1–3 นาที อย่าปิดหน้าต่าง</strong></li>
+                  <li>ครั้งแรกอาจเตรียมระบบเอง — <strong>รอให้เสร็จ อย่าปิดหน้าต่าง</strong></li>
                   <li>กลับมาหน้านี้ สถานะควรขึ้น「ทำงานอยู่」</li>
                 </ol>
                 <div style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
-                  ไม่ต้องย้ายไฟล์ · ไม่ต้องติดตั้งเบราว์เซอร์เอง · ระบบทำให้อัตโนมัติ
+                  ไม่ต้องย้ายไฟล์ · ระบบเตรียมโค้ด/ไลบรารี/เบราว์เซอร์ให้อัตโนมัติ
                 </div>
                 <button type="button" class="btn-sm primary" id="fb-agent-download-mac">⬇ ดาวน์โหลดไฟล์เปิดระบบ (Mac)</button>
               </div>
@@ -2564,8 +2564,9 @@
                 <li>「ยังไม่เปิด」= ยังไม่ได้เปิดไฟล์ หรือปิดหน้าต่างไปแล้ว → เปิดใหม่</li>
                 <li>Mac ขึ้นข้อความเหลือง = กดเสร็จสิ้น แล้วคลิกขวา → เปิด (อย่าดับเบิลคลิกอย่างเดียว)</li>
                 <li>หน้าต่างขึ้น error เรื่อง Browser/Executable = ปิดแล้วเปิดไฟล์ใหม่ ระบบจะดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ</li>
-                <li>ไม่มี Python / หาโปรเจกต์ไม่เจอ = ให้หัวหน้าทีมเตรียมเครื่องครั้งเดียว</li>
-                <li>กดล็อกอินแล้วไม่เด้งเฟส = ขั้นที่ 2 ยังไม่เปิด หรือรอให้เตรียมเบราว์เซอร์เสร็จก่อน</li>
+                <li>ขึ้นว่าไม่มี Python = ติดตั้งตามลิงก์ที่ไฟล์เปิดให้ แล้วเปิดไฟล์อีกครั้ง (Windows มักติ๊ก Add to PATH)</li>
+                <li>ดาวน์โหลดโปรเจกต์ไม่สำเร็จ = เช็คเน็ตแล้วเปิดไฟล์ใหม่</li>
+                <li>กดล็อกอินแล้วไม่เด้งเฟส = ขั้นที่ 2 ยังไม่เปิด หรือรอให้เตรียมระบบครั้งแรกเสร็จก่อน</li>
               </ul>
               <p style="margin:10px 0 4px;font-size:11px;color:#a1a1aa">รายละเอียดภายใน (ไม่ต้องใช้มือ):</p>
               <code id="fb-agent-token" style="display:block;padding:6px 8px;background:#fff;border:1px solid #e5e7eb;border-radius:6px;word-break:break-all;user-select:all;font-size:11px">—</code>

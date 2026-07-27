@@ -5,31 +5,53 @@ title ระบบคอมเมนต์เฟส PTP
 set "HUB_URL=__HUB_URL__"
 set "COMMENT_AGENT_TOKEN=__AGENT_TOKEN__"
 set "BAKED_PROJECT_DIR=__PROJECT_DIR__"
+set "REPO_URL=https://github.com/mycondobkkhost-cmd/pantip-property-hub.git"
+set "REPO_ZIP=https://github.com/mycondobkkhost-cmd/pantip-property-hub/archive/refs/heads/main.zip"
+set "DEFAULT_PROJECT=%USERPROFILE%\Projects\pantip-property-automation"
 
 echo.
 echo ========================================
 echo   ระบบคอมเมนต์เฟสอัตโนมัติ (Windows)
 echo ========================================
 echo.
-echo ครั้งแรกอาจดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ
-echo ใช้เวลา 1-3 นาที — อย่าปิดหน้าต่างนี้
+echo ครั้งแรกระบบจะเตรียมเอง (โค้ด / ไลบรารี / เบราว์เซอร์)
+echo อาจใช้เวลาหลายนาที — อย่าปิดหน้าต่างนี้
 echo.
 
 set "PROJECT_DIR="
-if exist "%BAKED_PROJECT_DIR%\scripts\comment_agent.py" set "PROJECT_DIR=%BAKED_PROJECT_DIR%"
+if not "%BAKED_PROJECT_DIR%"=="" if not "%BAKED_PROJECT_DIR%"=="/app" if exist "%BAKED_PROJECT_DIR%\scripts\comment_agent.py" set "PROJECT_DIR=%BAKED_PROJECT_DIR%"
 if not defined PROJECT_DIR if exist "%~dp0..\..\scripts\comment_agent.py" (
   pushd "%~dp0..\.."
   set "PROJECT_DIR=%CD%"
   popd
 )
-if not defined PROJECT_DIR if exist "%USERPROFILE%\Projects\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Projects\pantip-property-automation"
+if not defined PROJECT_DIR if exist "%DEFAULT_PROJECT%\scripts\comment_agent.py" set "PROJECT_DIR=%DEFAULT_PROJECT%"
+if not defined PROJECT_DIR if exist "%USERPROFILE%\Projects\pantip-property-hub\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Projects\pantip-property-hub"
 if not defined PROJECT_DIR if exist "%USERPROFILE%\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\pantip-property-automation"
 if not defined PROJECT_DIR if exist "%USERPROFILE%\Desktop\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Desktop\pantip-property-automation"
 
 if not defined PROJECT_DIR (
-  echo [ผิดพลาด] หาโฟลเดอร์โปรเจกต์บนเครื่องนี้ไม่เจอ
-  echo ให้หัวหน้าทีมเตรียมโปรเจกต์ไว้ก่อน เช่น
-  echo   %USERPROFILE%\Projects\pantip-property-automation
+  echo ยังไม่มีโฟลเดอร์โปรเจกต์ — กำลังดาวน์โหลดให้อัตโนมัติ...
+  if not exist "%USERPROFILE%\Projects" mkdir "%USERPROFILE%\Projects"
+  where git >nul 2>&1
+  if not errorlevel 1 (
+    git clone --depth 1 "%REPO_URL%" "%DEFAULT_PROJECT%"
+    if exist "%DEFAULT_PROJECT%\scripts\comment_agent.py" set "PROJECT_DIR=%DEFAULT_PROJECT%"
+  )
+)
+
+if not defined PROJECT_DIR (
+  echo กำลังดาวน์โหลดไฟล์โปรเจกต์...
+  set "TMPZIP=%TEMP%\ptp-hub-main.zip"
+  set "TMPDIR=%TEMP%\ptp-hub-extract"
+  powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "try { Invoke-WebRequest -Uri $env:REPO_ZIP -OutFile $env:TMPZIP -UseBasicParsing; if (Test-Path $env:TMPDIR) { Remove-Item -Recurse -Force $env:TMPDIR }; Expand-Archive -Path $env:TMPZIP -DestinationPath $env:TMPDIR -Force; $src = Get-ChildItem $env:TMPDIR -Directory | Select-Object -First 1; if (-not $src) { exit 1 }; if (Test-Path $env:DEFAULT_PROJECT) { Remove-Item -Recurse -Force $env:DEFAULT_PROJECT }; Move-Item $src.FullName $env:DEFAULT_PROJECT; exit 0 } catch { Write-Host $_; exit 1 }"
+  if exist "%DEFAULT_PROJECT%\scripts\comment_agent.py" set "PROJECT_DIR=%DEFAULT_PROJECT%"
+)
+
+if not defined PROJECT_DIR (
+  echo [ผิดพลาด] ดาวน์โหลดโปรเจกต์ไม่สำเร็จ
+  echo เช็คเน็ตแล้วดับเบิลคลิกไฟล์นี้อีกครั้ง หรือให้หัวหน้าทีมช่วยครั้งเดียว
   echo.
   pause
   exit /b 1
@@ -40,19 +62,35 @@ echo กำลังเชื่อมต่อ Hub: %HUB_URL%
 echo.
 cd /d "%PROJECT_DIR%"
 
+set "PY="
 where python >nul 2>&1
-if errorlevel 1 (
+if not errorlevel 1 set "PY=python"
+if not defined PY (
   where py >nul 2>&1
-  if errorlevel 1 (
-    echo [ผิดพลาด] เครื่องนี้ยังไม่มี Python
-    echo ให้หัวหน้าทีมติดตั้ง Python แล้วรันไฟล์นี้อีกครั้ง
-    echo.
-    pause
-    exit /b 1
+  if not errorlevel 1 set "PY=py -3"
+)
+
+if not defined PY (
+  echo ยังไม่มี Python — กำลังลองติดตั้งให้อัตโนมัติ...
+  where winget >nul 2>&1
+  if not errorlevel 1 (
+    winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements
+    where python >nul 2>&1
+    if not errorlevel 1 set "PY=python"
+    if not defined PY (
+      where py >nul 2>&1
+      if not errorlevel 1 set "PY=py -3"
+    )
   )
-  set "PY=py -3"
-) else (
-  set "PY=python"
+)
+
+if not defined PY (
+  echo [ผิดพลาด] เครื่องนี้ยังไม่มี Python
+  echo กำลังเปิดหน้าดาวน์โหลดให้ — ติดตั้งแล้วติ๊ก "Add python.exe to PATH" แล้วเปิดไฟล์นี้อีกครั้ง
+  start "" "https://www.python.org/downloads/windows/"
+  echo.
+  pause
+  exit /b 1
 )
 
 if exist ".git" (
@@ -61,6 +99,15 @@ if exist ".git" (
     echo กำลังอัปเดตระบบ (ถ้ามี)...
     git pull --ff-only 2>nul
   )
+)
+
+echo กำลังติดตั้งไลบรารีที่จำเป็น (ครั้งแรกอาจนานหน่อย)...
+%PY% -m pip install -q -r requirements-agent.txt
+if errorlevel 1 (
+  echo [ผิดพลาด] ติดตั้งไลบรารีไม่สำเร็จ — ลองเปิดไฟล์นี้อีกครั้งเมื่อเน็ตพร้อม
+  echo.
+  pause
+  exit /b 1
 )
 
 %PY% scripts\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%"

@@ -143,8 +143,9 @@ class FacebookAuth:
         logger.info("Saved cookies to {}", self.cookies_path)
 
     def _perform_login(self, page: Page) -> None:
+        """Optional autofill when Hub has saved credentials."""
         if not self.email or not self.password:
-            raise ValueError("ยังไม่มีอีเมล/รหัสเฟส — บันทึกใน Hub แท็บเชื่อมต่อเฟสก่อน")
+            return
 
         page.goto(self.FACEBOOK_URL, wait_until="domcontentloaded")
         self._human_delay()
@@ -176,14 +177,14 @@ class FacebookAuth:
         timeout_sec: float = 600,
         on_status: Callable[[str], None] | None = None,
     ) -> bool:
-        """Keep browser open so user can finish 2FA / checkpoint."""
+        """Keep browser open so user can finish login / 2FA / account switch."""
         deadline = time.time() + max(60.0, float(timeout_sec))
         last_msg_at = 0.0
         while time.time() < deadline:
             remaining = int(deadline - time.time())
             if on_status and (time.time() - last_msg_at) >= 15:
                 on_status(
-                    f"รอยืนยันในหน้าต่างเฟส (2FA/รหัส) · เหลือ ~{remaining // 60} นาที — อย่าปิดหน้าต่าง Chrome"
+                    f"ล็อกอินในหน้าต่าง Chrome ได้เลย · เหลือ ~{max(1, remaining // 60)} นาที — อย่าปิดหน้าต่าง"
                 )
                 last_msg_at = time.time()
             try:
@@ -203,16 +204,13 @@ class FacebookAuth:
         *,
         wait_manual_sec: float = 600,
         on_status: Callable[[str], None] | None = None,
+        force_manual: bool = False,
     ) -> Page:
         """
         Ensure an authenticated Facebook session.
 
-        Flow:
-          1. Start persistent browser context (visible for first login)
-          2. Try existing session in user_data_dir
-          3. Fallback: restore cookies from file
-          4. Fallback: credential login + wait for manual 2FA/checkpoint
-          5. Persist cookies after success
+        Default / Hub login button: open a visible browser so the user can
+        log in (or switch accounts) manually — Hub password is optional.
         """
         def say(msg: str) -> None:
             logger.info(msg)
@@ -224,36 +222,79 @@ class FacebookAuth:
 
         page = self.start_browser()
 
-        if self._is_logged_in(page):
-            say("ล็อกอินอยู่แล้วจากเซสชันเดิม")
-            self._save_cookies()
-            return page
+        if not force_manual:
+            if self._is_logged_in(page):
+                say("ล็อกอินอยู่แล้วจากเซสชันเดิม")
+                self._save_cookies()
+                return page
 
-        if self._restore_cookies(page) and self._is_logged_in(page):
-            say("ล็อกอินด้วยคุกกี้ที่บันทึกไว้")
-            self._save_cookies()
-            return page
+            if self._restore_cookies(page) and self._is_logged_in(page):
+                say("ล็อกอินด้วยคุกกี้ที่บันทึกไว้")
+                self._save_cookies()
+                return page
 
-        say("กำลังใส่บัญชีเฟส — ถ้ามีรหัสยืนยัน ให้ใส่ในหน้าต่าง Chrome ที่เปิด")
-        self._perform_login(page)
+        say("เปิดหน้าต่างเฟสแล้ว — ล็อกอินบัญชีที่ต้องการใน Chrome (สลับบัญชีได้)")
+        try:
+            page.goto(self.FACEBOOK_URL, wait_until="domcontentloaded")
+        except Exception:  # noqa: BLE001
+            pass
 
-        if self._is_logged_in(page):
-            self._save_cookies()
-            say("ล็อกอินเฟสสำเร็จ")
-            return page
+        already = False
+        try:
+            already = self._has_session_cookie() or self._is_logged_in(page, navigate=False)
+        except Exception:  # noqa: BLE001
+            already = False
 
-        say("เฟสขอตรวจเพิ่ม — กรุณาใส่ 2FA / ยืนยันในหน้าต่าง Chrome (รอได้นานสุด ~10 นาที)")
+        if already and force_manual:
+            say(
+                "เซสชันเดิมยังอยู่ — ถ้าจะสลับบัญชี ให้ล็อกเอาท์ใน Chrome แล้วล็อกอินใหม่ "
+                "(รอ ~20 วินาที ถ้าใช้บัญชีเดิมต่อระบบจะรับเอง)"
+            )
+            grace_end = time.time() + 20
+            saw_logout = False
+            while time.time() < grace_end:
+                try:
+                    if not self._has_session_cookie() and not self._is_logged_in(
+                        page, navigate=False
+                    ):
+                        saw_logout = True
+                        break
+                except Exception:  # noqa: BLE001
+                    pass
+                time.sleep(2)
+            if not saw_logout:
+                if self._is_logged_in(page, navigate=True):
+                    self._save_cookies()
+                    say("ใช้บัญชีเดิมต่อ — พร้อมทำงานอัตโนมัติ")
+                    return page
+            else:
+                say("รอให้ล็อกอินบัญชีใหม่ใน Chrome…")
+
+        # Optional autofill only when Hub has saved creds and form is visible
+        if self.email and self.password:
+            try:
+                email_input = page.locator('input[name="email"]')
+                if email_input.count() > 0:
+                    say("มีบัญชีที่บันทึกไว้ (ไม่บังคับ) — กำลังลองใส่ให้อัตโนมัติ")
+                    self._perform_login(page)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("autofill login skipped: {}", exc)
+            if self._is_logged_in(page):
+                self._save_cookies()
+                say("ล็อกอินเฟสสำเร็จ")
+                return page
+
         if self._wait_for_manual_verification(
             page,
             timeout_sec=wait_manual_sec,
             on_status=on_status,
         ):
             self._save_cookies()
-            say("ล็อกอินเฟสสำเร็จหลังยืนยันมือ")
+            say("ล็อกอินเฟสสำเร็จ — ระบบจะคอมเมนต์อัตโนมัติต่อได้เลย")
             return page
 
         raise RuntimeError(
-            "ยังล็อกอินไม่สำเร็จ — ใส่รหัสยืนยันในหน้าต่างเฟสให้ครบ แล้วกดปุ่มล็อกอินใน Hub อีกครั้ง"
+            "ยังล็อกอินไม่สำเร็จ — ล็อกอินในหน้าต่าง Chrome ให้ครบ แล้วกดปุ่มล็อกอินใน Hub อีกครั้ง"
         )
 
     def close(self) -> None:

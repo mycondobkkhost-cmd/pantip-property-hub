@@ -2478,33 +2478,10 @@
             </div>
 
             <div style="margin-top:14px;padding:14px;border-radius:10px;background:#fff;border:1px solid #e5e7eb">
-              <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 1 — ใส่บัญชีเฟสส่วนตัวที่จะไปคอมเมนต์</div>
-              <ol style="margin:0 0 10px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.65">
-                <li>ใช้อีเมล/เบอร์ + รหัสผ่านของเฟสส่วนตัวที่ต้องการให้ไปคอมเมนต์ (ไม่ใช่บัญชีเพจ)</li>
-                <li>กรอกในช่องด้านล่าง แล้วกด <strong>บันทึกบัญชีเฟส</strong></li>
-                <li>ถ้าเปลี่ยนรหัสผ่านทีหลัง ให้ใส่รหัสใหม่แล้วกดบันทึกอีกครั้ง</li>
-              </ol>
-              <div class="add-grid">
-                <label>
-                  <span>อีเมลหรือเบอร์โทรเฟส</span>
-                  <input type="text" id="fb-agent-email" placeholder="เช่น name@email.com หรือ 08xxxxxxxx" autocomplete="username" />
-                </label>
-                <label>
-                  <span>รหัสผ่านเฟส</span>
-                  <input type="password" id="fb-agent-password" placeholder="ใส่เมื่อบันทึกครั้งแรก หรือเมื่อเปลี่ยนรหัส" autocomplete="current-password" />
-                </label>
-              </div>
-              <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
-                <button type="button" class="btn-sm primary" id="fb-agent-save-cred">บันทึกบัญชีเฟส</button>
-                <span id="fb-agent-step1-ok" style="font-size:12px;color:#137333;align-self:center"></span>
-              </div>
-            </div>
-
-            <div style="margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid #e5e7eb">
-              <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 2 — เปิดระบบบนคอมที่จะทำงาน</div>
+              <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 1 — เปิดระบบบนคอมที่จะทำงาน</div>
               <p style="margin:0 0 10px;font-size:13px;color:#3f3f46;line-height:1.65">
-                เลือก<strong>คอมเครื่องใดเครื่องหนึ่ง</strong>เปิดทิ้งไว้ได้ (Windows หรือ Mac) ·
-                ระบบเตรียมโค้ด / โปรแกรมที่จำเป็น / เบราว์เซอร์ให้อัตโนมัติ
+                เลือก<strong>คอมเครื่องใดเครื่องหนึ่ง</strong>เปิดทิ้งไว้ (Windows หรือ Mac) ·
+                <strong>ไม่ต้องบันทึกรหัสเฟสใน Hub</strong> · ระบบเตรียมโปรแกรมให้อัตโนมัติ
               </p>
               <p id="fb-guide-detected" style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
                 กำลังตรวจว่าคอมเครื่องนี้เป็นระบบอะไร…
@@ -2521,15 +2498,12 @@
                   <li>กด<strong>ดาวน์โหลดไฟล์ Windows</strong> (หรือคัดลอกคำสั่ง PowerShell)</li>
                   <li>ดับเบิลคลิกไฟล์「เปิดระบบคอมเมนต์」· ถ้า Windows กัน → More info → Run anyway</li>
                   <li>ครั้งแรกเตรียมเอง — <strong>อย่าปิดหน้าต่างดำ</strong></li>
-                  <li>พอ Hub ขึ้น「ทำงานอยู่」= พร้อมไปขั้นที่ 3</li>
+                  <li>พอ Hub ขึ้น「ทำงานอยู่」= พร้อมไปขั้นที่ 2</li>
                 </ol>
                 <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
                   <button type="button" class="btn-sm primary" id="fb-agent-download-win">⬇ ดาวน์โหลดไฟล์ Windows</button>
                   <button type="button" class="btn-sm" id="fb-agent-copy-win-cmd">📋 คัดลอกคำสั่ง PowerShell</button>
                   <span id="fb-agent-copy-win-ok" style="font-size:12px;color:#137333;align-self:center"></span>
-                </div>
-                <div style="padding:10px 12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;color:#334155;line-height:1.55">
-                  ส่งไฟล์ให้น้องแอดมินทางแชท/เมล/USB ได้เลย · ไม่ต้องย้ายไปโฟลเดอร์พิเศษ · เครื่องน้องยังไม่ต้องมีอะไรติดตั้งไว้ก่อน
                 </div>
               </div>
 
@@ -2539,7 +2513,7 @@
                   <li>กด<strong>คัดลอกคำสั่งเปิดระบบ</strong></li>
                   <li>เปิดแอป <strong>Terminal</strong> (Cmd+Space พิมพ์ Terminal)</li>
                   <li>วางคำสั่ง (Cmd+V) กด Enter — <strong>อย่าปิดหน้าต่าง</strong></li>
-                  <li>พอ Hub ขึ้น「ทำงานอยู่」= พร้อมไปขั้นที่ 3</li>
+                  <li>พอ Hub ขึ้น「ทำงานอยู่」= พร้อมไปขั้นที่ 2</li>
                 </ol>
                 <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">
                   <button type="button" class="btn-sm primary" id="fb-agent-copy-mac-cmd">📋 คัดลอกคำสั่งเปิดระบบ</button>
@@ -2550,7 +2524,6 @@
                   <ol style="margin:10px 0 0;padding-left:20px;line-height:1.7">
                     <li>กดดาวน์โหลด → ถ้าขึ้นสามเหลี่ยมเหลือง กด <strong>เสร็จสิ้น</strong> (อย่ากดถังขยะ)</li>
                     <li>การตั้งค่าระบบ → ความเป็นส่วนตัวและความปลอดภัย → เลื่อนลง → <strong>เปิดอยู่แล้ว</strong></li>
-                    <li>อย่าใช้แค่เมนู「เปิดด้วย → Terminal」</li>
                   </ol>
                   <button type="button" class="btn-sm" id="fb-agent-download-mac" style="margin-top:10px">⬇ ดาวน์โหลดไฟล์ Mac</button>
                 </details>
@@ -2558,22 +2531,44 @@
             </div>
 
             <div style="margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid #e5e7eb">
-              <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 3 — ล็อกอินเฟสครั้งแรก</div>
+              <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 2 — กดล็อกอิน แล้วล็อกอินในหน้าต่าง Chrome</div>
               <ol style="margin:0 0 10px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                <li>ตรวจว่าขั้นที่ 2 เปิดอยู่ (สถานะ「ทำงานอยู่」)</li>
-                <li>กดปุ่มเปิดหน้าต่างล็อกอินเฟส</li>
-                <li>บนคอมที่เปิดระบบไว้ จะมีหน้าต่าง Chrome เด้ง — <strong>ใส่รหัส 2FA / ยืนยันตามที่เฟสถาม</strong> ในหน้านั้น</li>
-                <li>ระบบรอได้นานถึง ~10 นาที — <strong>อย่าปิดหน้าต่าง Chrome</strong> จนกว่า Hub จะขึ้น「ล็อกอินแล้ว」</li>
-                <li>พอขึ้น「ล็อกอินแล้ว」→ ไปแท็บ <strong>คอมเมนต์กลุ่ม</strong> เพื่อเพิ่มคิว</li>
+                <li>ตรวจว่าขั้นที่ 1 เปิดอยู่ (สถานะ「ทำงานอยู่」)</li>
+                <li>กดปุ่มด้านล่าง — ระบบเปิดหน้าต่าง Chrome ให้เอง</li>
+                <li><strong>ล็อกอินเฟสในหน้าต่างนั้น</strong> ด้วยบัญชีที่ต้องการ (สลับบัญชีได้ · ไม่ต้องพิมพ์รหัสใน Hub)</li>
+                <li>มี 2FA ก็ใส่ใน Chrome ได้เลย — อย่าปิดหน้าต่างจนกว่า Hub จะขึ้น「ล็อกอินแล้ว」</li>
+                <li>จากนั้นระบบ<strong>คอมเมนต์คิวให้อัตโนมัติ</strong> — ไปแท็บคอมเมนต์กลุ่มเพื่อเพิ่มลิงก์</li>
               </ol>
-              <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#fff8eb;border:1px solid #f0d9a8;font-size:12px;color:#5c4a1f;line-height:1.55">
-                ถ้า Mac ถามอนุญาตการแจ้งเตือนของ Chrome → กดอนุญาตได้ · ไม่กระทบการล็อกอิน
+              <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:12px;color:#065f46;line-height:1.55">
+                สลับบัญชี: ใน Chrome กดล็อกเอาท์ → กลับมากดปุ่มล็อกอินอีกครั้ง → ล็อกอินบัญชีใหม่
               </div>
               <div class="toolbar-row" style="gap:8px;flex-wrap:wrap">
                 <button type="button" class="btn-sm primary" id="fb-agent-request-login">เปิดหน้าต่างล็อกอินเฟส</button>
                 <button type="button" class="btn-sm" id="fbconnect-goto-comments">ไปแท็บคอมเมนต์กลุ่ม →</button>
               </div>
             </div>
+
+            <details style="margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid #e5e7eb;font-size:13px;color:#3f3f46">
+              <summary style="cursor:pointer;font-weight:700;font-size:14px">ตัวเลือกเพิ่ม — บันทึกบัญชีใน Hub (ไม่บังคับ)</summary>
+              <p style="margin:10px 0;font-size:12px;color:#71717a;line-height:1.55">
+                ใช้เมื่ออยากให้ระบบช่วยพิมพ์อีเมล/รหัสในฟอร์มเฟสให้อัตโนมัติ ·
+                ส่วนใหญ่<strong>ไม่ต้องใช้</strong> เพราะล็อกอินใน Chrome โดยตรงสะดวกกว่าเวลาสลับบัญชี
+              </p>
+              <div class="add-grid">
+                <label>
+                  <span>อีเมลหรือเบอร์โทรเฟส</span>
+                  <input type="text" id="fb-agent-email" placeholder="ไม่บังคับ" autocomplete="username" />
+                </label>
+                <label>
+                  <span>รหัสผ่านเฟส</span>
+                  <input type="password" id="fb-agent-password" placeholder="ไม่บังคับ" autocomplete="current-password" />
+                </label>
+              </div>
+              <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+                <button type="button" class="btn-sm" id="fb-agent-save-cred">บันทึกไว้ช่วยพิมพ์ (ถ้าต้องการ)</button>
+                <span id="fb-agent-step1-ok" style="font-size:12px;color:#137333;align-self:center"></span>
+              </div>
+            </details>
 
             <details style="margin-top:12px;font-size:12px;color:#52525b">
               <summary style="cursor:pointer;font-weight:600">ถ้ามีปัญหา — อ่านตรงนี้</summary>
@@ -8225,7 +8220,7 @@
       var fbOk = !!fb.fb_logged_in;
       var pcOk = !!fb.agent_online;
       setText("cdash-fb", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#137333" : "#b42318");
-      setText("cdash-fb-sub", fb.email ? ("บัญชี " + fb.email) : "ไปแท็บเชื่อมต่อเฟสเพื่อตั้งค่า");
+      setText("cdash-fb-sub", fb.email ? ("บัญชีที่บันทึกไว้ " + fb.email + " (ไม่บังคับ)") : "ล็อกอินในหน้าต่าง Chrome ได้เลย");
       var pcLabel = !pcOk ? "ยังไม่เปิด" : (fb.agent_status === "working" ? "กำลังคอมเมนต์" : "ทำงานอยู่");
       setText("cdash-pc", pcLabel, pcOk ? "#137333" : "#b42318");
       setText("cdash-pc-sub", fb.agent_hostname || fb.agent_message || "—");
@@ -8299,8 +8294,8 @@
       if (tokenEl) tokenEl.textContent = data.agent_token || "—";
       if (emailEl && data.email && !emailEl.value) emailEl.value = data.email;
       if (step1) {
-        if (data.email && data.has_password) step1.textContent = "✓ บันทึกบัญชีแล้ว";
-        else if (data.email) step1.textContent = "ยังขาดรหัสผ่าน";
+        if (data.email && data.has_password) step1.textContent = "✓ บันทึกไว้ช่วยพิมพ์แล้ว (ไม่บังคับ)";
+        else if (data.email) step1.textContent = "บันทึกอีเมลแล้ว (ยังไม่มีรหัส)";
         else step1.textContent = "";
       }
       if (runEl) {
@@ -8319,7 +8314,7 @@
       var fbOk = !!data.fb_logged_in;
       var pcOk = !!data.agent_online;
       setText("cdash-fb", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#137333" : "#b42318");
-      setText("cdash-fb-sub", data.email ? ("บัญชี " + data.email) : "ไปแท็บเชื่อมต่อเฟสเพื่อตั้งค่า");
+      setText("cdash-fb-sub", data.email ? ("บัญชีที่บันทึกไว้ " + data.email + " (ไม่บังคับ)") : "ล็อกอินในหน้าต่าง Chrome ได้เลย");
       var pcLabel = !pcOk ? "ยังไม่เปิด" : (data.agent_status === "working" ? "กำลังคอมเมนต์" : "ทำงานอยู่");
       setText("cdash-pc", pcLabel, pcOk ? "#137333" : "#b42318");
       setText("cdash-pc-sub", data.agent_hostname || data.agent_message || "—");
@@ -8359,8 +8354,8 @@
     async function saveFbAgentCredentials() {
       var email = ((document.getElementById("fb-agent-email") || {}).value || "").trim();
       var password = ((document.getElementById("fb-agent-password") || {}).value || "");
-      if (!email) {
-        alert("กรุณาใส่อีเมลหรือเบอร์เฟสก่อน");
+      if (!email && !password) {
+        alert("ช่องนี้เป็นตัวเลือกเพิ่มเท่านั้น — ไม่ต้องกรอกก็ล็อกอินใน Chrome ได้");
         return;
       }
       try {
@@ -8370,7 +8365,7 @@
         var pw = document.getElementById("fb-agent-password");
         if (pw) pw.value = "";
         renderFbAgentStatus(data);
-        alert(data.has_password ? "บันทึกบัญชีเฟสแล้ว — ไปขั้นที่ 2 ได้เลย" : "บันทึกอีเมลแล้ว — ใส่รหัสผ่านแล้วกดบันทึกอีกครั้ง");
+        alert(data.has_password ? "บันทึกไว้ช่วยพิมพ์แล้ว (ไม่บังคับ) — ยังล็อกอินใน Chrome ได้ตามปกติ" : "บันทึกอีเมลแล้ว — ถ้ารหัสว่าง ระบบจะไม่ช่วยพิมพ์ให้อัตโนมัติ");
       } catch (e) {
         alert(e.message || "บันทึกไม่ได้");
       }
@@ -8380,9 +8375,9 @@
       try {
         var data = await apiPost("/api/fb-agent/request-login", {});
         renderFbAgentStatus(data);
-        alert("สั่งเปิดหน้าต่างเฟสแล้ว\n\nไปที่คอมที่เปิดระบบไว้ — จะมีหน้าต่าง Chrome เด้งขึ้น\nใส่รหัสยืนยัน/2FA ในหน้านั้นให้ครบ\nอย่าปิด Chrome จนกว่า Hub จะขึ้น「ล็อกอินแล้ว」(รอได้ ~10 นาที)");
+        alert("สั่งเปิดหน้าต่างเฟสแล้ว\n\nไปที่คอมที่เปิดระบบไว้ — Chrome จะเด้งขึ้น\nล็อกอินบัญชีที่ต้องการในหน้านั้นได้เลย (ไม่ต้องบันทึกรหัสใน Hub)\nอย่าปิด Chrome จนกว่า Hub จะขึ้น「ล็อกอินแล้ว」\nจากนั้นระบบจะคอมเมนต์คิวให้อัตโนมัติ");
       } catch (e) {
-        alert(e.message || "สั่งล็อกอินไม่ได้ — ทำขั้นที่ 1 ให้ครบก่อน");
+        alert(e.message || "สั่งล็อกอินไม่ได้ — ตรวจว่าขั้นที่ 1 เปิดระบบบนคอมไว้แล้ว");
       }
     }
 

@@ -121,10 +121,11 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
         logger.error("ensure browser failed: {}", exc)
         return False
 
-    progress("กำลังเปิดหน้าต่าง Facebook — อย่าปิด Chrome ที่เด้งขึ้น")
+    progress("กำลังเปิดหน้าต่าง Facebook — ล็อกอินใน Chrome ได้เลย (ไม่บังคับบันทึกรหัสใน Hub)")
     auth = FacebookAuth(email=email or None, password=password or None, headless=False)
     try:
-        auth.login(wait_manual_sec=600, on_status=progress)
+        # Always open for manual login / account switch; autofill only if Hub has saved creds
+        auth.login(wait_manual_sec=600, on_status=progress, force_manual=True)
         heartbeat(
             hub,
             token,
@@ -148,7 +149,7 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
         print("")
         print("===== ล็อกอินเฟสยังไม่สำเร็จ =====")
         print(str(exc))
-        print("ดูหน้าต่าง Chrome ที่เปิดไว้ — ใส่รหัสยืนยันให้ครบ แล้วกดปุ่มล็อกอินใน Hub อีกครั้ง")
+        print("ดูหน้าต่าง Chrome ที่เปิดไว้ — ล็อกอินให้ครบ แล้วกดปุ่มล็อกอินใน Hub อีกครั้ง")
         print("")
         return False
     finally:

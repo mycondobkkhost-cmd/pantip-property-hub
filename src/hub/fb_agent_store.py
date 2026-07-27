@@ -143,12 +143,9 @@ def set_credentials(*, email: str, password: str | None = None) -> dict[str, Any
 
 
 def request_login() -> dict[str, Any]:
+    """Ask the PC agent to open a visible Facebook window for manual login."""
     with _LOCK:
         row = _load_raw()
-        if not str(row.get("email") or "").strip():
-            raise ValueError("กรุณาบันทึกอีเมลเฟสก่อน")
-        if not str(row.get("password") or "").strip():
-            raise ValueError("กรุณาบันทึกรหัสผ่านเฟสก่อน")
         row["login_requested"] = True
         row["agent_message"] = "รอเครื่อง Agent เปิดหน้าต่าง Facebook…"
         _save_raw(row)

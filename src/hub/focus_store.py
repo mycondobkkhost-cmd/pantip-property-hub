@@ -88,7 +88,14 @@ def load_focus() -> list[dict]:
     return out
 
 
-def save_focus(items: list[dict]) -> None:
+def _sheet_sync_enabled() -> bool:
+    import os
+
+    flag = (os.environ.get("HUB_FOCUS_SHEET_SYNC") or "1").strip().lower()
+    return flag not in {"0", "false", "no", "off"}
+
+
+def save_focus(items: list[dict], *, sync_sheet: bool = True) -> None:
     FOCUS_PATH.parent.mkdir(parents=True, exist_ok=True)
     normalized = []
     seen: set[str] = set()
@@ -106,6 +113,67 @@ def save_focus(items: list[dict]) -> None:
         ),
         encoding="utf-8",
     )
+    if sync_sheet and _sheet_sync_enabled():
+        try:
+            from src.hub.hub_state_sheet import push_focus_to_sheet
+
+            push_focus_to_sheet(normalized)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[hub] focus sheet push failed: {exc}")
+
+
+def replace_focus_from_sheet() -> dict:
+    """Pull Hubโฟกัส from Google Sheet into local JSON (SoT)."""
+    from src.hub.hub_state_sheet import pull_focus_from_sheet
+
+    items = pull_focus_from_sheet()
+    save_focus(items, sync_sheet=False)
+    return {"ok": True, "count": len(items), "source": "sheet"}
+
+
+def merge_focus_from_sheet() -> dict:
+    """Union sheet + local focus by property id (keep newer pinned_at). Never wipe local."""
+    from src.hub.hub_state_sheet import pull_focus_from_sheet
+
+    local = load_focus()
+    try:
+        sheet_items = pull_focus_from_sheet()
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "ok": True,
+            "count": len(local),
+            "merged": 0,
+            "source": "local",
+            "warning": str(exc),
+        }
+    by_id: dict[str, dict] = {x["id"]: dict(x) for x in local if x.get("id")}
+    merged = 0
+    for entry in sheet_items or []:
+        item = _normalize_item(dict(entry))
+        if not item:
+            continue
+        pid = item["id"]
+        prev = by_id.get(pid)
+        if not prev:
+            by_id[pid] = item
+            merged += 1
+            continue
+        # Keep the newer pin timestamp when both exist.
+        if (item.get("pinned_at") or "") > (prev.get("pinned_at") or ""):
+            by_id[pid] = {**prev, **item}
+            merged += 1
+        elif item.get("code") and not prev.get("code"):
+            prev["code"] = item["code"]
+    out = list(by_id.values())
+    save_focus(out, sync_sheet=False)
+    return {
+        "ok": True,
+        "count": len(out),
+        "merged": merged,
+        "local_before": len(local),
+        "sheet": len(sheet_items or []),
+        "source": "merge",
+    }
 
 
 def list_focus() -> list[dict]:

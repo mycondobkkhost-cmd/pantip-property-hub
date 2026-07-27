@@ -15,8 +15,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 PROJECTS_JSON = BASE_DIR / "data" / "projects.json"
 PROPERTIES_JSON = BASE_DIR / "data" / "properties.json"
 DB_PATH = BASE_DIR / "data" / "hub.db"
-PREVIEW_JS = BASE_DIR / "hub" / "preview-data.js"
-PREVIEW_META = BASE_DIR / "hub" / "preview-data.meta.json"
+# Catalog JS must live on the persistent data volume (Fly mounts /app/data).
+# Writing only under hub/ loses saves after every deploy/restart.
+PREVIEW_JS = BASE_DIR / "data" / "preview-data.js"
+PREVIEW_META = BASE_DIR / "data" / "preview-data.meta.json"
+# Legacy path from older deploys / local static opens — mirrored for compatibility.
+PREVIEW_JS_LEGACY = BASE_DIR / "hub" / "preview-data.js"
+PREVIEW_META_LEGACY = BASE_DIR / "hub" / "preview-data.meta.json"
 
 # ThreadingHTTPServer serves requests concurrently — serialize read-modify-write
 # so multi-add / parallel saves cannot lose rows or collide on hub.db rebuild.
@@ -331,15 +336,13 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
         "generated_at": generated_at,
         "data_version": data_version,
     }
-    _atomic_write_text(
-        PREVIEW_JS,
+    body = (
         "// Auto-generated — do not edit\n"
         "window.PTP_DATA = "
         + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-        + ";\n",
+        + ";\n"
     )
-    _atomic_write_text(
-        PREVIEW_META,
+    meta = (
         json.dumps(
             {
                 "data_version": data_version,
@@ -350,22 +353,58 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
             ensure_ascii=False,
             indent=2,
         )
-        + "\n",
+        + "\n"
     )
+    _atomic_write_text(PREVIEW_JS, body)
+    _atomic_write_text(PREVIEW_META, meta)
+    # Keep hub/ copy in sync for tools that still open hub/preview-data.js directly.
+    try:
+        _atomic_write_text(PREVIEW_JS_LEGACY, body)
+        _atomic_write_text(PREVIEW_META_LEGACY, meta)
+    except OSError:
+        pass
 
 
-def ensure_preview_js(*, min_bytes: int = 64) -> dict:
-    """Rebuild hub/preview-data.js from properties.json when missing/empty/corrupt.
+def _json_properties_count() -> int | None:
+    """Cheap-ish length of properties.json array; None if unreadable."""
+    if not PROPERTIES_JSON.is_file():
+        return None
+    try:
+        data = json.loads(PROPERTIES_JSON.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return None
+    if isinstance(data, list):
+        return len(data)
+    return None
 
-    Render serves the baked Docker copy; if a deploy/sync drops the file, rebuild
-    from the JSON store so the Hub list is not empty (ไม่พบ preview-data.js).
+
+def ensure_preview_js(*, min_bytes: int = 64, force: bool = False) -> dict:
+    """Rebuild catalog JS from properties.json when missing/stale/corrupt.
+
+    On Fly, hub/ is ephemeral image disk while data/ is the volume — always prefer
+    rebuilding when the volume JSON disagrees with preview meta/count.
     """
     reason = "present"
-    needs = False
-    if not PREVIEW_JS.is_file():
-        needs = True
-        reason = "missing"
-    else:
+    needs = bool(force)
+    if force:
+        reason = "forced"
+
+    if not needs and not PREVIEW_JS.is_file():
+        # Migrate legacy hub/ catalog onto the volume once.
+        if PREVIEW_JS_LEGACY.is_file():
+            try:
+                PREVIEW_JS.parent.mkdir(parents=True, exist_ok=True)
+                PREVIEW_JS.write_bytes(PREVIEW_JS_LEGACY.read_bytes())
+                if PREVIEW_META_LEGACY.is_file():
+                    PREVIEW_META.write_bytes(PREVIEW_META_LEGACY.read_bytes())
+            except OSError:
+                needs = True
+                reason = "missing"
+        else:
+            needs = True
+            reason = "missing"
+
+    if not needs:
         try:
             size = PREVIEW_JS.stat().st_size
         except OSError:
@@ -375,7 +414,6 @@ def ensure_preview_js(*, min_bytes: int = 64) -> dict:
             reason = "empty"
         else:
             try:
-                # Only need the header — full catalog read on every boot is wasteful.
                 head = PREVIEW_JS.read_bytes()[:120].decode("utf-8", errors="replace")
                 if "PTP_DATA" not in head:
                     needs = True
@@ -384,57 +422,42 @@ def ensure_preview_js(*, min_bytes: int = 64) -> dict:
                 needs = True
                 reason = "unreadable"
 
-    # Meta says empty but the JSON store has rows → regenerate (partial write /
-    # aborted restore left a stub catalog that 502s under memory pressure).
-    if not needs and PROPERTIES_JSON.is_file():
-        meta_total = 0
-        if PREVIEW_META.is_file():
+    meta_total = 0
+    if PREVIEW_META.is_file():
+        try:
+            meta = json.loads(PREVIEW_META.read_text(encoding="utf-8"))
+            meta_total = int((meta or {}).get("properties_total") or 0)
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            meta_total = 0
+
+    json_count = _json_properties_count()
+    if not needs and json_count is not None:
+        if meta_total <= 0 and json_count > 0:
+            needs = True
+            reason = "meta_empty"
+        elif meta_total != json_count:
+            needs = True
+            reason = "count_mismatch"
+        else:
+            # Volume JSON newer than catalog → rebuild (deploy left stale image copy).
             try:
-                meta = json.loads(PREVIEW_META.read_text(encoding="utf-8"))
-                meta_total = int((meta or {}).get("properties_total") or 0)
-            except (OSError, json.JSONDecodeError, TypeError, ValueError):
-                meta_total = 0
-        if meta_total <= 0:
-            try:
-                # Cheap non-empty check without full parse when possible.
-                raw = PROPERTIES_JSON.read_bytes()[:64]
-                if raw.lstrip().startswith(b"["):
+                json_mtime = PROPERTIES_JSON.stat().st_mtime
+                preview_mtime = PREVIEW_JS.stat().st_mtime
+                if json_mtime > preview_mtime + 1.0:
                     needs = True
-                    reason = "meta_empty"
+                    reason = "json_newer"
             except OSError:
                 pass
 
     if not needs:
-        total = 0
-        if PREVIEW_META.is_file():
-            try:
-                meta = json.loads(PREVIEW_META.read_text(encoding="utf-8"))
-                total = int((meta or {}).get("properties_total") or 0)
-            except (OSError, json.JSONDecodeError, TypeError, ValueError):
-                total = 0
         return {
             "ok": True,
             "rebuilt": False,
             "reason": reason,
-            "properties_total": total,
+            "properties_total": meta_total or (json_count or 0),
         }
 
     with _STORE_LOCK:
-        # Re-check under lock — another writer may have fixed it.
-        if PREVIEW_JS.is_file():
-            try:
-                if (
-                    PREVIEW_JS.stat().st_size >= min_bytes
-                    and b"PTP_DATA" in PREVIEW_JS.read_bytes()[:120]
-                ):
-                    return {
-                        "ok": True,
-                        "rebuilt": False,
-                        "reason": "present",
-                        "properties_total": len(load_properties()),
-                    }
-            except OSError:
-                pass
         projects = load_projects()
         properties = load_properties()
         if not properties:
@@ -470,6 +493,15 @@ def persist(projects: list[dict], properties: list[dict]) -> None:
         _PROPERTIES_CACHE["data"] = None
         _PROPERTIES_CACHE["mtime"] = None
         _PROPERTIES_CACHE["at"] = 0.0
+        # Co-Agent (/api/co/catalog, /api/co/match) reads the same Hub volume —
+        # invalidate its cache too so admin saves show up immediately, not just
+        # after the mtime-based TTL next request happens to notice.
+        try:
+            from src.hub.co_catalog import invalidate_co_catalog
+
+            invalidate_co_catalog()
+        except Exception:  # noqa: BLE001
+            pass
 
 
 def _next_code_from_list(properties: list[dict], prefix: str = "RXT") -> str:
@@ -596,6 +628,30 @@ def _save_new_property_locked(payload: dict) -> dict:
     return prop
 
 
+# Fields Hub edits that the main-sheet CSV rebuild often blanks or mangles.
+# Always re-apply from the pre-refresh snapshot so 「ดึงชีท」cannot wipe work.
+HUB_OVERLAY_FIELDS = (
+    "post_url",
+    "post_pages_url",
+    "owner_facebook",
+    "owner_phones",
+    "owner_lines",
+    "notes",
+    "text_th",
+    "text_en",
+    "raw_text",
+    "page_post_text",
+    "media_status",
+    "hub_edited_at",
+)
+
+
+def _stamp_hub_edited(prop: dict) -> None:
+    from datetime import datetime, timezone
+
+    prop["hub_edited_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def update_property(property_id: str, payload: dict) -> dict:
     """Update an existing listing from the edit form (same fields as save)."""
     with _STORE_LOCK:
@@ -686,6 +742,7 @@ def _update_property_locked(property_id: str, payload: dict) -> dict:
         prop["raw_text"] = payload.get("raw_text") or ""
     if "page_post_text" in payload:
         prop["page_post_text"] = (payload.get("page_post_text") or "").strip()
+    _stamp_hub_edited(prop)
 
     if old_project_id != project_id:
         for pr in projects:
@@ -733,6 +790,7 @@ def _update_property_links_locked(property_id: str, payload: dict) -> dict:
         prop["owner_phones"] = [x for x in phones if x]
     if "notes" in payload:
         prop["notes"] = payload.get("notes") or ""
+    _stamp_hub_edited(prop)
 
     persist(projects, properties)
     return prop

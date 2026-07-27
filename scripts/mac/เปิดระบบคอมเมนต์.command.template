@@ -1,0 +1,42 @@
+#!/bin/bash
+# ดาวน์โหลดจาก Hub — เปิดจาก Downloads ได้เลย ไม่ต้องย้ายไฟล์
+PROJECT_DIR="__PROJECT_DIR__"
+HUB_URL="__HUB_URL__"
+COMMENT_AGENT_TOKEN="__AGENT_TOKEN__"
+
+# ลดโอกาสโดน Mac บล็อกครั้งถัดไป
+xattr -d com.apple.quarantine "$0" 2>/dev/null || true
+
+clear
+echo "========================================"
+echo "  ระบบคอมเมนต์เฟสอัตโนมัติ (Mac)"
+echo "========================================"
+echo ""
+echo "โฟลเดอร์โปรเจกต์: $PROJECT_DIR"
+echo "กำลังเชื่อมต่อ Hub..."
+echo "เปิดหน้าต่างนี้ทิ้งไว้ได้เลย — อย่าปิด"
+echo ""
+
+if [ ! -d "$PROJECT_DIR" ]; then
+  echo "[ผิดพลาด] หาโฟลเดอร์โปรเจกต์ไม่เจอ"
+  echo "$PROJECT_DIR"
+  echo "ให้หัวหน้าทีมเปิด Hub จากเครื่องที่มีโปรเจกต์นี้"
+  echo ""
+  read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
+  exit 1
+fi
+
+cd "$PROJECT_DIR" || exit 1
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "[ผิดพลาด] เครื่องนี้ยังไม่มี Python3"
+  echo "ให้หัวหน้าทีมติดตั้ง Python แล้วเปิดไฟล์นี้อีกครั้ง"
+  echo ""
+  read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
+  exit 1
+fi
+
+python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN"
+echo ""
+echo "ระบบหยุดแล้ว — ดับเบิลคลิกไฟล์นี้อีกครั้งเพื่อเปิดใหม่"
+read -r -p "กด Enter เพื่อปิดหน้าต่าง..."

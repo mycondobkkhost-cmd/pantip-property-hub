@@ -1,7 +1,10 @@
 # Property Hub — Fly.io (always-on). Does NOT touch LivingBKK / apex realxtateth.com.
-# Deploy: fly deploy
+# Deploy: fly deploy --ha=false && fly scale count 1
 # Secrets: scripts/fly_set_secrets.sh
 # Custom domain: hub.realxtateth.com → CNAME to property-hub.fly.dev (proxied or DNS-only + fly certs)
+#
+# IMPORTANT: keep exactly 1 machine. Hub volume (/app/data) is source of truth;
+# Google Sheet is a one-way export. >1 machine → split-brain.
 
 app = "property-hub"
 primary_region = "sin"
@@ -13,10 +16,27 @@ primary_region = "sin"
   HOST = "0.0.0.0"
   PORT = "8080"
   PYTHONUNBUFFERED = "1"
-  HUB_STARTUP_SHEET_SYNC = "1"
+  HUB_STARTUP_SHEET_SYNC = "0"
+  HUB_ALLOW_SHEET_PULL = "0"
   HUB_AUTO_SYNC_TO_SHEET = "1"
+  HUB_QUEUE_SHEET_SYNC = "1"
+  HUB_FOCUS_SHEET_SYNC = "1"
+  HUB_CUSTOMERS_SHEET_SYNC = "1"
+  HUB_TENANTS_SHEET_SYNC = "1"
+  LINE_MENU_WEBHOOK = "1"
   HUB_OVERVIEW_SHEET_NAME = "ทรัพย์รวม"
   HUB_SHEET_NAME = "ทรัพย์ Hub"
+  HUB_FOCUS_SHEET_NAME = "Hubโฟกัส"
+  HUB_CUSTOMERS_SHEET_NAME = "Hubฟอโล่ว"
+  HUB_TENANTS_SHEET_NAME = "Hubลูกค้าปัจจุบัน"
+  HUB_ZONES_SHEET_NAME = "Hubทำเล"
+  HUB_TRANSITS_SHEET_NAME = "HubBTS"
+  HUB_ZONES_SHEET_SYNC = "1"
+  HUB_TRANSITS_SHEET_SYNC = "1"
+
+[[mounts]]
+  source = "hub_data"
+  destination = "/app/data"
 
 [http_service]
   internal_port = 8080
@@ -35,6 +55,8 @@ primary_region = "sin"
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "512mb"
+  memory = "1gb"
   cpu_kind = "shared"
   cpus = 1
+  # Deploy with: fly deploy --ha=false  then  fly scale count 1
+  # (Fly may still spawn 2 on first create if --ha is left default.)

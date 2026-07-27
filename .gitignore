@@ -10,9 +10,14 @@ cookies/
 
 # Runtime / local-only (cloud deploy force-adds essentials — see DEPLOY_RENDER.md)
 data/hub.db
+data/preview-data.js
+data/preview-data.meta.json
 data/line_chats.jsonl
 data/line_cases.json
 data/caption_copy_history.json
+data/group_post_links.json
+data/group_post_codes.json
+data/fb_agent.json
 data/thumb_cache/
 data/living_cache/
 logs/*.log

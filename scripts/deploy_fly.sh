@@ -36,8 +36,11 @@ else
   echo "WARN: /tmp/property-hub-migrate-env.json missing — set secrets manually"
 fi
 
-echo "=== fly deploy ==="
-fly deploy -a "$APP" --remote-only
+echo "=== fly deploy (single machine; local JSON is not shared) ==="
+fly deploy -a "$APP" --remote-only --ha=false
+echo "=== ensure scale count = 1 ==="
+fly scale count 1 -a "$APP" -y || true
+fly scale show -a "$APP" || true
 
 echo "=== certificates for $DOMAIN ==="
 fly certs add "$DOMAIN" -a "$APP" 2>/dev/null || fly certs show "$DOMAIN" -a "$APP" || true

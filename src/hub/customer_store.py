@@ -16,13 +16,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 CASES_PATH = BASE_DIR / "data" / "customer_cases.json"
 EXPORT_CSV = BASE_DIR / "data" / "customer_followup_export.csv"
 
+# Pipeline: lead → contact → offer/view → decide → deposit/reserve → contract → close
 STATUSES = [
     "new",
+    "contacted",
     "waiting_info",
     "offered",
     "viewing",
     "deciding",
+    "deposit",
     "reserved",
+    "contract_pending",
+    "contract_started",
     "closed_won",
     "closed_lost",
     "paused",
@@ -30,14 +35,28 @@ STATUSES = [
 
 STATUS_LABELS = {
     "new": "ใหม่",
+    "contacted": "ติดต่อแล้ว",
     "waiting_info": "รอข้อมูล",
     "offered": "เสนอแล้ว",
-    "viewing": "นัดดู",
+    "viewing": "นัดชม",
     "deciding": "รอตัดสินใจ",
-    "reserved": "จอง/มัดจำ",
-    "closed_won": "ปิดได้",
-    "closed_lost": "หลุด",
+    "deposit": "มัดจำแล้ว",
+    "reserved": "จองแล้ว",
+    "contract_pending": "รอทำสัญญา",
+    "contract_started": "เริ่มสัญญา",
+    "closed_won": "สำเร็จ",
+    "closed_lost": "ยกเลิก",
     "paused": "พัก",
+}
+
+# Accept old sheet labels / aliases when pulling
+STATUS_ALIASES = {
+    "นัดดู": "viewing",
+    "จอง/มัดจำ": "reserved",
+    "ปิดได้": "closed_won",
+    "หลุด": "closed_lost",
+    "มัดจำ": "deposit",
+    "จอง": "reserved",
 }
 
 SHEET_HEADERS = [
@@ -55,6 +74,7 @@ SHEET_HEADERS = [
     "ทักซ้ำในอีกกี่วัน",
     "วันฟอโล่วถัดไป",
     "สถานะ",
+    "วันที่สถานะ",
     "เหตุผลหลุด",
     "ประเภททรัพย์",
     "ทำเลที่ต้องการ",
@@ -178,9 +198,17 @@ def _normalize(item: dict) -> dict:
         item["followup_in_days"] = 3
     item.setdefault("next_followup_at", "")
     st = (item.get("status") or "new").strip()
+    st = STATUS_ALIASES.get(st, st)
+    # Also accept Thai labels as status keys from sheet
+    if st not in STATUSES:
+        for code, label in STATUS_LABELS.items():
+            if st == label:
+                st = code
+                break
     if st not in STATUSES:
         st = "new"
     item["status"] = st
+    item.setdefault("status_date", "")  # optional date for มัดจำ/จอง/เริ่มสัญญา
     item.setdefault("lost_reason", "")
     item["property_types"] = _parse_list(item.get("property_types"))
     item.setdefault("locations", "")
@@ -236,7 +264,14 @@ def load_cases() -> list[dict]:
     return [_normalize(x) for x in items]
 
 
-def save_cases(items: list[dict]) -> None:
+def _sheet_sync_enabled() -> bool:
+    import os
+
+    flag = (os.environ.get("HUB_CUSTOMERS_SHEET_SYNC") or "1").strip().lower()
+    return flag not in {"0", "false", "no", "off"}
+
+
+def save_cases(items: list[dict], *, sync_sheet: bool = True) -> None:
     CASES_PATH.parent.mkdir(parents=True, exist_ok=True)
     normalized = [_normalize(dict(x)) for x in items]
     CASES_PATH.write_text(
@@ -247,6 +282,89 @@ def save_cases(items: list[dict]) -> None:
         ),
         encoding="utf-8",
     )
+    if sync_sheet and _sheet_sync_enabled():
+        try:
+            from src.hub.hub_state_sheet import push_customers_to_sheet
+
+            push_customers_to_sheet(normalized)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[hub] customers sheet push failed: {exc}")
+
+
+def replace_cases_from_sheet() -> dict:
+    """Pull Hubฟอโล่ว from Google Sheet into local JSON (SoT)."""
+    import uuid
+
+    from src.hub.hub_state_sheet import pull_customers_from_sheet
+
+    raw = pull_customers_from_sheet()
+    items: list[dict] = []
+    for entry in raw:
+        it = _normalize(dict(entry))
+        if not it.get("id"):
+            it["id"] = "fu_" + uuid.uuid4().hex[:10]
+        if not it.get("case_code"):
+            it["case_code"] = _next_case_code(items)
+        items.append(it)
+    save_cases(items, sync_sheet=False)
+    return {"ok": True, "count": len(items), "source": "sheet"}
+
+
+def merge_cases_from_sheet() -> dict:
+    """Union sheet + local follow-up cases by id/case_code. Never wipe local."""
+    import uuid
+
+    from src.hub.hub_state_sheet import pull_customers_from_sheet
+
+    local = load_cases()
+    try:
+        raw = pull_customers_from_sheet()
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "ok": True,
+            "count": len(local),
+            "merged": 0,
+            "source": "local",
+            "warning": str(exc),
+        }
+
+    by_key: dict[str, dict] = {}
+    for entry in local:
+        it = _normalize(dict(entry))
+        key = (it.get("id") or "").strip() or (it.get("case_code") or "").strip()
+        if key:
+            by_key[key] = it
+
+    merged = 0
+    for entry in raw or []:
+        it = _normalize(dict(entry))
+        if not it.get("id"):
+            it["id"] = "fu_" + uuid.uuid4().hex[:10]
+        key = (it.get("id") or "").strip() or (it.get("case_code") or "").strip()
+        if not key:
+            continue
+        prev = by_key.get(key)
+        if not prev:
+            if not it.get("case_code"):
+                it["case_code"] = _next_case_code(list(by_key.values()))
+            by_key[key] = it
+            merged += 1
+            continue
+        # Prefer the row with newer updated_at when present.
+        if (it.get("updated_at") or "") > (prev.get("updated_at") or ""):
+            by_key[key] = {**prev, **it}
+            merged += 1
+
+    out = list(by_key.values())
+    save_cases(out, sync_sheet=False)
+    return {
+        "ok": True,
+        "count": len(out),
+        "merged": merged,
+        "local_before": len(local),
+        "sheet": len(raw or []),
+        "source": "merge",
+    }
 
 
 def case_stats(items: list[dict] | None = None) -> dict:
@@ -254,11 +372,15 @@ def case_stats(items: list[dict] | None = None) -> dict:
     today = _today()
     open_statuses = {
         "new",
+        "contacted",
         "waiting_info",
         "offered",
         "viewing",
         "deciding",
+        "deposit",
         "reserved",
+        "contract_pending",
+        "contract_started",
         "paused",
     }
     open_n = sum(1 for x in items if x.get("status") in open_statuses)
@@ -422,6 +544,7 @@ def case_to_sheet_row(it: dict) -> list[str]:
         str(it.get("followup_in_days") or ""),
         it.get("next_followup_at") or "",
         STATUS_LABELS.get(it.get("status") or "", it.get("status") or ""),
+        it.get("status_date") or "",
         it.get("lost_reason") or "",
         ", ".join(it.get("property_types") or []),
         it.get("locations") or "",

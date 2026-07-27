@@ -1,0 +1,34 @@
+@echo off
+chcp 65001 >nul
+title ระบบคอมเมนต์เฟส PTP
+cd /d "%~dp0..\.."
+
+REM --- ค่านี้ถูกใส่ให้อัตโนมัติจาก Hub แล้ว ไม่ต้องแก้เอง ---
+set "HUB_URL=__HUB_URL__"
+set "COMMENT_AGENT_TOKEN=__AGENT_TOKEN__"
+
+echo.
+echo ========================================
+echo   ระบบคอมเมนต์เฟสอัตโนมัติ
+echo ========================================
+echo.
+echo กำลังเชื่อมต่อ Hub...
+echo เปิดหน้าต่างนี้ทิ้งไว้ได้เลย
+echo อย่าปิดหน้าต่างนี้ ถ้าระบบยังต้องทำงาน
+echo.
+echo ดูสถานะได้ที่หน้า Hub แท็บ คอมเมนต์กลุ่ม
+echo.
+
+where python >nul 2>&1
+if errorlevel 1 (
+  echo [ผิดพลาด] เครื่องนี้ยังไม่มี Python
+  echo ให้หัวหน้าทีมติดตั้ง Python แล้วรันไฟล์นี้อีกครั้ง
+  echo.
+  pause
+  exit /b 1
+)
+
+python scripts\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%"
+echo.
+echo ระบบหยุดทำงานแล้ว — ถ้ายังต้องการคอมเมนต์ต่อ ให้ดับเบิลคลิกเปิดไฟล์นี้อีกครั้ง
+pause

@@ -233,10 +233,27 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
     # rebuild so adds that landed during the (slow) CSV download are kept.
     preserved: list[dict] = []
     preserved_loc_by_bucket: dict[str, dict] = {}
+    overlay_by_code: dict[str, dict] = {}
     try:
-        preserved = [dict(p) for p in load_properties() if is_hub_owned(p)]
+        from src.hub.project_store import HUB_OVERLAY_FIELDS
+
+        for p in load_properties():
+            if is_hub_owned(p):
+                preserved.append(dict(p))
+            code = (p.get("code") or "").strip().upper()
+            if not code:
+                continue
+            snap = {k: p.get(k) for k in HUB_OVERLAY_FIELDS if k in p}
+            # Keep even empty hub_edited stamps so clears survive refresh.
+            if snap.get("hub_edited_at") or any(
+                snap.get(k) not in ("", None, [], {})
+                for k in HUB_OVERLAY_FIELDS
+                if k != "hub_edited_at"
+            ):
+                overlay_by_code[code] = snap
     except Exception:
         preserved = []
+        overlay_by_code = {}
     try:
         for proj in load_projects():
             bucket = proj.get("bucket_key") or ""
@@ -328,7 +345,22 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
         # concurrent Hub saves cannot land mid-wipe and then be lost.
         with _STORE_LOCK:
             try:
+                from src.hub.project_store import HUB_OVERLAY_FIELDS
+
                 preserved = [dict(p) for p in load_properties() if is_hub_owned(p)]
+                # Refresh overlay snapshot under lock (latest Hub edits win).
+                overlay_by_code = {}
+                for p in load_properties():
+                    code = (p.get("code") or "").strip().upper()
+                    if not code:
+                        continue
+                    snap = {k: p.get(k) for k in HUB_OVERLAY_FIELDS if k in p}
+                    if snap.get("hub_edited_at") or any(
+                        snap.get(k) not in ("", None, [], {})
+                        for k in HUB_OVERLAY_FIELDS
+                        if k != "hub_edited_at"
+                    ):
+                        overlay_by_code[code] = snap
             except Exception:
                 pass  # keep earlier snapshot
 
@@ -373,7 +405,41 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
                 existing.add(code)
                 restored += 1
                 # bump project listing_count lightly is skipped — rebuild already set counts
-            if restored or restored_loc:
+
+            # Re-apply Hub edits on PTP (and others): links/notes/captions that the
+            # main-sheet CSV rebuild blanks. Without this, mobile「รีเฟรช」wipes work.
+            restored_overlay = 0
+            if overlay_by_code:
+                from src.hub.project_store import HUB_OVERLAY_FIELDS
+
+                def _blank(val) -> bool:
+                    return val in ("", None, [], {})
+
+                for p in properties:
+                    code = (p.get("code") or "").strip().upper()
+                    snap = overlay_by_code.get(code)
+                    if not snap:
+                        continue
+                    changed = False
+                    stamped = bool(snap.get("hub_edited_at"))
+                    for key in HUB_OVERLAY_FIELDS:
+                        if key not in snap:
+                            continue
+                        old = snap.get(key)
+                        new = p.get(key)
+                        if stamped:
+                            # Hub edit wins fully (including intentional clears).
+                            if new != old:
+                                p[key] = old
+                                changed = True
+                        elif _blank(new) and not _blank(old):
+                            p[key] = old
+                            changed = True
+                    if changed:
+                        restored_overlay += 1
+            summary["preserved_hub_edits"] = restored_overlay
+
+            if restored or restored_loc or restored_overlay:
                 # recount listing_count from merged properties
                 counts: dict[str, int] = {}
                 for p in properties:
@@ -408,6 +474,22 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
             except Exception as hub_exc:  # noqa: BLE001
                 summary["hub_tab_warning"] = str(hub_exc)
 
+            # Extra safety: local overview export still has RXT/COA after a bad wipe.
+            try:
+                ov = _merge_overview_export_hub_rows(projects, properties)
+                if ov.get("merged"):
+                    properties = ov["properties"]
+                    projects = ov["projects"]
+                    persist(projects, properties)
+                    summary["overview_export_merged"] = ov.get("merged", 0)
+                    summary["preserved_hub"] = sum(
+                        1 for p in properties if is_hub_owned(p)
+                    )
+                    summary["stats"]["properties_total"] = len(properties)
+                    summary["stats"]["properties_hub"] = summary["preserved_hub"]
+            except Exception as ov_exc:  # noqa: BLE001
+                summary["overview_export_warning"] = str(ov_exc)
+
             # optional: refresh local export of hub tab for visibility
             try:
                 from src.hub.sheet_write import write_hub_export_csv
@@ -417,6 +499,84 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
                 pass
 
     return summary
+
+
+def _merge_overview_export_hub_rows(projects: list[dict], properties: list[dict]) -> dict:
+    """Re-attach RXT/COA rows from hub_overview_export.csv if missing after sheet rebuild."""
+    import csv
+    import uuid
+    from datetime import datetime, timezone
+
+    from src.hub.project_identity import project_bucket
+    from src.hub.project_store import find_project_by_bucket
+
+    path = BASE_DIR / "data" / "hub_overview_export.csv"
+    if not path.is_file():
+        return {"merged": 0, "properties": properties, "projects": projects}
+
+    existing = {(p.get("code") or "").strip().upper() for p in properties}
+    merged = 0
+    out = list(properties)
+    try:
+        with path.open(encoding="utf-8-sig", newline="") as f:
+            rows = list(csv.DictReader(f))
+    except OSError:
+        return {"merged": 0, "properties": properties, "projects": projects}
+
+    for row in rows:
+        code = (row.get("รหัส") or "").strip().upper()
+        if not code.startswith(("RXT", "COA")) or code in existing:
+            continue
+        name = (row.get("โครงการ") or "").strip()
+        bucket = project_bucket(name) if name else ""
+        proj = find_project_by_bucket(projects, bucket) if bucket else None
+        owner = (row.get("เจ้าของ") or "").strip()
+        post = (row.get("ที่โพสต์") or "").strip()
+        page = (row.get("เพจ") or "").strip()
+        source = (row.get("ต้นทาง") or "").strip()
+        prop = {
+            "id": str(uuid.uuid4()),
+            "code": code,
+            "code_prefix": code[:3],
+            "listing_kind": "co_agent" if code.startswith("COA") else "direct",
+            "project_id": (proj or {}).get("id") or "",
+            "project_name": (proj or {}).get("canonical_name") or name,
+            "property_type": (row.get("ประเภท") or "Condo").strip() or "Condo",
+            "bedrooms": (row.get("ห้อง") or "").strip(),
+            "size_sqm": (row.get("ตรม.") or "").strip(),
+            "floor": (row.get("ชั้น") or "").strip(),
+            "rent_price": (row.get("เช่า") or "").strip(),
+            "sale_price": (row.get("ขาย") or "").strip(),
+            "source_url": source,
+            "post_url": post,
+            "post_pages_url": page,
+            "owner_facebook": [owner] if owner.startswith("http") else [],
+            "owner_phones": [],
+            "owner_lines": [],
+            "notes": (row.get("หมายเหตุ") or "").strip(),
+            "data_source": "hub",
+            "import_status": "active",
+            "media_status": "has_link" if post else "pending",
+            "last_listed_at": (row.get("วันที่") or "").strip()
+            or datetime.now().strftime("%d/%m/%Y"),
+            "hub_edited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "location_ref": ", ".join(
+                x
+                for x in [
+                    (row.get("ทำเล") or "").strip(),
+                    (row.get("สถานี") or "").strip(),
+                ]
+                if x
+            ),
+            "transit_from_sheet": [
+                x.strip() for x in (row.get("สถานี") or "").split(",") if x.strip()
+            ],
+        }
+        out.insert(0, prop)
+        existing.add(code)
+        merged += 1
+
+    return {"merged": merged, "properties": out, "projects": projects}
 
 
 def _merge_hub_tab_into_properties(projects: list[dict], properties: list[dict]) -> dict:

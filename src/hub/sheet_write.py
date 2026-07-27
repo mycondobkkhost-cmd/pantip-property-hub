@@ -665,7 +665,14 @@ def _gspread_client():
     ]
     inline = _env("GOOGLE_SERVICE_ACCOUNT_JSON") or _env("HUB_GOOGLE_SERVICE_ACCOUNT_JSON")
     if inline:
-        info = json.loads(inline)
+        try:
+            info = json.loads(inline)
+        except json.JSONDecodeError:
+            # fly secrets import of bare JSON can store {\"k\":\"v\"} instead of {"k":"v"}
+            if '\\"' in inline:
+                info = json.loads(inline.replace('\\"', '"'))
+            else:
+                raise
         creds = Credentials.from_service_account_info(info, scopes=scopes)
         return gspread.authorize(creds)
 
@@ -1796,24 +1803,422 @@ def sync_notes_to_main_sheet(
     }
 
 
+def _wait_post_spreadsheet_id() -> str:
+    """Spreadsheet that owns the「รอโพสต์」tab (source / main sheet)."""
+    return (
+        _env("SOURCE_GOOGLE_SHEETS_ID")
+        or _env("MAIN_GOOGLE_SHEETS_ID")
+        or _env("HUB_SOURCE_GOOGLE_SHEETS_ID")
+        or _env("HUB_GOOGLE_SHEETS_ID")
+        or _env("GOOGLE_SHEETS_ID")
+    )
+
+
+def _wait_post_sheet_name() -> str:
+    return (
+        _env("WAIT_POST_SHEET_NAME")
+        or _env("HUB_WAIT_SHEET_NAME")
+        or "รอโพสต์"
+    ).strip() or "รอโพสต์"
+
+
+def append_wait_post_job(
+    source_url: str,
+    owner_contact: str = "",
+    note: str = "",
+    project: str = "",
+    price: str = "",
+    queued_at: str = "",
+) -> dict:
+    """Append one queue row to Google Sheet「รอโพสต์」(shared SoT for Fly).
+
+    Live sheet layout (observed): blank A | note | source | owner | project | price | date.
+    Writing 6 values from A made Sheets append into the B-start table and shift
+    project into the note column — always write 7 cols with leading blank + table_range.
+    """
+    source_url = (source_url or "").strip()
+    if not source_url:
+        raise ValueError("ต้องมีลิงก์ต้นทาง")
+    sheet_id = _wait_post_spreadsheet_id()
+    if not sheet_id:
+        raise ValueError(
+            "ยังไม่ได้ตั้ง SOURCE_GOOGLE_SHEETS_ID สำหรับเขียนแท็บรอโพสต์"
+        )
+    client = _gspread_client()
+    ss = client.open_by_key(sheet_id)
+    tab = _wait_post_sheet_name()
+    if _tab_forbidden(tab):
+        raise ValueError(f"ห้ามเขียนแท็บ「{tab}」")
+    try:
+        ws = ss.worksheet(tab)
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(f"ไม่พบแท็บ「{tab}」ในชีท") from exc
+
+    # Source URL lives in column C on the live sheet (B is note).
+    for col_idx in (3, 2):
+        for cell in ws.col_values(col_idx):
+            if (cell or "").strip() == source_url:
+                return {
+                    "ok": True,
+                    "appended": False,
+                    "duplicate": True,
+                    "sheet_title": ws.title,
+                    "spreadsheet_id": sheet_id,
+                }
+
+    # Leading blank keeps Hub writes aligned with existing sheet rows.
+    row = [
+        "",
+        (note or "").strip(),
+        source_url,
+        (owner_contact or "").strip(),
+        (project or "").strip(),
+        (price or "").strip(),
+        (queued_at or "").strip(),
+    ]
+    ws.append_row(
+        row,
+        value_input_option="USER_ENTERED",
+        table_range="A:G",
+    )
+    return {
+        "ok": True,
+        "appended": True,
+        "duplicate": False,
+        "sheet_title": ws.title,
+        "spreadsheet_id": sheet_id,
+        "row": row,
+    }
+
+
+def update_wait_post_job(
+    source_url: str,
+    *,
+    owner_contact: str = "",
+    note: str = "",
+    project: str = "",
+    price: str = "",
+    queued_at: str = "",
+    old_source_url: str = "",
+) -> dict:
+    """Update the sheet row matching source_url (or old_source_url when URL changed)."""
+    source_url = (source_url or "").strip()
+    find_url = (old_source_url or source_url).strip()
+    if not find_url:
+        raise ValueError("ต้องมีลิงก์ต้นทาง")
+    sheet_id = _wait_post_spreadsheet_id()
+    if not sheet_id:
+        raise ValueError(
+            "ยังไม่ได้ตั้ง SOURCE_GOOGLE_SHEETS_ID สำหรับเขียนแท็บรอโพสต์"
+        )
+    client = _gspread_client()
+    ss = client.open_by_key(sheet_id)
+    tab = _wait_post_sheet_name()
+    ws = ss.worksheet(tab)
+    rows = ws.get_all_values()
+    new_row = [
+        "",
+        (note or "").strip(),
+        source_url,
+        (owner_contact or "").strip(),
+        (project or "").strip(),
+        (price or "").strip(),
+        (queued_at or "").strip(),
+    ]
+    updated = 0
+    for idx, row in enumerate(rows, start=1):
+        if any((cell or "").strip() == find_url for cell in row) or any(
+            find_url in (cell or "") for cell in row
+        ):
+            ws.update(f"A{idx}:G{idx}", [new_row], value_input_option="USER_ENTERED")
+            updated += 1
+            break
+    if not updated:
+        ws.append_row(
+            new_row,
+            value_input_option="USER_ENTERED",
+            table_range="A:G",
+        )
+        return {
+            "ok": True,
+            "updated": False,
+            "appended": True,
+            "sheet_title": ws.title,
+            "spreadsheet_id": sheet_id,
+        }
+    return {
+        "ok": True,
+        "updated": True,
+        "appended": False,
+        "sheet_title": ws.title,
+        "spreadsheet_id": sheet_id,
+    }
+
+
+def delete_wait_post_job(source_url: str) -> dict:
+    """Remove rows from「รอโพสต์」that contain the source URL in any cell."""
+    source_url = (source_url or "").strip()
+    if not source_url:
+        raise ValueError("ต้องมีลิงก์ต้นทาง")
+    sheet_id = _wait_post_spreadsheet_id()
+    if not sheet_id:
+        raise ValueError(
+            "ยังไม่ได้ตั้ง SOURCE_GOOGLE_SHEETS_ID สำหรับเขียนแท็บรอโพสต์"
+        )
+    client = _gspread_client()
+    ss = client.open_by_key(sheet_id)
+    tab = _wait_post_sheet_name()
+    ws = ss.worksheet(tab)
+    rows = ws.get_all_values()
+    # Delete from bottom so indices stay valid
+    removed = 0
+    for idx in range(len(rows), 0, -1):
+        row = rows[idx - 1]
+        if any((cell or "").strip() == source_url for cell in row):
+            ws.delete_rows(idx)
+            removed += 1
+            continue
+        # Also match when URL is embedded in a longer cell / HYPERLINK label
+        if any(source_url in (cell or "") for cell in row):
+            ws.delete_rows(idx)
+            removed += 1
+    return {
+        "ok": True,
+        "removed": removed,
+        "sheet_title": ws.title,
+        "spreadsheet_id": sheet_id,
+    }
+
+
+def pull_wait_post_sheet_via_gspread() -> dict:
+    """Download「รอโพสต์」via service account into wait_post_sheet.csv.
+
+    Prefer this over public CSV export URLs (often HTTP 401 on locked sheets).
+    """
+    import csv
+
+    sheet_id = _wait_post_spreadsheet_id()
+    if not sheet_id:
+        raise ValueError(
+            "ยังไม่ได้ตั้ง SOURCE_GOOGLE_SHEETS_ID สำหรับดึงแท็บรอโพสต์"
+        )
+    client = _gspread_client()
+    ss = client.open_by_key(sheet_id)
+    tab = _wait_post_sheet_name()
+    ws = ss.worksheet(tab)
+    rows = ws.get_all_values()
+    wait_csv = BASE_DIR / "data" / "wait_post_sheet.csv"
+    wait_csv.parent.mkdir(parents=True, exist_ok=True)
+    with wait_csv.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f)
+        for row in rows:
+            # Keep trailing empties trimmed like export, but preserve note/url cols
+            while row and not (row[-1] or "").strip():
+                row = row[:-1]
+            if any((c or "").strip() for c in row):
+                writer.writerow(row)
+    return {
+        "ok": True,
+        "downloaded": True,
+        "source": "gspread",
+        "rows": len(rows),
+        "sheet_title": ws.title,
+        "spreadsheet_id": sheet_id,
+        "path": str(wait_csv),
+    }
+
+
+def _cell_http_url(raw: str) -> str:
+    """Extract http(s) URL from a plain cell or =HYPERLINK(\"url\",\"label\")."""
+    s = str(raw or "").strip()
+    if not s:
+        return ""
+    if _is_http_url(s):
+        return s
+    m = re.search(r'HYPERLINK\s*\(\s*"([^"]+)"', s, flags=re.I)
+    if m and _is_http_url(m.group(1)):
+        return m.group(1).strip()
+    return ""
+
+
+_LINK_JUNK = {
+    "ต้นทาง",
+    "เจ้าของ",
+    "ที่โพสต์",
+    "เพจ",
+    "โพสต์",
+    "หมายเหตุ",
+    "ลิ้งค์โพส",
+    "ลิงก์",
+}
+
+
+def _fill_blank_prop_links(prop: dict, *, source: str, owner: str, post: str, page: str) -> bool:
+    """Fill blank Hub link fields from a backup row. Never clobber non-empty Hub URLs."""
+    changed = False
+    src = _cell_http_url(source)
+    own = _cell_http_url(owner)
+    pst = _cell_http_url(post)
+    pg = _cell_http_url(page)
+    if src in _LINK_JUNK:
+        src = ""
+    if own in _LINK_JUNK:
+        own = ""
+    if pst in _LINK_JUNK:
+        pst = ""
+    if pg in _LINK_JUNK:
+        pg = ""
+
+    if src and not _is_http_url(str(prop.get("source_url") or "")):
+        prop["source_url"] = src
+        changed = True
+    if pst and not _is_http_url(str(prop.get("post_url") or "")):
+        prop["post_url"] = pst
+        prop["media_status"] = "has_link"
+        changed = True
+    if pg and not _is_http_url(str(prop.get("post_pages_url") or "")):
+        prop["post_pages_url"] = pg
+        changed = True
+    if own:
+        cur = prop.get("owner_facebook") or []
+        if isinstance(cur, str):
+            cur = [cur] if cur.strip() else []
+        if not any(_is_http_url(str(x)) for x in cur):
+            prop["owner_facebook"] = [own]
+            changed = True
+    return changed
+
+
+def _fill_blank_links_from_csv_backup(properties: list[dict]) -> int:
+    """Use last local overview export so a blank Hub field does not wipe sheet URLs."""
+    import csv
+
+    path = OVERVIEW_EXPORT_CSV
+    if not path.is_file():
+        return 0
+    try:
+        with path.open(encoding="utf-8-sig", newline="") as f:
+            rows = list(csv.DictReader(f))
+    except OSError:
+        return 0
+    by_code = {
+        (r.get("รหัส") or "").strip().upper(): r
+        for r in rows
+        if (r.get("รหัส") or "").strip()
+    }
+    filled = 0
+    for p in properties:
+        code = (p.get("code") or "").strip().upper()
+        row = by_code.get(code)
+        if not row:
+            continue
+        if _fill_blank_prop_links(
+            p,
+            source=row.get("ต้นทาง") or "",
+            owner=row.get("เจ้าของ") or "",
+            post=row.get("ที่โพสต์") or "",
+            page=row.get("เพจ") or "",
+        ):
+            filled += 1
+    return filled
+
+
+def _fill_blank_links_from_overview_src(ss, properties: list[dict]) -> int:
+    """Read `_overview_src` before overwrite; keep existing sheet URLs when Hub is blank."""
+    try:
+        ws = ss.worksheet(OVERVIEW_SRC_SHEET)
+        vals = ws.get_all_values()
+    except Exception:
+        return 0
+    if not vals:
+        return 0
+    hdr = vals[0]
+    idx = {h: i for i, h in enumerate(hdr)}
+    if "รหัส" not in idx:
+        return 0
+    by_code: dict[str, list] = {}
+    for r in vals[1:]:
+        if not r:
+            continue
+        code = (r[idx["รหัส"]] if idx["รหัส"] < len(r) else "").strip().upper()
+        if code:
+            by_code[code] = r
+
+    def cell(row: list, name: str) -> str:
+        i = idx.get(name)
+        if i is None or i >= len(row):
+            return ""
+        return str(row[i] or "")
+
+    filled = 0
+    for p in properties:
+        code = (p.get("code") or "").strip().upper()
+        row = by_code.get(code)
+        if not row:
+            continue
+        if _fill_blank_prop_links(
+            p,
+            source=cell(row, "ต้นทาง"),
+            owner=cell(row, "เจ้าของ"),
+            post=cell(row, "ที่โพสต์"),
+            page=cell(row, "เพจ"),
+        ):
+            filled += 1
+    return filled
+
+
 def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
     """
-    Sync app listings to the Hub working Google Sheet.
+    Sync app listings to the Hub working Google Sheet (one-way Hub → Sheet).
 
     1) Overview tab「ทรัพย์รวม」(configurable) — all active props, newest-first
     2)「ทรัพย์ Hub」— Hub-owned (RXT/COA) only (secondary / Apps Script source)
 
     Order: gspread service account (preferred for large writes) → Apps Script webapp
     → local CSV export only (pushed=false).
+
+    Never blanks sheet link columns when Hub is empty but the previous sheet/CSV
+    still has a URL.
     """
-    from src.hub.project_store import load_properties
+    from src.hub.project_store import load_projects, load_properties, persist
+
+    # Working copy so blank-link fill does not mutate caller lists unexpectedly.
+    all_props = (
+        load_properties() if properties is None else [dict(p) for p in properties]
+    )
+    links_filled = _fill_blank_links_from_csv_backup(all_props)
+
+    sheet_id = _env("HUB_GOOGLE_SHEETS_ID") or _env("GOOGLE_SHEETS_ID")
+    client = None
+    ss = None
+    warnings: list[str] = []
+    try:
+        client = _gspread_client()
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(str(exc))
+        client = None
+
+    if client and sheet_id and not sheet_id.startswith("your_"):
+        try:
+            ss = client.open_by_key(sheet_id)
+            links_filled += _fill_blank_links_from_overview_src(ss, all_props)
+        except Exception as exc:  # noqa: BLE001
+            warnings.append(f"overview_src link merge: {exc}")
+            ss = None
+
+    if links_filled and properties is None:
+        try:
+            persist(load_projects(), all_props)
+        except Exception as persist_exc:  # noqa: BLE001
+            warnings.append(f"persist filled links: {persist_exc}")
 
     # Refresh Hub listing locations (persist when reading from disk)
     hub_props, projects_by_id, loc_refreshed = refresh_hub_listing_locations(
-        None if properties is None else list(properties),
+        list(all_props),
         persist_disk=properties is None,
     )
-    all_props = load_properties() if properties is None else list(properties)
+    if properties is None:
+        all_props = load_properties()
 
     overview_props = active_properties_for_overview(all_props)
     export_overview = write_overview_export_csv(
@@ -1843,6 +2248,7 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
         "overview_count": len(overview_props),
         "written_count": 0,
         "location_refreshed": loc_refreshed,
+        "links_filled_from_backup": links_filled,
         "export_csv": str(export_overview.relative_to(BASE_DIR)),
         "hub_export_csv": str(export_hub.relative_to(BASE_DIR)),
         "pushed": False,
@@ -1850,21 +2256,14 @@ def push_hub_properties_to_sheet(properties: list[dict] | None = None) -> dict:
         "sort": "newest_first",
     }
 
-    sheet_id = _env("HUB_GOOGLE_SHEETS_ID") or _env("GOOGLE_SHEETS_ID")
     hub_name = _env("HUB_SHEET_NAME") or "ทรัพย์ Hub"
     hub_gid = _env("HUB_SHEET_GID")
-    warnings: list[str] = []
 
     # --- gspread path (handles 7k+ overview rows) ---
-    try:
-        client = _gspread_client()
-    except Exception as exc:  # noqa: BLE001
-        warnings.append(str(exc))
-        client = None
-
     if client and sheet_id and not sheet_id.startswith("your_"):
         try:
-            ss = client.open_by_key(sheet_id)
+            if ss is None:
+                ss = client.open_by_key(sheet_id)
             overview_ws, created = _resolve_overview_worksheet(
                 ss, rows=len(overview_rows) + 10
             )

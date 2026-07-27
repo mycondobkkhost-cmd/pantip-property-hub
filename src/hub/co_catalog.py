@@ -7,6 +7,7 @@ from typing import Any
 
 from src.hub.customer_match import bed_category, recommend_for_case, score_property_for_case
 from src.hub.project_store import (
+    PROPERTIES_JSON,
     load_projects,
     load_properties,
     project_transit_display,
@@ -209,6 +210,10 @@ def build_co_catalog(*, limit: int | None = None) -> dict:
 
     return {
         "ok": True,
+        # Co-Agent always reads live Hub volume data (properties.json / projects.json),
+        # never the Google Sheet — same SoT contract as the Hub admin views.
+        "sot": "hub_volume",
+        "source": "hub_volume",
         "count": len(items),
         # Packed rows keep payload small enough for mobile browsers.
         "keys": list(_CO_ITEM_KEYS),
@@ -354,6 +359,8 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
     def _finish(scored_or_items: list) -> dict:
         return {
             "ok": True,
+            "sot": "hub_volume",
+            "source": "hub_volume",
             "count": len(scored_or_items),
             "matched": len(scored_or_items),
             "items": scored_or_items,
@@ -414,3 +421,36 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
             break
 
     return _finish(out)
+
+
+# --- Co-Agent catalog cache ---------------------------------------------
+# Keyed on properties.json mtime so admin saves (Hub persist()) are picked up
+# immediately without waiting for a TTL. Kept here (not in hub_server.py) so
+# any writer of the Hub volume (persist(), sheet sync, imports) can invalidate
+# without importing the HTTP server module.
+_CO_CATALOG_CACHE: dict = {"mtime": None, "data": None}
+
+
+def get_co_catalog() -> dict:
+    """Return cached Co-Agent catalog, rebuilding when properties.json changes."""
+    try:
+        mtime = PROPERTIES_JSON.stat().st_mtime if PROPERTIES_JSON.exists() else 0.0
+    except OSError:
+        mtime = 0.0
+    cached = _CO_CATALOG_CACHE.get("data")
+    if cached is not None and _CO_CATALOG_CACHE.get("mtime") == mtime:
+        return cached
+    data = build_co_catalog()
+    _CO_CATALOG_CACHE["mtime"] = mtime
+    _CO_CATALOG_CACHE["data"] = data
+    return data
+
+
+def invalidate_co_catalog() -> None:
+    """Drop the cached catalog so the next request rebuilds from the volume.
+
+    Call this right after any write to properties.json/projects.json (e.g.
+    Hub admin persist()) so Co-Agent never serves stale stock counts.
+    """
+    _CO_CATALOG_CACHE["mtime"] = None
+    _CO_CATALOG_CACHE["data"] = None

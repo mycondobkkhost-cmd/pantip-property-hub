@@ -31,6 +31,12 @@ class Settings:
     MAX_POSTS_PER_RUN: int = int(os.getenv("MAX_POSTS_PER_RUN", "3"))
     HEADLESS: bool = os.getenv("HEADLESS", "false").lower() == "true"
 
+    # Group-post auto-comment (personal FB) — delays in seconds
+    COMMENT_MIN_DELAY_SEC: int = int(os.getenv("COMMENT_MIN_DELAY_SEC", "480"))
+    COMMENT_MAX_DELAY_SEC: int = int(os.getenv("COMMENT_MAX_DELAY_SEC", "1200"))
+    MAX_COMMENTS_PER_RUN: int = int(os.getenv("MAX_COMMENTS_PER_RUN", "3"))
+    MAX_COMMENTS_PER_DAY: int = int(os.getenv("MAX_COMMENTS_PER_DAY", "10"))
+
     IMAGE_CACHE_DIR: Path = BASE_DIR / os.getenv("IMAGE_CACHE_DIR", "data/images")
     LOGS_DIR: Path = BASE_DIR / "logs"
 

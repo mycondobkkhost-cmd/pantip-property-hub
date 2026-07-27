@@ -990,6 +990,7 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
         )
     text = text.replace("__HUB_URL__", hub_url.replace("%", "%%"))
     text = text.replace("__AGENT_TOKEN__", token.replace("%", "%%"))
+    text = text.replace("__PROJECT_DIR__", project_dir.replace("%", "%%"))
     data = ("\ufeff" + text.replace("\n", "\r\n")).encode("utf-8")
     handler._send_bytes(
         200,

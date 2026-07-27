@@ -2513,29 +2513,32 @@
                 <button type="button" class="btn-sm" id="fb-guide-tab-mac">Mac</button>
               </div>
               <div id="fb-guide-win">
-                <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Windows</div>
+                <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Windows (ให้น้องแอดมิน)</div>
                 <ol style="margin:0 0 12px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                  <li>กดปุ่มดาวน์โหลด Windows ด้านล่าง</li>
-                  <li>ส่งไฟล์ให้น้องแอดมิน หรือใช้เอง</li>
-                  <li>วางไฟล์ในโฟลเดอร์ <code>scripts/windows</code> ของโปรเจกต์</li>
-                  <li>ดับเบิลคลิก「เปิดระบบคอมเมนต์」→ หน้าต่างดำขึ้น · <strong>อย่าปิด</strong></li>
-                  <li>ดูสถานะด้านบนขวาควรขึ้น「ทำงานอยู่」</li>
+                  <li>กดปุ่มดาวน์โหลด Windows ด้านล่าง → ส่งไฟล์ให้น้องแอดมิน</li>
+                  <li>บนคอมน้อง: ดับเบิลคลิกไฟล์「เปิดระบบคอมเมนต์」
+                    <br/><span style="font-size:12px;color:#71717a">ถ้า Windows กัน: กด More info → Run anyway</span>
+                  </li>
+                  <li>ครั้งแรกหน้าต่างดำอาจขึ้นว่ากำลังดาวน์โหลดเบราว์เซอร์ — <strong>รอ 1–3 นาที อย่าปิด</strong></li>
+                  <li>พอสถานะใน Hub ขึ้น「ทำงานอยู่」= พร้อม</li>
                 </ol>
+                <div style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
+                  ระบบจะเตรียมเบราว์เซอร์ให้อัตโนมัติ · น้องไม่ต้องติดตั้งเอง · แค่เปิดไฟล์ทิ้งไว้
+                </div>
                 <button type="button" class="btn-sm primary" id="fb-agent-download-win">⬇ ดาวน์โหลดไฟล์ Windows</button>
               </div>
               <div id="fb-guide-mac" class="hidden">
                 <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Mac</div>
                 <ol style="margin:0 0 12px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                  <li>กดปุ่มเขียว <strong>ดาวน์โหลดไฟล์เปิดระบบ (Mac)</strong> ด้านล่าง → ไฟล์จะลงในโฟลเดอร์ Downloads</li>
-                  <li>เปิดโฟลเดอร์ Downloads (ไอคอน Finder แถบล่าง → รายการดาวน์โหลด)</li>
-                  <li>หาไฟล์「เปิดระบบคอมเมนต์」→ <strong>คลิกขวา</strong> → <strong>เปิด</strong> → กด <strong>เปิด</strong> อีกครั้ง
-                    <br/><span style="font-size:12px;color:#71717a">ถ้าขึ้นข้อความเหลืองเรื่องมัลแวร์: กด「เสร็จสิ้น」แล้วคลิกขวา → เปิด ตามด้านบน</span>
+                  <li>กดปุ่มเขียว <strong>ดาวน์โหลดไฟล์เปิดระบบ (Mac)</strong> → ไฟล์ลง Downloads</li>
+                  <li>เปิด Downloads → <strong>คลิกขวา</strong> ไฟล์「เปิดระบบคอมเมนต์」→ <strong>เปิด</strong> → กดเปิดอีกครั้ง
+                    <br/><span style="font-size:12px;color:#71717a">ถ้าขึ้นข้อความเหลือง: กด「เสร็จสิ้น」แล้วคลิกขวา → เปิด อีกครั้ง (หรือ การตั้งค่าระบบ → ความเป็นส่วนตัว → Open Anyway)</span>
                   </li>
-                  <li>พอมีหน้าต่างข้อความขึ้นมา · <strong>อย่าปิด</strong> · ย่อไว้ได้</li>
-                  <li>กลับมาหน้านี้ ดูสถานะควรขึ้น「ทำงานอยู่」</li>
+                  <li>ครั้งแรกอาจดาวน์โหลดเบราว์เซอร์เอง — <strong>รอ 1–3 นาที อย่าปิดหน้าต่าง</strong></li>
+                  <li>กลับมาหน้านี้ สถานะควรขึ้น「ทำงานอยู่」</li>
                 </ol>
                 <div style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
-                  กดดาวน์โหลดอย่างเดียว พอ · ไม่ต้องย้ายไฟล์ไปโฟลเดอร์อื่น
+                  ไม่ต้องย้ายไฟล์ · ไม่ต้องติดตั้งเบราว์เซอร์เอง · ระบบทำให้อัตโนมัติ
                 </div>
                 <button type="button" class="btn-sm primary" id="fb-agent-download-mac">⬇ ดาวน์โหลดไฟล์เปิดระบบ (Mac)</button>
               </div>
@@ -2546,7 +2549,7 @@
               <ol style="margin:0 0 10px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
                 <li>ตรวจว่าขั้นที่ 2 เปิดอยู่ (สถานะ「ทำงานอยู่」)</li>
                 <li>กดปุ่มเปิดหน้าต่างล็อกอินเฟส</li>
-                <li>บนคอมที่เปิดระบบไว้ จะมี Facebook เด้ง — มี 2FA ให้ใส่ที่เครื่องนั้น</li>
+                <li>บนคอมที่เปิดระบบไว้ จะมีหน้าต่าง Facebook เด้ง — มี 2FA ให้ใส่ที่เครื่องนั้น</li>
                 <li>พอขึ้น「ล็อกอินแล้ว」→ ไปแท็บ <strong>คอมเมนต์กลุ่ม</strong> เพื่อเพิ่มคิว</li>
               </ol>
               <div class="toolbar-row" style="gap:8px;flex-wrap:wrap">
@@ -2558,10 +2561,11 @@
             <details style="margin-top:12px;font-size:12px;color:#52525b">
               <summary style="cursor:pointer;font-weight:600">ถ้ามีปัญหา — อ่านตรงนี้</summary>
               <ul style="margin:8px 0 0;padding-left:18px;line-height:1.7">
-                <li>「ยังไม่เปิด」= ยังไม่ได้ดับเบิลคลิก หรือปิดหน้าต่างไปแล้ว</li>
-                <li>เปิดไม่ได้ = วางไฟล์ผิดโฟลเดอร์</li>
-                <li>ไม่มี Python = ให้หัวหน้าทีมติดตั้งก่อน</li>
-                <li>กดล็อกอินแล้วไม่เด้ง = ขั้นที่ 2 ยังไม่เปิด</li>
+                <li>「ยังไม่เปิด」= ยังไม่ได้เปิดไฟล์ หรือปิดหน้าต่างไปแล้ว → เปิดใหม่</li>
+                <li>Mac ขึ้นข้อความเหลือง = กดเสร็จสิ้น แล้วคลิกขวา → เปิด (อย่าดับเบิลคลิกอย่างเดียว)</li>
+                <li>หน้าต่างขึ้น error เรื่อง Browser/Executable = ปิดแล้วเปิดไฟล์ใหม่ ระบบจะดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ</li>
+                <li>ไม่มี Python / หาโปรเจกต์ไม่เจอ = ให้หัวหน้าทีมเตรียมเครื่องครั้งเดียว</li>
+                <li>กดล็อกอินแล้วไม่เด้งเฟส = ขั้นที่ 2 ยังไม่เปิด หรือรอให้เตรียมเบราว์เซอร์เสร็จก่อน</li>
               </ul>
               <p style="margin:10px 0 4px;font-size:11px;color:#a1a1aa">รายละเอียดภายใน (ไม่ต้องใช้มือ):</p>
               <code id="fb-agent-token" style="display:block;padding:6px 8px;background:#fff;border:1px solid #e5e7eb;border-radius:6px;word-break:break-all;user-select:all;font-size:11px">—</code>

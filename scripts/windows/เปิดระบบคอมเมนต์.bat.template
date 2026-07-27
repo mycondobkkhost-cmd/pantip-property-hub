@@ -1,34 +1,69 @@
 @echo off
 chcp 65001 >nul
 title ระบบคอมเมนต์เฟส PTP
-cd /d "%~dp0..\.."
 
-REM --- ค่านี้ถูกใส่ให้อัตโนมัติจาก Hub แล้ว ไม่ต้องแก้เอง ---
 set "HUB_URL=__HUB_URL__"
 set "COMMENT_AGENT_TOKEN=__AGENT_TOKEN__"
+set "BAKED_PROJECT_DIR=__PROJECT_DIR__"
 
 echo.
 echo ========================================
-echo   ระบบคอมเมนต์เฟสอัตโนมัติ
+echo   ระบบคอมเมนต์เฟสอัตโนมัติ (Windows)
 echo ========================================
 echo.
-echo กำลังเชื่อมต่อ Hub...
-echo เปิดหน้าต่างนี้ทิ้งไว้ได้เลย
-echo อย่าปิดหน้าต่างนี้ ถ้าระบบยังต้องทำงาน
-echo.
-echo ดูสถานะได้ที่หน้า Hub แท็บ คอมเมนต์กลุ่ม
+echo ครั้งแรกอาจดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ
+echo ใช้เวลา 1-3 นาที — อย่าปิดหน้าต่างนี้
 echo.
 
-where python >nul 2>&1
-if errorlevel 1 (
-  echo [ผิดพลาด] เครื่องนี้ยังไม่มี Python
-  echo ให้หัวหน้าทีมติดตั้ง Python แล้วรันไฟล์นี้อีกครั้ง
+set "PROJECT_DIR="
+if exist "%BAKED_PROJECT_DIR%\scripts\comment_agent.py" set "PROJECT_DIR=%BAKED_PROJECT_DIR%"
+if not defined PROJECT_DIR if exist "%~dp0..\..\scripts\comment_agent.py" (
+  pushd "%~dp0..\.."
+  set "PROJECT_DIR=%CD%"
+  popd
+)
+if not defined PROJECT_DIR if exist "%USERPROFILE%\Projects\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Projects\pantip-property-automation"
+if not defined PROJECT_DIR if exist "%USERPROFILE%\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\pantip-property-automation"
+if not defined PROJECT_DIR if exist "%USERPROFILE%\Desktop\pantip-property-automation\scripts\comment_agent.py" set "PROJECT_DIR=%USERPROFILE%\Desktop\pantip-property-automation"
+
+if not defined PROJECT_DIR (
+  echo [ผิดพลาด] หาโฟลเดอร์โปรเจกต์บนเครื่องนี้ไม่เจอ
+  echo ให้หัวหน้าทีมเตรียมโปรเจกต์ไว้ก่อน เช่น
+  echo   %USERPROFILE%\Projects\pantip-property-automation
   echo.
   pause
   exit /b 1
 )
 
-python scripts\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%"
+echo โฟลเดอร์โปรเจกต์: %PROJECT_DIR%
+echo กำลังเชื่อมต่อ Hub: %HUB_URL%
 echo.
-echo ระบบหยุดทำงานแล้ว — ถ้ายังต้องการคอมเมนต์ต่อ ให้ดับเบิลคลิกเปิดไฟล์นี้อีกครั้ง
+cd /d "%PROJECT_DIR%"
+
+where python >nul 2>&1
+if errorlevel 1 (
+  where py >nul 2>&1
+  if errorlevel 1 (
+    echo [ผิดพลาด] เครื่องนี้ยังไม่มี Python
+    echo ให้หัวหน้าทีมติดตั้ง Python แล้วรันไฟล์นี้อีกครั้ง
+    echo.
+    pause
+    exit /b 1
+  )
+  set "PY=py -3"
+) else (
+  set "PY=python"
+)
+
+if exist ".git" (
+  where git >nul 2>&1
+  if not errorlevel 1 (
+    echo กำลังอัปเดตระบบ (ถ้ามี)...
+    git pull --ff-only 2>nul
+  )
+)
+
+%PY% scripts\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%"
+echo.
+echo ระบบหยุดแล้ว — ดับเบิลคลิกเปิดไฟล์นี้อีกครั้งเพื่อทำงานต่อ
 pause

@@ -11,8 +11,10 @@ echo "========================================"
 echo "  ระบบคอมเมนต์เฟสอัตโนมัติ (Mac)"
 echo "========================================"
 echo ""
+echo "ครั้งแรกอาจดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ"
+echo "ใช้เวลา 1–3 นาที — อย่าปิดหน้าต่างนี้"
+echo ""
 
-# หาโฟลเดอร์โปรเจกต์บนเครื่องนี้ (ไม่ใช้ path ของเซิร์ฟเวอร์ถ้าไม่มีจริง)
 PROJECT_DIR=""
 if [ -d "$BAKED_PROJECT_DIR/scripts" ] && [ -f "$BAKED_PROJECT_DIR/scripts/comment_agent.py" ]; then
   PROJECT_DIR="$BAKED_PROJECT_DIR"
@@ -40,9 +42,7 @@ fi
 
 if [ -z "$PROJECT_DIR" ]; then
   echo "[ผิดพลาด] หาโฟลเดอร์โปรเจกต์บน Mac เครื่องนี้ไม่เจอ"
-  echo "ให้หัวหน้าทีม clone/คัดลอกโปรเจกต์ไว้ เช่น"
-  echo "  ~/Projects/pantip-property-automation"
-  echo "แล้วเปิดไฟล์นี้อีกครั้ง"
+  echo "ให้หัวหน้าทีมเตรียมโปรเจกต์ไว้ เช่น ~/Projects/pantip-property-automation"
   echo ""
   read -r -p "กด Enter เพื่อปิดหน้าต่าง..."
   exit 1
@@ -50,7 +50,6 @@ fi
 
 echo "โฟลเดอร์โปรเจกต์: $PROJECT_DIR"
 echo "กำลังเชื่อมต่อ Hub: $HUB_URL"
-echo "เปิดหน้าต่างนี้ทิ้งไว้ได้เลย — อย่าปิด"
 echo ""
 
 cd "$PROJECT_DIR" || exit 1
@@ -63,7 +62,13 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
+# ดึงโค้ดล่าสุดถ้ามี git (เงียบๆ — ล้มเหลวไม่เป็นไร)
+if command -v git >/dev/null 2>&1 && [ -d .git ]; then
+  echo "กำลังอัปเดตระบบ (ถ้ามี)..."
+  git pull --ff-only 2>/dev/null || true
+fi
+
 python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN"
 echo ""
-echo "ระบบหยุดแล้ว — ดับเบิลคลิกไฟล์นี้อีกครั้งเพื่อเปิดใหม่"
+echo "ระบบหยุดแล้ว — เปิดไฟล์นี้อีกครั้งเพื่อทำงานต่อ"
 read -r -p "กด Enter เพื่อปิดหน้าต่าง..."

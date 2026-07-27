@@ -54,6 +54,20 @@ class FacebookAuth:
 
     def start_browser(self) -> Page:
         """Launch Chromium with persistent profile (Apple Silicon native)."""
+        from src.facebook.ensure_runtime import ensure_playwright_chromium
+
+        ensure_playwright_chromium()
+        try:
+            return self._launch_persistent()
+        except Exception as exc:  # noqa: BLE001
+            msg = str(exc)
+            if "Executable doesn't exist" in msg or "playwright install" in msg.lower():
+                logger.warning("Chromium missing — installing then retry once")
+                ensure_playwright_chromium()
+                return self._launch_persistent()
+            raise
+
+    def _launch_persistent(self) -> Page:
         self._playwright = sync_playwright().start()
         self._context = self._playwright.chromium.launch_persistent_context(
             user_data_dir=str(self.user_data_dir),

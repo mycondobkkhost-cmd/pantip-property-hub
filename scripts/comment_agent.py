@@ -98,6 +98,28 @@ def _local_credentials_fallback() -> tuple[str, str]:
 
 
 def do_login(hub: str, token: str, email: str, password: str) -> bool:
+    from src.facebook.ensure_runtime import ensure_playwright_chromium
+
+    def progress(msg: str) -> None:
+        try:
+            heartbeat(hub, token, status="logging_in", message=msg)
+        except Exception:  # noqa: BLE001
+            pass
+
+    try:
+        ensure_playwright_chromium(on_progress=progress)
+    except Exception as exc:  # noqa: BLE001
+        heartbeat(
+            hub,
+            token,
+            status="error",
+            message=f"เตรียมเบราว์เซอร์ไม่สำเร็จ: {exc}",
+            fb_logged_in=False,
+            clear_login_request=True,
+        )
+        logger.error("ensure browser failed: {}", exc)
+        return False
+
     heartbeat(hub, token, status="logging_in", message="กำลังเปิดหน้าต่าง Facebook…")
     auth = FacebookAuth(email=email or None, password=password or None, headless=False)
     try:
@@ -277,6 +299,36 @@ def main() -> None:
         sys.exit(1)
 
     hub = args.hub.strip()
+
+    # Self-heal: prepare Chromium so login/comment works without manual setup
+    from src.facebook.ensure_runtime import ensure_playwright_chromium
+
+    def _boot_progress(msg: str) -> None:
+        print(msg, flush=True)
+        try:
+            heartbeat(hub, token, status="online", message=msg)
+        except Exception:  # noqa: BLE001
+            pass
+
+    try:
+        ensure_playwright_chromium(on_progress=_boot_progress)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("เตรียมระบบไม่สำเร็จ: {}", exc)
+        try:
+            heartbeat(hub, token, status="error", message=f"เตรียมระบบไม่สำเร็จ: {exc}")
+        except Exception:  # noqa: BLE001
+            pass
+        print("")
+        print("===== เกิดข้อผิดพลาด =====")
+        print(str(exc))
+        print("ให้หัวหน้าทีมดูข้อความนี้ หรือรัน: python3 -m playwright install chromium")
+        print("")
+        try:
+            input("กด Enter เพื่อปิด...")
+        except EOFError:
+            pass
+        sys.exit(1)
+
     if args.login_once:
         data = pull(hub, token)
         email = (data.get("email") or "").strip()

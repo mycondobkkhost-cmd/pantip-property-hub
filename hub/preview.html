@@ -2524,23 +2524,20 @@
                 <button type="button" class="btn-sm primary" id="fb-agent-download-win">⬇ ดาวน์โหลดไฟล์ Windows</button>
               </div>
               <div id="fb-guide-mac" class="hidden">
-                <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Mac — ไม่ต้องย้ายไฟล์</div>
+                <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Mac</div>
                 <ol style="margin:0 0 12px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                  <li>กดปุ่มเขียวด้านล่าง <strong>สร้างไฟล์แล้วเปิดโฟลเดอร์ Downloads</strong></li>
-                  <li>จะมีหน้าต่าง Finder เด้งขึ้นมาเอง และไฟล์「เปิดระบบคอมเมนต์」ถูกไฮไลต์ไว้แล้ว</li>
-                  <li><strong>คลิกขวา</strong> ที่ไฟล์นั้น → เลือก <strong>เปิด</strong> → กด <strong>เปิด</strong> อีกครั้ง
-                    <br/><span style="font-size:12px;color:#71717a">ถ้าขึ้นข้อความเหลืองเรื่องมัลแวร์: กด「เสร็จสิ้น」แล้วทำคลิกขวา → เปิด ตามด้านบน</span>
+                  <li>กดปุ่มเขียว <strong>ดาวน์โหลดไฟล์เปิดระบบ (Mac)</strong> ด้านล่าง → ไฟล์จะลงในโฟลเดอร์ Downloads</li>
+                  <li>เปิดโฟลเดอร์ Downloads (ไอคอน Finder แถบล่าง → รายการดาวน์โหลด)</li>
+                  <li>หาไฟล์「เปิดระบบคอมเมนต์」→ <strong>คลิกขวา</strong> → <strong>เปิด</strong> → กด <strong>เปิด</strong> อีกครั้ง
+                    <br/><span style="font-size:12px;color:#71717a">ถ้าขึ้นข้อความเหลืองเรื่องมัลแวร์: กด「เสร็จสิ้น」แล้วคลิกขวา → เปิด ตามด้านบน</span>
                   </li>
                   <li>พอมีหน้าต่างข้อความขึ้นมา · <strong>อย่าปิด</strong> · ย่อไว้ได้</li>
                   <li>กลับมาหน้านี้ ดูสถานะควรขึ้น「ทำงานอยู่」</li>
                 </ol>
                 <div style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
-                  ไม่ต้องหาโฟลเดอร์โปรเจกต์ ไม่ต้องย้ายไฟล์ — กดปุ่มแล้วทำตาม Finder ที่เด้งขึ้นมาพอ
+                  กดดาวน์โหลดอย่างเดียว พอ · ไม่ต้องย้ายไฟล์ไปโฟลเดอร์อื่น
                 </div>
-                <div class="toolbar-row" style="gap:8px;flex-wrap:wrap">
-                  <button type="button" class="btn-sm primary" id="fb-agent-install-mac">สร้างไฟล์แล้วเปิดโฟลเดอร์ Downloads</button>
-                  <button type="button" class="btn-sm" id="fb-agent-download-mac">ดาวน์โหลดแบบเดิม (สำรอง)</button>
-                </div>
+                <button type="button" class="btn-sm primary" id="fb-agent-download-mac">⬇ ดาวน์โหลดไฟล์เปิดระบบ (Mac)</button>
               </div>
             </div>
 
@@ -8367,46 +8364,48 @@
       }
     }
 
-    async function installFbAgentMac() {
-      try {
-        var data = await apiPost("/api/fb-agent/install-mac", {});
-        alert(
-          "สร้างไฟล์ให้แล้ว และเปิดโฟลเดอร์ Downloads ให้แล้ว\n\n" +
-          "ต่อไป:\n" +
-          "1) ในหน้าต่าง Finder ที่เด้งขึ้น — คลิกขวาไฟล์「เปิดระบบคอมเมนต์」\n" +
-          "2) เลือก「เปิด」→ กด「เปิด」อีกครั้ง\n" +
-          "3) ถ้าขึ้นข้อความเหลือง ให้กด「เสร็จสิ้น」แล้วทำคลิกขวา → เปิด อีกครั้ง\n" +
-          "4) อย่าปิดหน้าต่างข้อความที่ขึ้นมา\n\n" +
-          "ไฟล์อยู่ที่: " + (data.path || "Downloads")
-        );
-      } catch (e) {
-        alert(e.message || "สร้างไฟล์ไม่ได้");
-      }
-    }
-
-    function downloadFbAgentStarter(kind) {
+    async function downloadFbAgentStarter(kind) {
       var hub = window.location.origin || "http://127.0.0.1:8765";
       var isMac = kind === "mac";
       var path = isMac ? "/api/fb-agent/download-mac" : "/api/fb-agent/download-windows";
-      var a = document.createElement("a");
-      a.href = path + "?hub=" + encodeURIComponent(hub);
-      a.download = isMac ? "เปิดระบบคอมเมนต์.command" : "เปิดระบบคอมเมนต์.bat";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      if (isMac) {
-        alert(
-          "ดาวน์โหลดแล้ว — แนะนำใช้ปุ่ม「สร้างไฟล์แล้วเปิดโฟลเดอร์ Downloads」แทน จะง่ายกว่า\n\n" +
-          "ถ้าใช้ไฟล์นี้: เปิด Downloads → คลิกขวาไฟล์ → เปิด (ไม่ต้องย้ายโฟลเดอร์แล้ว)"
-        );
-      } else {
-        alert(
-          "กำลังดาวน์โหลดไฟล์ Windows「เปิดระบบคอมเมนต์.bat」\n\n" +
-          "1) ส่งไฟล์ให้น้องแอดมิน (หรือใช้เอง)\n" +
-          "2) วางไฟล์ในโฟลเดอร์ scripts\\\\windows ของโปรเจกต์\n" +
-          "3) ดับเบิลคลิกเปิด · อย่าปิดหน้าต่างดำ\n" +
-          "4) กลับมา Hub ดูสถานะว่า「ทำงานอยู่」แล้วค่อยไปขั้นที่ 3"
-        );
+      var filename = isMac ? "เปิดระบบคอมเมนต์.command" : "เปิดระบบคอมเมนต์.bat";
+      try {
+        var res = await fetch(path + "?hub=" + encodeURIComponent(hub), {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          var err = {};
+          try { err = await res.json(); } catch (e2) { /* ignore */ }
+          throw new Error(err.error || ("ดาวน์โหลดไม่ได้ (รหัส " + res.status + ") — ลองล็อกอิน Hub ใหม่"));
+        }
+        var blob = await res.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 2500);
+        if (isMac) {
+          alert(
+            "ดาวน์โหลดแล้ว\n\n" +
+            "1) เปิดโฟลเดอร์ Downloads\n" +
+            "2) คลิกขวาไฟล์「เปิดระบบคอมเมนต์」→ เปิด → กดเปิดอีกครั้ง\n" +
+            "3) ถ้าขึ้นข้อความเหลือง กด「เสร็จสิ้น」แล้วคลิกขวา → เปิด อีกครั้ง\n" +
+            "4) อย่าปิดหน้าต่างข้อความที่ขึ้นมา"
+          );
+        } else {
+          alert(
+            "ดาวน์โหลดแล้ว\n\n" +
+            "1) ส่งไฟล์ให้น้องแอดมิน (หรือใช้เอง)\n" +
+            "2) วางในโฟลเดอร์ scripts\\\\windows ของโปรเจกต์\n" +
+            "3) ดับเบิลคลิก · อย่าปิดหน้าต่างดำ"
+          );
+        }
+      } catch (e) {
+        alert(e.message || "ดาวน์โหลดไม่ได้");
       }
     }
 
@@ -11145,8 +11144,6 @@
     if (fbAgentDownload) fbAgentDownload.addEventListener("click", function () { downloadFbAgentStarter("windows"); });
     var fbAgentDownloadMac = document.getElementById("fb-agent-download-mac");
     if (fbAgentDownloadMac) fbAgentDownloadMac.addEventListener("click", function () { downloadFbAgentStarter("mac"); });
-    var fbAgentInstallMac = document.getElementById("fb-agent-install-mac");
-    if (fbAgentInstallMac) fbAgentInstallMac.addEventListener("click", installFbAgentMac);
     var fbGuideTabWin = document.getElementById("fb-guide-tab-win");
     if (fbGuideTabWin) fbGuideTabWin.addEventListener("click", function () { setFbGuideOs("win"); });
     var fbGuideTabMac = document.getElementById("fb-guide-tab-mac");

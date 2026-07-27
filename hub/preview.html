@@ -2529,18 +2529,29 @@
               </div>
               <div id="fb-guide-mac" class="hidden">
                 <div style="font-weight:600;font-size:13px;margin-bottom:8px">วิธีเปิดบน Mac</div>
-                <ol style="margin:0 0 12px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                  <li>กดปุ่มเขียว <strong>ดาวน์โหลดไฟล์เปิดระบบ (Mac)</strong> → ไฟล์ลง Downloads</li>
-                  <li>เปิด Downloads → <strong>คลิกขวา</strong> ไฟล์「เปิดระบบคอมเมนต์」→ <strong>เปิด</strong> → กดเปิดอีกครั้ง
-                    <br/><span style="font-size:12px;color:#71717a">ถ้าขึ้นข้อความเหลือง: กด「เสร็จสิ้น」แล้วคลิกขวา → เปิด อีกครั้ง (หรือ การตั้งค่าระบบ → ความเป็นส่วนตัว → Open Anyway)</span>
-                  </li>
-                  <li>ครั้งแรกอาจเตรียมระบบเอง — <strong>รอให้เสร็จ อย่าปิดหน้าต่าง</strong></li>
-                  <li>กลับมาหน้านี้ สถานะควรขึ้น「ทำงานอยู่」</li>
-                </ol>
-                <div style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
-                  ไม่ต้องย้ายไฟล์ · ระบบเตรียมโค้ด/ไลบรารี/เบราว์เซอร์ให้อัตโนมัติ
+                <div style="margin:0 0 12px;padding:12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:13px;color:#065f46;line-height:1.65">
+                  <strong>แนะนำ (ไม่ติดบล็อกเหลืองของ Mac):</strong>
+                  <ol style="margin:8px 0 0;padding-left:20px">
+                    <li>กดปุ่ม <strong>คัดลอกคำสั่งเปิดระบบ</strong> ด้านล่าง</li>
+                    <li>เปิดแอป <strong>Terminal</strong> (กด Cmd+Space พิมพ์ Terminal)</li>
+                    <li>วางคำสั่ง (Cmd+V) แล้วกด Enter — อย่าปิดหน้าต่าง</li>
+                  </ol>
                 </div>
-                <button type="button" class="btn-sm primary" id="fb-agent-download-mac">⬇ ดาวน์โหลดไฟล์เปิดระบบ (Mac)</button>
+                <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">
+                  <button type="button" class="btn-sm primary" id="fb-agent-copy-mac-cmd">📋 คัดลอกคำสั่งเปิดระบบ</button>
+                  <span id="fb-agent-copy-mac-ok" style="font-size:12px;color:#137333;align-self:center"></span>
+                </div>
+                <details style="margin:0 0 12px;font-size:13px;color:#3f3f46">
+                  <summary style="cursor:pointer;font-weight:600">หรือดาวน์โหลดไฟล์แล้วเปิดเอง (ถ้าขึ้นเหลือง ทำตามนี้)</summary>
+                  <ol style="margin:10px 0 0;padding-left:20px;line-height:1.7">
+                    <li>กดปุ่มดาวน์โหลดด้านล่าง</li>
+                    <li>ถ้าขึ้นสามเหลี่ยมเหลือง「ไม่ได้เปิด…」→ กด <strong>เสร็จสิ้น</strong> (อย่ากดย้ายถังขยะ)</li>
+                    <li>เปิด <strong>การตั้งค่าระบบ</strong> → <strong>ความเป็นส่วนตัวและความปลอดภัย</strong></li>
+                    <li>เลื่อนลงล่างสุด → เจอข้อความถูกบล็อก → กด <strong>เปิดอยู่แล้ว</strong> / Open Anyway → ยืนยันเปิด</li>
+                    <li>อย่าใช้เมนู「เปิดด้วย → Terminal」อย่างเดียว</li>
+                  </ol>
+                  <button type="button" class="btn-sm" id="fb-agent-download-mac" style="margin-top:10px">⬇ ดาวน์โหลดไฟล์เปิดระบบ (Mac)</button>
+                </details>
               </div>
             </div>
 
@@ -2562,7 +2573,7 @@
               <summary style="cursor:pointer;font-weight:600">ถ้ามีปัญหา — อ่านตรงนี้</summary>
               <ul style="margin:8px 0 0;padding-left:18px;line-height:1.7">
                 <li>「ยังไม่เปิด」= ยังไม่ได้เปิดไฟล์ หรือปิดหน้าต่างไปแล้ว → เปิดใหม่</li>
-                <li>Mac ขึ้นข้อความเหลือง = กดเสร็จสิ้น แล้วคลิกขวา → เปิด (อย่าดับเบิลคลิกอย่างเดียว)</li>
+                <li>Mac ขึ้นสามเหลี่ยมเหลือง = กดเสร็จสิ้น แล้วไป การตั้งค่าระบบ → ความเป็นส่วนตัวและความปลอดภัย → เปิดอยู่แล้ว (หรือใช้ปุ่มคัดลอกคำสั่งในแท็บ Mac)</li>
                 <li>หน้าต่างขึ้น error เรื่อง Browser/Executable = ปิดแล้วเปิดไฟล์ใหม่ ระบบจะดาวน์โหลดเบราว์เซอร์ให้อัตโนมัติ</li>
                 <li>ขึ้นว่าไม่มี Python = ติดตั้งตามลิงก์ที่ไฟล์เปิดให้ แล้วเปิดไฟล์อีกครั้ง (Windows มักติ๊ก Add to PATH)</li>
                 <li>ดาวน์โหลดโปรเจกต์ไม่สำเร็จ = เช็คเน็ตแล้วเปิดไฟล์ใหม่</li>
@@ -8396,10 +8407,11 @@
         if (isMac) {
           alert(
             "ดาวน์โหลดแล้ว\n\n" +
-            "1) เปิดโฟลเดอร์ Downloads\n" +
-            "2) คลิกขวาไฟล์「เปิดระบบคอมเมนต์」→ เปิด → กดเปิดอีกครั้ง\n" +
-            "3) ถ้าขึ้นข้อความเหลือง กด「เสร็จสิ้น」แล้วคลิกขวา → เปิด อีกครั้ง\n" +
-            "4) ครั้งแรกอาจใช้เวลาหลายนาที — อย่าปิดหน้าต่าง"
+            "ถ้าขึ้นสามเหลี่ยมเหลือง:\n" +
+            "1) กด「เสร็จสิ้น」(อย่ากดถังขยะ)\n" +
+            "2) การตั้งค่าระบบ → ความเป็นส่วนตัวและความปลอดภัย\n" +
+            "3) เลื่อนลงล่าง → กด「เปิดอยู่แล้ว」\n\n" +
+            "หรือกลับมาหน้านี้กด「คัดลอกคำสั่งเปิดระบบ」แล้ววางใน Terminal จะง่ายกว่า"
           );
         } else {
           alert(
@@ -8412,6 +8424,31 @@
         }
       } catch (e) {
         alert(e.message || "ดาวน์โหลดไม่ได้");
+      }
+    }
+
+    async function copyMacBootstrapCommand() {
+      var hub = window.location.origin || "https://hub.realxtateth.com";
+      var okEl = document.getElementById("fb-agent-copy-mac-ok");
+      try {
+        var data = await apiGet("/api/fb-agent/status");
+        var token = (data && data.agent_token) || "";
+        if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
+        var cmd =
+          "curl -fsSL " +
+          JSON.stringify(hub + "/api/fb-agent/download-mac?hub=" + encodeURIComponent(hub) + "&t=" + encodeURIComponent(token)) +
+          " -o /tmp/ptp-comment.command && chmod +x /tmp/ptp-comment.command && /tmp/ptp-comment.command";
+        await navigator.clipboard.writeText(cmd);
+        if (okEl) okEl.textContent = "คัดลอกแล้ว — ไปวางใน Terminal ได้เลย";
+        alert(
+          "คัดลอกคำสั่งแล้ว\n\n" +
+          "1) เปิดแอป Terminal\n" +
+          "2) วางคำสั่ง (Cmd+V) แล้วกด Enter\n" +
+          "3) อย่าปิดหน้าต่าง — รอจน Hub ขึ้น「ทำงานอยู่」"
+        );
+      } catch (e) {
+        if (okEl) okEl.textContent = "";
+        alert(e.message || "คัดลอกไม่ได้");
       }
     }
 
@@ -11150,6 +11187,8 @@
     if (fbAgentDownload) fbAgentDownload.addEventListener("click", function () { downloadFbAgentStarter("windows"); });
     var fbAgentDownloadMac = document.getElementById("fb-agent-download-mac");
     if (fbAgentDownloadMac) fbAgentDownloadMac.addEventListener("click", function () { downloadFbAgentStarter("mac"); });
+    var fbAgentCopyMac = document.getElementById("fb-agent-copy-mac-cmd");
+    if (fbAgentCopyMac) fbAgentCopyMac.addEventListener("click", function () { copyMacBootstrapCommand(); });
     var fbGuideTabWin = document.getElementById("fb-guide-tab-win");
     if (fbGuideTabWin) fbGuideTabWin.addEventListener("click", function () { setFbGuideOs("win"); });
     var fbGuideTabMac = document.getElementById("fb-guide-tab-mac");

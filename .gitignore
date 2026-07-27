@@ -18,6 +18,9 @@ data/caption_copy_history.json
 data/group_post_links.json
 data/group_post_codes.json
 data/fb_agent.json
+scripts/mac/เปิดระบบคอมเมนต์.command
+scripts/windows/เปิดระบบคอมเมนต์.bat
+
 data/thumb_cache/
 data/living_cache/
 logs/*.log

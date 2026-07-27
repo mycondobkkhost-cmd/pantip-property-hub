@@ -919,7 +919,14 @@ def _request_agent_token(handler: "HubHandler") -> str:
     auth = (handler.headers.get("Authorization") or "").strip()
     if auth.lower().startswith("bearer "):
         return auth[7:].strip()
-    return (handler.headers.get("X-Agent-Token") or "").strip()
+    header = (handler.headers.get("X-Agent-Token") or "").strip()
+    if header:
+        return header
+    # Allow ?t= for Mac Terminal curl bootstrap (avoids browser Gatekeeper).
+    from urllib.parse import parse_qs
+
+    qs = parse_qs(urlparse(handler.path).query or "")
+    return ((qs.get("t") or qs.get("token") or [""])[0] or "").strip()
 
 
 def _is_agent_authorized(handler: "HubHandler") -> bool:

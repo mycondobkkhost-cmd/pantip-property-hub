@@ -97,7 +97,22 @@ def _local_credentials_fallback() -> tuple[str, str]:
         return settings.FACEBOOK_EMAIL or "", settings.FACEBOOK_PASSWORD or ""
 
 
+# Keep one visible browser open so the user can see login + commenting.
+_alive_auth: FacebookAuth | None = None
+
+
+def _close_alive_auth() -> None:
+    global _alive_auth
+    if _alive_auth is not None:
+        try:
+            _alive_auth.close()
+        except Exception:  # noqa: BLE001
+            pass
+        _alive_auth = None
+
+
 def do_login(hub: str, token: str, email: str, password: str) -> bool:
+    global _alive_auth
     from src.facebook.ensure_runtime import ensure_playwright_chromium
 
     def progress(msg: str) -> None:
@@ -121,22 +136,33 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
         logger.error("ensure browser failed: {}", exc)
         return False
 
-    progress("กำลังเปิดหน้าต่าง Facebook — ล็อกอินใน Chrome ได้เลย (ไม่บังคับบันทึกรหัสใน Hub)")
+    _close_alive_auth()
+    progress("กำลังเปิดหน้าต่าง Facebook — ล็อกอินใน Chrome ได้เลย (หน้าต่างจะไม่ปิดเอง)")
     auth = FacebookAuth(email=email or None, password=password or None, headless=False)
     try:
-        # Always open for manual login / account switch; autofill only if Hub has saved creds
         auth.login(wait_manual_sec=600, on_status=progress, force_manual=True)
+        _alive_auth = auth
         heartbeat(
             hub,
             token,
             status="online",
-            message="ล็อกอินเฟสสำเร็จ",
+            message="ล็อกอินสำเร็จ · Chrome เปิดค้างไว้ให้ดู — ระบบจะคอมเมนต์อัตโนมัติต่อ",
             fb_logged_in=True,
             clear_login_request=True,
         )
-        logger.success("Facebook login OK")
+        logger.success("Facebook login OK — browser kept open")
+        print("")
+        print("===== ล็อกอินสำเร็จ =====")
+        print("หน้าต่าง Chrome ยังเปิดอยู่ — ดูได้ว่าเข้าบัญชีถูก")
+        print("ระบบจะคอมเมนต์คิวให้อัตโนมัติ (อย่าปิด Terminal)")
+        print("")
         return True
     except Exception as exc:  # noqa: BLE001
+        try:
+            auth.close()
+        except Exception:  # noqa: BLE001
+            pass
+        _alive_auth = None
         heartbeat(
             hub,
             token,
@@ -152,11 +178,31 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
         print("ดูหน้าต่าง Chrome ที่เปิดไว้ — ล็อกอินให้ครบ แล้วกดปุ่มล็อกอินใน Hub อีกครั้ง")
         print("")
         return False
-    finally:
-        auth.close()
 
 
 def check_session(hub: str, token: str, email: str, password: str) -> bool:
+    global _alive_auth
+    # Prefer the already-open visible browser (same profile can't open twice).
+    if _alive_auth is not None and _alive_auth._page is not None:  # noqa: SLF001
+        try:
+            ok = _alive_auth._is_logged_in(_alive_auth._page, navigate=False)  # noqa: SLF001
+            if not ok:
+                ok = _alive_auth._is_logged_in(_alive_auth._page, navigate=True)  # noqa: SLF001
+            heartbeat(
+                hub,
+                token,
+                status="online",
+                message=(
+                    "เซสชันเฟสพร้อม · Chrome เปิดค้างให้ดูอยู่"
+                    if ok
+                    else "ยังไม่ได้ล็อกอินเฟส — กดปุ่มล็อกอินใน Hub"
+                ),
+                fb_logged_in=ok,
+            )
+            return ok
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("alive session check failed: {}", exc)
+
     auth = FacebookAuth(email=email or None, password=password or None, headless=True)
     try:
         page = auth.start_browser()
@@ -177,6 +223,7 @@ def check_session(hub: str, token: str, email: str, password: str) -> bool:
 
 
 def run_comments(hub: str, token: str, email: str, password: str) -> None:
+    global _alive_auth
     # Prefer Hub-stored credentials for this process
     if email:
         os.environ["FACEBOOK_EMAIL"] = email
@@ -185,14 +232,30 @@ def run_comments(hub: str, token: str, email: str, password: str) -> None:
     settings.FACEBOOK_EMAIL = email or settings.FACEBOOK_EMAIL
     settings.FACEBOOK_PASSWORD = password or settings.FACEBOOK_PASSWORD
 
-    heartbeat(hub, token, status="working", message="กำลังคอมเมนต์คิว…")
+    def progress(msg: str) -> None:
+        print(msg, flush=True)
+        try:
+            heartbeat(hub, token, status="working", message=msg, fb_logged_in=True)
+        except Exception:  # noqa: BLE001
+            pass
+
+    heartbeat(hub, token, status="working", message="กำลังคอมเมนต์คิว — ดูหน้าต่าง Chrome ได้")
     try:
-        summary = run_once()
+        auth = _alive_auth
+        if auth is None:
+            auth = FacebookAuth(email=email or None, password=password or None, headless=False)
+        summary = run_once(auth=auth, keep_open=True, headless=False, on_status=progress)
+        if summary.get("auth") is not None:
+            _alive_auth = summary["auth"]
+        elif auth is not None:
+            _alive_auth = auth
         done = int(summary.get("done") or 0)
         failed = int(summary.get("failed") or 0)
         msg = f"รอบล่าสุด: สำเร็จ {done} · ล้มเหลว {failed}"
         if summary.get("skipped"):
             msg = f"ข้าม ({summary.get('skipped')})"
+        elif summary.get("due") == 0 and done == 0 and failed == 0:
+            msg = "ยังไม่มีคิวถึงเวลา · Chrome เปิดค้างได้"
         heartbeat(
             hub,
             token,

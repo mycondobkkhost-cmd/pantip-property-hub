@@ -65,8 +65,24 @@ def _code_settings(code: str) -> dict:
     return (row or {}).get("settings") or {}
 
 
-def run_once(*, max_comments: int | None = None, dry_run: bool = False) -> dict:
+def run_once(
+    *,
+    max_comments: int | None = None,
+    dry_run: bool = False,
+    auth: FacebookAuth | None = None,
+    keep_open: bool = False,
+    headless: bool = False,
+    on_status=None,
+) -> dict:
     """Process due group-post links. Returns summary dict."""
+    def say(msg: str) -> None:
+        logger.info(msg)
+        if on_status:
+            try:
+                on_status(msg)
+            except Exception:  # noqa: BLE001
+                pass
+
     max_n = max_comments if max_comments is not None else settings.MAX_COMMENTS_PER_RUN
     max_n = max(1, min(int(max_n), 20))
     today = comments_today_count()
@@ -126,45 +142,63 @@ def run_once(*, max_comments: int | None = None, dry_run: bool = False) -> dict:
             )
         return {"ok": True, "done": 0, "failed": 0, "dry_run": take}
 
-    auth = FacebookAuth()
+    own_auth = auth is None
+    if own_auth:
+        auth = FacebookAuth(headless=headless)
+    assert auth is not None
     done = 0
     failed = 0
     try:
-        page = auth.login()
+        if auth._page is not None:  # noqa: SLF001
+            page = auth._page  # noqa: SLF001
+            if not auth._is_logged_in(page, navigate=False):  # noqa: SLF001
+                say("เซสชันหลุด — กำลังล็อกอินใหม่")
+                page = auth.login()
+        else:
+            say("กำลังเปิด Chrome เพื่อคอมเมนต์ — จะเห็นหน้าต่างทำงาน")
+            page = auth.login()
         commenter = FacebookPostCommenter(page)
         for i, it in enumerate(due):
             used = [h.get("text") for h in (it.get("history") or []) if isinstance(h, dict)]
             text, kind = pick_comment(used_texts=used)
+            post_url = str(it.get("post_url") or "")
+            code = it.get("property_code") or "—"
+            say(f"[{i + 1}/{len(due)}] กำลังเปิดโพสต์ {code} …")
             logger.info(
                 "[{}/{}] {} · {} · {}",
                 i + 1,
                 len(due),
-                it.get("property_code") or "—",
+                code,
                 kind,
                 text,
             )
-            result = commenter.comment_on_post(it["post_url"], text)
+            result = commenter.comment_on_post(post_url, text)
             if result.get("ok"):
                 mark_comment_success(it["id"], comment_text=text, comment_kind=kind)
                 done += 1
+                say(f"คอมเมนต์สำเร็จ {code} · {text[:40]}")
             else:
                 err = str(result.get("error") or "unknown")
                 logger.error("Comment failed: {}", err)
                 mark_comment_failed(it["id"], err)
                 failed += 1
+                say(f"คอมเมนต์ไม่สำเร็จ {code}: {err}")
 
             if i < len(due) - 1:
                 s = _code_settings(it.get("property_code") or "")
                 min_s = int(s.get("min_delay_sec") or settings.COMMENT_MIN_DELAY_SEC)
                 max_s = int(s.get("max_delay_sec") or settings.COMMENT_MAX_DELAY_SEC)
                 wait_s = random.uniform(float(min_s), float(max(min_s, max_s)))
+                say(f"รอ {wait_s:.0f} วินาที ก่อนโพสต์ถัดไป (Chrome ยังเปิดอยู่)")
                 logger.info("Waiting {:.0f}s before next comment…", wait_s)
                 time.sleep(wait_s)
     finally:
-        auth.close()
+        if own_auth and not keep_open:
+            auth.close()
 
     logger.info("Comment run finished · ok={} failed={}", done, failed)
-    return {"ok": True, "done": done, "failed": failed}
+    say(f"จบรอบนี้ · สำเร็จ {done} · ไม่สำเร็จ {failed} · Chrome ยังเปิดค้างให้ดูได้")
+    return {"ok": True, "done": done, "failed": failed, "auth": auth if keep_open else None}
 
 
 def run_loop() -> None:

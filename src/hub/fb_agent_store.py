@@ -37,6 +37,7 @@ def _default() -> dict[str, Any]:
         "agent_message": "",
         "agent_last_seen": "",
         "agent_hostname": "",
+        "activity_log": [],
         "last_run": {
             "at": "",
             "done": 0,
@@ -56,12 +57,26 @@ def _load_raw() -> dict[str, Any]:
     if not isinstance(data, dict):
         return _default()
     out = _default()
-    out.update({k: v for k, v in data.items() if k in out or k == "last_run"})
+    out.update({k: v for k, v in data.items() if k in out or k in {"last_run", "activity_log"}})
     if not isinstance(out.get("last_run"), dict):
         out["last_run"] = _default()["last_run"]
+    if not isinstance(out.get("activity_log"), list):
+        out["activity_log"] = []
     if not str(out.get("agent_token") or "").strip():
         out["agent_token"] = secrets.token_urlsafe(24)
     return out
+
+
+def _append_activity(row: dict[str, Any], message: str) -> None:
+    text = (message or "").strip()
+    if not text:
+        return
+    log = [x for x in (row.get("activity_log") or []) if isinstance(x, dict)]
+    if log and str(log[0].get("message") or "") == text:
+        log[0]["at"] = _now_iso()
+    else:
+        log.insert(0, {"at": _now_iso(), "message": text})
+    row["activity_log"] = log[:40]
 
 
 def _save_raw(data: dict[str, Any]) -> None:
@@ -125,6 +140,11 @@ def public_status(*, include_token: bool = False) -> dict[str, Any]:
         "agent_last_seen": str(row.get("agent_last_seen") or ""),
         "agent_hostname": str(row.get("agent_hostname") or ""),
         "last_run": dict(row.get("last_run") or {}),
+        "activity_log": [
+            {"at": str(x.get("at") or ""), "message": str(x.get("message") or "")}
+            for x in (row.get("activity_log") or [])
+            if isinstance(x, dict)
+        ][:20],
         "online_window_sec": ONLINE_WINDOW_SEC,
     }
     if include_token:
@@ -201,6 +221,8 @@ def agent_heartbeat(
         row["agent_status"] = (status or "online").strip() or "online"
         if message is not None:
             row["agent_message"] = str(message)
+            if str(message).strip():
+                _append_activity(row, str(message))
         if hostname:
             row["agent_hostname"] = str(hostname).strip()
         if fb_logged_in is not None:
@@ -214,5 +236,7 @@ def agent_heartbeat(
             if not prev.get("at"):
                 prev["at"] = _now_iso()
             row["last_run"] = prev
+            if prev.get("message"):
+                _append_activity(row, str(prev.get("message")))
         _save_raw(row)
     return public_status()

@@ -2535,9 +2535,9 @@
               <ol style="margin:0 0 10px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
                 <li>ตรวจว่าขั้นที่ 1 เปิดอยู่ (สถานะ「ทำงานอยู่」)</li>
                 <li>กดปุ่มด้านล่าง — ระบบเปิดหน้าต่าง Chrome ให้เอง</li>
-                <li><strong>ล็อกอินเฟสในหน้าต่างนั้น</strong> ด้วยบัญชีที่ต้องการ (สลับบัญชีได้ · ไม่ต้องพิมพ์รหัสใน Hub)</li>
-                <li>มี 2FA ก็ใส่ใน Chrome ได้เลย — อย่าปิดหน้าต่างจนกว่า Hub จะขึ้น「ล็อกอินแล้ว」</li>
-                <li>จากนั้นระบบ<strong>คอมเมนต์คิวให้อัตโนมัติ</strong> — ไปแท็บคอมเมนต์กลุ่มเพื่อเพิ่มลิงก์</li>
+                <li><strong>ล็อกอินเฟสในหน้าต่างนั้น</strong> ด้วยบัญชีที่ต้องการ</li>
+                <li>พอสำเร็จ Chrome <strong>จะไม่ปิดเอง</strong> — เปิดค้างให้ดูว่าเข้าบัญชีถูก</li>
+                <li>ดูช่อง「รายงานการทำงาน」ด้านล่าง ว่าระบบกำลังทำอะไร · จากนั้นไปแท็บคอมเมนต์กลุ่มเพิ่มลิงก์</li>
               </ol>
               <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:12px;color:#065f46;line-height:1.55">
                 สลับบัญชี: ใน Chrome กดล็อกเอาท์ → กลับมากดปุ่มล็อกอินอีกครั้ง → ล็อกอินบัญชีใหม่
@@ -2545,6 +2545,11 @@
               <div class="toolbar-row" style="gap:8px;flex-wrap:wrap">
                 <button type="button" class="btn-sm primary" id="fb-agent-request-login">เปิดหน้าต่างล็อกอินเฟส</button>
                 <button type="button" class="btn-sm" id="fbconnect-goto-comments">ไปแท็บคอมเมนต์กลุ่ม →</button>
+              </div>
+              <div style="margin-top:12px;padding:12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0">
+                <div style="font-weight:700;font-size:13px;margin-bottom:6px">รายงานการทำงาน (ดูตรงนี้ว่าระบบทำอะไรอยู่)</div>
+                <div id="fb-agent-live-msg" style="font-size:13px;color:#0f172a;line-height:1.5;margin-bottom:8px">—</div>
+                <div id="fb-agent-activity-list" style="font-size:12px;color:#475569;line-height:1.55;max-height:160px;overflow:auto"></div>
               </div>
             </div>
 
@@ -8171,12 +8176,16 @@
         return;
       }
       tbody.innerHTML = links.map(function (it) {
+        var url = it.post_url || "";
         return "<tr>" +
-          '<td><a href="' + esc(it.post_url || "#") + '" target="_blank" rel="noopener noreferrer">' + esc(it.post_url || "—") + "</a></td>" +
+          "<td style=\"font-size:12px;word-break:break-all\">" + esc(url || "—") + "</td>" +
           "<td>" + esc(commentStatusLabel(it.status)) + "</td>" +
           "<td>" + esc(String(it.comment_count || 0)) + "/" + esc(String(it.max_comments || 3)) + "</td>" +
           "<td style=\"font-size:11px\">" + esc(it.next_comment_at || "—") + "</td>" +
-          '<td><div class="group-actions">' +
+          '<td><div class="group-actions" style="flex-wrap:wrap">' +
+            (isHttpUrl(url)
+              ? '<a class="btn-sm primary" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" style="text-decoration:none">เปิดโพสต์</a>'
+              : "") +
             '<label class="ios-switch is-small"><input type="checkbox" data-comment-link-toggle="' + esc(it.id) + '" ' + (it.status !== "paused" ? "checked" : "") + ' /><span class="slider"><span class="knob"></span></span></label>' +
             '<button type="button" class="btn-sm" data-comment-delete="' + esc(it.id) + '">ลบ</button>' +
           "</div></td>" +
@@ -8291,6 +8300,25 @@
         msgEl.textContent = data.agent_message
           || (data.login_requested ? "รอคอมเปิดหน้าต่างเฟส…" : "—");
       }
+      var liveMsg = document.getElementById("fb-agent-live-msg");
+      if (liveMsg) {
+        liveMsg.textContent = data.agent_message
+          || (data.fb_logged_in ? "ล็อกอินแล้ว · รอคิวคอมเมนต์ / ดู Chrome ที่เปิดค้างไว้" : "ยังไม่เริ่ม — เปิดระบบบนคอม แล้วกดล็อกอิน");
+        liveMsg.style.color = data.agent_status === "error" ? "#b42318"
+          : (data.agent_status === "working" || data.agent_status === "logging_in" ? "#1d4ed8" : "#0f172a");
+      }
+      var actList = document.getElementById("fb-agent-activity-list");
+      if (actList) {
+        var logs = data.activity_log || [];
+        if (!logs.length) {
+          actList.innerHTML = '<span style="color:#94a3b8">ยังไม่มีบันทึก — พอล็อกอินหรือคอมเมนต์ จะโชว์ที่นี่</span>';
+        } else {
+          actList.innerHTML = logs.slice(0, 12).map(function (row) {
+            return '<div style="padding:3px 0;border-top:1px solid #e2e8f0"><span style="color:#94a3b8">' +
+              esc(row.at || "") + "</span> · " + esc(row.message || "") + "</div>";
+          }).join("");
+        }
+      }
       if (tokenEl) tokenEl.textContent = data.agent_token || "—";
       if (emailEl && data.email && !emailEl.value) emailEl.value = data.email;
       if (step1) {
@@ -8375,7 +8403,7 @@
       try {
         var data = await apiPost("/api/fb-agent/request-login", {});
         renderFbAgentStatus(data);
-        alert("สั่งเปิดหน้าต่างเฟสแล้ว\n\nไปที่คอมที่เปิดระบบไว้ — Chrome จะเด้งขึ้น\nล็อกอินบัญชีที่ต้องการในหน้านั้นได้เลย (ไม่ต้องบันทึกรหัสใน Hub)\nอย่าปิด Chrome จนกว่า Hub จะขึ้น「ล็อกอินแล้ว」\nจากนั้นระบบจะคอมเมนต์คิวให้อัตโนมัติ");
+        alert("สั่งเปิดหน้าต่างเฟสแล้ว\n\nไปที่คอมที่เปิดระบบไว้ — Chrome จะเด้งขึ้นและไม่ปิดเอง\nล็อกอินบัญชีที่ต้องการในหน้านั้น\nดูช่อง「รายงานการทำงาน」ใน Hub ว่าสำเร็จหรือยัง\nจากนั้นระบบจะคอมเมนต์คิวให้อัตโนมัติ (ดูใน Chrome ได้)");
       } catch (e) {
         alert(e.message || "สั่งล็อกอินไม่ได้ — ตรวจว่าขั้นที่ 1 เปิดระบบบนคอมไว้แล้ว");
       }
@@ -8690,12 +8718,12 @@
         }
         box.innerHTML = "<div style=\"font-weight:600;margin-bottom:4px\">ลิงก์ที่บันทึกของ " + esc(code) + " (" + items.length + ")</div>" +
           items.map(function (it) {
-            return '<div style="padding:4px 0;border-top:1px solid #eee">' +
-              esc(commentStatusLabel(it.status)) + " · " +
+            return '<div style="padding:6px 0;border-top:1px solid #eee;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+              "<span>" + esc(commentStatusLabel(it.status)) + " · " +
               esc(String(it.comment_count || 0)) + "/" + esc(String(it.max_comments || 3)) +
-              (it.next_comment_at ? " · คิว " + esc(it.next_comment_at) : "") +
+              (it.next_comment_at ? " · คิว " + esc(it.next_comment_at) : "") + "</span>" +
               (isHttpUrl(it.post_url)
-                ? ' · <a href="' + esc(it.post_url) + '" target="_blank" rel="noopener noreferrer">เปิดโพสต์</a>'
+                ? '<a class="btn-sm primary" href="' + esc(it.post_url) + '" target="_blank" rel="noopener noreferrer" style="text-decoration:none">เปิดโพสต์</a>'
                 : "") +
               "</div>";
           }).join("");
@@ -11219,6 +11247,16 @@
     });
     var fbAgentRefresh = document.getElementById("fb-agent-refresh");
     if (fbAgentRefresh) fbAgentRefresh.addEventListener("click", loadFbAgentStatus);
+    // Live status while watching login / comments
+    setInterval(function () {
+      try {
+        var panel = document.getElementById("fb-connect-panel");
+        var comments = document.getElementById("comments-panel");
+        var onFb = panel && !panel.classList.contains("hidden");
+        var onComments = comments && !comments.classList.contains("hidden");
+        if (onFb || onComments) loadFbAgentStatus();
+      } catch (ePoll) { /* ignore */ }
+    }, 5000);
     var fbAgentSave = document.getElementById("fb-agent-save-cred");
     if (fbAgentSave) fbAgentSave.addEventListener("click", saveFbAgentCredentials);
     var fbAgentLogin = document.getElementById("fb-agent-request-login");

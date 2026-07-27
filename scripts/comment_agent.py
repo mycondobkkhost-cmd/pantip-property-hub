@@ -88,6 +88,85 @@ def pull(hub: str, token: str) -> dict:
     return _request("GET", _hub_url(hub, "/api/fb-agent/pull"), token=token)
 
 
+def sync_chrome_profiles(hub: str, token: str) -> dict:
+    """Upload local Chrome profile list so Hub can show a picker."""
+    try:
+        from src.facebook.chrome_profiles import list_chrome_profiles
+
+        profiles = list_chrome_profiles()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("list chrome profiles failed: {}", exc)
+        return {"ok": False, "error": str(exc), "count": 0}
+    try:
+        data = _request(
+            "POST",
+            _hub_url(hub, "/api/fb-agent/chrome-profiles"),
+            token=token,
+            body={"profiles": profiles, "agent_id": _agent_id},
+        )
+        return {"ok": True, "count": len(profiles), **(data if isinstance(data, dict) else {})}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("upload chrome profiles failed: {}", exc)
+        return {"ok": False, "error": str(exc), "count": len(profiles)}
+
+
+def sync_page_thumbs(hub: str, token: str, *, limit: int = 12) -> dict:
+    """Fetch Facebook page thumbs from this PC (home IP) and upload to Hub.
+
+    Fly/datacenter IPs get Facebook login walls; Mac/Windows Agent usually can
+    read og:image and push bytes into Hub thumb_cache.
+    """
+    import base64
+
+    from src.hub.scraper import fetch_image_bytes, fetch_preview_image
+
+    try:
+        data = _request("GET", _hub_url(hub, f"/api/fb-agent/thumb-due?limit={int(limit)}"), token=token)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("thumb-due failed: {}", exc)
+        return {"ok": False, "done": 0, "failed": 0, "error": str(exc)}
+
+    items = list(data.get("items") or [])
+    if not items:
+        return {"ok": True, "done": 0, "failed": 0, "due": 0}
+
+    done = 0
+    failed = 0
+    for it in items:
+        page_url = str((it or {}).get("url") or "").strip()
+        code = str((it or {}).get("code") or "")
+        if not page_url.startswith("http"):
+            continue
+        try:
+            image_url, warnings = fetch_preview_image(page_url)
+            if not image_url:
+                failed += 1
+                logger.info("thumb miss {} · {}", code or "—", "; ".join(warnings)[:120])
+                continue
+            blob, ctype = fetch_image_bytes(image_url)
+            if not blob or len(blob) < 500:
+                failed += 1
+                logger.info("thumb download empty {} · {}", code or "—", image_url[:80])
+                continue
+            _request(
+                "POST",
+                _hub_url(hub, "/api/fb-agent/thumb-upload"),
+                token=token,
+                body={
+                    "url": page_url,
+                    "content_type": ctype or "image/jpeg",
+                    "image_base64": base64.b64encode(blob).decode("ascii"),
+                },
+            )
+            done += 1
+            logger.success("thumb uploaded {} · {} bytes", code or page_url[:40], len(blob))
+        except Exception as exc:  # noqa: BLE001
+            failed += 1
+            logger.warning("thumb sync failed {}: {}", code or page_url[:40], exc)
+        time.sleep(0.6)
+    return {"ok": True, "done": done, "failed": failed, "due": len(items)}
+
+
 def _local_credentials_fallback() -> tuple[str, str]:
     """When agent runs against the same Hub data dir (local)."""
     try:
@@ -99,6 +178,26 @@ def _local_credentials_fallback() -> tuple[str, str]:
 
 # Keep one visible browser open so the user can see login + commenting.
 _alive_auth: FacebookAuth | None = None
+_agent_id: str = (os.getenv("COMMENT_AGENT_ID") or "owner").strip() or "owner"
+
+
+def _session_paths(agent_id: str) -> tuple[Path, Path]:
+    aid = (agent_id or "owner").strip() or "owner"
+    safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in aid)
+    data_dir = settings.BASE_DIR / "cookies" / f"facebook_session_{safe}"
+    cookies = settings.BASE_DIR / "cookies" / f"facebook_cookies_{safe}.json"
+    return data_dir, cookies
+
+
+def _make_auth(email: str, password: str, *, headless: bool) -> FacebookAuth:
+    data_dir, cookies = _session_paths(_agent_id)
+    return FacebookAuth(
+        email=email or None,
+        password=password or None,
+        user_data_dir=data_dir,
+        cookies_path=cookies,
+        headless=headless,
+    )
 
 
 def _close_alive_auth() -> None:
@@ -113,6 +212,7 @@ def _close_alive_auth() -> None:
 
 def do_login(hub: str, token: str, email: str, password: str) -> bool:
     global _alive_auth
+    from src.facebook.auth import FacebookAuth
     from src.facebook.ensure_runtime import ensure_playwright_chromium
 
     def progress(msg: str) -> None:
@@ -122,23 +222,40 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
         except Exception:  # noqa: BLE001
             pass
 
-    try:
-        ensure_playwright_chromium(on_progress=progress)
-    except Exception as exc:  # noqa: BLE001
-        heartbeat(
-            hub,
-            token,
-            status="error",
-            message=f"เตรียมเบราว์เซอร์ไม่สำเร็จ: {exc}",
-            fb_logged_in=False,
-            clear_login_request=True,
-        )
-        logger.error("ensure browser failed: {}", exc)
-        return False
+    # Prefer real Chrome (CDP) — skip Playwright Chromium download when available
+    using_cdp = FacebookAuth.cdp_available()
+    if not using_cdp:
+        try:
+            ensure_playwright_chromium(on_progress=progress)
+        except Exception as exc:  # noqa: BLE001
+            heartbeat(
+                hub,
+                token,
+                status="error",
+                message=(
+                    f"เตรียมเบราว์เซอร์ไม่สำเร็จ: {exc} · "
+                    "หรือเปิด scripts/mac/เปิดChromeจริงสำหรับAgent.command ก่อน "
+                    "เพื่อใช้ Chrome ที่ล็อกอินเฟสไว้แล้ว"
+                ),
+                fb_logged_in=False,
+                clear_login_request=True,
+            )
+            logger.error("ensure browser failed: {}", exc)
+            return False
+    else:
+        progress("พบ Google Chrome โหมด Agent — จะใช้โปรไฟล์เดิม (ลดโดน 2FA)")
 
     _close_alive_auth()
-    progress("กำลังเปิดหน้าต่าง Facebook — ล็อกอินใน Chrome ได้เลย (หน้าต่างจะไม่ปิดเอง)")
-    auth = FacebookAuth(email=email or None, password=password or None, headless=False)
+    if using_cdp:
+        progress(
+            f"กำลังเชื่อม Chrome จริง ({_agent_id}) — สลับบัญชีจากไอคอนโปรไฟล์ได้เลย"
+        )
+    else:
+        progress(
+            f"กำลังเปิดหน้าต่าง Facebook ({_agent_id}) — "
+            "ถ้าโดน 2FA บ่อย ให้เปิด「เปิดChromeจริงสำหรับAgent」ก่อน แล้วลองใหม่"
+        )
+    auth = _make_auth(email, password, headless=False)
     try:
         auth.login(wait_manual_sec=600, on_status=progress, force_manual=True)
         _alive_auth = auth
@@ -146,15 +263,16 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
             hub,
             token,
             status="online",
-            message="ล็อกอินสำเร็จ · Chrome เปิดค้างไว้ให้ดู — ระบบจะคอมเมนต์อัตโนมัติต่อ",
+            message=f"ล็อกอินสำเร็จ ({_agent_id}) · Chrome เปิดค้างไว้ให้ดู — ระบบจะคอมเมนต์อัตโนมัติต่อ",
             fb_logged_in=True,
             clear_login_request=True,
         )
-        logger.success("Facebook login OK — browser kept open")
+        logger.success("Facebook login OK — browser kept open · agent={}", _agent_id)
         print("")
         print("===== ล็อกอินสำเร็จ =====")
+        print(f"Agent: {_agent_id}")
         print("หน้าต่าง Chrome ยังเปิดอยู่ — ดูได้ว่าเข้าบัญชีถูก")
-        print("ระบบจะคอมเมนต์คิวให้อัตโนมัติ (อย่าปิด Terminal)")
+        print("ระบบจะคอมเมนต์คิวของ Agent นี้ให้อัตโนมัติ (อย่าปิด Terminal)")
         print("")
         return True
     except Exception as exc:  # noqa: BLE001
@@ -182,7 +300,6 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
 
 def check_session(hub: str, token: str, email: str, password: str) -> bool:
     global _alive_auth
-    # Prefer the already-open visible browser (same profile can't open twice).
     if _alive_auth is not None and _alive_auth._page is not None:  # noqa: SLF001
         try:
             ok = _alive_auth._is_logged_in(_alive_auth._page, navigate=False)  # noqa: SLF001
@@ -193,7 +310,7 @@ def check_session(hub: str, token: str, email: str, password: str) -> bool:
                 token,
                 status="online",
                 message=(
-                    "เซสชันเฟสพร้อม · Chrome เปิดค้างให้ดูอยู่"
+                    f"เซสชันเฟสพร้อม ({_agent_id}) · Chrome เปิดค้างให้ดูอยู่"
                     if ok
                     else "ยังไม่ได้ล็อกอินเฟส — กดปุ่มล็อกอินใน Hub"
                 ),
@@ -203,7 +320,7 @@ def check_session(hub: str, token: str, email: str, password: str) -> bool:
         except Exception as exc:  # noqa: BLE001
             logger.warning("alive session check failed: {}", exc)
 
-    auth = FacebookAuth(email=email or None, password=password or None, headless=True)
+    auth = _make_auth(email, password, headless=True)
     try:
         page = auth.start_browser()
         ok = auth._is_logged_in(page)  # noqa: SLF001
@@ -211,7 +328,11 @@ def check_session(hub: str, token: str, email: str, password: str) -> bool:
             hub,
             token,
             status="online",
-            message="เซสชันเฟสพร้อม" if ok else "ยังไม่ได้ล็อกอินเฟส — กดปุ่มล็อกอินใน Hub",
+            message=(
+                f"เซสชันเฟสพร้อม ({_agent_id})"
+                if ok
+                else "ยังไม่ได้ล็อกอินเฟส — กดปุ่มล็อกอินใน Hub"
+            ),
             fb_logged_in=ok,
         )
         return ok
@@ -224,13 +345,15 @@ def check_session(hub: str, token: str, email: str, password: str) -> bool:
 
 def run_comments(hub: str, token: str, email: str, password: str) -> None:
     global _alive_auth
-    # Prefer Hub-stored credentials for this process
     if email:
         os.environ["FACEBOOK_EMAIL"] = email
     if password:
         os.environ["FACEBOOK_PASSWORD"] = password
     settings.FACEBOOK_EMAIL = email or settings.FACEBOOK_EMAIL
     settings.FACEBOOK_PASSWORD = password or settings.FACEBOOK_PASSWORD
+    os.environ["COMMENT_AGENT_ID"] = _agent_id
+    os.environ["HUB_URL"] = (hub or "").rstrip("/")
+    os.environ["COMMENT_AGENT_TOKEN"] = token or ""
 
     def progress(msg: str) -> None:
         print(msg, flush=True)
@@ -239,11 +362,16 @@ def run_comments(hub: str, token: str, email: str, password: str) -> None:
         except Exception:  # noqa: BLE001
             pass
 
-    heartbeat(hub, token, status="working", message="กำลังคอมเมนต์คิว — ดูหน้าต่าง Chrome ได้")
+    heartbeat(
+        hub,
+        token,
+        status="working",
+        message=f"กำลังคอมเมนต์คิว ({_agent_id}) — ดูหน้าต่าง Chrome ได้",
+    )
     try:
         auth = _alive_auth
         if auth is None:
-            auth = FacebookAuth(email=email or None, password=password or None, headless=False)
+            auth = _make_auth(email, password, headless=False)
         summary = run_once(auth=auth, keep_open=True, headless=False, on_status=progress)
         if summary.get("auth") is not None:
             _alive_auth = summary["auth"]
@@ -251,11 +379,11 @@ def run_comments(hub: str, token: str, email: str, password: str) -> None:
             _alive_auth = auth
         done = int(summary.get("done") or 0)
         failed = int(summary.get("failed") or 0)
-        msg = f"รอบล่าสุด: สำเร็จ {done} · ล้มเหลว {failed}"
+        msg = f"รอบล่าสุด ({_agent_id}): สำเร็จ {done} · ล้มเหลว {failed}"
         if summary.get("skipped"):
             msg = f"ข้าม ({summary.get('skipped')})"
         elif summary.get("due") == 0 and done == 0 and failed == 0:
-            msg = "ยังไม่มีคิวถึงเวลา · Chrome เปิดค้างได้"
+            msg = f"ยังไม่มีคิวถึงเวลา ({_agent_id}) · Chrome เปิดค้างได้"
         heartbeat(
             hub,
             token,
@@ -285,12 +413,211 @@ def run_comments(hub: str, token: str, email: str, password: str) -> None:
         logger.exception("comment run failed")
 
 
+def _find_account(accounts: list, job: dict) -> dict | None:
+    aid = str(job.get("fb_account_id") or "").strip()
+    if not aid:
+        return None
+    for a in accounts or []:
+        if not isinstance(a, dict):
+            continue
+        if str(a.get("id") or "") == aid:
+            return a
+        if str(a.get("switch_name") or "") == aid or str(a.get("label") or "") == aid:
+            return a
+    return None
+
+
+def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: int = 1) -> dict:
+    """Pull due publish jobs → switch FB account → post images+caption → report."""
+    global _alive_auth
+    from src.facebook.account_switcher import FacebookAccountSwitcher
+    from src.facebook.poster import FacebookGroupPoster
+    from src.hub import publish_policy as policy
+
+    if email:
+        os.environ["FACEBOOK_EMAIL"] = email
+    if password:
+        os.environ["FACEBOOK_PASSWORD"] = password
+
+    def progress(msg: str) -> None:
+        print(msg, flush=True)
+        try:
+            heartbeat(hub, token, status="working", message=msg, fb_logged_in=True)
+        except Exception:  # noqa: BLE001
+            pass
+
+    try:
+        data = _request(
+            "GET",
+            _hub_url(hub, f"/api/fb-agent/publish-due?limit={max(1, int(max_posts))}"),
+            token=token,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("publish-due failed: {}", exc)
+        return {"ok": False, "done": 0, "failed": 0, "error": str(exc)}
+
+    if data.get("work_paused"):
+        progress("⏸ หยุดงานฉุกเฉิน — ข้ามคิวโพส")
+        return {"ok": True, "done": 0, "failed": 0, "paused": True}
+
+    due = data.get("due") or []
+    accounts = data.get("fb_accounts") or []
+    if not due:
+        return {"ok": True, "done": 0, "failed": 0, "due": 0}
+
+    auth = _alive_auth
+    if auth is None:
+        auth = _make_auth(email, password, headless=False)
+        try:
+            auth.login(wait_manual_sec=120, force_manual=False)
+            _alive_auth = auth
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "done": 0, "failed": 1, "error": str(exc)}
+
+    page = getattr(auth, "_page", None)
+    if page is None:
+        try:
+            page = auth.login(wait_manual_sec=60, force_manual=False)
+            _alive_auth = auth
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "done": 0, "failed": 1, "error": str(exc)}
+    if page is None:
+        return {"ok": False, "done": 0, "failed": 1, "error": "no browser page"}
+
+    switcher = FacebookAccountSwitcher(page)
+    poster = FacebookGroupPoster(page)
+    done = 0
+    failed = 0
+    last_account: dict | None = None
+
+    for job in due[: max(1, int(max_posts))]:
+        job_id = str(job.get("id") or "")
+        code = str(job.get("property_code") or "")
+        group_url = str(job.get("group_url") or "")
+        caption = str(job.get("caption") or "")
+        images = job.get("image_urls") or []
+        acc = _find_account(accounts, job)
+        switch_name = ""
+        if acc:
+            switch_name = str(acc.get("switch_name") or acc.get("label") or "").strip()
+            last_account = acc
+
+        progress(f"โพส {code} → กลุ่ม · บัญชี {switch_name or job.get('fb_account_id') or 'ปัจจุบัน'}")
+
+        if switch_name:
+            sw = switcher.switch_to(switch_name)
+            if not sw.get("ok"):
+                detail = sw.get("detail") or sw.get("error") or "สลับบัญชีไม่สำเร็จ"
+                progress(f"⚠ {detail}")
+                try:
+                    _request(
+                        "POST",
+                        _hub_url(hub, "/api/fb-agent/publish-result"),
+                        token=token,
+                        body={
+                            "id": job_id,
+                            "ok": False,
+                            "action": "switch_failed",
+                            "error": detail,
+                            "detail": detail,
+                        },
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                failed += 1
+                continue
+
+        try:
+            outcome = poster.post_to_group(
+                caption=caption,
+                image_urls=list(images) if isinstance(images, list) else [],
+                property_id=code or "property",
+                group_url=group_url,
+            )
+        except Exception as exc:  # noqa: BLE001
+            outcome = {
+                "ok": False,
+                "error": str(exc),
+                "action": "exception",
+                "detail": str(exc),
+            }
+
+        ok = bool(outcome.get("ok"))
+        try:
+            _request(
+                "POST",
+                _hub_url(hub, "/api/fb-agent/publish-result"),
+                token=token,
+                body={
+                    "id": job_id,
+                    "ok": ok,
+                    "permalink": outcome.get("permalink") or "",
+                    "action": outcome.get("action") or ("posted" if ok else "failed"),
+                    "error": outcome.get("error") or "",
+                    "detail": outcome.get("detail") or "",
+                    "comment_immediately": True,
+                },
+            )
+        except Exception as report_exc:  # noqa: BLE001
+            logger.warning("publish-result report failed: {}", report_exc)
+
+        if ok:
+            done += 1
+            progress(f"✓ โพสสำเร็จ {code} · {outcome.get('permalink') or '(รอ permalink)'}")
+        else:
+            failed += 1
+            progress(f"✗ โพสไม่สำเร็จ: {outcome.get('detail') or outcome.get('error')}")
+            if outcome.get("action") == "restricted":
+                # Stop further posts this tick
+                break
+
+        # Anti-ban delay between posts (even if only 1, leave a short settle)
+        delay = policy.random_post_delay_sec(last_account)
+        if len(due) > 1 and done + failed < len(due[:max_posts]):
+            progress(f"พัก {int(delay)} วินาที ก่อนโพสถัดไป…")
+            time.sleep(delay)
+        else:
+            time.sleep(min(15.0, delay * 0.05))
+
+    msg = f"โพสรอบนี้ ({_agent_id}): สำเร็จ {done} · ล้มเหลว {failed}"
+    heartbeat(
+        hub,
+        token,
+        status="online",
+        message=msg,
+        fb_logged_in=True,
+        last_run={
+            "at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "done": done,
+            "failed": failed,
+            "message": msg,
+            "kind": "publish",
+        },
+    )
+    return {"ok": True, "done": done, "failed": failed}
+
+
 def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> None:
     host = socket.gethostname()
     logger.info("Comment agent started · hub={} · host={}", hub, host)
     last_comment_at = 0.0
+    last_publish_at = 0.0
     last_session_check = 0.0
+    last_thumb_at = 0.0
+    last_profiles_at = 0.0
     logged_in = False
+    thumb_every_sec = float(os.getenv("COMMENT_AGENT_THUMB_EVERY_SEC", "90"))
+    profiles_every_sec = float(os.getenv("COMMENT_AGENT_PROFILES_EVERY_SEC", "300"))
+    publish_every_sec = float(os.getenv("COMMENT_AGENT_PUBLISH_EVERY_SEC", "180"))
+
+    # First tick: publish Chrome profiles for Hub picker
+    try:
+        summary = sync_chrome_profiles(hub, token)
+        if summary.get("ok"):
+            logger.info("synced {} Chrome profiles to Hub", summary.get("count") or 0)
+            last_profiles_at = time.time()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("initial chrome profile sync failed: {}", exc)
 
     while True:
         try:
@@ -302,9 +629,71 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
                 email = email or le
                 password = password or lp
 
+            selected_profile = str(data.get("chrome_profile_dir") or "").strip()
+            if selected_profile:
+                os.environ["FB_CHROME_PROFILE_DIRECTORY"] = selected_profile
+            selected_name = str(data.get("chrome_profile_name") or "").strip()
+            if selected_name:
+                os.environ["FB_CHROME_PROFILE_NAME"] = selected_name
+
+            now = time.time()
+            if now - last_profiles_at >= profiles_every_sec:
+                try:
+                    sync_chrome_profiles(hub, token)
+                except Exception as pe:  # noqa: BLE001
+                    logger.warning("chrome profile sync tick error: {}", pe)
+                last_profiles_at = time.time()
+
+            # Always try page thumbs from this PC — does not need FB login
+            now = time.time()
+            if now - last_thumb_at >= thumb_every_sec:
+                try:
+                    summary = sync_page_thumbs(hub, token, limit=10)
+                    if summary.get("done") or summary.get("failed"):
+                        heartbeat(
+                            hub,
+                            token,
+                            status="online",
+                            message=(
+                                f"ดึงรูปหน้าหลัก: สำเร็จ {summary.get('done') or 0}"
+                                f" · ไม่สำเร็จ {summary.get('failed') or 0}"
+                            ),
+                            hostname=host,
+                            fb_logged_in=logged_in,
+                        )
+                except Exception as thumb_exc:  # noqa: BLE001
+                    logger.warning("thumb sync tick error: {}", thumb_exc)
+                last_thumb_at = time.time()
+
             if data.get("login_requested"):
-                logged_in = do_login(hub, token, email, password)
-                last_session_check = time.time()
+                if data.get("work_paused"):
+                    heartbeat(
+                        hub,
+                        token,
+                        status="paused",
+                        message="⏸ หยุดงานฉุกเฉิน — ไม่ล็อกอิน/โพส/คอมเมนต์จนกว่าจะกดทำงานต่อใน Hub",
+                        hostname=host,
+                        fb_logged_in=logged_in,
+                        clear_login_request=True,
+                    )
+                else:
+                    logged_in = do_login(hub, token, email, password)
+                    last_session_check = time.time()
+                    if logged_in:
+                        run_publish(hub, token, email, password, max_posts=1)
+                        last_publish_at = time.time()
+                        run_comments(hub, token, email, password)
+                        last_comment_at = time.time()
+            elif data.get("work_paused"):
+                logged_in = bool(data.get("fb_logged_in")) or logged_in
+                heartbeat(
+                    hub,
+                    token,
+                    status="paused",
+                    message="⏸ หยุดงานฉุกเฉิน — กด「ทำงานต่อ」ใน Hub เมื่อพร้อม (ครอบคลุมโพส+คอมเมนต์)",
+                    hostname=host,
+                    fb_logged_in=logged_in,
+                )
             else:
                 now = time.time()
                 if now - last_session_check > 300:
@@ -317,13 +706,17 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
                         token,
                         status="online",
                         message=(
-                            "Agent พร้อม · รอคิวคอมเมนต์"
+                            "Agent พร้อม · รอคิวโพส/คอมเมนต์"
                             if logged_in
                             else "Agent ออนไลน์ · ยังไม่ล็อกอินเฟส — กดปุ่มล็อกอินใน Hub"
                         ),
                         hostname=host,
                         fb_logged_in=logged_in,
                     )
+
+                if logged_in and (now - last_publish_at >= publish_every_sec):
+                    run_publish(hub, token, email, password, max_posts=1)
+                    last_publish_at = time.time()
 
                 if logged_in and (now - last_comment_at >= comment_every_sec):
                     run_comments(hub, token, email, password)
@@ -353,7 +746,18 @@ def main() -> None:
     )
     parser.add_argument("--login-once", action="store_true", help="Login once then exit")
     parser.add_argument("--once", action="store_true", help="One comment batch then exit")
+    parser.add_argument(
+        "--agent",
+        "--agent-id",
+        dest="agent_id",
+        default=os.getenv("COMMENT_AGENT_ID", "owner"),
+        help="Agent slot id: owner (Mac) or admin (Windows)",
+    )
     args = parser.parse_args()
+
+    global _agent_id
+    _agent_id = (args.agent_id or "owner").strip() or "owner"
+    os.environ["COMMENT_AGENT_ID"] = _agent_id
 
     token = (args.token or "").strip()
     if not token:

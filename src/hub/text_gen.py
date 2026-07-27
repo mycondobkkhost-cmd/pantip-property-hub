@@ -462,22 +462,103 @@ def _hashtags(project: str, lang: str = "th") -> str:
     return " ".join(t for t in tags if t)
 
 
-def _contact_footer(lang: str) -> list[str]:
+def _contact_footer_no_links(lang: str) -> list[str]:
+    """CTA without URLs — customers screenshot LINE ID and add manually."""
     if lang == "en":
         return [
-            f"📲 LINE : {LINE_ID}  →  {LINE_URL}",
+            f"📲 LINE ID : {LINE_ID}",
             f"📞 {PHONE_NUT_EN[0]} : {PHONE_NUT_EN[1]}",
             f"📞 {PHONE_PLENG_EN[0]} : {PHONE_PLENG_EN[1]}",
             "",
-            "Add LINE for viewing / more info 🙏",
+            "Add LINE from the ID above for viewing / more info 🙏",
         ]
     return [
-        f"📲 LINE : {LINE_ID} คลิก {LINE_URL}",
+        f"📲 LINE ID : {LINE_ID}",
         f"📞 {PHONE_NUT[0]} : {PHONE_NUT[1]}",
         f"📞 {PHONE_PLENG[0]} : {PHONE_PLENG[1]}",
         "",
-        "สนใจนัดชม / ขอรายละเอียด แอดไลน์ได้เลยครับ 🙏",
+        "สนใจนัดชม / ขอรายละเอียด แคปหน้าจอแล้วแอดไลน์ตามไอดีด้านบนได้เลยครับ 🙏",
     ]
+
+
+def sanitize_no_urls(text: str) -> str:
+    out = re.sub(r"https?://\S+|www\.\S+", "", text or "", flags=re.I)
+    out = re.sub(r"[ \t]+\n", "\n", out)
+    out = re.sub(r"\n{3,}", "\n\n", out)
+    return out.strip()
+
+
+def generate_text_no_links(data: dict, lang: str = "th", *, variant: int = 0) -> str:
+    """SEO-oriented caption for group posts: images + text, no URL attachments."""
+    project = _project_display(data.get("project_name") or "", lang)
+    transit = data.get("transit_tags") or []
+    code = (data.get("code") or "RXT????").strip()
+    highlights = _extract_highlights(data, lang)
+
+    openers_th = (
+        f"🏢 {project}",
+        f"✨ ห้องว่างที่ {project}",
+        f"📍 อัปเดตห้องที่ {project}",
+        f"🔑 พร้อมเข้าอยู่ · {project}",
+    )
+    openers_en = (
+        f"🏢 {project}",
+        f"✨ Available at {project}",
+        f"📍 Update · {project}",
+        f"🔑 Ready to move in · {project}",
+    )
+    opener = (openers_en if lang == "en" else openers_th)[int(variant) % 4]
+
+    lines: list[str] = [
+        opener,
+        _headline(data, lang),
+    ]
+    lines.extend(_offer_block(data.get("rent_price", ""), data.get("sale_price", ""), lang))
+    lines.extend(_spec_block(data, lang))
+    if lang == "en":
+        lines.append("🛋 Fully Furnished — ready to move in")
+    else:
+        lines.append("🛋 Fully Furnished พร้อมเข้าอยู่")
+
+    if highlights:
+        lines.append("")
+        lines.append("✨ Highlights" if lang == "en" else "✨ จุดเด่น")
+        # rotate highlight order slightly by variant
+        hs = list(highlights)
+        if variant:
+            hs = hs[variant % len(hs) :] + hs[: variant % len(hs)]
+        for h in hs:
+            if lang == "en" and _thai_ratio(h) >= 0.2:
+                continue
+            lines.append(f"• {h}")
+
+    nearby = _nearby_block(transit, lang)
+    if nearby:
+        lines.append("")
+        lines.extend(nearby)
+
+    lines.append("")
+    lines.append(f"📌 รหัสทรัพย์ : #{code}" if lang != "en" else f"📌 Property Code : #{code}")
+    lines.append("")
+    lines.extend(_contact_footer_no_links(lang))
+    lines.append("")
+    lines.append(_hashtags(data.get("project_name") or project, lang))
+
+    text = "\n".join(ln for ln in lines if ln is not None)
+    text = re.sub(r"(?i)owner\s*post", "", text)
+    text = re.sub(r"เจ้าของปล่อย", "", text)
+    return sanitize_no_urls(text)
+
+
+def generate_caption_variants_no_links(data: dict, lang: str = "th", *, n: int = 4) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for i in range(max(1, min(int(n or 4), 8))):
+        cap = generate_text_no_links(data, lang, variant=i)
+        if cap and cap not in seen:
+            seen.add(cap)
+            out.append(cap)
+    return out
 
 
 def _headline(data: dict, lang: str) -> str:

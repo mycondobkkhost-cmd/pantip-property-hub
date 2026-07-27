@@ -2158,6 +2158,7 @@
           <button type="button" class="db-subtab" data-db-tab="transits" role="tab" aria-selected="false">BTS / MRT</button>
           <button type="button" class="db-subtab" data-db-tab="groups" role="tab" aria-selected="false">กลุ่ม FB</button>
           <button type="button" class="db-subtab" data-db-tab="comments" role="tab" aria-selected="false">คอมเมนต์กลุ่ม</button>
+          <button type="button" class="db-subtab" data-db-tab="publish" role="tab" aria-selected="false">โพสกลุ่มอัตโนมัติ</button>
           <button type="button" class="db-subtab" data-db-tab="fbconnect" role="tab" aria-selected="false">เชื่อมต่อเฟส</button>
           <button type="button" class="db-subtab" data-db-tab="sheettools" role="tab" aria-selected="false">เครื่องมือชีท</button>
         </div>
@@ -2332,6 +2333,18 @@
 
             <div class="table-wrap hidden" id="comments-panel">
         <div style="padding:12px;border-bottom:1px solid #e4e4e7">
+          <div id="comments-agent-switcher" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+            <span style="font-size:12px;color:#71717a">แดชบอร์ด Agent:</span>
+            <button type="button" class="btn-sm primary" data-comments-agent="owner" id="comments-agent-btn-owner">เจ้าของ (Mac)</button>
+            <button type="button" class="btn-sm" data-comments-agent="admin" id="comments-agent-btn-admin">แอดมิน (Windows)</button>
+            <span style="font-size:11px;color:#94a3b8">รายงานผล / คิว / สถานะเฟส แยกตามเครื่อง</span>
+            <span style="flex:1"></span>
+            <button type="button" class="btn-sm" id="comments-emergency-pause" style="background:#b91c1c;color:#fff;border-color:#991b1b;font-weight:700">⏹ หยุดงานฉุกเฉิน</button>
+            <button type="button" class="btn-sm hidden" id="comments-emergency-resume" style="background:#15803d;color:#fff;border-color:#166534;font-weight:700">▶ ทำงานต่อ</button>
+          </div>
+          <div id="comments-emergency-banner" class="hidden" style="margin-bottom:12px;padding:10px 12px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;font-size:13px;color:#991b1b;line-height:1.5">
+            <strong>⏸ หยุดงานฉุกเฉินอยู่</strong> — Agent จะไม่โพสและไม่คอมเมนต์จนกว่าจะกด「ทำงานต่อ」
+          </div>
           <div id="comments-dashboard" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
             <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
               <div style="font-size:11px;color:#71717a">สถานะเฟส</div>
@@ -2365,17 +2378,27 @@
             </div>
           </div>
           <div id="comments-ready-banner" style="display:none;margin-bottom:12px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.5"></div>
+          <div id="comments-schedule-box" style="margin-bottom:12px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+              <strong style="font-size:13px">ตารางคิวคอมเมนต์ — จะโพสต์ตอนไหน</strong>
+              <span style="font-size:11px;color:#71717a">ลิงก์ใหม่เริ่มคอมเมนต์ทันทีเมื่อ Agent พร้อม</span>
+            </div>
+            <div id="comments-schedule-list" style="font-size:13px;color:#3f3f46;line-height:1.55">กำลังโหลด…</div>
+            <p style="margin:10px 0 0;font-size:12px;color:#71717a;line-height:1.55">
+              <strong>รอบแรกเริ่มทันที</strong>หลังล็อกอิน Chrome สำเร็จ · รอบถัดไปของโพสต์เดิมประมาณ <strong>5–8 วัน</strong> ·
+              จำกัดด้วย「รอบ/วัน」และ「วันสิ้นสุด」· Agent เช็คคิวประมาณทุก 5 นาที
+            </p>
+          </div>
           <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;align-items:end">
-            <label style="flex:1;min-width:220px">
-              <span style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">ค้นหา+เพิ่มรหัสทรัพย์ (รหัส/โครงการ)</span>
-              <input type="text" id="comments-code-add" placeholder="พิมพ์รหัส/ชื่อโครงการ เช่น PTP1234, life asoke" style="width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px" />
-            </label>
             <button type="button" class="btn-sm primary" id="comments-code-add-btn">+ เพิ่มรหัส</button>
+            <label style="flex:1;min-width:200px">
+              <span style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">กรองรหัสในตาราง</span>
+              <input type="search" id="comments-codes-filter" placeholder="กรองรหัสที่เพิ่มแล้ว เช่น PTP82" style="width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px" />
+            </label>
             <button type="button" class="btn-sm" id="comments-codes-refresh">รีเฟรช</button>
             <button type="button" class="btn-sm" id="comments-goto-fbconnect">ตั้งค่าเฟส</button>
             <span id="comments-codes-stats" style="font-size:11px;color:#71717a;align-self:center"></span>
           </div>
-          <div id="comments-code-suggest" class="hidden" style="margin-top:8px;border:1px solid #e5e7eb;border-radius:8px;max-height:280px;overflow:auto;background:#fff"></div>
           <div id="comments-code-editor" class="hidden" style="margin-top:12px;padding-top:10px;border-top:1px solid #eee">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
               <strong id="comments-editor-title">แก้ไขรหัส</strong>
@@ -2402,8 +2425,11 @@
                 <input type="date" id="comments-editor-end-date" />
               </label>
               <label>
-                <span>สูงสุดคอมเมนต์ต่อลิงก์</span>
-                <input type="number" id="comments-editor-max-link" min="1" max="10" step="1" />
+                <span>Agent ที่รับผิดชอบ</span>
+                <select id="comments-editor-agent">
+                  <option value="owner">เจ้าของ (Mac)</option>
+                  <option value="admin">แอดมิน (Windows)</option>
+                </select>
               </label>
             </div>
             <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
@@ -2429,7 +2455,7 @@
                   <tr>
                     <th>ลิงก์โพสต์</th>
                     <th style="width:80px">สถานะ</th>
-                    <th style="width:70px">รอบ</th>
+                    <th style="width:70px">ครั้ง</th>
                     <th style="width:130px">คิวถัดไป</th>
                     <th style="width:140px">จัดการ</th>
                   </tr>
@@ -2443,12 +2469,14 @@
           <table>
             <thead>
               <tr>
+                <th style="width:36px"></th>
                 <th>รหัส</th>
-                <th style="width:90px">Active</th>
-                <th style="width:100px">ลิงก์</th>
-                <th style="width:110px">ถึงคิว</th>
-                <th>การตั้งค่า</th>
-                <th style="width:160px">จัดการ</th>
+                <th style="width:80px">Active</th>
+                <th style="width:90px">ลิงก์</th>
+                <th style="width:90px">ถึงคิว</th>
+                <th style="width:130px">โพสถัดไป</th>
+                <th>รายงาน / การตั้งค่า</th>
+                <th style="width:150px">จัดการ</th>
               </tr>
             </thead>
             <tbody id="comments-codes-rows"></tbody>
@@ -2456,15 +2484,108 @@
         </div>
       </div>
 
+      <div class="table-wrap hidden" id="publish-panel">
+        <div style="padding:12px;border-bottom:1px solid #e4e4e7">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+            <strong style="font-size:15px">โพสกลุ่มอัตโนมัติ · หลายบัญชีเฟส</strong>
+            <span style="font-size:12px;color:#71717a">รูป + ข้อความ · ไม่แนบลิงก์ · LINE ID เท่านั้น · กระจาย ~3 บัญชี</span>
+            <span style="flex:1"></span>
+            <button type="button" class="btn-sm" id="publish-goto-fbconnect">ตั้งค่าบัญชีเฟส</button>
+            <button type="button" class="btn-sm" id="publish-refresh">รีเฟรช</button>
+          </div>
+          <div id="publish-dash" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px">
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+              <div style="font-size:11px;color:#71717a">โพสวันนี้</div>
+              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-today">—</div>
+            </div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+              <div style="font-size:11px;color:#71717a">คิวค้าง</div>
+              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-pending">—</div>
+            </div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+              <div style="font-size:11px;color:#71717a">โดนจำกัด</div>
+              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-restricted">—</div>
+            </div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+              <div style="font-size:11px;color:#71717a">บัญชีที่ลงทะเบียน</div>
+              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-accounts">—</div>
+            </div>
+          </div>
+          <div id="publish-by-account" style="margin-bottom:12px;font-size:12px;color:#52525b"></div>
+
+          <div style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fafafa;margin-bottom:14px">
+            <strong style="font-size:14px">สร้างแคมเปญโพส</strong>
+            <p style="margin:6px 0 10px;font-size:12px;color:#71717a;line-height:1.55">
+              เลือกรหัสทรัพย์ + กลุ่มจากแนะนำ → ระบบสร้างแคปชันหลายเวอร์ชัน (ไม่มี URL) · กระจายงานให้ 3 บัญชีตาม daily cap
+              (เริ่มวอร์ม ~15/บัญชี/วัน → สูงสุด 35 · รวมใกล้ 100)
+            </p>
+            <div class="add-grid">
+              <label>
+                <span>รหัสทรัพย์</span>
+                <input type="text" id="publish-code" placeholder="เช่น PTP8236" />
+              </label>
+              <label>
+                <span>Agent</span>
+                <select id="publish-agent">
+                  <option value="owner">เจ้าของ (Mac)</option>
+                  <option value="admin">แอดมิน (Windows)</option>
+                </select>
+              </label>
+              <label class="add-wide">
+                <span>แคปชัน (ว่าง = สร้างอัตโนมัติแบบไม่มีลิงก์)</span>
+                <textarea id="publish-caption" rows="4" placeholder="ปล่อยว่างให้ระบบสร้าง · หรือวางข้อความเอง (URL จะถูกลบ)"></textarea>
+              </label>
+              <label class="add-wide">
+                <span>URL รูป (คั่นบรรทัด · ว่าง = ดึงจากโพสหน้าเพจ)</span>
+                <textarea id="publish-images" rows="2" placeholder="https://…&#10;https://…"></textarea>
+              </label>
+            </div>
+            <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+              <button type="button" class="btn-sm" id="publish-gen-caption">สร้างแคปชัน no-link</button>
+              <button type="button" class="btn-sm" id="publish-load-groups">โหลดกลุ่มแนะนำ</button>
+              <button type="button" class="btn-sm primary" id="publish-create">สร้างคิวโพส</button>
+              <span id="publish-create-hint" style="font-size:12px;color:#71717a;align-self:center"></span>
+            </div>
+            <div id="publish-variants" style="margin-top:8px;font-size:12px;color:#52525b;white-space:pre-wrap"></div>
+            <div id="publish-groups-pick" style="margin-top:10px;max-height:220px;overflow:auto;font-size:13px"></div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <strong style="font-size:13px">คิวโพสล่าสุด</strong>
+            <span style="font-size:11px;color:#71717a">หน่วง 3–8 นาที · คูลดาวน์กลุ่ม ~3 วัน · หยุดบัญชีอัตโนมัติเมื่อถูกจำกัด</span>
+          </div>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:90px">รหัส</th>
+                <th>กลุ่ม</th>
+                <th style="width:100px">บัญชี</th>
+                <th style="width:90px">สถานะ</th>
+                <th style="width:140px">นัดโพส</th>
+                <th style="width:100px">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="publish-jobs-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="table-wrap hidden" id="fb-connect-panel">
         <div style="padding:12px">
           <div id="fb-agent-panel" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fafafa">
+            <div id="fb-agent-switcher" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+              <span style="font-size:12px;color:#71717a">ตั้งค่า Agent:</span>
+              <button type="button" class="btn-sm primary" data-fb-agent="owner" id="fb-agent-btn-owner">เจ้าของ (Mac)</button>
+              <button type="button" class="btn-sm" data-fb-agent="admin" id="fb-agent-btn-admin">แอดมิน (Windows)</button>
+            </div>
             <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
               <div style="flex:1;min-width:240px">
-                <strong style="font-size:15px">เชื่อมต่อ Facebook (เฟสส่วนตัว)</strong>
+                <strong style="font-size:15px">เชื่อมต่อ Facebook — <span id="fb-agent-title-label">เจ้าของ (Mac)</span></strong>
                 <p style="margin:6px 0 0;font-size:13px;color:#3f3f46;line-height:1.6">
-                  หน้านี้ใช้<strong>ตั้งค่าเฟสและเปิดเครื่องทำงาน</strong>เท่านั้น ·
-                  จัดการคิวคอมเมนต์อยู่แท็บ <strong>คอมเมนต์กลุ่ม</strong>
+                  เปิดได้พร้อมกัน 2 เครื่อง: คุณบน Mac ใช้เฟสส่วนตัว · น้องแอดมินบน Windows ใช้เฟสทำงาน ·
+                  แต่ละเครื่องมีรายงานผลและคิวแยกกัน
                 </p>
               </div>
               <div style="min-width:220px;padding:12px 14px;border-radius:10px;background:#fff;border:1px solid #e5e7eb;font-size:13px;line-height:1.65">
@@ -2473,7 +2594,11 @@
                 <div>บัญชีเฟส: <strong id="fb-agent-fb-label">—</strong></div>
                 <div style="font-size:12px;color:#52525b;margin-top:6px" id="fb-agent-msg">—</div>
                 <div style="font-size:11px;color:#71717a" id="fb-agent-lastrun">—</div>
-                <button type="button" class="btn-sm" id="fb-agent-refresh" style="margin-top:8px">เช็คสถานะใหม่</button>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+                  <button type="button" class="btn-sm" id="fb-agent-refresh">เช็คสถานะใหม่</button>
+                  <button type="button" class="btn-sm" id="fb-agent-emergency-pause" style="background:#b91c1c;color:#fff;border-color:#991b1b">⏹ หยุดงาน</button>
+                  <button type="button" class="btn-sm hidden" id="fb-agent-emergency-resume" style="background:#15803d;color:#fff;border-color:#166534">▶ ทำงานต่อ</button>
+                </div>
               </div>
             </div>
 
@@ -2531,20 +2656,50 @@
             </div>
 
             <div style="margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid #e5e7eb">
-              <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 2 — กดล็อกอิน แล้วล็อกอินในหน้าต่าง Chrome</div>
+              <div style="font-weight:700;font-size:14px;margin-bottom:6px">ขั้นที่ 2 — กดล็อกอิน แล้วใช้เฟสใน Chrome</div>
+              <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e3a8a;line-height:1.55">
+                <strong>เลือกโปรไฟล์ Chrome ด้านล่าง</strong> แล้วเปิด
+                <code>scripts/mac/เปิดChromeจริงสำหรับAgent.command</code>
+                — จะใช้บัญชีที่เคยล็อกอินในโปรไฟล์นั้น (ลดโดน 2FA)
+              </div>
+              <div style="margin:0 0 12px;padding:12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0">
+                <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+                  <div style="font-weight:700;font-size:13px">โปรไฟล์ Chrome บนคอมนี้</div>
+                  <div style="font-size:12px;color:#64748b" id="fb-chrome-profile-selected">ยังไม่ได้เลือก</div>
+                </div>
+                <div id="fb-chrome-profile-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;max-height:280px;overflow:auto">
+                  <div style="font-size:12px;color:#94a3b8">เปิดระบบคอมเมนต์ก่อน — Agent จะดึงรายชื่อโปรไฟล์มาให้เลือก</div>
+                </div>
+              </div>
               <ol style="margin:0 0 10px;padding-left:20px;font-size:13px;color:#3f3f46;line-height:1.7">
-                <li>ตรวจว่าขั้นที่ 1 เปิดอยู่ (สถานะ「ทำงานอยู่」)</li>
-                <li>กดปุ่มด้านล่าง — ระบบเปิดหน้าต่าง Chrome ให้เอง</li>
-                <li><strong>ล็อกอินเฟสในหน้าต่างนั้น</strong> ด้วยบัญชีที่ต้องการ</li>
-                <li>พอสำเร็จ Chrome <strong>จะไม่ปิดเอง</strong> — เปิดค้างให้ดูว่าเข้าบัญชีถูก</li>
-                <li>ดูช่อง「รายงานการทำงาน」ด้านล่าง ว่าระบบกำลังทำอะไร · จากนั้นไปแท็บคอมเมนต์กลุ่มเพิ่มลิงก์</li>
+                <li>เลือกโปรไฟล์จากหน้ารวมด้านบน</li>
+                <li>เปิด Chrome จริงโหมด Agent (ไฟล์ในเครื่อง)</li>
+                <li>กดปุ่มด้านล่างให้ระบบเชื่อม · <strong>อย่าปิด Chrome</strong></li>
+                <li>ดูช่อง「รายงานการทำงาน」ว่าสำเร็จ แล้วไปแท็บคอมเมนต์กลุ่ม</li>
               </ol>
               <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:12px;color:#065f46;line-height:1.55">
-                สลับบัญชี: ใน Chrome กดล็อกเอาท์ → กลับมากดปุ่มล็อกอินอีกครั้ง → ล็อกอินบัญชีใหม่
+                สลับบัญชีกลางทาง: กด「หยุดงานฉุกเฉิน」→ เลือกโปรไฟล์ใหม่ → เปิด Chrome ใหม่ → กด「ทำงานต่อ」
+              </div>
+              <div style="margin:0 0 12px;padding:12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa">
+                <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+                  <div style="font-weight:700;font-size:13px">บัญชีเฟสในโปรไฟล์นี้ (~3 บัญชี)</div>
+                  <button type="button" class="btn-sm" id="fb-accounts-save">บันทึกบัญชี</button>
+                </div>
+                <p style="margin:0 0 8px;font-size:12px;color:#9a3412;line-height:1.5">
+                  ล็อกอิน 3 บัญชีไว้ใน Chrome โปรไฟล์งาน · ใส่ชื่อให้ตรงกับชื่อที่เห็นในตัวสลับบัญชีเฟส ·
+                  daily_cap เริ่ม 15 (วอร์ม) สูงสุด 35 ต่อบัญชี
+                </p>
+                <div id="fb-accounts-editor" style="display:grid;gap:8px"></div>
+                <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+                  <button type="button" class="btn-sm" id="fb-accounts-add-row">+ เพิ่มแถว</button>
+                  <button type="button" class="btn-sm" id="fb-accounts-warmup">เพิ่ม daily_cap ~30% (วอร์มรายสัปดาห์)</button>
+                  <span id="fb-accounts-hint" style="font-size:12px;color:#71717a;align-self:center"></span>
+                </div>
               </div>
               <div class="toolbar-row" style="gap:8px;flex-wrap:wrap">
                 <button type="button" class="btn-sm primary" id="fb-agent-request-login">เปิดหน้าต่างล็อกอินเฟส</button>
                 <button type="button" class="btn-sm" id="fbconnect-goto-comments">ไปแท็บคอมเมนต์กลุ่ม →</button>
+                <button type="button" class="btn-sm" id="fbconnect-goto-publish">ไปแท็บโพสกลุ่ม →</button>
               </div>
               <div style="margin-top:12px;padding:12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0">
                 <div style="font-weight:700;font-size:13px;margin-bottom:6px">รายงานการทำงาน (ดูตรงนี้ว่าระบบทำอะไรอยู่)</div>
@@ -2898,8 +3053,8 @@
           <div class="toolbar-row" style="margin-top:10px;gap:8px;flex-wrap:wrap;align-items:center">
             <button type="button" class="btn-sm primary" id="group-post-link-save">บันทึกลงคิวคอมเมนต์</button>
             <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#52525b">
-              <input type="checkbox" id="group-post-link-now" style="width:auto" />
-              คอมเมนต์รอบแรกเร็วขึ้น (ไม่รอ 3–12 ชม.)
+              <input type="checkbox" id="group-post-link-now" style="width:auto" checked />
+              เริ่มคอมเมนต์รอบแรกทันที (แนะนำ)
             </label>
             <span id="group-post-link-hint" style="font-size:11px;color:#71717a"></span>
           </div>
@@ -2967,6 +3122,21 @@
         <button type="button" class="btn-sm" id="queue-link-open">เปิดลิงก์</button>
         <button type="button" class="btn-sm" id="queue-link-close">ปิด</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="comments-add-code-modal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" style="max-width:min(960px,96vw);width:100%;max-height:92dvh;display:flex;flex-direction:column;padding:16px;border-radius:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <div>
+          <h3 style="margin:0;font-size:18px">เพิ่มรหัสคอมเมนต์</h3>
+          <p style="margin:6px 0 0;font-size:12px;color:#64748b;line-height:1.5">ค้นหารหัสหรือชื่อโครงการ · เรียงใหม่→เก่า · กดเลือกแล้วใส่ลิงก์กลุ่มได้สูงสุด 20</p>
+        </div>
+        <button type="button" class="btn-sm" id="comments-add-modal-close">ปิด</button>
+      </div>
+      <input type="search" id="comments-add-modal-q" placeholder="พิมพ์รหัสหรือโครงการ เช่น PTP8235, niche, life asoke" autocomplete="off" style="width:100%;padding:12px 14px;border:1px solid #d4d4d8;border-radius:10px;font-size:15px;margin-bottom:10px" />
+      <div id="comments-add-modal-meta" style="font-size:12px;color:#71717a;margin-bottom:8px">พิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา</div>
+      <div id="comments-add-modal-results" style="flex:1;overflow:auto;min-height:260px;max-height:min(62dvh,580px);border:1px solid #e5e7eb;border-radius:10px;background:#fafafa"></div>
     </div>
   </div>
 
@@ -6556,17 +6726,20 @@
     }
 
     function propertyPreviewSourceUrl(p) {
-      // ดึงรูปจาก「โพสต์บนเพจ」เท่านั้น
+      // Prefer page post; fall back to profile/source post so thumbs still show
       var page = (p.post_pages_url || "").trim();
-      return isHttpUrl(page) ? page : "";
+      if (isHttpUrl(page)) return page;
+      var src = (p.source_url || "").trim();
+      if (isHttpUrl(src)) return src;
+      return "";
     }
 
     function thumbCellHtml(p, previewUrl) {
       if (!previewUrl) {
-        return '<div class="prop-thumb-ph">ไม่มี<br/>เพจ</div>';
+        return '<div class="prop-thumb-ph">ไม่มี<br/>รูป</div>';
       }
       // โหลดทีละใบผ่านคิว — กันยิง Facebook พร้อมกันแล้วเซิร์ฟเวอร์ค้าง
-      return '<div class="prop-thumb-ph" data-thumb-url="' + esc(previewUrl) + '" title="กำลังดึงรูปจากโพสต์เพจ">…</div>';
+      return '<div class="prop-thumb-ph" data-thumb-url="' + esc(previewUrl) + '" title="กำลังดึงรูป">…</div>';
     }
 
     function priceStackHtml(p) {
@@ -6619,6 +6792,7 @@
     function markThumbRetry(el, url) {
       if (!el || !el.isConnected) return;
       el.innerHTML = '<button type="button" class="prop-thumb-ph" data-thumb-retry="' + esc(url) + '" style="cursor:pointer;border:0">ไม่มีรูป<br/>แตะใหม่</button>';
+      el.title = "เซิร์ฟเวอร์คลาวด์ดึงจาก Facebook ไม่ได้ — เปิด Agent บน Mac จะดึงรูปให้อัตโนมัติ หรือแตะเพื่อลองใหม่";
     }
 
     function loadThumbForEl(el) {
@@ -7112,7 +7286,7 @@
     }
 
     function switchDbTab(tab) {
-      var allowed = { projects: 1, groups: 1, zones: 1, transits: 1, sheettools: 1, comments: 1, fbconnect: 1 };
+      var allowed = { projects: 1, groups: 1, zones: 1, transits: 1, sheettools: 1, comments: 1, publish: 1, fbconnect: 1 };
       activeDbTab = allowed[tab] ? tab : "projects";
       document.querySelectorAll("#db-subnav .db-subtab").forEach(function (b) {
         var on = b.getAttribute("data-db-tab") === activeDbTab;
@@ -7122,6 +7296,7 @@
       var projPanel = document.getElementById("projects-panel");
       var grpPanel = document.getElementById("groups-panel");
       var commentsPanel = document.getElementById("comments-panel");
+      var publishPanel = document.getElementById("publish-panel");
       var fbConnectPanel = document.getElementById("fb-connect-panel");
       var zonesPanel = document.getElementById("zones-panel");
       var transitsPanel = document.getElementById("transits-panel");
@@ -7129,6 +7304,7 @@
       if (projPanel) projPanel.classList.toggle("hidden", activeDbTab !== "projects");
       if (grpPanel) grpPanel.classList.toggle("hidden", activeDbTab !== "groups");
       if (commentsPanel) commentsPanel.classList.toggle("hidden", activeDbTab !== "comments");
+      if (publishPanel) publishPanel.classList.toggle("hidden", activeDbTab !== "publish");
       if (fbConnectPanel) fbConnectPanel.classList.toggle("hidden", activeDbTab !== "fbconnect");
       if (zonesPanel) zonesPanel.classList.toggle("hidden", activeDbTab !== "zones");
       if (transitsPanel) transitsPanel.classList.toggle("hidden", activeDbTab !== "transits");
@@ -7140,6 +7316,7 @@
         subEl.textContent = ({
           groups: "สมุดกลุ่ม Facebook สำหรับโพสต์",
           comments: "แดชบอร์ด + คิวคอมเมนต์กลุ่มอัตโนมัติ",
+          publish: "แคมเปญโพสกลุ่ม · หลายบัญชี · ไม่แนบลิงก์",
           fbconnect: "ตั้งค่าเฟสส่วนตัว · เปิดเครื่องทำงาน · ล็อกอิน",
           zones: "มาสเตอร์ทำเล / โซน · ค้นหา · เพิ่ม",
           transits: "มาสเตอร์ BTS / MRT · ค้นหา · เพิ่ม",
@@ -7152,6 +7329,9 @@
         loadGroupsBook();
       } else if (activeDbTab === "comments") {
         loadCommentsQueue();
+        loadFbAgentStatus();
+      } else if (activeDbTab === "publish") {
+        loadPublishPanel();
         loadFbAgentStatus();
       } else if (activeDbTab === "fbconnect") {
         loadFbAgentStatus();
@@ -7189,6 +7369,8 @@
       document.getElementById("groups-panel").classList.toggle("hidden", view !== "db" || activeDbTab !== "groups");
       var commentsPanel = document.getElementById("comments-panel");
       if (commentsPanel) commentsPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "comments");
+      var publishPanel = document.getElementById("publish-panel");
+      if (publishPanel) publishPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "publish");
       var fbConnectPanel = document.getElementById("fb-connect-panel");
       if (fbConnectPanel) fbConnectPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "fbconnect");
       var zonesPanel = document.getElementById("zones-panel");
@@ -7209,6 +7391,7 @@
         db: ["ฐานข้อมูล", ({
           groups: "สมุดกลุ่ม Facebook สำหรับโพสต์",
           comments: "แดชบอร์ด + คิวคอมเมนต์กลุ่มอัตโนมัติ",
+          publish: "แคมเปญโพสกลุ่ม · หลายบัญชี · ไม่แนบลิงก์",
           fbconnect: "ตั้งค่าเฟสส่วนตัว · เปิดเครื่องทำงาน · ล็อกอิน",
           zones: "มาสเตอร์ทำเล / โซน · ค้นหา · เพิ่ม",
           transits: "มาสเตอร์ BTS / MRT · ค้นหา · เพิ่ม",
@@ -8126,6 +8309,81 @@
     var commentsCodesCache = [];
     var commentsCurrentCode = "";
     var commentsCurrentLinks = [];
+    var commentsExpandedCodes = {};
+    var commentsSelectedAgentId = localStorage.getItem("ptp_comments_agent") || "owner";
+    var fbSelectedAgentId = localStorage.getItem("ptp_fb_agent") || "owner";
+    var commentsAgentsCache = [];
+
+    function agentLabel(id) {
+      var aid = String(id || "owner");
+      var hit = (commentsAgentsCache || []).find(function (a) { return a.id === aid; });
+      if (hit && hit.label) return hit.label;
+      return aid === "admin" ? "แอดมิน (Windows)" : "เจ้าของ (Mac)";
+    }
+
+    function formatCountdown(sec) {
+      if (sec == null || sec === "") return "—";
+      var n = Number(sec);
+      if (isNaN(n)) return "—";
+      if (n <= 0) return "ถึงคิวแล้ว";
+      var h = Math.floor(n / 3600);
+      var m = Math.floor((n % 3600) / 60);
+      var s = Math.floor(n % 60);
+      if (h > 0) return "อีก " + h + " ชม. " + m + " นาที";
+      if (m > 0) return "อีก " + m + " นาที" + (s > 0 ? " " + s + " วิ" : "");
+      return "อีก " + s + " วิ";
+    }
+
+    function nextInSecFromAt(at) {
+      if (!at) return null;
+      var t = Date.parse(String(at).replace(" ", "T"));
+      if (isNaN(t)) return null;
+      return Math.floor((t - Date.now()) / 1000);
+    }
+
+    function commentActionLabel(action) {
+      return ({
+        commented: "คอมเมนต์สำเร็จ",
+        comment_failed: "คอมเมนต์ไม่สำเร็จ",
+        join_requested: "ส่งคำขอเข้ากลุ่มแล้ว",
+        join_pending: "รออนุมัติเข้ากลุ่ม",
+        join_needed: "กลุ่มปิด — ต้องขอเข้า",
+        join_clicked: "กดขอเข้ากลุ่มแล้ว",
+        join_failed: "ขอเข้ากลุ่มไม่สำเร็จ",
+        comment_box_missing: "หาช่องคอมเมนต์ไม่เจอ",
+        navigate_failed: "เปิดโพสต์ไม่ได้",
+        skipped: "ข้าม"
+      })[action] || action || "";
+    }
+
+    function commentResultText(it) {
+      var parts = [];
+      if (it.last_action) parts.push(commentActionLabel(it.last_action));
+      if (it.join_status) {
+        var js = ({
+          requested: "สถานะเข้ากลุ่ม: ส่งคำขอแล้ว",
+          pending: "สถานะเข้ากลุ่ม: รออนุมัติ",
+          needed: "สถานะเข้ากลุ่ม: ยังไม่ได้เป็นสมาชิก",
+          clicked: "สถานะเข้ากลุ่ม: กดแล้ว",
+          failed: "สถานะเข้ากลุ่ม: ไม่สำเร็จ"
+        })[it.join_status] || ("สถานะเข้ากลุ่ม: " + it.join_status);
+        parts.push(js);
+      }
+      if (it.last_result_detail) parts.push(it.last_result_detail);
+      if (it.last_error) parts.push("เหตุผล: " + it.last_error);
+      return parts.length ? parts.join(" · ") : "ยังไม่มีรายงาน";
+    }
+
+    function syncAgentSwitcherButtons() {
+      ["owner", "admin"].forEach(function (id) {
+        var cbtn = document.getElementById("comments-agent-btn-" + id);
+        if (cbtn) cbtn.classList.toggle("primary", commentsSelectedAgentId === id);
+        var fbtn = document.getElementById("fb-agent-btn-" + id);
+        if (fbtn) fbtn.classList.toggle("primary", fbSelectedAgentId === id);
+      });
+      var title = document.getElementById("fb-agent-title-label");
+      if (title) title.textContent = agentLabel(fbSelectedAgentId);
+    }
 
     function commentStatusLabel(status) {
       return ({
@@ -8137,34 +8395,108 @@
       })[status] || status || "—";
     }
 
+    function renderCodeLinksDropdown(links) {
+      links = links || [];
+      if (!links.length) {
+        return '<div style="padding:10px 12px;font-size:12px;color:#71717a">ยังไม่มีลิงก์กลุ่มในรหัสนี้ — กดแก้ไขเพื่อเพิ่ม</div>';
+      }
+      return '<div style="padding:8px 10px">' + links.map(function (it) {
+        var url = it.post_url || "";
+        var gname = it.group_name || "กลุ่มเฟส";
+        var whenSec = nextInSecFromAt(it.next_comment_at);
+        var when = whenSec == null
+          ? (it.next_comment_at || "—")
+          : (whenSec <= 0 ? "ถึงคิวแล้ว" : formatCountdown(whenSec));
+        var detail = commentResultText(it);
+        return '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;padding:10px 0;border-top:1px solid #f1f5f9">' +
+          '<div style="flex:1;min-width:200px">' +
+            '<div style="font-weight:600;font-size:13px">' + esc(gname) +
+              ' <span style="font-weight:400;color:#64748b">· ' + esc(commentStatusLabel(it.status)) +
+              ' · คอมเมนต์แล้ว ' + esc(String(it.comment_count || 0)) + ' ครั้ง</span></div>' +
+            '<div style="font-size:11px;color:#64748b;margin-top:4px">โพสถัดไป: ' + esc(when) +
+              (it.next_comment_at ? ' <span style="color:#94a3b8">(' + esc(it.next_comment_at) + ')</span>' : '') + '</div>' +
+            '<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.5">' + esc(detail) + '</div>' +
+            '<div style="font-size:11px;color:#94a3b8;margin-top:4px;word-break:break-all">' + esc(url) + '</div>' +
+          '</div>' +
+          (isHttpUrl(url)
+            ? '<a class="btn-sm primary" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" style="text-decoration:none;align-self:center">เปิดโพสต์</a>'
+            : '') +
+        '</div>';
+      }).join("") + '</div>';
+    }
+
     function renderCommentCodes() {
       var tbody = document.getElementById("comments-codes-rows");
       if (!tbody) return;
-      var q = ((document.getElementById("comments-code-add") || {}).value || "").trim().toLowerCase();
+      var q = ((document.getElementById("comments-codes-filter") || {}).value || "").trim().toLowerCase();
       var rows = commentsCodesCache.filter(function (it) {
         if (!q) return true;
         return String(it.code || "").toLowerCase().indexOf(q) >= 0;
       });
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty"><p>ยังไม่มีรหัสในคิวคอมเมนต์ — กด + เพิ่มรหัส</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="empty"><p>ยังไม่มีรหัสในคิวคอมเมนต์ของ Agent นี้ — กด + เพิ่มรหัส</p></td></tr>';
         return;
       }
       tbody.innerHTML = rows.map(function (it) {
         var s = it.settings || {};
         var freq = String(s.max_per_day || 10) + " รอบ/วัน";
         var endDate = s.end_date || "—";
-        return "<tr>" +
-          "<td><strong>" + esc(it.code || "—") + "</strong></td>" +
-          "<td><label class=\"ios-switch is-small\"><input type=\"checkbox\" data-comment-toggle-code=\"" + esc(it.code) + "\" " + (it.active ? "checked" : "") + " /><span class=\"slider\"><span class=\"knob\"></span></span></label></td>" +
+        var code = String(it.code || "");
+        var expanded = !!commentsExpandedCodes[code];
+        var sec = it.next_in_sec != null ? Number(it.next_in_sec) : nextInSecFromAt(it.next_comment_at);
+        var countdown = formatCountdown(sec);
+        var reportBits = [];
+        var links = it.links || [];
+        var failed = links.filter(function (l) { return l.status === "failed"; }).length;
+        var joinPend = links.filter(function (l) {
+          return l.join_status === "requested" || l.join_status === "pending" || l.last_action === "join_requested";
+        }).length;
+        if (failed) reportBits.push("ล้มเหลว " + failed);
+        if (joinPend) reportBits.push("รอเข้ากลุ่ม " + joinPend);
+        var report = reportBits.length ? reportBits.join(" · ") : (freq + " · สิ้นสุด " + endDate);
+        var arrow = expanded ? "▼" : "▶";
+        var main = "<tr data-code-row=\"" + esc(code) + "\">" +
+          '<td><button type="button" class="btn-sm" data-comment-expand="' + esc(code) + '" title="ดูรายการกลุ่ม" style="min-width:28px;padding:4px 6px">' + arrow + "</button></td>" +
+          "<td><strong>" + esc(code || "—") + "</strong></td>" +
+          "<td><label class=\"ios-switch is-small\"><input type=\"checkbox\" data-comment-toggle-code=\"" + esc(code) + "\" " + (it.active ? "checked" : "") + " /><span class=\"slider\"><span class=\"knob\"></span></span></label></td>" +
           "<td>" + esc(String(it.link_count || 0)) + "/20</td>" +
           "<td>" + esc(String(it.due_count || 0)) + "</td>" +
-          "<td style=\"font-size:11px\">" + esc(freq) + " · สิ้นสุด " + esc(endDate) + "</td>" +
+          '<td style="font-size:12px;font-weight:600;color:' + ((sec != null && sec <= 0) ? "#137333" : "#15202b") + '" data-countdown-code="' + esc(code) + '">' + esc(countdown) + "</td>" +
+          "<td style=\"font-size:11px;line-height:1.45\">" + esc(report) + "</td>" +
           '<td><div class="group-actions">' +
-            '<button type="button" class="btn-sm" data-comment-edit-code="' + esc(it.code) + '">แก้ไข</button>' +
-            '<button type="button" class="btn-sm" data-comment-delete-code="' + esc(it.code) + '">ลบ</button>' +
+            '<button type="button" class="btn-sm" data-comment-edit-code="' + esc(code) + '">แก้ไข</button>' +
+            '<button type="button" class="btn-sm" data-comment-delete-code="' + esc(code) + '">ลบ</button>' +
           "</div></td>" +
           "</tr>";
+        if (!expanded) return main;
+        return main +
+          '<tr class="comment-links-expand" data-expand-for="' + esc(code) + '"><td colspan="8" style="background:#f8fafc;padding:0">' +
+            renderCodeLinksDropdown(links) +
+          "</td></tr>";
       }).join("");
+    }
+
+    function tickCommentCountdowns() {
+      (commentsCodesCache || []).forEach(function (it) {
+        var code = String(it.code || "");
+        var el = document.querySelector('[data-countdown-code="' + code.replace(/"/g, '\\"') + '"]');
+        if (!el) return;
+        var sec = nextInSecFromAt(it.next_comment_at);
+        if (sec == null && it.next_in_sec != null) {
+          // drift from last poll
+          sec = Number(it.next_in_sec);
+        }
+        if (sec == null) return;
+        it.next_in_sec = Math.max(0, sec);
+        el.textContent = formatCountdown(sec);
+        el.style.color = sec <= 0 ? "#137333" : "#15202b";
+      });
+      // refresh expanded link "when" texts lightly by re-render if any expanded
+      var any = Object.keys(commentsExpandedCodes).some(function (k) { return commentsExpandedCodes[k]; });
+      if (any) {
+        // only update countdown cells in expanded panels via re-render of dropdowns is heavy;
+        // skip — main row countdown is enough for realtime
+      }
     }
 
     function renderCommentCodeLinks(links) {
@@ -8177,10 +8509,14 @@
       }
       tbody.innerHTML = links.map(function (it) {
         var url = it.post_url || "";
+        var detail = commentResultText(it);
         return "<tr>" +
-          "<td style=\"font-size:12px;word-break:break-all\">" + esc(url || "—") + "</td>" +
+          "<td style=\"font-size:12px;word-break:break-all\">" +
+            esc(it.group_name ? (it.group_name + " — ") : "") + esc(url || "—") +
+            '<div style="font-size:11px;color:#64748b;margin-top:4px;line-height:1.45">' + esc(detail) + "</div>" +
+          "</td>" +
           "<td>" + esc(commentStatusLabel(it.status)) + "</td>" +
-          "<td>" + esc(String(it.comment_count || 0)) + "/" + esc(String(it.max_comments || 3)) + "</td>" +
+          "<td>" + esc(String(it.comment_count || 0)) + "</td>" +
           "<td style=\"font-size:11px\">" + esc(it.next_comment_at || "—") + "</td>" +
           '<td><div class="group-actions" style="flex-wrap:wrap">' +
             (isHttpUrl(url)
@@ -8197,8 +8533,9 @@
       var statsEl = document.getElementById("comments-codes-stats");
       var tbody = document.getElementById("comments-codes-rows");
       try {
-        var data = await apiGet("/api/comment-codes");
+        var data = await apiGet("/api/comment-codes?agent=" + encodeURIComponent(commentsSelectedAgentId));
         commentsCodesCache = (data && data.items) || [];
+        commentsAgentsCache = (data && data.agents) || commentsAgentsCache;
         var dash = (data && data.dashboard) || {};
         if (statsEl) {
           var activeN = dash.codes_active != null
@@ -8207,12 +8544,13 @@
           var linksN = dash.links_total != null
             ? dash.links_total
             : commentsCodesCache.reduce(function (a, b) { return a + Number(b.link_count || 0); }, 0);
-          statsEl.textContent = "รหัส " + commentsCodesCache.length + " · เปิดใช้งาน " + activeN + " · ลิงก์รวม " + linksN;
+          statsEl.textContent = agentLabel(commentsSelectedAgentId) + " · รหัส " + commentsCodesCache.length + " · เปิดใช้ " + activeN + " · ลิงก์ " + linksN;
         }
+        syncAgentSwitcherButtons();
         renderCommentsDashboard(dash, data && data.dashboard && data.dashboard.fb);
         renderCommentCodes();
       } catch (e) {
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="empty"><p>' + esc(e.message || "โหลดไม่ได้") + "</p></td></tr>";
+        if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="empty"><p>' + esc(e.message || "โหลดไม่ได้") + "</p></td></tr>";
         if (statsEl) statsEl.textContent = "โหลดไม่ได้";
       }
     }
@@ -8247,6 +8585,7 @@
       setText("cdash-codes", String(activeN) + "/" + String(totalN));
       setText("cdash-codes-sub", "ลิงก์รวม " + (dash.links_total != null ? dash.links_total : 0));
       setText("cdash-due", String(dash.due_total != null ? dash.due_total : 0));
+      renderCommentsSchedule(dash.upcoming || []);
 
       var banner = document.getElementById("comments-ready-banner");
       if (banner) {
@@ -8255,7 +8594,7 @@
           banner.style.background = "#e7f6ee";
           banner.style.border = "1px solid #b7e4c7";
           banner.style.color = "#137333";
-          banner.innerHTML = "ระบบพร้อมทำงาน — เพิ่มรหัส/ลิงก์ด้านล่างได้เลย";
+          banner.innerHTML = "ระบบพร้อมทำงาน — ดูตารางคิวด้านล่างว่าจะคอมเมนต์ตอนไหน · เพิ่มรหัส/ลิงก์ได้เลย";
         } else {
           banner.style.display = "block";
           banner.style.background = "#fff8eb";
@@ -8264,6 +8603,31 @@
           banner.innerHTML = "ระบบยังไม่พร้อม (เฟสหรือคอมยังไม่พร้อม) — กดปุ่ม「ตั้งค่าเฟส」หรือไปแท็บ <strong>เชื่อมต่อเฟส</strong>";
         }
       }
+    }
+
+    function renderCommentsSchedule(rows) {
+      var box = document.getElementById("comments-schedule-list");
+      if (!box) return;
+      rows = rows || [];
+      if (!rows.length) {
+        box.innerHTML = '<span style="color:#94a3b8">ยังไม่มีลิงก์ในคิว — เพิ่มรหัสแล้วใส่ลิงก์โพสต์กลุ่มก่อน</span>';
+        return;
+      }
+      box.innerHTML = rows.map(function (it) {
+        var due = !!it.is_due;
+        var when = due
+          ? '<span style="color:#137333;font-weight:700">ถึงคิวแล้ว</span>'
+          : '<span style="font-weight:600">' + esc(it.next_comment_at || "—") + "</span>";
+        var url = it.post_url || "";
+        return '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:8px 0;border-top:1px solid #f1f5f9">' +
+          "<div style=\"min-width:140px\">" + when + "</div>" +
+          "<div style=\"font-weight:600\">" + esc(it.property_code || "—") + "</div>" +
+          "<div style=\"flex:1;min-width:160px;font-size:12px;color:#64748b;word-break:break-all\">" + esc(url) + "</div>" +
+          (isHttpUrl(url)
+            ? '<a class="btn-sm" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" style="text-decoration:none">เปิดโพสต์</a>'
+            : "") +
+          "</div>";
+      }).join("");
     }
 
     function renderFbAgentStatus(data) {
@@ -8275,11 +8639,15 @@
       var emailEl = document.getElementById("fb-agent-email");
       var step1 = document.getElementById("fb-agent-step1-ok");
       if (!data) return;
+      var paused = !!data.work_paused;
+      syncEmergencyControls(paused);
       if (onlineEl) {
         var st = data.agent_status || (data.agent_online ? "online" : "offline");
         var label;
         if (!data.agent_online) {
           label = "ยังไม่เปิด";
+        } else if (paused || st === "paused") {
+          label = "⏸ หยุดงานฉุกเฉิน";
         } else if (st === "working") {
           label = "กำลังคอมเมนต์อยู่";
         } else if (st === "logging_in") {
@@ -8290,7 +8658,8 @@
           label = "ทำงานอยู่" + (data.agent_hostname ? " (" + data.agent_hostname + ")" : "");
         }
         onlineEl.textContent = label;
-        onlineEl.style.color = data.agent_online ? (st === "error" ? "#b42318" : "#137333") : "#b42318";
+        onlineEl.style.color = !data.agent_online ? "#b42318"
+          : (paused || st === "paused" ? "#b45309" : (st === "error" ? "#b42318" : "#137333"));
       }
       if (fbEl) {
         fbEl.textContent = data.fb_logged_in ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน";
@@ -8298,14 +8667,16 @@
       }
       if (msgEl) {
         msgEl.textContent = data.agent_message
-          || (data.login_requested ? "รอคอมเปิดหน้าต่างเฟส…" : "—");
+          || (paused ? "⏸ หยุดงานฉุกเฉิน" : (data.login_requested ? "รอคอมเปิดหน้าต่างเฟส…" : "—"));
       }
       var liveMsg = document.getElementById("fb-agent-live-msg");
       if (liveMsg) {
         liveMsg.textContent = data.agent_message
-          || (data.fb_logged_in ? "ล็อกอินแล้ว · รอคิวคอมเมนต์ / ดู Chrome ที่เปิดค้างไว้" : "ยังไม่เริ่ม — เปิดระบบบนคอม แล้วกดล็อกอิน");
+          || (paused ? "⏸ หยุดงานฉุกเฉิน — กด「ทำงานต่อ」เมื่อพร้อม"
+            : (data.fb_logged_in ? "ล็อกอินแล้ว · รอคิวคอมเมนต์ / ดู Chrome ที่เปิดค้างไว้" : "ยังไม่เริ่ม — เปิดระบบบนคอม แล้วกดล็อกอิน"));
         liveMsg.style.color = data.agent_status === "error" ? "#b42318"
-          : (data.agent_status === "working" || data.agent_status === "logging_in" ? "#1d4ed8" : "#0f172a");
+          : (paused || data.agent_status === "paused" ? "#b45309"
+            : (data.agent_status === "working" || data.agent_status === "logging_in" ? "#1d4ed8" : "#0f172a"));
       }
       var actList = document.getElementById("fb-agent-activity-list");
       if (actList) {
@@ -8332,6 +8703,8 @@
           ? ("ทำงานล่าสุด " + lr.at + " · สำเร็จ " + (lr.done || 0) + " · ไม่สำเร็จ " + (lr.failed || 0))
           : "ยังไม่เคยคอมเมนต์";
       }
+      renderChromeProfilePicker(data);
+      renderFbAccountsEditor(data.fb_accounts || []);
       // Update FB/PC cards on comment dashboard without wiping queue numbers
       var setText = function (id, text, color) {
         var el = document.getElementById(id);
@@ -8343,8 +8716,10 @@
       var pcOk = !!data.agent_online;
       setText("cdash-fb", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#137333" : "#b42318");
       setText("cdash-fb-sub", data.email ? ("บัญชีที่บันทึกไว้ " + data.email + " (ไม่บังคับ)") : "ล็อกอินในหน้าต่าง Chrome ได้เลย");
-      var pcLabel = !pcOk ? "ยังไม่เปิด" : (data.agent_status === "working" ? "กำลังคอมเมนต์" : "ทำงานอยู่");
-      setText("cdash-pc", pcLabel, pcOk ? "#137333" : "#b42318");
+      var pcLabel = !pcOk ? "ยังไม่เปิด"
+        : (paused || data.agent_status === "paused" ? "⏸ หยุดงาน"
+          : (data.agent_status === "working" ? "กำลังคอมเมนต์" : "ทำงานอยู่"));
+      setText("cdash-pc", pcLabel, !pcOk ? "#b42318" : (paused ? "#b45309" : "#137333"));
       setText("cdash-pc-sub", data.agent_hostname || data.agent_message || "—");
       var lr2 = data.last_run || {};
       if (lr2.at) {
@@ -8353,7 +8728,13 @@
       }
       var banner = document.getElementById("comments-ready-banner");
       if (banner && document.getElementById("comments-panel") && !document.getElementById("comments-panel").classList.contains("hidden")) {
-        if (fbOk && pcOk) {
+        if (paused) {
+          banner.style.display = "block";
+          banner.style.background = "#fef2f2";
+          banner.style.border = "1px solid #fecaca";
+          banner.style.color = "#991b1b";
+          banner.innerHTML = "⏸ <strong>หยุดงานฉุกเฉิน</strong> — Agent จะไม่โพสและไม่คอมเมนต์จนกว่าจะกด「ทำงานต่อ」";
+        } else if (fbOk && pcOk) {
           banner.style.display = "block";
           banner.style.background = "#e7f6ee";
           banner.style.border = "1px solid #b7e4c7";
@@ -8369,9 +8750,394 @@
       }
     }
 
+    function renderChromeProfilePicker(data) {
+      var list = document.getElementById("fb-chrome-profile-list");
+      var selectedEl = document.getElementById("fb-chrome-profile-selected");
+      if (!list) return;
+      var profiles = (data && data.chrome_profiles) || [];
+      var selected = (data && data.chrome_profile_dir) || "";
+      var selectedName = (data && data.chrome_profile_name) || "";
+      if (selectedEl) {
+        selectedEl.textContent = selected
+          ? ("เลือกแล้ว: " + (selectedName || selected))
+          : "ยังไม่ได้เลือก";
+        selectedEl.style.color = selected ? "#137333" : "#64748b";
+      }
+      if (!profiles.length) {
+        list.innerHTML = '<div style="font-size:12px;color:#94a3b8;grid-column:1/-1">เปิด「เปิดระบบคอมเมนต์」บนคอมก่อน — Agent จะดึงรายชื่อโปรไฟล์มาให้เลือกที่นี่</div>';
+        return;
+      }
+      list.innerHTML = profiles.map(function (p) {
+        var dir = p.dir || "";
+        var name = p.name || dir;
+        var email = p.email || "";
+        var isOn = dir && dir === selected;
+        return (
+          '<button type="button" class="btn-sm' + (isOn ? " primary" : "") + '" data-chrome-profile="' + esc(dir) + '" data-chrome-name="' + esc(name) + '" ' +
+          'style="text-align:left;padding:10px 12px;height:auto;white-space:normal;line-height:1.35' +
+          (isOn ? ";outline:2px solid #137333" : "") + '">' +
+          '<div style="font-weight:700;font-size:13px">' + esc(name) + (isOn ? " ✓" : "") + "</div>" +
+          (email ? '<div style="font-size:11px;color:#64748b;margin-top:2px">' + esc(email) + "</div>" : "") +
+          '<div style="font-size:10px;color:#94a3b8;margin-top:2px">' + esc(dir) + "</div>" +
+          "</button>"
+        );
+      }).join("");
+      list.querySelectorAll("[data-chrome-profile]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          selectChromeProfile(btn.getAttribute("data-chrome-profile"), btn.getAttribute("data-chrome-name"));
+        });
+      });
+    }
+
+    async function selectChromeProfile(dir, name) {
+      if (!dir) return;
+      try {
+        var data = await apiPost("/api/fb-agent/chrome-profile", {
+          agent_id: fbSelectedAgentId,
+          dir: dir,
+          name: name || ""
+        });
+        renderFbAgentStatus(data);
+      } catch (e) {
+        alert(e.message || "เลือกโปรไฟล์ไม่ได้");
+      }
+    }
+
+    function syncEmergencyControls(paused) {
+      var ids = [
+        ["comments-emergency-pause", "comments-emergency-resume"],
+        ["fb-agent-emergency-pause", "fb-agent-emergency-resume"]
+      ];
+      ids.forEach(function (pair) {
+        var pauseBtn = document.getElementById(pair[0]);
+        var resumeBtn = document.getElementById(pair[1]);
+        if (pauseBtn) pauseBtn.classList.toggle("hidden", !!paused);
+        if (resumeBtn) resumeBtn.classList.toggle("hidden", !paused);
+      });
+      var ban = document.getElementById("comments-emergency-banner");
+      if (ban) ban.classList.toggle("hidden", !paused);
+    }
+
+    async function setFbAgentWorkPaused(paused, agentId) {
+      var aid = (agentId || fbSelectedAgentId || "owner").trim() || "owner";
+      var action = paused ? "pause" : "resume";
+      var label = agentLabel(aid);
+      var confirmMsg = paused
+        ? ("หยุดงานฉุกเฉินของ " + label + " ตอนนี้?\n\nAgent จะไม่โพสและไม่คอมเมนต์จนกว่าจะกดทำงานต่อ")
+        : ("ให้ " + label + " ทำงานต่อ?\n\nจะกลับมาโพส/คอมเมนต์ตามคิวตามปกติ");
+      if (!window.confirm(confirmMsg)) return;
+      try {
+        var data = await apiPost("/api/fb-agent/control", {
+          agent_id: aid,
+          action: action
+        });
+        // Keep switchers in sync with the agent we just controlled
+        fbSelectedAgentId = aid;
+        commentsSelectedAgentId = aid;
+        try {
+          localStorage.setItem("ptp_fb_agent", aid);
+          localStorage.setItem("ptp_comments_agent", aid);
+        } catch (eLs) { /* ignore */ }
+        syncAgentSwitcherButtons();
+        renderFbAgentStatus(data);
+      } catch (e) {
+        alert(e.message || (paused ? "สั่งหยุดไม่ได้" : "สั่งทำงานต่อไม่ได้"));
+      }
+    }
+
+    var publishGroupsCache = [];
+    var publishCaptionVariants = [];
+    var fbAccountsDraft = [];
+
+    function renderFbAccountsEditor(accounts) {
+      var box = document.getElementById("fb-accounts-editor");
+      if (!box) return;
+      if (!accounts || !accounts.length) {
+        accounts = [
+          { id: "", label: "", switch_name: "", daily_cap: 15 },
+          { id: "", label: "", switch_name: "", daily_cap: 15 },
+          { id: "", label: "", switch_name: "", daily_cap: 15 }
+        ];
+      }
+      fbAccountsDraft = accounts.slice(0, 8).map(function (a, i) {
+        return {
+          id: a.id || ("acc" + (i + 1)),
+          label: a.label || "",
+          switch_name: a.switch_name || a.label || "",
+          daily_cap: a.daily_cap || 15,
+          paused: !!a.paused,
+          paused_until: a.paused_until || ""
+        };
+      });
+      box.innerHTML = fbAccountsDraft.map(function (a, i) {
+        return '<div style="display:grid;grid-template-columns:1.2fr 1.2fr 70px 90px;gap:6px;align-items:end">' +
+          '<label style="margin:0"><span style="font-size:11px;color:#71717a">ชื่อที่แสดง</span>' +
+          '<input type="text" data-fb-acc="label" data-i="' + i + '" value="' + esc(a.label) + '" placeholder="บัญชี ' + (i + 1) + '" /></label>' +
+          '<label style="margin:0"><span style="font-size:11px;color:#71717a">ชื่อในตัวสลับเฟส</span>' +
+          '<input type="text" data-fb-acc="switch_name" data-i="' + i + '" value="' + esc(a.switch_name) + '" placeholder="ตรงกับใน Facebook" /></label>' +
+          '<label style="margin:0"><span style="font-size:11px;color:#71717a">cap/วัน</span>' +
+          '<input type="number" min="1" max="35" data-fb-acc="daily_cap" data-i="' + i + '" value="' + esc(String(a.daily_cap || 15)) + '" /></label>' +
+          '<button type="button" class="btn-sm" data-fb-acc-pause="' + i + '" style="margin-bottom:1px">' +
+            (a.paused ? "ปลดพัก" : "พัก") + "</button>" +
+        "</div>" +
+        (a.paused_until ? '<div style="font-size:11px;color:#b45309;margin:-2px 0 4px">พักถึง ' + esc(a.paused_until) + "</div>" : "");
+      }).join("");
+      box.querySelectorAll("[data-fb-acc]").forEach(function (inp) {
+        inp.addEventListener("change", function () {
+          var i = Number(inp.getAttribute("data-i") || 0);
+          var key = inp.getAttribute("data-fb-acc");
+          if (!fbAccountsDraft[i]) return;
+          var val = inp.value;
+          if (key === "daily_cap") val = Math.max(1, Math.min(35, parseInt(val || "15", 10) || 15));
+          fbAccountsDraft[i][key] = val;
+          if (key === "label" && !fbAccountsDraft[i].switch_name) {
+            fbAccountsDraft[i].switch_name = val;
+          }
+        });
+      });
+      box.querySelectorAll("[data-fb-acc-pause]").forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          var i = Number(btn.getAttribute("data-fb-acc-pause") || 0);
+          var row = fbAccountsDraft[i];
+          if (!row || !row.id) {
+            alert("บันทึกบัญชีก่อน แล้วค่อยพัก");
+            return;
+          }
+          try {
+            var data = await apiPost("/api/fb-agent/fb-account-pause", {
+              agent_id: fbSelectedAgentId,
+              account_id: row.id,
+              paused: !row.paused,
+              hours: 48
+            });
+            renderFbAgentStatus(data);
+          } catch (e) {
+            alert(e.message || "พักบัญชีไม่ได้");
+          }
+        });
+      });
+    }
+
+    async function saveFbAccounts() {
+      var accounts = (fbAccountsDraft || []).filter(function (a) {
+        return (a.label || a.switch_name || "").trim();
+      }).map(function (a, i) {
+        return {
+          id: a.id || ("acc" + (i + 1)),
+          label: (a.label || a.switch_name || "").trim(),
+          switch_name: (a.switch_name || a.label || "").trim(),
+          daily_cap: Math.max(1, Math.min(35, parseInt(a.daily_cap || 15, 10) || 15)),
+          paused: !!a.paused,
+          paused_until: a.paused_until || ""
+        };
+      });
+      if (!accounts.length) {
+        alert("กรอกอย่างน้อย 1 บัญชี");
+        return;
+      }
+      try {
+        var data = await apiPost("/api/fb-agent/fb-accounts", {
+          agent_id: fbSelectedAgentId,
+          accounts: accounts
+        });
+        var hint = document.getElementById("fb-accounts-hint");
+        if (hint) hint.textContent = "บันทึกแล้ว " + accounts.length + " บัญชี";
+        renderFbAgentStatus(data);
+      } catch (e) {
+        alert(e.message || "บันทึกบัญชีไม่ได้");
+      }
+    }
+
+    async function bumpFbAccountsWarmup() {
+      try {
+        var data = await apiPost("/api/fb-agent/fb-account-warmup", {
+          agent_id: fbSelectedAgentId
+        });
+        var hint = document.getElementById("fb-accounts-hint");
+        if (hint) hint.textContent = "เพิ่ม daily_cap แล้ว (~+30% สูงสุด 35)";
+        renderFbAgentStatus(data);
+      } catch (e) {
+        alert(e.message || "ปรับวอร์มไม่ได้");
+      }
+    }
+
+    async function loadPublishPanel() {
+      var agentEl = document.getElementById("publish-agent");
+      var agentId = (agentEl && agentEl.value) || fbSelectedAgentId || "owner";
+      try {
+        var data = await apiGet("/api/publish-jobs?agent=" + encodeURIComponent(agentId) + "&limit=100");
+        var st = data.stats || {};
+        var set = function (id, v) {
+          var el = document.getElementById(id);
+          if (el) el.textContent = v;
+        };
+        set("pdash-today", String(st.posted_today != null ? st.posted_today : "—"));
+        set("pdash-pending", String(st.pending != null ? st.pending : "—"));
+        set("pdash-restricted", String((st.by_status && st.by_status.restricted) || 0));
+        var byAcc = st.by_account_today || {};
+        var accBits = Object.keys(byAcc).map(function (k) {
+          return esc(k) + ": " + byAcc[k];
+        });
+        var byBox = document.getElementById("publish-by-account");
+        if (byBox) {
+          byBox.textContent = accBits.length
+            ? ("วันนี้ต่อบัญชี — " + accBits.join(" · "))
+            : "ยังไม่มีโพสวันนี้";
+        }
+        try {
+          var fb = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(agentId));
+          set("pdash-accounts", String((fb.fb_accounts || []).length));
+        } catch (e2) {
+          set("pdash-accounts", "—");
+        }
+        renderPublishJobs(data.jobs || []);
+      } catch (e) {
+        var tbody = document.getElementById("publish-jobs-rows");
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="empty"><p>' + esc(e.message || "โหลดคิวไม่ได้") + "</p></td></tr>";
+      }
+    }
+
+    function renderPublishJobs(jobs) {
+      var tbody = document.getElementById("publish-jobs-rows");
+      if (!tbody) return;
+      if (!jobs.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty"><p>ยังไม่มีคิวโพส — สร้างแคมเปญด้านบน</p></td></tr>';
+        return;
+      }
+      tbody.innerHTML = jobs.map(function (j) {
+        var st = j.status || "";
+        var label = ({
+          pending: "รอ",
+          due: "ถึงคิว",
+          posted: "โพสแล้ว",
+          failed: "ล้มเหลว",
+          restricted: "จำกัด",
+          cancelled: "ยกเลิก"
+        })[st] || st;
+        return "<tr>" +
+          "<td>" + esc(j.property_code || "") + "</td>" +
+          "<td style=\"font-size:12px\">" + esc(j.group_name || j.group_url || "") + "</td>" +
+          "<td style=\"font-size:12px\">" + esc(j.fb_account_id || "—") + "</td>" +
+          "<td>" + esc(label) + "</td>" +
+          "<td style=\"font-size:11px\">" + esc(j.next_post_at || j.posted_at || "—") + "</td>" +
+          "<td>" +
+            (st === "pending" || st === "due" || st === "failed"
+              ? '<button type="button" class="btn-sm" data-publish-cancel="' + esc(j.id) + '">ยกเลิก</button>'
+              : (j.permalink
+                ? '<a class="btn-sm" href="' + esc(j.permalink) + '" target="_blank" rel="noopener">เปิด</a>'
+                : "—")) +
+          "</td></tr>";
+      }).join("");
+    }
+
+    async function publishGenCaption() {
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
+      if (!code) {
+        alert("ใส่รหัสทรัพย์ก่อน");
+        return;
+      }
+      try {
+        var data = await apiPost("/api/groups/prepare-caption-nolink", { code: code, n: 4 });
+        publishCaptionVariants = data.variants || [];
+        var cap = document.getElementById("publish-caption");
+        if (cap) cap.value = data.caption || (publishCaptionVariants[0] || "");
+        var box = document.getElementById("publish-variants");
+        if (box) {
+          box.textContent = publishCaptionVariants.length
+            ? ("เวอร์ชันสำรอง:\n\n" + publishCaptionVariants.slice(1).join("\n---\n"))
+            : "";
+        }
+      } catch (e) {
+        alert(e.message || "สร้างแคปชันไม่ได้");
+      }
+    }
+
+    async function publishLoadGroups() {
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
+      if (!code) {
+        alert("ใส่รหัสทรัพย์ก่อน");
+        return;
+      }
+      var box = document.getElementById("publish-groups-pick");
+      if (box) box.innerHTML = "กำลังโหลดกลุ่มแนะนำ…";
+      try {
+        var data = await apiPost("/api/groups/recommend", { code: code, limit: 40 });
+        var groups = data.groups || data.items || data.recommendations || [];
+        if (!groups.length && data.by_category) {
+          Object.keys(data.by_category).forEach(function (k) {
+            (data.by_category[k] || []).forEach(function (g) { groups.push(g); });
+          });
+        }
+        publishGroupsCache = groups;
+        if (!box) return;
+        if (!groups.length) {
+          box.innerHTML = '<div style="color:#71717a">ไม่พบกลุ่มแนะนำ — เพิ่มกลุ่มในสมุดก่อน</div>';
+          return;
+        }
+        box.innerHTML = groups.map(function (g, i) {
+          var url = g.url || g.group_url || "";
+          var name = g.name || g.group_name || url;
+          return '<label style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid #f1f5f9">' +
+            '<input type="checkbox" data-pub-g="' + i + '" style="width:auto;margin-top:3px" checked />' +
+            '<span><strong>' + esc(name) + "</strong><br/><span style=\"font-size:11px;color:#94a3b8;word-break:break-all\">" +
+            esc(url) + "</span></span></label>";
+        }).join("");
+      } catch (e) {
+        if (box) box.innerHTML = esc(e.message || "โหลดกลุ่มไม่ได้");
+      }
+    }
+
+    async function publishCreateCampaign() {
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
+      var agentId = ((document.getElementById("publish-agent") || {}).value || "owner").trim();
+      var caption = ((document.getElementById("publish-caption") || {}).value || "").trim();
+      var imagesRaw = ((document.getElementById("publish-images") || {}).value || "").trim();
+      var image_urls = imagesRaw ? imagesRaw.split(/\n+/).map(function (s) { return s.trim(); }).filter(Boolean) : [];
+      var groups = [];
+      document.querySelectorAll("#publish-groups-pick [data-pub-g]:checked").forEach(function (cb) {
+        var i = Number(cb.getAttribute("data-pub-g") || -1);
+        var g = publishGroupsCache[i];
+        if (g) {
+          groups.push({
+            url: g.url || g.group_url || "",
+            name: g.name || g.group_name || ""
+          });
+        }
+      });
+      if (!code) {
+        alert("ใส่รหัสทรัพย์");
+        return;
+      }
+      if (!groups.length) {
+        alert("เลือกอย่างน้อย 1 กลุ่ม (กดโหลดกลุ่มแนะนำก่อน)");
+        return;
+      }
+      var hint = document.getElementById("publish-create-hint");
+      if (hint) hint.textContent = "กำลังสร้างคิว…";
+      try {
+        var body = {
+          code: code,
+          agent_id: agentId,
+          groups: groups,
+          caption: caption,
+          caption_variants: publishCaptionVariants,
+          image_urls: image_urls,
+          schedule_spread: true
+        };
+        var data = await apiPost("/api/publish-jobs/create", body);
+        if (hint) hint.textContent = "สร้างแล้ว " + (data.created || 0) + " งาน";
+        loadPublishPanel();
+      } catch (e) {
+        if (hint) hint.textContent = "";
+        alert(e.message || "สร้างคิวไม่ได้");
+      }
+    }
+
     async function loadFbAgentStatus() {
       try {
-        var data = await apiGet("/api/fb-agent/status");
+        var data = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(fbSelectedAgentId));
+        if (data && data.agents) commentsAgentsCache = data.agents;
+        syncAgentSwitcherButtons();
         renderFbAgentStatus(data);
       } catch (e) {
         var msgEl = document.getElementById("fb-agent-msg");
@@ -8387,7 +9153,7 @@
         return;
       }
       try {
-        var body = { email: email };
+        var body = { email: email, agent_id: fbSelectedAgentId };
         if (password) body.password = password;
         var data = await apiPost("/api/fb-agent/credentials", body);
         var pw = document.getElementById("fb-agent-password");
@@ -8401,9 +9167,9 @@
 
     async function requestFbAgentLogin() {
       try {
-        var data = await apiPost("/api/fb-agent/request-login", {});
+        var data = await apiPost("/api/fb-agent/request-login", { agent_id: fbSelectedAgentId });
         renderFbAgentStatus(data);
-        alert("สั่งเปิดหน้าต่างเฟสแล้ว\n\nไปที่คอมที่เปิดระบบไว้ — Chrome จะเด้งขึ้นและไม่ปิดเอง\nล็อกอินบัญชีที่ต้องการในหน้านั้น\nดูช่อง「รายงานการทำงาน」ใน Hub ว่าสำเร็จหรือยัง\nจากนั้นระบบจะคอมเมนต์คิวให้อัตโนมัติ (ดูใน Chrome ได้)");
+        alert("สั่งเปิดหน้าต่างเฟสแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\nไปที่คอมที่เปิดระบบของ Agent นี้ — Chrome จะเด้งขึ้นและไม่ปิดเอง\nล็อกอินบัญชีที่ต้องการในหน้านั้น\nดูช่อง「รายงานการทำงาน」ใน Hub ว่าสำเร็จหรือยัง");
       } catch (e) {
         alert(e.message || "สั่งล็อกอินไม่ได้ — ตรวจว่าขั้นที่ 1 เปิดระบบบนคอมไว้แล้ว");
       }
@@ -8413,12 +9179,14 @@
       var hub = window.location.origin || "http://127.0.0.1:8765";
       var isMac = kind === "mac";
       var path = isMac ? "/api/fb-agent/download-mac" : "/api/fb-agent/download-windows";
-      var filename = isMac ? "เปิดระบบคอมเมนต์.command" : "เปิดระบบคอมเมนต์.bat";
+      var filename = isMac
+        ? ("เปิดระบบคอมเมนต์-" + fbSelectedAgentId + ".command")
+        : ("เปิดระบบคอมเมนต์-" + fbSelectedAgentId + ".bat");
       try {
-        var res = await fetch(path + "?hub=" + encodeURIComponent(hub), {
-          credentials: "same-origin",
-          cache: "no-store",
-        });
+        var res = await fetch(
+          path + "?hub=" + encodeURIComponent(hub) + "&agent=" + encodeURIComponent(fbSelectedAgentId),
+          { credentials: "same-origin", cache: "no-store" }
+        );
         if (!res.ok) {
           var err = {};
           try { err = await res.json(); } catch (e2) { /* ignore */ }
@@ -8460,17 +9228,22 @@
       var hub = window.location.origin || "https://hub.realxtateth.com";
       var okEl = document.getElementById("fb-agent-copy-mac-ok");
       try {
-        var data = await apiGet("/api/fb-agent/status");
+        var data = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(fbSelectedAgentId));
         var token = (data && data.agent_token) || "";
         if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
         var cmd =
           "curl -fsSL " +
-          JSON.stringify(hub + "/api/fb-agent/download-mac?hub=" + encodeURIComponent(hub) + "&t=" + encodeURIComponent(token)) +
-          " -o /tmp/ptp-comment.command && chmod +x /tmp/ptp-comment.command && /tmp/ptp-comment.command";
+          JSON.stringify(
+            hub + "/api/fb-agent/download-mac?hub=" + encodeURIComponent(hub) +
+            "&agent=" + encodeURIComponent(fbSelectedAgentId) +
+            "&t=" + encodeURIComponent(token)
+          ) +
+          " -o /tmp/ptp-comment-" + fbSelectedAgentId + ".command && chmod +x /tmp/ptp-comment-" + fbSelectedAgentId +
+          ".command && /tmp/ptp-comment-" + fbSelectedAgentId + ".command";
         await navigator.clipboard.writeText(cmd);
         if (okEl) okEl.textContent = "คัดลอกแล้ว — ไปวางใน Terminal ได้เลย";
         alert(
-          "คัดลอกคำสั่งแล้ว\n\n" +
+          "คัดลอกคำสั่งแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\n" +
           "1) เปิดแอป Terminal\n" +
           "2) วางคำสั่ง (Cmd+V) แล้วกด Enter\n" +
           "3) อย่าปิดหน้าต่าง — รอจน Hub ขึ้น「ทำงานอยู่」"
@@ -8485,19 +9258,21 @@
       var hub = window.location.origin || "https://hub.realxtateth.com";
       var okEl = document.getElementById("fb-agent-copy-win-ok");
       try {
-        var data = await apiGet("/api/fb-agent/status");
+        var data = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(fbSelectedAgentId));
         var token = (data && data.agent_token) || "";
         if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
-        var url = hub + "/api/fb-agent/download-windows?hub=" + encodeURIComponent(hub) + "&t=" + encodeURIComponent(token);
+        var url = hub + "/api/fb-agent/download-windows?hub=" + encodeURIComponent(hub) +
+          "&agent=" + encodeURIComponent(fbSelectedAgentId) +
+          "&t=" + encodeURIComponent(token);
         var cmd =
           "$u='" + url.replace(/'/g, "''") + "'; " +
-          "$f=Join-Path $env:TEMP 'ptp-comment.bat'; " +
+          "$f=Join-Path $env:TEMP 'ptp-comment-" + fbSelectedAgentId + ".bat'; " +
           "Invoke-WebRequest -Uri $u -OutFile $f -UseBasicParsing; " +
           "Start-Process $f";
         await navigator.clipboard.writeText(cmd);
         if (okEl) okEl.textContent = "คัดลอกแล้ว — วางใน PowerShell ได้เลย";
         alert(
-          "คัดลอกคำสั่งแล้ว\n\n" +
+          "คัดลอกคำสั่งแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\n" +
           "1) คลิกขวา Start → Windows PowerShell / Terminal\n" +
           "2) วางคำสั่ง (Ctrl+V) แล้วกด Enter\n" +
           "3) อย่าปิดหน้าต่างดำ — รอจน Hub ขึ้น「ทำงานอยู่」"
@@ -8555,8 +9330,9 @@
         document.getElementById("comments-editor-active").checked = !!row.active;
         document.getElementById("comments-editor-max-day").value = s.max_per_day || 10;
         document.getElementById("comments-editor-end-date").value = s.end_date || "";
-        document.getElementById("comments-editor-max-link").value = s.max_comments_per_link || 3;
-        document.getElementById("comments-editor-meta").textContent = "ลิงก์ " + commentsCurrentLinks.length + "/20";
+        var agentSel = document.getElementById("comments-editor-agent");
+        if (agentSel) agentSel.value = row.agent_id || commentsSelectedAgentId || "owner";
+        document.getElementById("comments-editor-meta").textContent = "ลิงก์ " + commentsCurrentLinks.length + "/20 · Agent " + agentLabel(row.agent_id || "owner");
         renderCommentCodeLinks(commentsCurrentLinks);
       } catch (e) {
         alert(e.message || "เปิดแก้ไขไม่ได้");
@@ -8567,10 +9343,10 @@
       if (!commentsCurrentCode) return;
       var patch = {
         active: !!document.getElementById("comments-editor-active").checked,
+        agent_id: ((document.getElementById("comments-editor-agent") || {}).value || "owner"),
         settings: {
           max_per_day: Number(document.getElementById("comments-editor-max-day").value || 10),
           end_date: (document.getElementById("comments-editor-end-date").value || "").trim(),
-          max_comments_per_link: Number(document.getElementById("comments-editor-max-link").value || 3),
         },
       };
       try {
@@ -8583,85 +9359,150 @@
     }
 
     async function addCommentCode() {
-      var input = document.getElementById("comments-code-add");
-      var code = ((input && input.value) || "").trim();
-      var hit = commentsCodeLookupFirst(code);
-      if (hit && hit.code) code = hit.code;
-      if (!code) return;
-      try {
-        await apiPost("/api/comment-codes/add", { code: code });
-        if (input) input.value = "";
-        hideCommentsCodeSuggest();
-        await loadCommentsQueue();
-        await openCommentCodeEditor(code.toUpperCase());
-      } catch (e) {
-        alert(e.message || "เพิ่มรหัสไม่ได้");
-      }
+      openCommentsAddCodeModal();
     }
 
-    function commentsCodeSearchHits(q) {
+    function propertyCodeSortNum(code) {
+      var m = String(code || "").match(/(\d+)$/);
+      return m ? parseInt(m[1], 10) : 0;
+    }
+
+    function commentsCodeSearchHits(q, limit) {
       var raw = String(q || "").trim().toLowerCase();
       if (!raw || raw.length < 2) return [];
+      var maxN = Math.max(10, Math.min(Number(limit) || 60, 120));
       var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
       var pmap = (window.PTP_DATA && window.PTP_DATA.project_map) || {};
-      var out = [];
+      var tokens = raw.split(/\s+/).filter(Boolean);
+      var scored = [];
       for (var i = 0; i < props.length; i++) {
         var p = props[i];
         var code = String(p.code || "");
         if (!code) continue;
         var proj = pmap[p.project_id] || {};
         var name = String(proj.canonical_name || p.project_name || "");
+        var aliases = Array.isArray(proj.aliases) ? proj.aliases.join(" ") : "";
         var beds = String(p.bedrooms || "");
         var room = String(p.room_type || "");
-        var blob = (code + " " + name + " " + beds + " " + room).toLowerCase();
-        if (blob.indexOf(raw) < 0) continue;
+        var blob = (code + " " + name + " " + aliases + " " + beds + " " + room).toLowerCase();
+        var ok = true;
+        for (var t = 0; t < tokens.length; t++) {
+          if (blob.indexOf(tokens[t]) < 0) { ok = false; break; }
+        }
+        if (!ok) continue;
         var src = propertyPreviewSourceUrl(p);
         var thumb = src ? (API_BASE + "/api/preview-thumb?url=" + encodeURIComponent(src)) : "";
-        out.push({
+        var codeL = code.toLowerCase();
+        var rank = 0;
+        if (codeL === raw || codeL.indexOf(raw) === 0) rank += 1000;
+        if (name.toLowerCase().indexOf(raw) >= 0) rank += 100;
+        scored.push({
           id: p.id,
           code: code,
           name: name || "—",
           beds: beds || "—",
+          room: room || "",
           thumb: thumb,
+          _n: propertyCodeSortNum(code),
+          _rank: rank,
         });
-        if (out.length >= 20) break;
       }
-      return out;
+      scored.sort(function (a, b) {
+        if (b._rank !== a._rank) return b._rank - a._rank;
+        return b._n - a._n; // newest code first
+      });
+      return scored.slice(0, maxN);
     }
 
     function commentsCodeLookupFirst(q) {
-      var hits = commentsCodeSearchHits(q);
+      var hits = commentsCodeSearchHits(q, 5);
       return hits.length ? hits[0] : null;
     }
 
-    function hideCommentsCodeSuggest() {
-      var box = document.getElementById("comments-code-suggest");
-      if (!box) return;
-      box.classList.add("hidden");
-      box.innerHTML = "";
+    function openCommentsAddCodeModal() {
+      var modal = document.getElementById("comments-add-code-modal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+      var q = document.getElementById("comments-add-modal-q");
+      if (q) {
+        q.value = "";
+        setTimeout(function () { try { q.focus(); } catch (e) { /* ignore */ } }, 50);
+      }
+      renderCommentsAddModalResults("");
     }
 
-    function renderCommentsCodeSuggest(q) {
-      var box = document.getElementById("comments-code-suggest");
+    function closeCommentsAddCodeModal() {
+      var modal = document.getElementById("comments-add-code-modal");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function renderCommentsAddModalResults(q) {
+      var box = document.getElementById("comments-add-modal-results");
+      var meta = document.getElementById("comments-add-modal-meta");
       if (!box) return;
-      var hits = commentsCodeSearchHits(q);
-      if (!hits.length) {
-        hideCommentsCodeSuggest();
+      var raw = String(q || "").trim();
+      if (raw.length < 2) {
+        if (meta) meta.textContent = "พิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา (รหัสหรือชื่อโครงการ)";
+        box.innerHTML = '<div style="padding:28px 16px;text-align:center;color:#94a3b8;font-size:13px;line-height:1.6">ตัวอย่าง: <strong>PTP8235</strong> · <strong>niche</strong> · <strong>life asoke</strong><br/>ผลลัพธ์เรียงจากรหัสใหม่ → เก่า</div>';
         return;
       }
-      box.innerHTML = hits.map(function (h) {
-        var img = h.thumb
-          ? '<img src="' + esc(h.thumb) + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;background:#f4f4f5" />'
-          : '<div style="width:56px;height:56px;border-radius:6px;background:#f4f4f5;display:flex;align-items:center;justify-content:center;font-size:10px;color:#a1a1aa">ไม่มีรูป</div>';
-        return '<button type="button" data-comment-pick-code="' + esc(h.code) + '" style="width:100%;display:flex;gap:8px;align-items:center;padding:8px 10px;border:0;border-top:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer">' +
-          img +
-          '<span style="min-width:0;flex:1">' +
-            '<strong style="display:block;color:#111827">' + esc(h.code) + "</strong>" +
-            '<span style="display:block;font-size:11px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(h.name) + "</span>" +
-            '<span style="display:block;font-size:11px;color:#9ca3af">ห้อง: ' + esc(h.beds) + "</span>" +
-          "</span></button>";
-      }).join("");
-      box.classList.remove("hidden");
+      var hits = commentsCodeSearchHits(raw, 80);
+      if (meta) {
+        meta.textContent = hits.length
+          ? ("พบ " + hits.length + " รายการ · เรียงใหม่→เก่า · กดการ์ดเพื่อเพิ่มรหัสแล้วใส่ลิงก์คอมเมนต์")
+          : ("ไม่พบ 「" + raw + "」 — ลองรหัสเต็ม หรือชื่อโครงการสั้นๆ");
+      }
+      if (!hits.length) {
+        box.innerHTML = '<div style="padding:28px 16px;text-align:center;color:#94a3b8;font-size:13px">ไม่พบทรัพย์ที่ตรงกับคำค้น</div>';
+        return;
+      }
+      box.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;padding:12px">' +
+        hits.map(function (h) {
+          var img = h.thumb
+            ? '<img src="' + esc(h.thumb) + '" alt="" loading="lazy" style="width:72px;height:72px;object-fit:cover;border-radius:8px;background:#e4e4e7;flex-shrink:0" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')" />' +
+              '<div style="display:none;width:72px;height:72px;border-radius:8px;background:#f4f4f5;align-items:center;justify-content:center;font-size:10px;color:#a1a1aa;flex-shrink:0">ไม่มีรูป</div>'
+            : '<div style="width:72px;height:72px;border-radius:8px;background:#f4f4f5;display:flex;align-items:center;justify-content:center;font-size:10px;color:#a1a1aa;flex-shrink:0">ไม่มีรูป</div>';
+          return '<button type="button" data-comment-pick-code="' + esc(h.code) + '" style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;text-align:left;cursor:pointer;width:100%">' +
+            img +
+            '<span style="min-width:0;flex:1">' +
+              '<strong style="display:block;color:#111827;font-size:15px">' + esc(h.code) + "</strong>" +
+              '<span style="display:block;font-size:12px;color:#475569;margin-top:2px;line-height:1.35">' + esc(h.name) + "</span>" +
+              '<span style="display:block;font-size:11px;color:#94a3b8;margin-top:4px">ห้อง: ' + esc(h.beds) + (h.room ? " · " + esc(h.room) : "") + "</span>" +
+              '<span style="display:inline-block;margin-top:8px;font-size:11px;color:#137333;font-weight:600">เลือก → เพิ่มลิงก์คอมเมนต์</span>' +
+            "</span></button>";
+        }).join("") +
+        "</div>";
+    }
+
+    async function pickCommentCodeAndOpen(code) {
+      code = String(code || "").trim().toUpperCase();
+      if (!code) return;
+      try {
+        await apiPost("/api/comment-codes/add", { code: code, agent_id: commentsSelectedAgentId });
+        closeCommentsAddCodeModal();
+        await loadCommentsQueue();
+        await openCommentCodeEditor(code);
+      } catch (e) {
+        // ถ้ามีอยู่แล้ว ยังเปิดแก้/เพิ่มลิงก์ได้
+        try {
+          closeCommentsAddCodeModal();
+          await loadCommentsQueue();
+          await openCommentCodeEditor(code);
+        } catch (e2) {
+          alert(e.message || e2.message || "เพิ่มรหัสไม่ได้");
+        }
+      }
+    }
+
+    function hideCommentsCodeSuggest() {
+      /* legacy no-op — replaced by full modal */
+    }
+
+    function renderCommentsCodeSuggest() {
+      /* legacy no-op */
     }
 
     async function saveGroupPostLinkFromForm() {
@@ -8720,7 +9561,7 @@
           items.map(function (it) {
             return '<div style="padding:6px 0;border-top:1px solid #eee;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
               "<span>" + esc(commentStatusLabel(it.status)) + " · " +
-              esc(String(it.comment_count || 0)) + "/" + esc(String(it.max_comments || 3)) +
+              esc(String(it.comment_count || 0)) + " ครั้ง" +
               (it.next_comment_at ? " · คิว " + esc(it.next_comment_at) : "") + "</span>" +
               (isHttpUrl(it.post_url)
                 ? '<a class="btn-sm primary" href="' + esc(it.post_url) + '" target="_blank" rel="noopener noreferrer" style="text-decoration:none">เปิดโพสต์</a>'
@@ -8733,14 +9574,25 @@
     }
 
     async function addCommentLinkInEditor() {
-      if (!commentsCurrentCode) return;
+      if (!commentsCurrentCode) {
+        alert("ยังไม่ได้เลือกรหัส — กด + เพิ่มรหัสก่อน");
+        return;
+      }
       var url = ((document.getElementById("comments-editor-link-url") || {}).value || "").trim();
-      if (!url) return;
+      if (!url) {
+        alert("วางลิงก์โพสต์กลุ่มก่อน");
+        return;
+      }
+      if ((commentsCurrentLinks || []).length >= 20) {
+        alert("รหัสนี้มีครบ 20 ลิงก์แล้ว");
+        return;
+      }
       try {
         await apiPost("/api/group-posts/add", {
           post_url: url,
           code: commentsCurrentCode,
           group_name: ((document.getElementById("comments-editor-link-group") || {}).value || "").trim(),
+          comment_immediately: true,
         });
         document.getElementById("comments-editor-link-url").value = "";
         document.getElementById("comments-editor-link-group").value = "";
@@ -11252,15 +12104,29 @@
       try {
         var panel = document.getElementById("fb-connect-panel");
         var comments = document.getElementById("comments-panel");
+        var publish = document.getElementById("publish-panel");
         var onFb = panel && !panel.classList.contains("hidden");
         var onComments = comments && !comments.classList.contains("hidden");
+        var onPublish = publish && !publish.classList.contains("hidden");
         if (onFb || onComments) loadFbAgentStatus();
+        if (onPublish) loadPublishPanel();
       } catch (ePoll) { /* ignore */ }
     }, 5000);
     var fbAgentSave = document.getElementById("fb-agent-save-cred");
     if (fbAgentSave) fbAgentSave.addEventListener("click", saveFbAgentCredentials);
     var fbAgentLogin = document.getElementById("fb-agent-request-login");
     if (fbAgentLogin) fbAgentLogin.addEventListener("click", requestFbAgentLogin);
+    function bindEmergency(id, paused, fromComments) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener("click", function () {
+        var aid = fromComments ? commentsSelectedAgentId : fbSelectedAgentId;
+        setFbAgentWorkPaused(paused, aid);
+      });
+    }
+    bindEmergency("comments-emergency-pause", true, true);
+    bindEmergency("comments-emergency-resume", false, true);
+    bindEmergency("fb-agent-emergency-pause", true, false);
+    bindEmergency("fb-agent-emergency-resume", false, false);
     var fbAgentDownload = document.getElementById("fb-agent-download-win");
     if (fbAgentDownload) fbAgentDownload.addEventListener("click", function () { downloadFbAgentStarter("windows"); });
     var fbAgentDownloadMac = document.getElementById("fb-agent-download-mac");
@@ -11277,6 +12143,43 @@
     if (commentsGotoFb) commentsGotoFb.addEventListener("click", function () { switchDbTab("fbconnect"); });
     var fbGotoComments = document.getElementById("fbconnect-goto-comments");
     if (fbGotoComments) fbGotoComments.addEventListener("click", function () { switchDbTab("comments"); });
+    var fbGotoPublish = document.getElementById("fbconnect-goto-publish");
+    if (fbGotoPublish) fbGotoPublish.addEventListener("click", function () { switchDbTab("publish"); });
+    var publishGotoFb = document.getElementById("publish-goto-fbconnect");
+    if (publishGotoFb) publishGotoFb.addEventListener("click", function () { switchDbTab("fbconnect"); });
+    var publishRefresh = document.getElementById("publish-refresh");
+    if (publishRefresh) publishRefresh.addEventListener("click", loadPublishPanel);
+    var publishGenCap = document.getElementById("publish-gen-caption");
+    if (publishGenCap) publishGenCap.addEventListener("click", publishGenCaption);
+    var publishLoadG = document.getElementById("publish-load-groups");
+    if (publishLoadG) publishLoadG.addEventListener("click", publishLoadGroups);
+    var publishCreate = document.getElementById("publish-create");
+    if (publishCreate) publishCreate.addEventListener("click", publishCreateCampaign);
+    var fbAccSave = document.getElementById("fb-accounts-save");
+    if (fbAccSave) fbAccSave.addEventListener("click", saveFbAccounts);
+    var fbAccAdd = document.getElementById("fb-accounts-add-row");
+    if (fbAccAdd) fbAccAdd.addEventListener("click", function () {
+      fbAccountsDraft = fbAccountsDraft || [];
+      fbAccountsDraft.push({ id: "", label: "", switch_name: "", daily_cap: 15 });
+      renderFbAccountsEditor(fbAccountsDraft);
+    });
+    var fbAccWarm = document.getElementById("fb-accounts-warmup");
+    if (fbAccWarm) fbAccWarm.addEventListener("click", bumpFbAccountsWarmup);
+    var publishJobsWrap = document.getElementById("publish-jobs-rows");
+    if (publishJobsWrap) {
+      publishJobsWrap.addEventListener("click", async function (e) {
+        var btn = e.target.closest("[data-publish-cancel]");
+        if (!btn) return;
+        var id = btn.getAttribute("data-publish-cancel");
+        if (!id || !confirm("ยกเลิกงานโพสนี้?")) return;
+        try {
+          await apiPost("/api/publish-jobs/cancel", { id: id });
+          loadPublishPanel();
+        } catch (err) {
+          alert(err.message || "ยกเลิกไม่ได้");
+        }
+      });
+    }
     // Default guide tab by platform
     try {
       setFbGuideOs(detectClientOs());
@@ -11284,41 +12187,46 @@
       setFbGuideOs("win");
     }
     var commentsCodeAddBtn = document.getElementById("comments-code-add-btn");
-    if (commentsCodeAddBtn) commentsCodeAddBtn.addEventListener("click", addCommentCode);
-    var commentsCodeAddInput = document.getElementById("comments-code-add");
-    if (commentsCodeAddInput) {
-      commentsCodeAddInput.addEventListener("input", function () {
+    if (commentsCodeAddBtn) commentsCodeAddBtn.addEventListener("click", openCommentsAddCodeModal);
+    var commentsCodesFilter = document.getElementById("comments-codes-filter");
+    if (commentsCodesFilter) {
+      commentsCodesFilter.addEventListener("input", function () {
         renderCommentCodes();
-        renderCommentsCodeSuggest(this.value || "");
       });
-      commentsCodeAddInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          addCommentCode();
-          return;
-        }
+    }
+    var commentsAddModalClose = document.getElementById("comments-add-modal-close");
+    if (commentsAddModalClose) commentsAddModalClose.addEventListener("click", closeCommentsAddCodeModal);
+    var commentsAddModal = document.getElementById("comments-add-code-modal");
+    if (commentsAddModal) {
+      commentsAddModal.addEventListener("click", function (e) {
+        if (e.target === commentsAddModal) closeCommentsAddCodeModal();
+      });
+    }
+    var commentsAddModalQ = document.getElementById("comments-add-modal-q");
+    if (commentsAddModalQ) {
+      var commentsAddModalTimer = null;
+      commentsAddModalQ.addEventListener("input", function () {
+        var val = this.value || "";
+        clearTimeout(commentsAddModalTimer);
+        commentsAddModalTimer = setTimeout(function () {
+          renderCommentsAddModalResults(val);
+        }, 120);
+      });
+      commentsAddModalQ.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
-          hideCommentsCodeSuggest();
+          e.preventDefault();
+          closeCommentsAddCodeModal();
         }
       });
     }
-    var commentsCodeSuggest = document.getElementById("comments-code-suggest");
-    if (commentsCodeSuggest) {
-      commentsCodeSuggest.addEventListener("click", function (e) {
+    var commentsAddModalResults = document.getElementById("comments-add-modal-results");
+    if (commentsAddModalResults) {
+      commentsAddModalResults.addEventListener("click", function (e) {
         var btn = e.target.closest("[data-comment-pick-code]");
         if (!btn) return;
-        var code = btn.getAttribute("data-comment-pick-code") || "";
-        var input = document.getElementById("comments-code-add");
-        if (input) input.value = code;
-        hideCommentsCodeSuggest();
-        renderCommentCodes();
+        pickCommentCodeAndOpen(btn.getAttribute("data-comment-pick-code") || "");
       });
     }
-    document.addEventListener("click", function (e) {
-      if (e.target.closest("#comments-code-suggest")) return;
-      if (e.target.closest("#comments-code-add")) return;
-      hideCommentsCodeSuggest();
-    });
     var commentsEditorClose = document.getElementById("comments-editor-close");
     function closeCommentsEditor() {
       document.getElementById("comments-code-editor").classList.add("hidden");
@@ -11336,14 +12244,30 @@
     if (commentsEditorSaveTop) commentsEditorSaveTop.addEventListener("click", saveCommentCodeSettings);
     var commentsEditorAddLink = document.getElementById("comments-editor-link-add");
     if (commentsEditorAddLink) commentsEditorAddLink.addEventListener("click", addCommentLinkInEditor);
+    var commentsEditorLinkUrl = document.getElementById("comments-editor-link-url");
+    if (commentsEditorLinkUrl) {
+      commentsEditorLinkUrl.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addCommentLinkInEditor();
+        }
+      });
+    }
 
     var commentsCodesRows = document.getElementById("comments-codes-rows");
     if (commentsCodesRows) {
       commentsCodesRows.addEventListener("click", async function (e) {
+        var expandBtn = e.target.closest("[data-comment-expand]");
         var editBtn = e.target.closest("[data-comment-edit-code]");
         var toggleBtn = e.target.closest("[data-comment-toggle-code]");
         var delBtn = e.target.closest("[data-comment-delete-code]");
         try {
+          if (expandBtn) {
+            var ecode = expandBtn.getAttribute("data-comment-expand");
+            commentsExpandedCodes[ecode] = !commentsExpandedCodes[ecode];
+            renderCommentCodes();
+            return;
+          }
           if (editBtn) {
             await openCommentCodeEditor(editBtn.getAttribute("data-comment-edit-code"));
             return;
@@ -11372,6 +12296,31 @@
         }
       });
     }
+
+    function setCommentsAgent(id) {
+      commentsSelectedAgentId = id || "owner";
+      localStorage.setItem("ptp_comments_agent", commentsSelectedAgentId);
+      syncAgentSwitcherButtons();
+      loadCommentsQueue();
+    }
+    function setFbAgent(id) {
+      fbSelectedAgentId = id || "owner";
+      localStorage.setItem("ptp_fb_agent", fbSelectedAgentId);
+      syncAgentSwitcherButtons();
+      loadFbAgentStatus();
+    }
+    document.querySelectorAll("[data-comments-agent]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setCommentsAgent(btn.getAttribute("data-comments-agent"));
+      });
+    });
+    document.querySelectorAll("[data-fb-agent]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setFbAgent(btn.getAttribute("data-fb-agent"));
+      });
+    });
+    syncAgentSwitcherButtons();
+    setInterval(tickCommentCountdowns, 1000);
 
     var commentsEditorRows = document.getElementById("comments-editor-links-rows");
     if (commentsEditorRows) {

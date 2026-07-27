@@ -38,12 +38,16 @@ from src.hub.group_post_store import (  # noqa: E402
     add_link_for_code,
     add_post_link,
     comments_today_count,
+    comments_today_count_for_code,
     delete_code as delete_comment_code,
     delete_item as delete_group_post_link,
     get_code_detail,
     list_codes as list_comment_codes,
     list_due as list_group_post_due,
     list_items as list_group_post_links,
+    list_upcoming as list_group_post_upcoming,
+    mark_comment_failed,
+    mark_comment_success,
     stats as group_post_link_stats,
     update_code as update_comment_code,
     update_item as update_group_post_link,
@@ -51,11 +55,35 @@ from src.hub.group_post_store import (  # noqa: E402
 from src.hub.fb_agent_store import (  # noqa: E402
     agent_heartbeat,
     agent_pull,
+    is_work_paused as fb_agent_is_work_paused,
+    pause_fb_account as fb_agent_pause_fb_account,
     public_status as fb_agent_public_status,
     request_login as fb_agent_request_login,
+    resolve_agent_id_by_token,
     rotate_agent_token,
+    set_chrome_profile as fb_agent_set_chrome_profile,
+    set_chrome_profiles as fb_agent_set_chrome_profiles,
     set_credentials as fb_agent_set_credentials,
+    set_fb_accounts as fb_agent_set_fb_accounts,
+    set_work_paused as fb_agent_set_work_paused,
     verify_agent_token,
+)
+from src.hub.group_post_publish_store import (  # noqa: E402
+    cancel_job as cancel_publish_job,
+    create_campaign as create_publish_campaign,
+    list_due as list_publish_due,
+    list_jobs as list_publish_jobs,
+    mark_result as mark_publish_result,
+    stats as publish_job_stats,
+)
+from src.hub.publish_caption import (  # noqa: E402
+    build_no_link_captions,
+    resolve_image_urls_for_property,
+)
+from src.hub.publish_policy import (  # noqa: E402
+    DEFAULT_DAILY_CAP,
+    DEFAULT_DAILY_CAP_MAX,
+    bump_warmup_cap,
 )
 from src.hub.project_store import (  # noqa: E402
     PREVIEW_JS,
@@ -205,6 +233,9 @@ _THUMB_FETCH_LOCK = __import__("threading").Semaphore(1)
 _THUMB_PENDING: set[str] = set()
 _THUMB_QUEUE = __import__("queue").Queue()
 _THUMB_FAIL_UNTIL: dict[str, float] = {}
+# Empty OG results must expire — Fly often hits FB login wall; Agent can fill later.
+_PREVIEW_OG_MISS_UNTIL: dict[str, float] = {}
+_PREVIEW_OG_MISS_TTL_SEC = 600.0
 
 
 def _auto_sync_to_sheet_enabled() -> bool:
@@ -607,18 +638,26 @@ def _save_thumb_disk(url: str, data: bytes, ctype: str) -> None:
 
 def _fetch_thumb_blocking(page_url: str) -> tuple[bytes, str]:
     """Hit Facebook — only from background worker (never on request thread)."""
+    import time
+
     with _THUMB_FETCH_LOCK:
         disk = _load_thumb_disk(page_url)
         if disk:
             _cache_put(_PREVIEW_BYTES_CACHE, page_url, disk)
             return disk
         image_url = _PREVIEW_OG_CACHE.get(page_url)
-        if image_url is None:
+        miss_until = _PREVIEW_OG_MISS_UNTIL.get(page_url, 0)
+        if image_url is None or (not image_url and miss_until <= time.time()):
             try:
                 image_url, _ = fetch_preview_image(page_url)
             except Exception:  # noqa: BLE001
                 image_url = ""
-            _cache_put(_PREVIEW_OG_CACHE, page_url, image_url or "")
+            if image_url:
+                _cache_put(_PREVIEW_OG_CACHE, page_url, image_url)
+                _PREVIEW_OG_MISS_UNTIL.pop(page_url, None)
+            else:
+                _PREVIEW_OG_CACHE[page_url] = ""
+                _PREVIEW_OG_MISS_UNTIL[page_url] = time.time() + _PREVIEW_OG_MISS_TTL_SEC
         if not image_url:
             return b"", ""
         try:
@@ -631,6 +670,49 @@ def _fetch_thumb_blocking(page_url: str) -> tuple[bytes, str]:
         _cache_put(_PREVIEW_BYTES_CACHE, page_url, (data, ctype))
         _save_thumb_disk(page_url, data, ctype)
         return data, ctype
+
+
+def save_uploaded_thumb(page_url: str, data: bytes, ctype: str = "image/jpeg") -> bool:
+    """Persist a thumb fetched by Mac/Windows Agent (bypasses Fly login wall)."""
+    page_url = (page_url or "").strip()
+    if not page_url.startswith("http"):
+        return False
+    if not data or len(data) < 500:
+        return False
+    ctype = (ctype or "image/jpeg").split(";")[0].strip() or "image/jpeg"
+    _cache_put(_PREVIEW_BYTES_CACHE, page_url, (data, ctype))
+    _save_thumb_disk(page_url, data, ctype)
+    _PREVIEW_OG_MISS_UNTIL.pop(page_url, None)
+    _THUMB_FAIL_UNTIL.pop(page_url, None)
+    _THUMB_PENDING.discard(page_url)
+    return True
+
+
+def list_thumb_due(*, limit: int = 20) -> list[dict]:
+    """Page-post URLs that still need a thumbnail (for Mac Agent to fetch)."""
+    try:
+        props = load_properties()
+    except Exception:  # noqa: BLE001
+        return []
+    out: list[dict] = []
+    # Newest first — list is often oldest-first in JSON
+    for p in reversed(list(props)):
+        if not isinstance(p, dict):
+            continue
+        if (p.get("import_status") or "") not in ("", "active"):
+            continue
+        u = (p.get("post_pages_url") or "").strip()
+        if not u.startswith("http"):
+            continue
+        if _load_thumb_disk(u):
+            continue
+        cached = _PREVIEW_BYTES_CACHE.get(u)
+        if cached and cached[0]:
+            continue
+        out.append({"url": u, "code": str(p.get("code") or "")})
+        if len(out) >= max(1, min(int(limit or 20), 40)):
+            break
+    return out
 
 
 def enqueue_preview_thumb(page_url: str) -> None:
@@ -912,6 +994,13 @@ def next_rxt_code(prefix: str = "RXT") -> str:
 _AGENT_API_PREFIXES = (
     "/api/fb-agent/pull",
     "/api/fb-agent/heartbeat",
+    "/api/fb-agent/due",
+    "/api/fb-agent/comment-result",
+    "/api/fb-agent/thumb-due",
+    "/api/fb-agent/thumb-upload",
+    "/api/fb-agent/chrome-profiles",
+    "/api/fb-agent/publish-due",
+    "/api/fb-agent/publish-result",
 )
 
 
@@ -933,84 +1022,76 @@ def _is_agent_authorized(handler: "HubHandler") -> bool:
     return verify_agent_token(_request_agent_token(handler))
 
 
+def _agent_id_from_handler(handler: "HubHandler") -> str | None:
+    return resolve_agent_id_by_token(_request_agent_token(handler))
+
+
 def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
     """Serve a ready-to-run starter script for Windows (.bat) or Mac (.command)."""
     from urllib.parse import parse_qs
 
     qs = parse_qs(urlparse(handler.path).query or "")
-    status = fb_agent_public_status(include_token=True)
+    agent_id = ((qs.get("agent") or qs.get("agent_id") or ["owner"])[0] or "owner").strip() or "owner"
+    status = fb_agent_public_status(include_token=True, agent_id=agent_id)
     token = str(status.get("agent_token") or "").strip()
     if not token:
-        handler._json(500, {"ok": False, "error": "ยังไม่มีรหัสเชื่อมต่อ"})
+        handler._json(500, {"ok": False, "error": "ยังไม่มีรหัสเชื่อมต่อของ Agent นี้"})
         return
     hub_url = ((qs.get("hub") or [""])[0] or "").strip()
     if not hub_url:
         host = (handler.headers.get("Host") or "127.0.0.1:8765").strip()
         hub_url = f"http://{host}"
-    # Bake local project path only when Hub runs on a real user machine.
-    # On Fly/Docker (/app) leave blank so the starter auto-finds / auto-downloads.
     raw_project = str(BASE_DIR.resolve())
     if raw_project in {"/app", "/"} or raw_project.startswith("/app/"):
         project_dir = ""
     else:
         project_dir = raw_project
 
+    label = str(status.get("label") or agent_id)
     kind = (kind or "windows").strip().lower()
     if kind in {"mac", "macos", "darwin"}:
         tpl = BASE_DIR / "scripts" / "mac" / "เปิดระบบคอมเมนต์.command.template"
-        fallback = (
+        filename = f"เปิดระบบคอมเมนต์-{agent_id}.command"
+        text = tpl.read_text(encoding="utf-8") if tpl.exists() else (
             "#!/bin/bash\n"
-            'PROJECT_DIR="__PROJECT_DIR__"\n'
             'HUB_URL="__HUB_URL__"\n'
             'COMMENT_AGENT_TOKEN="__AGENT_TOKEN__"\n'
-            'xattr -d com.apple.quarantine "$0" 2>/dev/null || true\n'
-            'cd "$PROJECT_DIR" || exit 1\n'
-            'python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN"\n'
-            'read -r -p "กด Enter เพื่อปิด..."\n'
+            'COMMENT_AGENT_ID="__AGENT_ID__"\n'
+            'export COMMENT_AGENT_ID\n'
+            'python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN" --agent "$COMMENT_AGENT_ID"\n'
         )
-        filename = "เปิดระบบคอมเมนต์.command"
-        text = tpl.read_text(encoding="utf-8") if tpl.exists() else fallback
         text = (
             text.replace("__PROJECT_DIR__", project_dir)
             .replace("__HUB_URL__", hub_url)
             .replace("__AGENT_TOKEN__", token)
+            .replace("__AGENT_ID__", agent_id)
+            .replace("__AGENT_LABEL__", label)
         )
-        data = text.encode("utf-8")
-        handler._send_bytes(
-            200,
-            data,
-            content_type="application/x-sh",
-            filename=filename,
-        )
+        handler._send_bytes(200, text.encode("utf-8"), content_type="application/x-sh", filename=filename)
         return
 
     tpl = BASE_DIR / "scripts" / "windows" / "เปิดระบบคอมเมนต์.bat.template"
-    if not tpl.exists():
-        tpl = BASE_DIR / "scripts" / "windows" / "start_comment_agent.template.bat"
+    filename = f"เปิดระบบคอมเมนต์-{agent_id}.bat"
     if tpl.exists():
         text = tpl.read_text(encoding="utf-8")
     else:
         text = (
             "@echo off\r\n"
-            "chcp 65001 >nul\r\n"
-            "title ระบบคอมเมนต์เฟส PTP\r\n"
-            'cd /d "%~dp0..\\.."\r\n'
             'set "HUB_URL=__HUB_URL__"\r\n'
             'set "COMMENT_AGENT_TOKEN=__AGENT_TOKEN__"\r\n'
-            "echo เปิดทิ้งไว้ — อย่าปิดหน้าต่างนี้\r\n"
-            'python scripts\\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%"\r\n'
+            'set "COMMENT_AGENT_ID=__AGENT_ID__"\r\n'
+            'python scripts\\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%" --agent "%COMMENT_AGENT_ID%"\r\n'
             "pause\r\n"
         )
-    text = text.replace("__HUB_URL__", hub_url.replace("%", "%%"))
-    text = text.replace("__AGENT_TOKEN__", token.replace("%", "%%"))
-    text = text.replace("__PROJECT_DIR__", project_dir.replace("%", "%%"))
-    data = ("\ufeff" + text.replace("\n", "\r\n")).encode("utf-8")
-    handler._send_bytes(
-        200,
-        data,
-        content_type="application/octet-stream",
-        filename="เปิดระบบคอมเมนต์.bat",
+    text = (
+        text.replace("__HUB_URL__", hub_url.replace("%", "%%"))
+        .replace("__AGENT_TOKEN__", token.replace("%", "%%"))
+        .replace("__PROJECT_DIR__", project_dir.replace("%", "%%"))
+        .replace("__AGENT_ID__", agent_id.replace("%", "%%"))
+        .replace("__AGENT_LABEL__", label.replace("%", "%%"))
     )
+    data = ("\ufeff" + text.replace("\n", "\r\n")).encode("utf-8")
+    handler._send_bytes(200, data, content_type="application/octet-stream", filename=filename)
 
 
 def _fb_agent_install_mac_to_downloads() -> dict:
@@ -1033,6 +1114,8 @@ def _fb_agent_install_mac_to_downloads() -> dict:
         .replace("__PROJECT_DIR__", project_dir)
         .replace("__HUB_URL__", hub_url)
         .replace("__AGENT_TOKEN__", token)
+        .replace("__AGENT_ID__", "owner")
+        .replace("__AGENT_LABEL__", "เจ้าของ (Mac)")
     )
     downloads = Path.home() / "Downloads"
     downloads.mkdir(parents=True, exist_ok=True)
@@ -1174,7 +1257,11 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
 
         if path == "/api/fb-agent/status":
-            self._json(200, fb_agent_public_status(include_token=True))
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            agent_id = ((qs.get("agent") or qs.get("agent_id") or [""])[0] or "").strip() or None
+            self._json(200, fb_agent_public_status(include_token=True, agent_id=agent_id))
             return
         if path == "/api/fb-agent/download-windows":
             _fb_agent_starter_download(self, kind="windows")
@@ -1186,7 +1273,166 @@ class HubHandler(BaseHTTPRequestHandler):
             if not _is_agent_authorized(self):
                 self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
                 return
-            self._json(200, agent_pull())
+            self._json(200, agent_pull(agent_id=_agent_id_from_handler(self)))
+            return
+        if path == "/api/fb-agent/due":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            try:
+                limit = int((qs.get("limit") or ["30"])[0] or 30)
+            except ValueError:
+                limit = 30
+            agent_id = _agent_id_from_handler(self) or "owner"
+            if fb_agent_is_work_paused(agent_id):
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "agent_id": agent_id,
+                        "due": [],
+                        "comments_today": comments_today_count(),
+                        "code_settings": {},
+                        "code_today": {},
+                        "work_paused": True,
+                    },
+                )
+                return
+            due = list_group_post_due(limit=limit, agent_id=agent_id)
+            code_settings: dict[str, dict] = {}
+            code_today: dict[str, int] = {}
+            for it in due:
+                code = str(it.get("property_code") or "").strip().upper()
+                if not code or code in code_settings:
+                    continue
+                try:
+                    detail = get_code_detail(code)
+                    row = detail.get("code") or {}
+                    code_settings[code] = (row.get("settings") or {}) if isinstance(row, dict) else {}
+                except Exception:  # noqa: BLE001
+                    code_settings[code] = {}
+                code_today[code] = comments_today_count_for_code(code)
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "agent_id": agent_id,
+                    "due": due,
+                    "comments_today": comments_today_count(),
+                    "code_today": code_today,
+                    "code_settings": code_settings,
+                    "stats": group_post_link_stats(),
+                },
+            )
+            return
+        if path == "/api/fb-agent/thumb-due":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            try:
+                limit = int((qs.get("limit") or ["15"])[0] or 15)
+            except ValueError:
+                limit = 15
+            items = list_thumb_due(limit=limit)
+            self._json(200, {"ok": True, "items": items, "count": len(items)})
+            return
+
+        if path == "/api/fb-agent/publish-due":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            try:
+                limit = int((qs.get("limit") or ["3"])[0] or 3)
+            except ValueError:
+                limit = 3
+            agent_id = _agent_id_from_handler(self) or "owner"
+            if fb_agent_is_work_paused(agent_id):
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "agent_id": agent_id,
+                        "due": [],
+                        "work_paused": True,
+                        "fb_accounts": [],
+                        "stats": publish_job_stats(agent_id=agent_id),
+                    },
+                )
+                return
+            status = fb_agent_public_status(include_token=False, agent_id=agent_id)
+            accounts = status.get("fb_accounts") or []
+            due = list_publish_due(agent_id=agent_id, limit=limit)
+            # Skip jobs for paused accounts
+            filtered = []
+            for job in due:
+                aid = str(job.get("fb_account_id") or "")
+                acc = next(
+                    (
+                        a
+                        for a in accounts
+                        if isinstance(a, dict)
+                        and (
+                            str(a.get("id") or "") == aid
+                            or str(a.get("switch_name") or "") == aid
+                            or str(a.get("label") or "") == aid
+                        )
+                    ),
+                    None,
+                )
+                from src.hub import publish_policy as _pol
+
+                if acc and _pol.account_is_paused(acc):
+                    continue
+                filtered.append(job)
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "agent_id": agent_id,
+                    "due": filtered,
+                    "fb_accounts": accounts,
+                    "stats": publish_job_stats(agent_id=agent_id),
+                    "policy": {
+                        "default_daily_cap": DEFAULT_DAILY_CAP,
+                        "default_daily_cap_max": DEFAULT_DAILY_CAP_MAX,
+                    },
+                },
+            )
+            return
+
+        if path == "/api/publish-jobs":
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            agent_id = ((qs.get("agent") or qs.get("agent_id") or [""])[0] or "").strip() or None
+            status = ((qs.get("status") or [""])[0] or "").strip() or None
+            try:
+                limit = int((qs.get("limit") or ["200"])[0] or 200)
+            except ValueError:
+                limit = 200
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "jobs": list_publish_jobs(agent_id=agent_id, status=status, limit=limit),
+                    "stats": publish_job_stats(agent_id=agent_id),
+                    "policy": {
+                        "default_daily_cap": DEFAULT_DAILY_CAP,
+                        "default_daily_cap_max": DEFAULT_DAILY_CAP_MAX,
+                        "min_delay_sec": 180,
+                        "max_delay_sec": 480,
+                    },
+                },
+            )
             return
 
         if path == "/api/auth/me":
@@ -1378,15 +1624,31 @@ class HubHandler(BaseHTTPRequestHandler):
                 limit = 300
             items = list_comment_codes(limit=limit)
             link_stats = group_post_link_stats()
+            agent_q = ((qs.get("agent") or qs.get("agent_id") or [""])[0] or "").strip() or None
+            if agent_q:
+                items = [x for x in items if str(x.get("agent_id") or "owner") == agent_q]
             active_n = sum(1 for x in items if x.get("active"))
             links_n = sum(int(x.get("link_count") or 0) for x in items)
             due_n = sum(int(x.get("due_count") or 0) for x in items)
-            fb = fb_agent_public_status(include_token=False)
+            all_status = fb_agent_public_status(include_token=False)
+            agents = all_status.get("agents") if isinstance(all_status.get("agents"), list) else []
+            fb = (
+                fb_agent_public_status(include_token=False, agent_id=agent_q)
+                if agent_q
+                else all_status
+            )
+            upcoming = list_group_post_upcoming(limit=50)
+            if agent_q:
+                code_set = {str(x.get("code") or "") for x in items}
+                upcoming = [u for u in upcoming if str(u.get("property_code") or "") in code_set][:15]
+            else:
+                upcoming = upcoming[:15]
             self._json(
                 200,
                 {
                     "ok": True,
                     "items": items,
+                    "agents": agents,
                     "dashboard": {
                         "codes_total": len(items),
                         "codes_active": active_n,
@@ -1394,7 +1656,9 @@ class HubHandler(BaseHTTPRequestHandler):
                         "due_total": due_n,
                         "comments_today": comments_today_count(),
                         "links_stats": link_stats,
+                        "upcoming": upcoming,
                         "fb": fb,
+                        "agent_id": agent_q or all_status.get("default_agent_id") or "owner",
                     },
                 },
             )
@@ -1418,12 +1682,28 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(400, {"ok": False, "error": "missing url", "image_url": ""})
                 return
             try:
+                import time as _time
+
                 if url in _PREVIEW_OG_CACHE:
                     image_url = _PREVIEW_OG_CACHE[url]
-                    warnings: list[str] = []
+                    miss_until = _PREVIEW_OG_MISS_UNTIL.get(url, 0)
+                    if image_url or miss_until > _time.time():
+                        warnings = []
+                    else:
+                        image_url, warnings = fetch_preview_image(url)
+                        if image_url:
+                            _cache_put(_PREVIEW_OG_CACHE, url, image_url)
+                            _PREVIEW_OG_MISS_UNTIL.pop(url, None)
+                        else:
+                            _PREVIEW_OG_CACHE[url] = ""
+                            _PREVIEW_OG_MISS_UNTIL[url] = _time.time() + _PREVIEW_OG_MISS_TTL_SEC
                 else:
                     image_url, warnings = fetch_preview_image(url)
-                    _cache_put(_PREVIEW_OG_CACHE, url, image_url or "")
+                    if image_url:
+                        _cache_put(_PREVIEW_OG_CACHE, url, image_url)
+                    else:
+                        _PREVIEW_OG_CACHE[url] = ""
+                        _PREVIEW_OG_MISS_UNTIL[url] = _time.time() + _PREVIEW_OG_MISS_TTL_SEC
                 self._json(
                     200,
                     {
@@ -1648,18 +1928,96 @@ class HubHandler(BaseHTTPRequestHandler):
             try:
                 email = (body.get("email") or "").strip()
                 password = body.get("password")
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
                 if password is not None:
                     password = str(password)
-                self._json(200, {"ok": True, **fb_agent_set_credentials(email=email, password=password)})
+                self._json(
+                    200,
+                    {"ok": True, **fb_agent_set_credentials(email=email, password=password, agent_id=agent_id)},
+                )
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
 
         if path == "/api/fb-agent/request-login":
             try:
-                self._json(200, {"ok": True, **fb_agent_request_login()})
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                if fb_agent_is_work_paused(agent_id):
+                    self._json(
+                        400,
+                        {
+                            "ok": False,
+                            "error": "Agent ถูกหยุดงานฉุกเฉินอยู่ — กด「ทำงานต่อ」ก่อน แล้วค่อยล็อกอิน",
+                        },
+                    )
+                    return
+                self._json(200, {"ok": True, **fb_agent_request_login(agent_id=agent_id)})
             except ValueError as exc:
                 self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/control":
+            # Hub admin only — agent token must not pause/resume itself
+            if not self._session_user():
+                self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+                return
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                action = str(body.get("action") or "").strip().lower()
+                if action in {"pause", "stop", "หยุด", "paused"}:
+                    self._json(200, {"ok": True, **fb_agent_set_work_paused(True, agent_id=agent_id)})
+                elif action in {"resume", "continue", "start", "ทำงานต่อ", "unpause"}:
+                    self._json(200, {"ok": True, **fb_agent_set_work_paused(False, agent_id=agent_id)})
+                else:
+                    self._json(
+                        400,
+                        {"ok": False, "error": "action ต้องเป็น pause หรือ resume"},
+                    )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/chrome-profiles":
+            # Agent uploads local Chrome profile list
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            try:
+                agent_id = _agent_id_from_handler(self) or (
+                    (body.get("agent_id") or body.get("agent") or "").strip() or None
+                )
+                profiles = body.get("profiles")
+                if not isinstance(profiles, list):
+                    profiles = []
+                self._json(
+                    200,
+                    {"ok": True, **fb_agent_set_chrome_profiles(profiles, agent_id=agent_id)},
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/chrome-profile":
+            if not self._session_user():
+                self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+                return
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                profile_dir = str(body.get("dir") or body.get("profile_dir") or "").strip()
+                profile_name = str(body.get("name") or body.get("profile_name") or "").strip()
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        **fb_agent_set_chrome_profile(
+                            profile_dir,
+                            profile_name=profile_name,
+                            agent_id=agent_id,
+                        ),
+                    },
+                )
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -1675,7 +2033,8 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/fb-agent/rotate-token":
             try:
-                self._json(200, {"ok": True, **rotate_agent_token()})
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                self._json(200, {"ok": True, **rotate_agent_token(agent_id=agent_id)})
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -1686,6 +2045,7 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
             try:
                 fb_flag = body.get("fb_logged_in")
+                agent_id = _agent_id_from_handler(self)
                 self._json(
                     200,
                     {
@@ -1697,6 +2057,7 @@ class HubHandler(BaseHTTPRequestHandler):
                             fb_logged_in=None if fb_flag is None else bool(fb_flag),
                             clear_login_request=bool(body.get("clear_login_request")),
                             last_run=body.get("last_run") if isinstance(body.get("last_run"), dict) else None,
+                            agent_id=agent_id,
                         ),
                     },
                 )
@@ -1708,7 +2069,329 @@ class HubHandler(BaseHTTPRequestHandler):
             if not _is_agent_authorized(self):
                 self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
                 return
-            self._json(200, agent_pull())
+            self._json(200, agent_pull(agent_id=_agent_id_from_handler(self)))
+            return
+
+        if path == "/api/fb-agent/comment-result":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            try:
+                item_id = (body.get("id") or body.get("item_id") or "").strip()
+                if not item_id:
+                    self._json(400, {"ok": False, "error": "ต้องระบุ id"})
+                    return
+                if body.get("ok") or body.get("success"):
+                    item = mark_comment_success(
+                        item_id,
+                        comment_text=str(body.get("comment_text") or body.get("text") or ""),
+                        comment_kind=str(body.get("comment_kind") or body.get("kind") or "text"),
+                    )
+                else:
+                    item = mark_comment_failed(
+                        item_id,
+                        str(body.get("error") or "unknown"),
+                        action=str(body.get("action") or ""),
+                        detail=str(body.get("detail") or ""),
+                        join_status=str(body.get("join_status") or ""),
+                    )
+                self._json(200, {"ok": True, "item": item})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/thumb-upload":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            try:
+                import base64
+
+                page_url = (body.get("url") or body.get("page_url") or "").strip()
+                ctype = str(body.get("content_type") or body.get("ctype") or "image/jpeg")
+                b64 = body.get("image_base64") or body.get("data_base64") or ""
+                raw = body.get("image_bytes")
+                data = b""
+                if isinstance(b64, str) and b64.strip():
+                    data = base64.b64decode(b64.strip())
+                elif isinstance(raw, (bytes, bytearray)):
+                    data = bytes(raw)
+                elif isinstance(raw, str) and raw.strip():
+                    data = base64.b64decode(raw.strip())
+                if not save_uploaded_thumb(page_url, data, ctype):
+                    self._json(400, {"ok": False, "error": "อัปโหลดรูปไม่สำเร็จ (url/ข้อมูลรูปไม่ครบ)"})
+                    return
+                self._json(200, {"ok": True, "url": page_url, "bytes": len(data)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/publish-result":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            try:
+                job_id = (body.get("id") or body.get("job_id") or "").strip()
+                if not job_id:
+                    self._json(400, {"ok": False, "error": "ต้องระบุ id"})
+                    return
+                ok = bool(body.get("ok") or body.get("success"))
+                action = str(body.get("action") or "").strip()
+                job = mark_publish_result(
+                    job_id,
+                    ok=ok,
+                    permalink=str(body.get("permalink") or body.get("post_url") or ""),
+                    error=str(body.get("error") or ""),
+                    action=action,
+                    detail=str(body.get("detail") or ""),
+                )
+                agent_id = _agent_id_from_handler(self) or job.get("agent_id") or "owner"
+                # Auto-pause FB account on restriction
+                if (not ok) and (action == "restricted" or "restrict" in str(body.get("error") or "").lower()):
+                    acc_id = str(job.get("fb_account_id") or "").strip()
+                    if acc_id:
+                        try:
+                            fb_agent_pause_fb_account(
+                                acc_id,
+                                paused=True,
+                                hours=48,
+                                agent_id=agent_id,
+                            )
+                        except Exception as pause_exc:  # noqa: BLE001
+                            print(f"pause fb account failed: {pause_exc}", flush=True)
+                # Enqueue comment queue after successful post
+                comment_item = None
+                permalink = str(job.get("permalink") or body.get("permalink") or "").strip()
+                if ok and permalink:
+                    try:
+                        code = str(job.get("property_code") or "").strip()
+                        if code:
+                            comment_item = add_link_for_code(
+                                code,
+                                post_url=permalink,
+                                group_url=str(job.get("group_url") or ""),
+                                group_name=str(job.get("group_name") or ""),
+                                comment_immediately=bool(body.get("comment_immediately", True)),
+                            )
+                        else:
+                            comment_item = add_post_link(
+                                post_url=permalink,
+                                property_code=code,
+                                group_url=str(job.get("group_url") or ""),
+                                group_name=str(job.get("group_name") or ""),
+                                comment_immediately=bool(body.get("comment_immediately", True)),
+                            )
+                    except Exception as cq_exc:  # noqa: BLE001
+                        print(f"enqueue comment after publish failed: {cq_exc}", flush=True)
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "job": job,
+                        "comment_item": comment_item,
+                        "stats": publish_job_stats(agent_id=agent_id),
+                    },
+                )
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/fb-accounts":
+            if not self._session_user():
+                self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+                return
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                accounts = body.get("accounts") or body.get("fb_accounts") or []
+                if not isinstance(accounts, list):
+                    accounts = []
+                self._json(200, {"ok": True, **fb_agent_set_fb_accounts(accounts, agent_id=agent_id)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/fb-account-pause":
+            if not self._session_user():
+                self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+                return
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                account_id = str(body.get("account_id") or body.get("id") or "").strip()
+                paused = body.get("paused")
+                if paused is None:
+                    paused = True
+                hours = body.get("hours")
+                hours_i = int(hours) if hours is not None else None
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        **fb_agent_pause_fb_account(
+                            account_id,
+                            paused=bool(paused),
+                            hours=hours_i,
+                            agent_id=agent_id,
+                        ),
+                    },
+                )
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/fb-agent/fb-account-warmup":
+            if not self._session_user():
+                self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+                return
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                status = fb_agent_public_status(include_token=True, agent_id=agent_id)
+                accounts = list(status.get("fb_accounts") or [])
+                want = str(body.get("account_id") or body.get("id") or "").strip()
+                updated = []
+                for acc in accounts:
+                    if not isinstance(acc, dict):
+                        continue
+                    if want and acc.get("id") != want and acc.get("label") != want:
+                        updated.append(acc)
+                        continue
+                    new_cap = bump_warmup_cap(int(acc.get("daily_cap") or DEFAULT_DAILY_CAP))
+                    acc = {**acc, "daily_cap": new_cap}
+                    updated.append(acc)
+                self._json(200, {"ok": True, **fb_agent_set_fb_accounts(updated, agent_id=agent_id)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/publish-jobs/create":
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "owner").strip() or "owner"
+                code = (body.get("code") or body.get("property_code") or "").strip()
+                groups = body.get("groups") or []
+                if not isinstance(groups, list):
+                    groups = []
+                # captions
+                caption = str(body.get("caption") or "").strip()
+                if not caption:
+                    built = build_no_link_captions(code, lang=str(body.get("lang") or "th"), n=4)
+                    if not built.get("ok"):
+                        self._json(400, {"ok": False, "error": built.get("error") or "สร้างแคปชันไม่ได้"})
+                        return
+                    variants = built.get("variants") or [built.get("caption")]
+                    # rotate caption per group via index if multiple variants
+                    caption = str(variants[0] or "")
+                else:
+                    variants = [caption]
+                    extra = body.get("caption_variants") or []
+                    if isinstance(extra, list):
+                        variants = [caption] + [str(x) for x in extra if str(x).strip()]
+
+                image_urls = body.get("image_urls") or body.get("images") or []
+                if not isinstance(image_urls, list):
+                    image_urls = []
+                image_urls = resolve_image_urls_for_property(code, extra=[str(x) for x in image_urls])
+
+                status = fb_agent_public_status(include_token=False, agent_id=agent_id)
+                accounts = status.get("fb_accounts") or []
+                if body.get("fb_accounts") and isinstance(body.get("fb_accounts"), list):
+                    accounts = body["fb_accounts"]
+
+                # Assign rotating captions across groups for anti-ban
+                jobs_created = []
+                campaign_id = None
+                if len(groups) > 1 and len(variants) > 1:
+                    # create one campaign but with different captions — store API uses one caption;
+                    # split into mini-campaigns per caption slice
+                    from src.hub.group_post_publish_store import create_campaign as _cc
+
+                    for i, g in enumerate(groups):
+                        cap = variants[i % len(variants)]
+                        part = _cc(
+                            property_code=code,
+                            groups=[g],
+                            caption=cap,
+                            image_urls=image_urls,
+                            agent_id=agent_id,
+                            fb_accounts=accounts,
+                            schedule_spread=body.get("schedule_spread", True) is not False,
+                        )
+                        if campaign_id is None:
+                            campaign_id = part.get("campaign_id")
+                        jobs_created.extend(part.get("jobs") or [])
+                    self._json(
+                        200,
+                        {
+                            "ok": True,
+                            "campaign_id": campaign_id,
+                            "created": len(jobs_created),
+                            "jobs": jobs_created,
+                            "stats": publish_job_stats(agent_id=agent_id),
+                        },
+                    )
+                    return
+
+                result = create_publish_campaign(
+                    property_code=code,
+                    groups=groups,
+                    caption=caption,
+                    image_urls=image_urls,
+                    agent_id=agent_id,
+                    fb_accounts=accounts,
+                    schedule_spread=body.get("schedule_spread", True) is not False,
+                )
+                result["stats"] = publish_job_stats(agent_id=agent_id)
+                self._json(200, result)
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/publish-jobs/cancel":
+            try:
+                job_id = (body.get("id") or body.get("job_id") or "").strip()
+                if not cancel_publish_job(job_id):
+                    self._json(404, {"ok": False, "error": "ไม่พบงานโพส"})
+                    return
+                self._json(200, {"ok": True, "stats": publish_job_stats()})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/publish-jobs/list":
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
+                status = (body.get("status") or "").strip() or None
+                limit = int(body.get("limit") or 200)
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "jobs": list_publish_jobs(agent_id=agent_id, status=status, limit=limit),
+                        "stats": publish_job_stats(agent_id=agent_id),
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/groups/prepare-caption-nolink":
+            try:
+                code = (body.get("code") or body.get("property_code") or "").strip()
+                result = build_no_link_captions(
+                    code,
+                    lang=str(body.get("lang") or "th"),
+                    n=int(body.get("n") or body.get("variants") or 4),
+                )
+                status = 200 if result.get("ok") else 400
+                self._json(status, result)
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
             return
 
         if path == "/api/scrape":
@@ -1751,11 +2434,22 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/groups/recommend":
             try:
                 prop = body.get("property") or body
+                code = (body.get("code") or body.get("property_code") or "").strip()
+                if code and (not isinstance(prop, dict) or not (prop.get("project_name") or prop.get("code"))):
+                    from src.hub.publish_caption import find_property_by_code
+
+                    found = find_property_by_code(code)
+                    if found:
+                        prop = found
+                    else:
+                        prop = {"code": code}
+                elif isinstance(prop, dict) and code and not prop.get("code"):
+                    prop = {**prop, "code": code}
                 limit = body.get("limit")
                 if limit is None:
                     limit = body.get("per_category") or 30
                 result = recommend_groups(
-                    prop,
+                    prop if isinstance(prop, dict) else {},
                     limit=int(limit),
                     include_owner_only=bool(body.get("include_owner_only")),
                 )
@@ -1825,21 +2519,25 @@ class HubHandler(BaseHTTPRequestHandler):
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip()
                 if code:
+                    imm = body.get("comment_immediately")
+                    comment_immediately = True if imm is None else bool(imm)
                     item = add_link_for_code(
                         code,
                         post_url=(body.get("post_url") or body.get("url") or "").strip(),
                         group_url=(body.get("group_url") or "").strip(),
                         group_name=(body.get("group_name") or "").strip(),
-                        comment_immediately=bool(body.get("comment_immediately")),
+                        comment_immediately=comment_immediately,
                     )
                 else:
+                    imm = body.get("comment_immediately")
+                    comment_immediately = True if imm is None else bool(imm)
                     item = add_post_link(
                     post_url=(body.get("post_url") or body.get("url") or "").strip(),
                     property_code=code,
                     group_url=(body.get("group_url") or "").strip(),
                     group_name=(body.get("group_name") or "").strip(),
                     max_comments=body.get("max_comments"),
-                    comment_immediately=bool(body.get("comment_immediately")),
+                    comment_immediately=comment_immediately,
                 )
                 self._json(200, {"ok": True, "item": item, "stats": group_post_link_stats()})
             except ValueError as exc:
@@ -1882,7 +2580,10 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/comment-codes/add":
             try:
                 code = (body.get("code") or "").strip()
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
                 item = add_comment_code(code)
+                if agent_id and str(item.get("agent_id") or "") != agent_id:
+                    item = update_comment_code(code, {"agent_id": agent_id})
                 self._json(200, {"ok": True, "item": item})
             except ValueError as exc:
                 self._json(400, {"ok": False, "error": str(exc)})
@@ -3032,17 +3733,17 @@ def main() -> None:
             print(f"[hub] thumb warm skip: {exc}")
             return
         candidates = []
-        for p in props:
+        for p in reversed(list(props)):
             if (p.get("import_status") or "") not in ("", "active"):
                 continue
             u = (p.get("post_pages_url") or "").strip()
             if u.startswith("http"):
                 candidates.append(u)
-            if len(candidates) >= 20:
+            if len(candidates) >= 40:
                 break
         for u in candidates:
             enqueue_preview_thumb(u)
-        print(f"[hub] queued {len(candidates)} page thumbs for background warm")
+        print(f"[hub] queued {len(candidates)} page thumbs for background warm (newest first)")
 
     # Background: serve Hub volume catalog (sheet pull is off by default — Hub is SoT).
     # Server listens first so health checks pass during any optional sync window.

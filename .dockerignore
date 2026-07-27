@@ -22,6 +22,7 @@ mobile
 data/fb_agent.json
 data/group_post_links.json
 data/group_post_codes.json
+data/group_publish_jobs.json
 data/thumb_cache
 data/living_cache
 data/propertyhub_cache

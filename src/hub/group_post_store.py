@@ -25,10 +25,10 @@ STATUS_FAILED = "failed"
 STATUS_PAUSED = "paused"
 STATUS_DONE = "done"
 
-# Defaults
-FIRST_DELAY_HOURS = (3, 12)
+# Defaults — first comment ASAP; later rebump every few days until end_date
+FIRST_DELAY_HOURS = (0, 0)
 REBUMP_DAYS = (5, 8)
-DEFAULT_MAX_COMMENTS = 3
+DEFAULT_MAX_COMMENTS = 999  # legacy field; stop condition is end_date + max_per_day
 MAX_LINKS_PER_CODE = 20
 
 FB_HOSTS = ("facebook.com", "fb.com", "fb.watch", "m.facebook.com")
@@ -90,9 +90,9 @@ def _default_code_settings() -> dict:
         "max_delay_sec": 1200,
         "max_per_run": 3,
         "max_per_day": 10,
-        "max_comments_per_link": 3,
-        "first_delay_hour_min": 3,
-        "first_delay_hour_max": 12,
+        "max_comments_per_link": DEFAULT_MAX_COMMENTS,  # unused in UI; kept for old data
+        "first_delay_hour_min": 0,
+        "first_delay_hour_max": 0,
         "rebump_day_min": 5,
         "rebump_day_max": 8,
         "total_days": 30,
@@ -140,7 +140,8 @@ def _normalize_code_item(item: dict) -> dict | None:
     s["max_delay_sec"] = max(s["min_delay_sec"], min(s["max_delay_sec"], 10800))
     s["max_per_run"] = max(1, min(s["max_per_run"], 10))
     s["max_per_day"] = max(1, min(s["max_per_day"], 100))
-    s["max_comments_per_link"] = max(1, min(s["max_comments_per_link"], 10))
+    # Keep legacy field clamped but do not surface in Hub UI
+    s["max_comments_per_link"] = max(1, min(int(s.get("max_comments_per_link") or DEFAULT_MAX_COMMENTS), 999))
     s["first_delay_hour_min"] = max(0, min(s["first_delay_hour_min"], 72))
     s["first_delay_hour_max"] = max(s["first_delay_hour_min"], min(s["first_delay_hour_max"], 120))
     s["rebump_day_min"] = max(1, min(s["rebump_day_min"], 30))
@@ -150,10 +151,12 @@ def _normalize_code_item(item: dict) -> dict | None:
     if end_date and not re.match(r"^\d{4}-\d{2}-\d{2}$", end_date):
         end_date = ""
     s["end_date"] = end_date
+    agent_id = str(item.get("agent_id") or "").strip() or "owner"
     return {
         "id": str(item.get("id") or "").strip() or str(uuid.uuid4()),
         "code": code,
         "active": active,
+        "agent_id": agent_id,
         "settings": s,
         "created_at": str(item.get("created_at") or "").strip() or _now_iso(),
         "updated_at": str(item.get("updated_at") or "").strip() or _now_iso(),
@@ -275,6 +278,10 @@ def _normalize_item(item: dict) -> dict | None:
         "last_comment_text": str(item.get("last_comment_text") or "").strip(),
         "last_comment_kind": str(item.get("last_comment_kind") or "").strip(),
         "last_error": str(item.get("last_error") or "").strip(),
+        "last_action": str(item.get("last_action") or "").strip(),
+        "last_result_detail": str(item.get("last_result_detail") or "").strip(),
+        "join_status": str(item.get("join_status") or "").strip(),
+        "join_requested_at": str(item.get("join_requested_at") or "").strip(),
         "history": item.get("history") if isinstance(item.get("history"), list) else [],
         "created_at": str(item.get("created_at") or "").strip() or _now_iso(),
         "updated_at": str(item.get("updated_at") or "").strip() or _now_iso(),
@@ -313,8 +320,50 @@ def stats() -> dict:
     }
 
 
-def list_due(*, limit: int = 20, now: datetime | None = None) -> list[dict]:
-    """Items ready to comment (pending/commented/failed with next_comment_at <= now)."""
+def list_due(*, limit: int = 20, now: datetime | None = None, agent_id: str | None = None) -> list[dict]:
+    """Items ready to comment (pending/commented/failed with next_comment_at <= now).
+
+    If agent_id is provided, only include links whose property code is assigned to that agent.
+    """
+    now = now or _now()
+    want_agent = str(agent_id).strip() if agent_id is not None else None
+    out: list[dict] = []
+    code_map = {x["code"]: x for x in list_codes(limit=5000)}
+    for it in list_items(limit=5000):
+        code_cfg = code_map.get(_norm_code(it.get("property_code") or ""))
+        if want_agent is not None:
+            code_agent = str((code_cfg or {}).get("agent_id") or "owner")
+            if code_agent != want_agent:
+                continue
+        if code_cfg and not code_cfg.get("active", True):
+            continue
+        if code_cfg:
+            end_date = str(((code_cfg.get("settings") or {}).get("end_date") or "")).strip()
+            if end_date and _now().date().isoformat() > end_date:
+                continue
+        if it["status"] in {STATUS_PAUSED, STATUS_DONE}:
+            continue
+        # Stop condition is code end_date (checked above), not per-link max
+        nxt = _parse_ts(it.get("next_comment_at"))
+        # First comment on a link: start ASAP (pending or after a failed first try)
+        if int(it.get("comment_count") or 0) == 0 and it["status"] in {
+            STATUS_PENDING,
+            STATUS_FAILED,
+        }:
+            out.append(it)
+            continue
+        if nxt is None:
+            # treat missing schedule as due
+            out.append(it)
+            continue
+        if nxt <= now:
+            out.append(it)
+    out.sort(key=lambda x: x.get("next_comment_at") or "")
+    return out[: max(1, min(int(limit or 20), 100))]
+
+
+def list_upcoming(*, limit: int = 20, now: datetime | None = None) -> list[dict]:
+    """Next scheduled comments (due first, then future) for Hub schedule view."""
     now = now or _now()
     out: list[dict] = []
     code_map = {x["code"]: x for x in list_codes(limit=5000)}
@@ -328,17 +377,21 @@ def list_due(*, limit: int = 20, now: datetime | None = None) -> list[dict]:
                 continue
         if it["status"] in {STATUS_PAUSED, STATUS_DONE}:
             continue
-        if it["comment_count"] >= it["max_comments"]:
-            continue
         nxt = _parse_ts(it.get("next_comment_at"))
-        if nxt is None:
-            # treat missing schedule as due
-            out.append(it)
-            continue
-        if nxt <= now:
-            out.append(it)
-    out.sort(key=lambda x: x.get("next_comment_at") or "")
-    return out[: max(1, min(int(limit or 20), 100))]
+        row = dict(it)
+        first_asap = int(it.get("comment_count") or 0) == 0 and it["status"] in {
+            STATUS_PENDING,
+            STATUS_FAILED,
+        }
+        if first_asap or nxt is None or nxt <= now:
+            row["schedule_label"] = "ถึงคิวแล้ว — รอ Agent คอมเมนต์"
+            row["is_due"] = True
+        else:
+            row["schedule_label"] = f"นัดไว้ {it.get('next_comment_at')}"
+            row["is_due"] = False
+        out.append(row)
+    out.sort(key=lambda x: (0 if x.get("is_due") else 1, x.get("next_comment_at") or ""))
+    return out[: max(1, min(int(limit or 20), 50))]
 
 
 def get_item(item_id: str) -> dict | None:
@@ -356,7 +409,7 @@ def add_post_link(
     group_url: str = "",
     group_name: str = "",
     max_comments: int | None = None,
-    comment_immediately: bool = False,
+    comment_immediately: bool = True,
 ) -> dict:
     """Register a group post permalink. Dedupes by normalized post_url."""
     normalized = normalize_post_url(post_url)
@@ -400,6 +453,10 @@ def add_post_link(
             "last_comment_text": "",
             "last_comment_kind": "",
             "last_error": "",
+            "last_action": "",
+            "last_result_detail": "",
+            "join_status": "",
+            "join_requested_at": "",
             "history": [],
             "created_at": _now_iso(),
             "updated_at": _now_iso(),
@@ -469,7 +526,6 @@ def mark_comment_success(
             if not isinstance(raw, dict) or str(raw.get("id") or "") != iid_safe(item_id):
                 continue
             count = int(raw.get("comment_count") or 0) + 1
-            max_c = int(raw.get("max_comments") or DEFAULT_MAX_COMMENTS)
             history = raw.get("history") if isinstance(raw.get("history"), list) else []
             history.append(
                 {
@@ -484,12 +540,16 @@ def mark_comment_success(
             raw["last_comment_text"] = (comment_text or "")[:500]
             raw["last_comment_kind"] = comment_kind
             raw["last_error"] = ""
+            raw["last_action"] = "commented"
+            raw["last_result_detail"] = "คอมเมนต์สำเร็จ"
             raw["updated_at"] = _now_iso()
             code_cfg = get_code_by_code(raw.get("property_code") or "")
-            if count >= max_c:
+            end_date = str(((code_cfg or {}).get("settings") or {}).get("end_date") or "").strip()
+            if end_date and _now().date().isoformat() > end_date:
                 raw["status"] = STATUS_DONE
                 raw["next_comment_at"] = ""
             else:
+                # Keep commenting on this link until end_date; daily cap is max_per_day
                 raw["status"] = STATUS_COMMENTED
                 raw["next_comment_at"] = _schedule_rebump_with((code_cfg or {}).get("settings"))
             data["items"][i] = raw
@@ -498,14 +558,37 @@ def mark_comment_success(
     raise ValueError("ไม่พบรายการ")
 
 
-def mark_comment_failed(item_id: str, error: str) -> dict:
+def mark_comment_failed(
+    item_id: str,
+    error: str,
+    *,
+    action: str = "",
+    detail: str = "",
+    join_status: str = "",
+) -> dict:
     with _LOCK:
         data = _load()
         for i, raw in enumerate(data.get("items") or []):
             if not isinstance(raw, dict) or str(raw.get("id") or "") != iid_safe(item_id):
                 continue
+            err_text = (error or "")[:500]
             raw["status"] = STATUS_FAILED
-            raw["last_error"] = (error or "")[:500]
+            raw["last_error"] = err_text
+            raw["last_action"] = str(action or "").strip()
+            raw["last_result_detail"] = str(detail or "").strip()[:500]
+            if join_status != "":
+                raw["join_status"] = str(join_status).strip()
+            history = raw.get("history") if isinstance(raw.get("history"), list) else []
+            history.append(
+                {
+                    "ts": _now_iso(),
+                    "kind": "error",
+                    "text": err_text,
+                    "action": str(action or "").strip(),
+                    "detail": str(detail or "").strip()[:500],
+                }
+            )
+            raw["history"] = history[-20:]
             # Retry later same day (2–5 hours)
             raw["next_comment_at"] = (_now() + timedelta(hours=random.uniform(2, 5))).strftime(
                 "%Y-%m-%d %H:%M:%S"
@@ -545,6 +628,23 @@ def comments_today_count_for_code(code: str) -> int:
     return n
 
 
+def _link_summary(row: dict) -> dict:
+    return {
+        "id": str(row.get("id") or ""),
+        "post_url": str(row.get("post_url") or ""),
+        "group_name": str(row.get("group_name") or ""),
+        "group_url": str(row.get("group_url") or ""),
+        "status": str(row.get("status") or ""),
+        "next_comment_at": str(row.get("next_comment_at") or ""),
+        "comment_count": int(row.get("comment_count") or 0),
+        "max_comments": int(row.get("max_comments") or DEFAULT_MAX_COMMENTS),
+        "last_error": str(row.get("last_error") or ""),
+        "last_action": str(row.get("last_action") or ""),
+        "last_result_detail": str(row.get("last_result_detail") or ""),
+        "join_status": str(row.get("join_status") or ""),
+    }
+
+
 def list_codes(*, limit: int = 500) -> list[dict]:
     with _LOCK:
         raw = _load_codes().get("codes") or []
@@ -557,23 +657,45 @@ def list_codes(*, limit: int = 500) -> list[dict]:
         if not code:
             continue
         by_code.setdefault(code, []).append(it)
+    now = _now()
     out: list[dict] = []
     for item in codes:
         code = item["code"]
         rows = by_code.get(code, [])
         due = 0
+        upcoming: list[datetime] = []
         for r in rows:
             nxt = _parse_ts(r.get("next_comment_at"))
+            first_asap = int(r.get("comment_count") or 0) == 0 and r.get("status") in {
+                STATUS_PENDING,
+                STATUS_FAILED,
+            }
             if r.get("status") in {STATUS_PENDING, STATUS_COMMENTED, STATUS_FAILED} and (
-                nxt is None or nxt <= _now()
+                first_asap or nxt is None or nxt <= now
             ):
                 due += 1
+            if r.get("status") not in {STATUS_DONE, STATUS_PAUSED}:
+                if first_asap:
+                    upcoming.append(now)
+                elif nxt is not None:
+                    upcoming.append(nxt)
+        next_comment_at = ""
+        next_in_sec: int | None = None
+        if upcoming:
+            earliest = min(upcoming)
+            next_comment_at = earliest.strftime("%Y-%m-%d %H:%M:%S")
+            delta = (earliest - now).total_seconds()
+            next_in_sec = 0 if delta <= 0 else int(delta)
         out.append(
             {
                 **item,
+                "agent_id": str(item.get("agent_id") or "owner"),
                 "link_count": len(rows),
                 "due_count": due,
                 "active_links": len([r for r in rows if r.get("status") != STATUS_DONE]),
+                "links": [_link_summary(r) for r in rows],
+                "next_comment_at": next_comment_at,
+                "next_in_sec": next_in_sec,
             }
         )
     out.sort(key=lambda x: x.get("updated_at") or "", reverse=True)
@@ -604,6 +726,7 @@ def ensure_code(code: str) -> dict:
             "id": str(uuid.uuid4()),
             "code": want,
             "active": True,
+            "agent_id": "owner",
             "settings": _default_code_settings(),
             "created_at": created.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": created.strftime("%Y-%m-%d %H:%M:%S"),
@@ -631,6 +754,8 @@ def update_code(code: str, patch: dict) -> dict:
                 continue
             if "active" in patch:
                 raw["active"] = bool(patch["active"])
+            if "agent_id" in patch and patch["agent_id"] is not None:
+                raw["agent_id"] = str(patch["agent_id"]).strip() or "owner"
             if "settings" in patch and isinstance(patch["settings"], dict):
                 cur = raw.get("settings") if isinstance(raw.get("settings"), dict) else {}
                 cur.update(patch["settings"])
@@ -691,13 +816,12 @@ def add_link_for_code(
     post_url: str,
     group_url: str = "",
     group_name: str = "",
-    comment_immediately: bool = False,
+    comment_immediately: bool = True,
 ) -> dict:
     row = ensure_code(code)
     links = list_items(property_code=row["code"], limit=MAX_LINKS_PER_CODE + 10)
     if len(links) >= MAX_LINKS_PER_CODE:
         raise ValueError(f"1 รหัสเพิ่มได้สูงสุด {MAX_LINKS_PER_CODE} ลิงก์")
-    max_comments = int((row.get("settings") or {}).get("max_comments_per_link") or DEFAULT_MAX_COMMENTS)
     if not group_name:
         group_name = infer_group_name_from_link(post_url)
     return add_post_link(
@@ -705,7 +829,7 @@ def add_link_for_code(
         property_code=row["code"],
         group_url=group_url,
         group_name=group_name,
-        max_comments=max_comments,
+        max_comments=DEFAULT_MAX_COMMENTS,
         comment_immediately=comment_immediately,
     )
 

@@ -26,6 +26,13 @@ class Settings:
     COOKIES_PATH: Path = BASE_DIR / os.getenv(
         "COOKIES_PATH", "cookies/facebook_cookies.json"
     )
+    # Browser for Agent:
+    #   auto     = ใช้ Chrome จริงถ้าเปิดโหมด Agent ไว้ (CDP) ไม่ได้ค่อยใช้ Chromium แยก
+    #   cdp      = บังคับเชื่อม Chrome จริงที่ --remote-debugging-port
+    #   chrome   = เปิด Google Chrome โปรไฟล์แยกของ Agent (ยังต้องล็อกอินครั้งแรก)
+    #   playwright = Chromium ของ Playwright (เดิม)
+    FB_BROWSER_MODE: str = (os.getenv("FB_BROWSER_MODE") or "auto").strip().lower()
+    FB_CDP_URL: str = (os.getenv("FB_CDP_URL") or "http://127.0.0.1:9222").strip()
 
     POST_INTERVAL_MINUTES: int = int(os.getenv("POST_INTERVAL_MINUTES", "120"))
     MAX_POSTS_PER_RUN: int = int(os.getenv("MAX_POSTS_PER_RUN", "3"))

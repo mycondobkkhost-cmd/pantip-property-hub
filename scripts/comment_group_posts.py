@@ -16,9 +16,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import random
 import sys
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from loguru import logger
@@ -53,16 +57,99 @@ def setup_logging() -> None:
     )
 
 
+def _hub_base() -> str:
+    return (os.getenv("HUB_URL") or "").strip().rstrip("/")
+
+
+def _hub_token() -> str:
+    return (os.getenv("COMMENT_AGENT_TOKEN") or "").strip()
+
+
+def _use_remote_hub() -> bool:
+    return bool(_hub_base() and _hub_token())
+
+
+def _hub_request(method: str, path: str, *, body: dict | None = None, timeout: float = 60) -> dict:
+    url = _hub_base() + path
+    token = _hub_token()
+    data = None
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "X-Agent-Token": token,
+        "Accept": "application/json",
+    }
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as res:
+            raw = res.read().decode("utf-8")
+            return json.loads(raw) if raw else {}
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Hub HTTP {exc.code}: {detail}") from exc
+
+
+def _fetch_due_bundle(*, limit: int = 100) -> dict:
+    """Fetch due queue from Hub (Fly) so Mac/Windows agents share the same data."""
+    if _use_remote_hub():
+        return _hub_request("GET", f"/api/fb-agent/due?limit={int(limit)}")
+    agent_id = (os.getenv("COMMENT_AGENT_ID") or "owner").strip() or "owner"
+    due = list_due(limit=limit, agent_id=agent_id)
+    code_settings: dict[str, dict] = {}
+    code_today: dict[str, int] = {}
+    for it in due:
+        code = str(it.get("property_code") or "").strip().upper()
+        if not code or code in code_settings:
+            continue
+        row = get_code_by_code(code) or {}
+        code_settings[code] = (row.get("settings") or {}) if isinstance(row, dict) else {}
+        code_today[code] = comments_today_count_for_code(code)
+    return {
+        "ok": True,
+        "due": due,
+        "comments_today": comments_today_count(),
+        "code_today": code_today,
+        "code_settings": code_settings,
+        "stats": stats(),
+    }
+
+
+def _report_result(
+    item_id: str,
+    *,
+    ok: bool,
+    comment_text: str = "",
+    comment_kind: str = "text",
+    error: str = "",
+    action: str = "",
+    detail: str = "",
+    join_status: str = "",
+) -> None:
+    if _use_remote_hub():
+        payload: dict = {"id": item_id, "ok": ok}
+        if ok:
+            payload["comment_text"] = comment_text
+            payload["comment_kind"] = comment_kind
+        else:
+            payload["error"] = error
+            payload["action"] = action
+            payload["detail"] = detail
+            payload["join_status"] = join_status
+        _hub_request("POST", "/api/fb-agent/comment-result", body=payload)
+        return
+    if ok:
+        mark_comment_success(item_id, comment_text=comment_text, comment_kind=comment_kind)
+    else:
+        mark_comment_failed(item_id, error, action=action, detail=detail, join_status=join_status)
+
+
 def _delay_between_comments() -> float:
     return random.uniform(
         float(settings.COMMENT_MIN_DELAY_SEC),
         float(settings.COMMENT_MAX_DELAY_SEC),
     )
-
-
-def _code_settings(code: str) -> dict:
-    row = get_code_by_code(code or "")
-    return (row or {}).get("settings") or {}
 
 
 def run_once(
@@ -85,7 +172,14 @@ def run_once(
 
     max_n = max_comments if max_comments is not None else settings.MAX_COMMENTS_PER_RUN
     max_n = max(1, min(int(max_n), 20))
-    today = comments_today_count()
+
+    try:
+        bundle = _fetch_due_bundle(limit=100)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("ดึงคิวจาก Hub ไม่สำเร็จ: {}", exc)
+        return {"ok": False, "done": 0, "failed": 0, "error": str(exc)}
+
+    today = int(bundle.get("comments_today") or 0)
     remaining_today = max(0, settings.MAX_COMMENTS_PER_DAY - today)
     if remaining_today <= 0:
         logger.warning(
@@ -95,7 +189,9 @@ def run_once(
         )
         return {"ok": True, "done": 0, "failed": 0, "skipped": "daily_cap"}
 
-    due = list_due(limit=100)
+    due = list(bundle.get("due") or [])
+    code_settings = bundle.get("code_settings") if isinstance(bundle.get("code_settings"), dict) else {}
+    code_today = bundle.get("code_today") if isinstance(bundle.get("code_today"), dict) else {}
     if not due:
         logger.info("No due group posts to comment")
         return {"ok": True, "done": 0, "failed": 0, "due": 0}
@@ -104,10 +200,10 @@ def run_once(
     code_used: dict[str, int] = {}
     for it in due:
         code = (it.get("property_code") or "").strip().upper()
-        s = _code_settings(code)
+        s = code_settings.get(code) if isinstance(code_settings.get(code), dict) else {}
         cap = int(s.get("max_per_run") or settings.MAX_COMMENTS_PER_RUN)
         daily_cap = int(s.get("max_per_day") or settings.MAX_COMMENTS_PER_DAY)
-        if comments_today_count_for_code(code) >= daily_cap:
+        if int(code_today.get(code) or 0) >= daily_cap:
             continue
         if code_used.get(code, 0) >= cap:
             continue
@@ -121,11 +217,11 @@ def run_once(
         logger.info("No due group posts within per-code caps")
         return {"ok": True, "done": 0, "failed": 0, "due": 0}
     logger.info(
-        "Comment run: {} due (cap run={} day_left={}) · store {}",
+        "Comment run: {} due (cap run={} day_left={}) · hub={}",
         len(due),
         max_n,
         remaining_today,
-        stats(),
+        "remote" if _use_remote_hub() else "local",
     )
 
     if dry_run:
@@ -174,18 +270,33 @@ def run_once(
             )
             result = commenter.comment_on_post(post_url, text)
             if result.get("ok"):
-                mark_comment_success(it["id"], comment_text=text, comment_kind=kind)
+                _report_result(
+                    it["id"],
+                    ok=True,
+                    comment_text=text,
+                    comment_kind=kind,
+                )
                 done += 1
                 say(f"คอมเมนต์สำเร็จ {code} · {text[:40]}")
             else:
                 err = str(result.get("error") or "unknown")
-                logger.error("Comment failed: {}", err)
-                mark_comment_failed(it["id"], err)
+                detail = str(result.get("detail") or err)
+                action = str(result.get("action") or "failed")
+                join_status = str(result.get("join_status") or "")
+                logger.error("Comment failed: {} · {}", err, detail)
+                _report_result(
+                    it["id"],
+                    ok=False,
+                    error=err,
+                    action=action,
+                    detail=detail,
+                    join_status=join_status,
+                )
                 failed += 1
-                say(f"คอมเมนต์ไม่สำเร็จ {code}: {err}")
+                say(f"{code}: {detail}")
 
             if i < len(due) - 1:
-                s = _code_settings(it.get("property_code") or "")
+                s = code_settings.get(str(it.get("property_code") or "").strip().upper()) or {}
                 min_s = int(s.get("min_delay_sec") or settings.COMMENT_MIN_DELAY_SEC)
                 max_s = int(s.get("max_delay_sec") or settings.COMMENT_MAX_DELAY_SEC)
                 wait_s = random.uniform(float(min_s), float(max(min_s, max_s)))
@@ -198,7 +309,7 @@ def run_once(
 
     logger.info("Comment run finished · ok={} failed={}", done, failed)
     say(f"จบรอบนี้ · สำเร็จ {done} · ไม่สำเร็จ {failed} · Chrome ยังเปิดค้างให้ดูได้")
-    return {"ok": True, "done": done, "failed": failed, "auth": auth if keep_open else None}
+    return {"ok": True, "done": done, "failed": failed, "due": take, "auth": auth if keep_open else None}
 
 
 def run_loop() -> None:

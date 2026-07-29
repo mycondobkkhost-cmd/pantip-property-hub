@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import threading
 from datetime import datetime
@@ -101,6 +102,7 @@ def _normalize(raw: dict[str, Any]) -> dict[str, Any] | None:
         "text": text[:4000],
         "created_at": str(raw.get("created_at") or _now_iso()),
         "updated_at": str(raw.get("updated_at") or _now_iso()),
+        "last_used_at": str(raw.get("last_used_at") or "").strip(),
     }
 
 
@@ -118,11 +120,66 @@ def list_snippets() -> list[dict[str, Any]]:
         return out
 
 
+def get_latest_snippet() -> dict[str, Any] | None:
+    """Prefer most recently used; else most recently updated/saved."""
+    items = list_snippets()
+    if not items:
+        return None
+    used = [i for i in items if i.get("last_used_at")]
+    pool = used or items
+
+    def sort_key(it: dict[str, Any]) -> str:
+        return str(it.get("last_used_at") or it.get("updated_at") or it.get("created_at") or "")
+
+    return max(pool, key=sort_key)
+
+
+def format_footer_with_code(text: str, code: str, *, ensure_code_line: bool = False) -> str:
+    """Inject property code into footer placeholders; optionally prepend a code line."""
+    code_s = (code or "").strip().lstrip("#")
+    out = (text or "").strip()
+    if not out:
+        return ""
+    if code_s:
+        out = out.replace("{code}", code_s).replace("{CODE}", code_s)
+        out = out.replace("#{code}", f"#{code_s}").replace("#{CODE}", f"#{code_s}")
+        out = re.sub(r"#RXT\?{2,}|#CODE\b|#รหัส\b", f"#{code_s}", out, flags=re.I)
+        if ensure_code_line and f"#{code_s}" not in out and code_s not in out:
+            out = f"📌 รหัสทรัพย์ : #{code_s}\n\n{out}"
+    return out.strip()
+
+
+def mark_snippet_used(snippet_id: str) -> dict[str, Any] | None:
+    want = (snippet_id or "").strip()
+    if not want:
+        return None
+    with _LOCK:
+        data = _load_raw()
+        items = [x for x in (data.get("items") or []) if isinstance(x, dict)]
+        now = _now_iso()
+        found = None
+        for i, raw in enumerate(items):
+            if str(raw.get("id") or "") != want:
+                continue
+            raw["last_used_at"] = now
+            raw["updated_at"] = str(raw.get("updated_at") or now)
+            items[i] = raw
+            found = _normalize(raw)
+            break
+        if not found:
+            return None
+        data["items"] = items
+        data["active_id"] = want
+        _save_raw(data)
+        return found
+
+
 def upsert_snippet(
     *,
     snippet_id: str = "",
     label: str,
     text: str,
+    mark_used: bool = True,
 ) -> dict[str, Any]:
     label = (label or "").strip()
     text = (text or "").strip()
@@ -141,6 +198,8 @@ def upsert_snippet(
                 raw["label"] = label[:80]
                 raw["text"] = text[:4000]
                 raw["updated_at"] = now
+                if mark_used:
+                    raw["last_used_at"] = now
                 if not raw.get("created_at"):
                     raw["created_at"] = now
                 items[i] = raw
@@ -153,10 +212,13 @@ def upsert_snippet(
                 "text": text[:4000],
                 "created_at": now,
                 "updated_at": now,
+                "last_used_at": now if mark_used else "",
             }
             items.append(row)
             found = _normalize(row)
         data["items"] = items
+        if found and mark_used:
+            data["active_id"] = found["id"]
         _save_raw(data)
         return found or {}
 
@@ -172,5 +234,7 @@ def delete_snippet(snippet_id: str) -> bool:
         if len(nxt) == len(items):
             return False
         data["items"] = nxt
+        if str(data.get("active_id") or "") == want:
+            data["active_id"] = ""
         _save_raw(data)
         return True

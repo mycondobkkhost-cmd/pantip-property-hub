@@ -36,6 +36,7 @@ from src.hub.caption_variant import (  # noqa: E402
 from src.hub.post_footer_store import (  # noqa: E402
     delete_snippet as delete_post_footer,
     list_snippets as list_post_footers,
+    mark_snippet_used as mark_post_footer_used,
     upsert_snippet as upsert_post_footer,
 )
 from src.hub.group_post_store import (  # noqa: E402
@@ -2527,10 +2528,22 @@ class HubHandler(BaseHTTPRequestHandler):
                     snippet_id=str(body.get("id") or "").strip(),
                     label=str(body.get("label") or body.get("name") or "").strip(),
                     text=str(body.get("text") or "").strip(),
+                    mark_used=body.get("mark_used", True) is not False,
                 )
                 self._json(200, {"ok": True, "item": item, "items": list_post_footers()})
             except ValueError as exc:
                 self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/post-footers/use":
+            try:
+                item = mark_post_footer_used(str(body.get("id") or "").strip())
+                if not item:
+                    self._json(404, {"ok": False, "error": "ไม่พบชุดข้อความ"})
+                    return
+                self._json(200, {"ok": True, "item": item, "items": list_post_footers()})
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return

@@ -643,12 +643,44 @@ def generate_text(data: dict, lang: str = "th") -> str:
 
     lines.append("")
     lines.append("🤝 Co-Agent Welcome")
-    lines.append(f"📌 Property Code : #{code}")
+    if lang == "en":
+        lines.append(f"📌 Property Code : #{code}")
+    else:
+        lines.append(f"📌 รหัสทรัพย์ : #{code}")
     if prefix == "COA":
         lines.append("🏷 Co-agent listing" if lang == "en" else "🏷 รายการโคเอเจนต์")
 
     lines.append("")
-    lines.extend(_contact_footer(lang))
+    footer_block = ""
+    try:
+        from src.hub.post_footer_store import (
+            format_footer_with_code,
+            get_latest_snippet,
+            mark_snippet_used,
+        )
+
+        snip = get_latest_snippet()
+        if snip and (snip.get("text") or "").strip():
+            # Prefer TH footer for th; for en use EN-labelled latest if available else default EN CTA
+            use_snip = True
+            if lang == "en":
+                label_l = str(snip.get("label") or "").lower()
+                sid = str(snip.get("id") or "").lower()
+                if "en" not in label_l and "en" not in sid and _thai_ratio(str(snip.get("text") or "")) >= 0.15:
+                    use_snip = False
+            if use_snip:
+                footer_block = format_footer_with_code(str(snip.get("text") or ""), code)
+                try:
+                    mark_snippet_used(str(snip.get("id") or ""))
+                except Exception:  # noqa: BLE001
+                    pass
+    except Exception:  # noqa: BLE001
+        footer_block = ""
+
+    if footer_block:
+        lines.append(footer_block)
+    else:
+        lines.extend(_contact_footer(lang))
     lines.append("")
     lines.append(_hashtags(data.get("project_name") or project, lang))
 

@@ -8212,7 +8212,7 @@
       document.getElementById("post-footer-edit-text").value = "";
     }
 
-    function appendSelectedPostFooter() {
+    async function appendSelectedPostFooter() {
       var sel = document.getElementById("post-footer-select");
       var box = document.getElementById("add-page-post-text");
       var hint = document.getElementById("post-footer-hint");
@@ -8224,6 +8224,14 @@
         return;
       }
       var footer = String(it.text || "").trim();
+      var code = ((document.getElementById("add-code") || {}).value || "").trim().replace(/^#/, "");
+      if (code) {
+        footer = footer.replace(/\{code\}/gi, code).replace(/\{CODE\}/g, code);
+        footer = footer.replace(/#\{code\}/gi, "#" + code);
+        if (footer.indexOf("#" + code) < 0 && footer.indexOf(code) < 0) {
+          footer = "📌 รหัสทรัพย์ : #" + code + "\n\n" + footer;
+        }
+      }
       var cur = (box.value || "").replace(/\s+$/, "");
       if (cur.indexOf(footer) >= 0) {
         if (hint) hint.textContent = "ข้อความชุดนี้อยู่ในต้นฉบับแล้ว";
@@ -8232,6 +8240,7 @@
       box.value = cur ? (cur + "\n\n" + footer) : footer;
       updatePagePostHint(box.value);
       if (hint) hint.textContent = "เติมท้ายแล้ว · กด「บันทึกต้นฉบับ」ถ้าต้องการเซฟ";
+      try { await apiPost("/api/post-footers/use", { id: id }); } catch (eUse) { /* ignore */ }
     }
 
     async function savePostFooterSnippet() {

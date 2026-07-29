@@ -39,6 +39,89 @@ from src.hub.project_identity import resolve_bucket as _resolve_bucket
 from src.hub.project_identity import soft_norm as _soft_norm
 
 
+def coerce_pet_friendly(val) -> bool:
+    """Normalize PETS / checkbox / notes-ish values to bool."""
+    if isinstance(val, bool):
+        return val
+    if val is None:
+        return False
+    if isinstance(val, (int, float)):
+        return bool(val)
+    s = str(val).strip().lower()
+    if not s:
+        return False
+    if s in ("no", "n", "false", "0", "ไม่", "ห้าม", "off"):
+        return False
+    if s in ("yes", "y", "true", "1", "on", "pet", "pets", "pet friendly", "petfriendly"):
+        return True
+    raw = str(val)
+    if "ห้ามสัตว์" in raw or "no pet" in s:
+        return False
+    return "pet friendly" in s or "เลี้ยงสัตว์ได้" in raw or "สัตว์เลี้ยงได้" in raw
+
+
+def pets_sheet_value(prop: dict) -> str:
+    return "Yes" if coerce_pet_friendly(prop.get("pet_friendly")) else "No"
+
+
+MAIN_SHEET_CSV = BASE_DIR / "data" / "main_sheet.csv"
+
+
+def backfill_pet_friendly_from_sheet(*, csv_path: Path | None = None) -> dict:
+    """Apply PETS column from main_sheet.csv onto existing properties by code."""
+    import csv
+
+    path = csv_path or MAIN_SHEET_CSV
+    if not path.is_file():
+        return {"ok": False, "error": f"missing {path}", "updated": 0}
+
+    with open(path, encoding="utf-8") as f:
+        sheet = list(csv.reader(f))
+    if not sheet:
+        return {"ok": False, "error": "empty sheet", "updated": 0}
+    headers = [h.strip() for h in sheet[0]]
+    try:
+        code_i = headers.index("รหัสทรัพย์")
+        pets_i = headers.index("PETS")
+    except ValueError:
+        return {"ok": False, "error": "sheet missing รหัสทรัพย์ or PETS", "updated": 0}
+
+    pets_by_code: dict[str, bool] = {}
+    for r in sheet[1:]:
+        if code_i >= len(r):
+            continue
+        code = str(r[code_i] or "").upper().replace(" ", "")
+        if not code:
+            continue
+        raw = r[pets_i] if pets_i < len(r) else ""
+        pets_by_code[code] = coerce_pet_friendly(raw)
+
+    with _STORE_LOCK:
+        projects = load_projects()
+        properties = load_properties()
+        updated = 0
+        for prop in properties:
+            code = str(prop.get("code") or "").upper().replace(" ", "")
+            if code not in pets_by_code:
+                continue
+            want = pets_by_code[code]
+            had = "pet_friendly" in prop
+            cur = coerce_pet_friendly(prop.get("pet_friendly")) if had else None
+            if had and cur == want:
+                continue
+            prop["pet_friendly"] = want
+            updated += 1
+        if updated:
+            persist(projects, properties)
+        return {
+            "ok": True,
+            "updated": updated,
+            "sheet_pets_yes": sum(1 for v in pets_by_code.values() if v),
+            "props_pets_yes": sum(1 for p in properties if coerce_pet_friendly(p.get("pet_friendly"))),
+            "total_props": len(properties),
+        }
+
+
 def norm_key(name: str) -> str:
     """Normalize for bucket / identity — use outer name, drop parenthetical alias."""
     return _soft_norm(name)
@@ -610,6 +693,7 @@ def _save_new_property_locked(payload: dict) -> dict:
         "raw_text": payload.get("raw_text") or "",
         "page_post_text": (payload.get("page_post_text") or "").strip(),
         "linked_ptp_code": (payload.get("linked_ptp_code") or "").strip(),
+        "pet_friendly": coerce_pet_friendly(payload.get("pet_friendly")),
     }
 
     properties.insert(0, prop)
@@ -734,6 +818,8 @@ def _update_property_locked(property_id: str, payload: dict) -> dict:
             or datetime.now().strftime("%d/%m/%Y"),
         }
     )
+    if "pet_friendly" in payload:
+        prop["pet_friendly"] = coerce_pet_friendly(payload.get("pet_friendly"))
     if "text_th" in payload:
         prop["text_th"] = payload.get("text_th") or ""
     if "text_en" in payload:

@@ -1383,6 +1383,12 @@
     }
     .prop-origin.sheet { background: #f4f4f5; color: #52525b; }
     .prop-origin.hub { background: #dcfce7; color: #166534; }
+    .prop-pet-badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 7px; border-radius: 999px;
+      background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.01em;
+    }
     .prop-card-warn { color: #b45309; font-size: 10px; font-weight: 600; }
     .submenu-bar {
       position: sticky; top: 0; z-index: 30;
@@ -1750,6 +1756,13 @@
                       <label class="check-item"><input type="checkbox" value="other" /> อื่นๆ</label>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div class="filter-field">
+                <span>Pet friendly</span>
+                <div class="check-group inline-row short" id="f-pets">
+                  <label class="check-item"><input type="checkbox" value="yes" /> เลี้ยงสัตว์ได้</label>
+                  <label class="check-item"><input type="checkbox" value="no" /> ไม่รับสัตว์</label>
                 </div>
               </div>
               <div class="filter-field">
@@ -2971,6 +2984,10 @@
               <label>
                 <span>ราคาขาย</span>
                 <input type="text" id="add-sale" placeholder="2,900,000" />
+              </label>
+              <label class="add-wide" style="display:flex;align-items:center;gap:10px;margin:0;padding:10px 12px;border:1px solid #d1fae5;border-radius:10px;background:#ecfdf5">
+                <input type="checkbox" id="add-pet-friendly" style="width:auto;margin:0" />
+                <span style="margin:0;font-weight:600;color:#166534">Pet friendly — เลี้ยงสัตว์ได้</span>
               </label>
               <label class="add-wide">
                 <span>ทำเล / โซน</span>
@@ -4598,6 +4615,12 @@
       });
       if (f.media === "has_link") chips.push({ key: "media", label: "มีลิงก์โพสต์" });
       if (f.media === "none") chips.push({ key: "media", label: "ไม่มีลิงก์โพสต์" });
+      (f.pets || []).forEach(function (v) {
+        chips.push({
+          key: "pets:" + v,
+          label: v === "yes" ? "Pet friendly" : "ไม่รับสัตว์",
+        });
+      });
 
       box.innerHTML = chips.map(function (c) {
         return '<span class="active-filter-chip">' + esc(c.label) +
@@ -4670,6 +4693,10 @@
         var oBox = document.getElementById("f-origin");
         if (val) setSelectedValues(oBox, selectedValues(oBox).filter(function (x) { return x !== val; }));
         else clearSelect(oBox);
+      } else if (kind === "pets") {
+        var petBox = document.getElementById("f-pets");
+        if (val) setSelectedValues(petBox, selectedValues(petBox).filter(function (x) { return x !== val; }));
+        else clearSelect(petBox);
       } else if (kind === "type") {
         if (val) setSelectedValues(document.getElementById("f-type"),
           selectedValues(document.getElementById("f-type")).filter(function (x) { return x !== val; }));
@@ -4737,6 +4764,7 @@
       activeZones = zones.slice();
       var projectIds = selectedValues(document.getElementById("f-project"));
       var origins = selectedValues(document.getElementById("f-origin"));
+      var pets = selectedValues(document.getElementById("f-pets"));
       var offers = formOffers.slice();
       if (!offers.length && smart.offer) offers = [smart.offer];
       var beds = formBeds.slice();
@@ -4766,6 +4794,7 @@
         zones: zones,
         origins: origins,
         origin: !origins.length || origins.length === 2 ? "all" : origins[0],
+        pets: pets,
       };
     }
 
@@ -6429,6 +6458,16 @@
           if (f.origins.indexOf(propertyOrigin(p)) < 0) return false;
         } else if (f.origin && f.origin !== "all" && propertyOrigin(p) !== f.origin) return false;
 
+        if (f.pets && f.pets.length) {
+          var isPet = !!p.pet_friendly;
+          var wantYes = f.pets.indexOf("yes") >= 0;
+          var wantNo = f.pets.indexOf("no") >= 0;
+          if (wantYes && wantNo) {
+            /* both selected = no filter */
+          } else if (wantYes && !isPet) return false;
+          else if (wantNo && isPet) return false;
+        }
+
         return true;
       });
 
@@ -6484,6 +6523,7 @@
       clearSelect(document.getElementById("f-beds"));
       clearSelect(document.getElementById("f-source"));
       clearSelect(document.getElementById("f-origin"));
+      clearSelect(document.getElementById("f-pets"));
       clearSelect(document.getElementById("f-transit"));
       clearSelect(document.getElementById("f-zone"));
       var zq = document.getElementById("f-zone-q");
@@ -6575,6 +6615,9 @@
       } else if ((p.import_status || "") === "needs_review") {
         reviewBadge = ' <span class="prop-card-warn" title="needs_review">ตรวจ</span>';
       }
+      var petBadge = p.pet_friendly
+        ? ' <span class="prop-pet-badge" title="Pet friendly">Pet</span>'
+        : "";
       var previewUrl = propertyPreviewSourceUrl(p);
       var typeLabel = propertyTypeLabel(p.property_type) || "—";
       var beds = p.bedrooms || "—";
@@ -6594,7 +6637,7 @@
         '<div class="prop-sheet-main">' +
           '<div class="prop-sheet-top">' +
             '<span class="code">' + esc(p.code) + "</span>" +
-            '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + reviewBadge +
+            '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + reviewBadge + petBadge +
             '<span class="date' + (p.last_listed_at ? "" : " is-empty") +
               '" title="วันที่เพิ่ม / โพสต์ล่าสุด">' +
               '<span class="date-label">เพิ่ม</span>' +
@@ -6920,6 +6963,8 @@
       document.getElementById("add-floor").value = "";
       document.getElementById("add-rent").value = "";
       document.getElementById("add-sale").value = "";
+      var petCb = document.getElementById("add-pet-friendly");
+      if (petCb) petCb.checked = false;
       LOC_TAG_STATE.editing = false;
       setAddLocTags([], [], { asMaster: true });
       setLocEditMode(false);
@@ -7105,6 +7150,8 @@
       document.getElementById("add-notes").value = prop.notes || "";
       document.getElementById("out-th").value = prop.text_th || "";
       document.getElementById("out-en").value = prop.text_en || "";
+      var petEdit = document.getElementById("add-pet-friendly");
+      if (petEdit) petEdit.checked = !!prop.pet_friendly;
       var pagePostEl = document.getElementById("add-page-post-text");
       var pageText = prop.page_post_text || prop.text_th || "";
       if (pagePostEl) pagePostEl.value = pageText;
@@ -7556,6 +7603,7 @@
         post_url: document.getElementById("add-post-url").value.trim(),
         post_pages_url: document.getElementById("add-page-url").value.trim(),
         page_post_text: (document.getElementById("add-page-post-text") || { value: "" }).value.trim(),
+        pet_friendly: !!(document.getElementById("add-pet-friendly") || {}).checked,
       };
     }
 
@@ -7577,6 +7625,8 @@
       document.getElementById("add-floor").value = data.floor || "";
       document.getElementById("add-rent").value = data.rent_price || "";
       document.getElementById("add-sale").value = data.sale_price || "";
+      var petEl = document.getElementById("add-pet-friendly");
+      if (petEl) petEl.checked = !!data.pet_friendly;
       // อย่าทับช่องติดต่อด้วยค่าว่าง — คิวอาจใส่ FB จากต้นทาง 2 ไว้แล้ว / แอดมินกรอกเอง
       var phones = data.owner_phones || [];
       var lines = data.owner_lines || [];
@@ -12250,7 +12300,7 @@
         // draft only — กดค้นหาถึงจะกรอง
       });
     }
-    ["f-era","f-dup","f-project","f-offer","f-type","f-beds","f-zone","f-transit","f-days","f-source","f-origin","f-media"].forEach(function (id) {
+    ["f-era","f-dup","f-project","f-offer","f-type","f-beds","f-zone","f-transit","f-days","f-source","f-origin","f-pets","f-media"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.addEventListener("change", function () {
         if (id === "f-offer" || id === "f-beds" || id === "f-type" || id === "f-source") syncFilterDropdownMetas();

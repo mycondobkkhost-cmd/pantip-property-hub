@@ -96,6 +96,7 @@ from src.hub.publish_policy import (  # noqa: E402
 from src.hub.project_store import (  # noqa: E402
     PREVIEW_JS,
     PREVIEW_META,
+    backfill_pet_friendly_from_sheet,
     create_project,
     ensure_preview_js,
     load_properties,
@@ -3824,6 +3825,16 @@ def main() -> None:
         )
     except Exception as exc:  # noqa: BLE001
         print(f"[hub] boot location masters failed: {exc}")
+
+    try:
+        pets = backfill_pet_friendly_from_sheet()
+        print(
+            f"[hub] boot: pet_friendly backfill "
+            f"updated={pets.get('updated')} yes={pets.get('props_pets_yes')} "
+            f"ok={pets.get('ok')} err={pets.get('error') or '-'}"
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[hub] boot pet_friendly backfill failed: {exc}")
 
     server = ReuseThreadingHTTPServer((host, port), HubHandler)
 

@@ -138,6 +138,16 @@ def location_ref_from_sheet(raw: str) -> str:
     return ", ".join(tags) if tags else s[:120]
 
 
+def parse_pets_flag(raw: str) -> bool:
+    """Sheet PETS column uses Yes/No (English)."""
+    s = (raw or "").strip().lower()
+    if not s:
+        return False
+    if s in ("no", "n", "false", "0", "ไม่", "ห้าม"):
+        return False
+    return s in ("yes", "y", "true", "1", "pet", "pets", "pet friendly", "petfriendly") or "สัตว์" in (raw or "")
+
+
 def is_code_only_row(row: dict[str, str]) -> bool:
     code = row.get("code", "")
     if not code.startswith("PTP"):
@@ -199,6 +209,8 @@ def load_rows() -> list[dict[str, str]]:
                 "post_pages": mapped.pages,
                 "notes": mapped.notes,
                 "delete_drive": "",
+                "pets": col(r, "PETS"),
+                "short_term": col(r, "Short-Term"),
             }
         )
     return out
@@ -486,6 +498,7 @@ def build_properties(
                 "sheet_row": row["row"],
                 "transit_from_sheet": parse_transit_reference(row.get("transit", "")),
                 "location_ref": location_ref_from_sheet(row.get("zone", "")),
+                "pet_friendly": parse_pets_flag(row.get("pets", "")),
             }
         )
 

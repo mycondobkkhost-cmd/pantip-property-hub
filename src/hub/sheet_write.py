@@ -228,6 +228,12 @@ def _notes_for_sheet(raw) -> str:
     return s
 
 
+def _pets_cell(prop: dict) -> str:
+    from src.hub.project_store import pets_sheet_value
+
+    return pets_sheet_value(prop)
+
+
 def _norm_prop_code(raw) -> str:
     return str(raw or "").upper().replace(" ", "").strip()
 
@@ -493,7 +499,7 @@ def prop_to_hub_row(
         zone_s,
         transit_s,
         "",
-        "",
+        _pets_cell(prop),
         post_url,
         pages_url,
         notes,

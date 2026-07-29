@@ -3007,15 +3007,10 @@
             6) คัดลอกลิงก์โพสต์กลุ่มที่ได้ แล้ววางในช่อง「บันทึกลิงก์โพสต์กลุ่ม」ด้านล่าง เพื่อเข้าคิวคอมเมนต์อัตโนมัติ<br/>
             <span style="color:#71717a;font-size:11px">หมายเหตุ: ระบบคัดลอกแบบเก็บบรรทัดแล้ว (plain + HTML) — ถ้าวางแล้วยังติดกัน ให้ปิดแท็บ Hub เก่าแล้วเปิดใหม่ก่อนลองอีกครั้ง</span>
           </div>
-          <div class="add-wide toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap;align-items:center">
-            <button type="button" class="btn-sm primary" id="add-save-page-text">บันทึกต้นฉบับ</button>
-            <button type="button" class="btn-sm" id="add-fill-page-text-from-th" title="ใช้เมื่อโพสต์เพจกับข้อความไทยใน Hub เป็นชุดเดียวกัน">เติมจากข้อความไทย</button>
-            <span id="add-page-post-hint" style="font-size:11px;color:#71717a">ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน</span>
-          </div>
           <div class="add-wide" id="post-footer-box" style="margin-top:10px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
             <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
               <strong style="font-size:13px">ชุดข้อความท้ายโพสต์</strong>
-              <span style="font-size:11px;color:#71717a">เลือกแล้วกดเติมท้าย · แก้/เพิ่มชุดได้</span>
+              <span style="font-size:11px;color:#71717a">เลือกชุดก่อน แล้วค่อยกด「เติมจากข้อความไทย」</span>
             </div>
             <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;align-items:center">
               <select id="post-footer-select" style="min-width:220px;max-width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
@@ -3044,6 +3039,11 @@
               </div>
               <div id="post-footer-list" style="margin-top:10px;font-size:12px;color:#52525b;max-height:180px;overflow:auto"></div>
             </div>
+          </div>
+          <div class="add-wide toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" class="btn-sm primary" id="add-save-page-text">บันทึกต้นฉบับ</button>
+            <button type="button" class="btn-sm" id="add-fill-page-text-from-th" title="ดึงข้อความไทย + ต่อท้ายด้วยชุดที่เลือก">เติมจากข้อความไทย</button>
+            <span id="add-page-post-hint" style="font-size:11px;color:#71717a">ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน</span>
           </div>
         </div>
         <div class="toolbar-row" style="margin-top:16px;gap:10px;flex-wrap:wrap;align-items:center">
@@ -8189,7 +8189,8 @@
     async function loadPostFooters() {
       try {
         var data = await apiGet("/api/post-footers");
-        renderPostFooterSelect(data.items || []);
+        var prefer = data.active_id || data.latest_id || "";
+        renderPostFooterSelect(data.items || [], prefer);
         renderPostFooterList();
       } catch (e) {
         var hint = document.getElementById("post-footer-hint");
@@ -8212,17 +8213,12 @@
       document.getElementById("post-footer-edit-text").value = "";
     }
 
-    async function appendSelectedPostFooter() {
+    function formatSelectedPostFooterText() {
       var sel = document.getElementById("post-footer-select");
-      var box = document.getElementById("add-page-post-text");
-      var hint = document.getElementById("post-footer-hint");
-      if (!sel || !box) return;
+      if (!sel) return null;
       var id = sel.value || "";
       var it = postFooterCache.find(function (x) { return x.id === id; });
-      if (!it || !(it.text || "").trim()) {
-        alert("เลือกชุดข้อความก่อน");
-        return;
-      }
+      if (!it || !(it.text || "").trim()) return null;
       var footer = String(it.text || "").trim();
       var code = ((document.getElementById("add-code") || {}).value || "").trim().replace(/^#/, "");
       if (code) {
@@ -8232,6 +8228,19 @@
           footer = "📌 รหัสทรัพย์ : #" + code + "\n\n" + footer;
         }
       }
+      return { id: id, footer: footer };
+    }
+
+    async function appendSelectedPostFooter() {
+      var box = document.getElementById("add-page-post-text");
+      var hint = document.getElementById("post-footer-hint");
+      if (!box) return;
+      var packed = formatSelectedPostFooterText();
+      if (!packed) {
+        alert("เลือกชุดข้อความก่อน");
+        return;
+      }
+      var footer = packed.footer;
       var cur = (box.value || "").replace(/\s+$/, "");
       if (cur.indexOf(footer) >= 0) {
         if (hint) hint.textContent = "ข้อความชุดนี้อยู่ในต้นฉบับแล้ว";
@@ -8240,7 +8249,7 @@
       box.value = cur ? (cur + "\n\n" + footer) : footer;
       updatePagePostHint(box.value);
       if (hint) hint.textContent = "เติมท้ายแล้ว · กด「บันทึกต้นฉบับ」ถ้าต้องการเซฟ";
-      try { await apiPost("/api/post-footers/use", { id: id }); } catch (eUse) { /* ignore */ }
+      try { await apiPost("/api/post-footers/use", { id: packed.id }); } catch (eUse) { /* ignore */ }
     }
 
     async function savePostFooterSnippet() {
@@ -12240,14 +12249,25 @@
     if (savePageTextBtn) savePageTextBtn.addEventListener("click", savePagePostTextOnly);
     var fillPageTextBtn = document.getElementById("add-fill-page-text-from-th");
     if (fillPageTextBtn) {
-      fillPageTextBtn.addEventListener("click", function () {
+      fillPageTextBtn.addEventListener("click", async function () {
         var th = (document.getElementById("out-th").value || "").trim();
         if (!th) {
           alert("ยังไม่มีข้อความไทยใน Hub — สร้างข้อความ TH ก่อน หรือวางจากเพจเอง");
           return;
         }
-        document.getElementById("add-page-post-text").value = th;
-        updatePagePostHint(th);
+        if (!postFooterCache.length) {
+          try { await loadPostFooters(); } catch (eLoad) { /* ignore */ }
+        }
+        var packed = formatSelectedPostFooterText();
+        var text = th;
+        if (packed && packed.footer) {
+          if (th.indexOf(packed.footer) < 0) text = th.replace(/\s+$/, "") + "\n\n" + packed.footer;
+          try { await apiPost("/api/post-footers/use", { id: packed.id }); } catch (eUse) { /* ignore */ }
+          var fHint = document.getElementById("post-footer-hint");
+          if (fHint) fHint.textContent = "ดึงข้อความไทย + ท้ายชุดที่เลือกแล้ว";
+        }
+        document.getElementById("add-page-post-text").value = text;
+        updatePagePostHint(text);
       });
     }
     var postFooterAppend = document.getElementById("post-footer-append");

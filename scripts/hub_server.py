@@ -35,6 +35,8 @@ from src.hub.caption_variant import (  # noqa: E402
 )
 from src.hub.post_footer_store import (  # noqa: E402
     delete_snippet as delete_post_footer,
+    get_active_id as get_post_footer_active_id,
+    get_latest_snippet as get_latest_post_footer,
     list_snippets as list_post_footers,
     mark_snippet_used as mark_post_footer_used,
     upsert_snippet as upsert_post_footer,
@@ -1770,7 +1772,17 @@ class HubHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/post-footers":
             try:
-                self._json(200, {"ok": True, "items": list_post_footers()})
+                items = list_post_footers()
+                latest = get_latest_post_footer()
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "items": items,
+                        "active_id": get_post_footer_active_id(),
+                        "latest_id": str((latest or {}).get("id") or ""),
+                    },
+                )
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -2517,7 +2529,17 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/post-footers":
             try:
-                self._json(200, {"ok": True, "items": list_post_footers()})
+                items = list_post_footers()
+                latest = get_latest_post_footer()
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "items": items,
+                        "active_id": get_post_footer_active_id(),
+                        "latest_id": str((latest or {}).get("id") or ""),
+                    },
+                )
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -2530,7 +2552,17 @@ class HubHandler(BaseHTTPRequestHandler):
                     text=str(body.get("text") or "").strip(),
                     mark_used=body.get("mark_used", True) is not False,
                 )
-                self._json(200, {"ok": True, "item": item, "items": list_post_footers()})
+                latest = get_latest_post_footer()
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "item": item,
+                        "items": list_post_footers(),
+                        "active_id": get_post_footer_active_id(),
+                        "latest_id": str((latest or {}).get("id") or ""),
+                    },
+                )
             except ValueError as exc:
                 self._json(400, {"ok": False, "error": str(exc)})
             except Exception as exc:  # noqa: BLE001
@@ -2543,7 +2575,17 @@ class HubHandler(BaseHTTPRequestHandler):
                 if not item:
                     self._json(404, {"ok": False, "error": "ไม่พบชุดข้อความ"})
                     return
-                self._json(200, {"ok": True, "item": item, "items": list_post_footers()})
+                latest = get_latest_post_footer()
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "item": item,
+                        "items": list_post_footers(),
+                        "active_id": get_post_footer_active_id(),
+                        "latest_id": str((latest or {}).get("id") or ""),
+                    },
+                )
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return

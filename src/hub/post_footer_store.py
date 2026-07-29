@@ -120,11 +120,22 @@ def list_snippets() -> list[dict[str, Any]]:
         return out
 
 
+def get_active_id() -> str:
+    with _LOCK:
+        data = _load_raw()
+        return str(data.get("active_id") or "").strip()
+
+
 def get_latest_snippet() -> dict[str, Any] | None:
     """Prefer most recently used; else most recently updated/saved."""
     items = list_snippets()
     if not items:
         return None
+    active = get_active_id()
+    if active:
+        for it in items:
+            if str(it.get("id") or "") == active:
+                return it
     used = [i for i in items if i.get("last_used_at")]
     pool = used or items
 

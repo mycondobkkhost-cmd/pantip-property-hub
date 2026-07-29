@@ -1052,9 +1052,35 @@
     }
     .phase-banner.ok { background: #e6f4ea; border-color: #ceead6; color: #137333; }
     .phase-banner.err { background: #fce8e6; border-color: #f5c2c0; color: #c5221f; }
+    .add-zones { display: flex; flex-direction: column; gap: 14px; }
+    .add-zone {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .add-zone-head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;
+    }
+    .add-zone-head h3 {
+      margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink);
+    }
+    .add-zone-head .zone-step {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 999px; margin-right: 8px;
+      background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700;
+    }
+    .add-zone-head p { margin: 0; font-size: 12px; color: var(--muted); }
+    .add-zone-post { border-color: #b7e4c7; background: linear-gradient(180deg, #f7fbf8 0%, #fff 48%); }
     .add-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
     @media (min-width: 720px) { .add-grid { grid-template-columns: 1fr 1fr; } }
     .add-wide { grid-column: 1 / -1; }
+    .warn-list:empty { display: none; }
+    .warn-list {
+      font-size: 12px; color: #92400e; line-height: 1.45;
+      padding: 8px 10px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+    }
     .project-row-actions { display: flex; gap: 6px; align-items: flex-start; }
     .project-picker { position: relative; flex: 1; }
     .project-picker-list {
@@ -2821,277 +2847,273 @@
           <button type="button" class="btn-sm" id="cancel-edit">ยกเลิก</button>
         </div>
         <div class="phase-banner" id="server-status">กำลังตรวจสอบเซิร์ฟเวอร์ Phase 2…</div>
-        <p style="font-size:12px;color:#52525b;margin-bottom:8px">
-          วางลิงก์ / ข้อความ → เก็บ<strong>ต้นฉบับครบ</strong> (รวมเบอร์·Line เจ้าของ) → สร้างข้อความลูกค้าจะ<strong>ตัด contact ออกเฉพาะตอนส่งลูกค้า</strong>
-        </p>
-        <div class="add-grid">
-          <p class="add-wide" style="font-size:11px;color:#71717a;margin:0">กด「แก้ไข」ก่อนจึงจะวาง/เปลี่ยนลิงก์ได้ · มีปุ่มเปิดและคัดลอก</p>
 
-          <p class="add-wide link-section-title">1) ต้นทางจากเจ้าของ</p>
-          <div class="link-field add-wide" data-link-field>
-            <span>ลิงก์โพสต์ต้นทาง</span>
-            <div class="link-field-row">
-              <input type="url" id="add-url" readonly placeholder="โพสต์ต้นฉบับจากเจ้าของ เช่น facebook.com/share/..." />
-              <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
-              <button type="button" class="btn-sm" data-link-open>เปิด</button>
-              <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
+        <div class="add-zones">
+          <!-- Zone 1: Source -->
+          <section class="add-zone" id="add-zone-source">
+            <div class="add-zone-head">
+              <h3><span class="zone-step">1</span>ต้นทาง</h3>
+              <p>ลิงก์เจ้าของ · ดึงข้อความ · ข้อมูลติดต่อ (เก็บในฐาน ไม่ส่งลูกค้า)</p>
             </div>
-          </div>
-          <div class="link-field add-wide" data-link-field>
-            <span>ลิงก์เฟสเจ้าของ</span>
-            <div class="link-field-row">
-              <input type="text" id="add-owner-fb" readonly placeholder="โปรไฟล์/เพจเจ้าของ หรือช่องทางติดต่ออื่น" />
-              <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
-              <button type="button" class="btn-sm" data-link-open>เปิด</button>
-              <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
+            <div class="add-grid">
+              <div class="link-field add-wide" data-link-field>
+                <span>ลิงก์โพสต์ต้นทาง</span>
+                <div class="link-field-row">
+                  <input type="url" id="add-url" readonly placeholder="โพสต์ต้นฉบับจากเจ้าของ เช่น facebook.com/share/..." />
+                  <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
+                  <button type="button" class="btn-sm" data-link-open>เปิด</button>
+                  <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
+                </div>
+              </div>
+              <div class="link-field add-wide" data-link-field>
+                <span>ลิงก์เฟสเจ้าของ</span>
+                <div class="link-field-row">
+                  <input type="text" id="add-owner-fb" readonly placeholder="โปรไฟล์/เพจเจ้าของ หรือช่องทางติดต่ออื่น" />
+                  <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
+                  <button type="button" class="btn-sm" data-link-open>เปิด</button>
+                  <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
+                </div>
+              </div>
+              <div class="link-field add-wide" data-link-field>
+                <span>โพสต์บนโปรไฟล์ส่วนตัว</span>
+                <div class="link-field-row">
+                  <input type="url" id="add-post-url" readonly placeholder="ลิงก์โพสต์บนโปรไฟล์ FB ส่วนตัวของเรา" />
+                  <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
+                  <button type="button" class="btn-sm" data-link-open>เปิด</button>
+                  <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
+                </div>
+              </div>
+              <div class="link-field add-wide" data-link-field>
+                <span>โพสต์บนเพจ (สำรอง · แชร์)</span>
+                <div class="link-field-row">
+                  <input type="url" id="add-page-url" readonly placeholder="ลิงก์โพสต์บนเพจ — เก็บถาวร / แชร์ให้คนอื่นดู" />
+                  <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
+                  <button type="button" class="btn-sm" data-link-open>เปิด</button>
+                  <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
+                </div>
+              </div>
+              <div class="add-wide toolbar-row">
+                <button type="button" class="btn-sm primary" id="add-scrape">ดึงจากลิงก์</button>
+                <button type="button" class="btn-sm" id="add-parse">วิเคราะห์ข้อความด้านล่าง</button>
+              </div>
+              <label class="add-wide">
+                <span>ข้อความต้นฉบับจากเจ้าของ</span>
+                <textarea id="add-raw" rows="5" placeholder="วางข้อความประกาศเต็มๆ ที่นี่…"></textarea>
+              </label>
+              <div class="add-wide warn-list" id="add-warnings"></div>
+              <div class="hidden" id="partial-hint" aria-hidden="true"></div>
+              <label>
+                <span>เบอร์เจ้าของ</span>
+                <input type="text" id="add-owner-phone" placeholder="0812345678" />
+              </label>
+              <label>
+                <span>Line เจ้าของ</span>
+                <input type="text" id="add-owner-line" placeholder="line id / @xxx" />
+              </label>
             </div>
-          </div>
+          </section>
 
-          <p class="add-wide link-section-title">2) ลิงก์ที่เราโพสต์แล้ว</p>
-          <div class="link-field add-wide" data-link-field>
-            <span>โพสต์บนโปรไฟล์ส่วนตัว</span>
-            <div class="link-field-row">
-              <input type="url" id="add-post-url" readonly placeholder="ลิงก์โพสต์บนโปรไฟล์ FB ส่วนตัวของเรา" />
-              <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
-              <button type="button" class="btn-sm" data-link-open>เปิด</button>
-              <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
+          <!-- Zone 2: Details -->
+          <section class="add-zone" id="add-zone-details">
+            <div class="add-zone-head">
+              <h3><span class="zone-step">2</span>รายละเอียดทรัพย์</h3>
+              <p>รหัส · โครงการ · ราคา · ทำเล</p>
             </div>
-          </div>
-          <div class="link-field add-wide" data-link-field>
-            <span>โพสต์บนเพจ (สำรอง · แชร์)</span>
-            <div class="link-field-row">
-              <input type="url" id="add-page-url" readonly placeholder="ลิงก์โพสต์บนเพจ — เก็บถาวร / แชร์ให้คนอื่นดู" />
-              <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
-              <button type="button" class="btn-sm" data-link-open>เปิด</button>
-              <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
-            </div>
-          </div>
-          <p class="add-wide" style="font-size:11px;color:#80868b;margin:-4px 0 4px;line-height:1.45">
-            เพจไว้สำรองกรณีโปรไฟล์โดนจำกัด และใช้แชร์ให้ลูกค้า/ทีมดูได้ปลอดภัยกว่า
-          </p>
-
-          <div class="add-wide toolbar-row">
-            <button type="button" class="btn-sm primary" id="add-scrape">ดึงจากลิงก์</button>
-            <button type="button" class="btn-sm" id="add-parse">วิเคราะห์ข้อความด้านล่าง</button>
-          </div>
-          <label class="add-wide">
-            <span>ข้อความต้นฉบับ (เก็บทั้งหมด — ไม่ตัด contact)</span>
-            <textarea id="add-raw" placeholder="วางข้อความประกาศเต็มๆ ที่นี่…"></textarea>
-          </label>
-          <div class="add-wide warn-list" id="add-warnings"></div>
-          <div class="add-wide hidden" id="partial-hint" style="padding:10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;font-size:12px">
-            <strong>📱 Facebook ให้ข้อความไม่ครบ</strong><br/>
-            1. เปิดโพสต์บนมือถือ → กดคัดลอกข้อความทั้งหมด<br/>
-            2. วางทับช่อง「ข้อความต้นฉบับ」ด้านบน<br/>
-            3. กด <strong>「วิเคราะห์ข้อความ」</strong> → ระบบจะเติมเบอร์/Line/ห้อง/ชั้นให้
-          </div>
-          <p class="add-wide" style="font-size:11px;color:#71717a;margin:0">ข้อมูลเจ้าของ (เก็บในฐานข้อมูล — ไม่ส่งให้ลูกค้า)</p>
-          <label>
-            <span>เบอร์เจ้าของ</span>
-            <input type="text" id="add-owner-phone" placeholder="0812345678, 089..." />
-          </label>
-          <label>
-            <span>Line เจ้าของ</span>
-            <input type="text" id="add-owner-line" placeholder="line id / @xxx" />
-          </label>
-          <label>
-            <span>รหัสใหม่</span>
-            <input type="text" id="add-code" readonly />
-          </label>
-          <label>
-            <span>ประเภทรหัส</span>
-            <select id="add-prefix">
-              <option value="RXT">RXT — ทรัพย์ใหม่</option>
-              <option value="PTP">PTP — จากชีท / นำเข้า</option>
-              <option value="COA">COA — โคเอเจนต์</option>
-            </select>
-          </label>
-          <label class="add-wide">
-            <span>โครงการ <small style="font-weight:400;color:#a1a1aa">(เลือกจาก Master หรือเพิ่มใหม่)</small></span>
-            <div class="project-row-actions">
-              <div class="project-picker" id="add-project-picker">
-                <input type="text" id="add-project" autocomplete="off" placeholder="พิมพ์ชื่อโครงการ…" />
-                <input type="hidden" id="add-project-id" />
-                <ul class="project-picker-list hidden" id="add-project-list"></ul>
-              </div>
-              <button type="button" class="btn-sm" id="add-new-project">+ โครงการใหม่</button>
-            </div>
-            <p class="project-match-note hidden" id="add-project-note"></p>
-          </label>
-          <label>
-            <span>ประเภททรัพย์ <small style="font-weight:400;color:#a1a1aa">(จากมาสเตอร์)</small></span>
-            <select id="add-type">
-              <option value="">— เลือกประเภท —</option>
-            </select>
-          </label>
-          <label>
-            <span>ห้องนอน <small style="font-weight:400;color:#a1a1aa">(จากมาสเตอร์)</small></span>
-            <select id="add-beds">
-              <option value="">— เลือกห้องนอน —</option>
-            </select>
-          </label>
-          <label>
-            <span>ขนาด (ตร.ม.)</span>
-            <input type="text" id="add-size" />
-          </label>
-          <label>
-            <span>ชั้น</span>
-            <input type="text" id="add-floor" />
-          </label>
-          <label>
-            <span>ราคาเช่า</span>
-            <input type="text" id="add-rent" placeholder="17,000" />
-          </label>
-          <label>
-            <span>ราคาขาย</span>
-            <input type="text" id="add-sale" placeholder="2,900,000" />
-          </label>
-          <label class="add-wide">
-            <span>ทำเล / โซน <small style="font-weight:400;color:#a1a1aa">(จากมาสเตอร์ · ฐานข้อมูล)</small></span>
-            <div class="tag-field" id="add-zone-field" data-kind="zone">
-              <div class="tag-chips" data-empty="ยังไม่มีทำเล — กดแก้ไขเพื่อเลือกจากมาสเตอร์"></div>
-              <div class="tag-add-row">
-                <input type="text" class="tag-add-input" placeholder="พิมพ์ค้นทำเล เช่น ทองหล่อ" autocomplete="off" />
-                <button type="button" class="btn-sm tag-add-btn">+</button>
-                <ul class="tag-suggest-list hidden"></ul>
-              </div>
-            </div>
-          </label>
-          <label class="add-wide">
-            <span>BTS / MRT <small style="font-weight:400;color:#a1a1aa">(จากมาสเตอร์ · ฐานข้อมูล)</small></span>
-            <div class="tag-field" id="add-transit-field" data-kind="transit">
-              <div class="tag-chips" data-empty="ยังไม่มีสถานี — กดแก้ไขเพื่อเลือกจากมาสเตอร์"></div>
-              <div class="tag-add-row">
-                <input type="text" class="tag-add-input" placeholder="พิมพ์ค้นสถานี เช่น BTS ทองหล่อ" autocomplete="off" />
-                <button type="button" class="btn-sm tag-add-btn">+</button>
-                <ul class="tag-suggest-list hidden"></ul>
-              </div>
-            </div>
-            <div class="tag-toolbar">
-              <button type="button" class="btn-sm" id="add-loc-edit">แก้ไขทำเล / BTS</button>
-              <button type="button" class="btn-sm primary hidden" id="add-loc-save">บันทึก → ทั้งโครงการ</button>
-              <button type="button" class="btn-sm hidden" id="add-loc-cancel">ยกเลิก</button>
-            </div>
-            <p class="project-match-note hidden" id="add-transit-note"></p>
-          </label>
-          <label class="add-wide">
-            <span>หมายเหตุ (ทีม — ซิงค์กับชีทคอลัมน์หมายเหตุ)</span>
-            <textarea id="add-notes" placeholder="บันทึกเพิ่มสำหรับทีม…"></textarea>
-          </label>
-        </div>
-        <div class="add-wide" id="post-footer-box" style="margin-top:12px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
-          <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-            <strong style="font-size:13px">ชุดข้อความท้ายโพสต์</strong>
-            <span style="font-size:11px;color:#71717a">เลือกชุดก่อน แล้วค่อยกด「สร้างข้อความ」หรือ「เติมจากข้อความไทย」</span>
-          </div>
-          <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;align-items:center">
-            <select id="post-footer-select" style="min-width:220px;max-width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
-              <option value="">— เลือกชุดข้อความ —</option>
-            </select>
-            <button type="button" class="btn-sm primary" id="post-footer-append">เติมท้ายข้อความ</button>
-            <button type="button" class="btn-sm" id="post-footer-manage-toggle">จัดการชุด</button>
-            <span id="post-footer-hint" style="font-size:11px;color:#71717a"></span>
-          </div>
-          <div id="post-footer-manage" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #e4e4e7">
-            <input type="hidden" id="post-footer-edit-id" value="" />
             <div class="add-grid">
               <label>
-                <span>ชื่อชุด</span>
-                <input type="text" id="post-footer-edit-label" placeholder="เช่น LINE + เบอร์" />
+                <span>รหัสใหม่</span>
+                <input type="text" id="add-code" readonly />
+              </label>
+              <label>
+                <span>ประเภทรหัส</span>
+                <select id="add-prefix">
+                  <option value="RXT">RXT — ทรัพย์ใหม่</option>
+                  <option value="PTP">PTP — จากชีท / นำเข้า</option>
+                  <option value="COA">COA — โคเอเจนต์</option>
+                </select>
               </label>
               <label class="add-wide">
-                <span>ข้อความท้าย</span>
-                <textarea id="post-footer-edit-text" rows="5" placeholder="วางข้อความท้ายโพสต์ เช่น LINE ID / เบอร์ / CTA"></textarea>
+                <span>โครงการ</span>
+                <div class="project-row-actions">
+                  <div class="project-picker" id="add-project-picker">
+                    <input type="text" id="add-project" autocomplete="off" placeholder="พิมพ์ชื่อโครงการ…" />
+                    <input type="hidden" id="add-project-id" />
+                    <ul class="project-picker-list hidden" id="add-project-list"></ul>
+                  </div>
+                  <button type="button" class="btn-sm" id="add-new-project">+ โครงการใหม่</button>
+                </div>
+                <p class="project-match-note hidden" id="add-project-note"></p>
+              </label>
+              <label>
+                <span>ประเภททรัพย์</span>
+                <select id="add-type">
+                  <option value="">— เลือกประเภท —</option>
+                </select>
+              </label>
+              <label>
+                <span>ห้องนอน</span>
+                <select id="add-beds">
+                  <option value="">— เลือกห้องนอน —</option>
+                </select>
+              </label>
+              <label>
+                <span>ขนาด (ตร.ม.)</span>
+                <input type="text" id="add-size" />
+              </label>
+              <label>
+                <span>ชั้น</span>
+                <input type="text" id="add-floor" />
+              </label>
+              <label>
+                <span>ราคาเช่า</span>
+                <input type="text" id="add-rent" placeholder="17,000" />
+              </label>
+              <label>
+                <span>ราคาขาย</span>
+                <input type="text" id="add-sale" placeholder="2,900,000" />
+              </label>
+              <label class="add-wide">
+                <span>ทำเล / โซน</span>
+                <div class="tag-field" id="add-zone-field" data-kind="zone">
+                  <div class="tag-chips" data-empty="ยังไม่มีทำเล — กดแก้ไขเพื่อเลือกจากมาสเตอร์"></div>
+                  <div class="tag-add-row">
+                    <input type="text" class="tag-add-input" placeholder="พิมพ์ค้นทำเล เช่น ทองหล่อ" autocomplete="off" />
+                    <button type="button" class="btn-sm tag-add-btn">+</button>
+                    <ul class="tag-suggest-list hidden"></ul>
+                  </div>
+                </div>
+              </label>
+              <label class="add-wide">
+                <span>BTS / MRT</span>
+                <div class="tag-field" id="add-transit-field" data-kind="transit">
+                  <div class="tag-chips" data-empty="ยังไม่มีสถานี — กดแก้ไขเพื่อเลือกจากมาสเตอร์"></div>
+                  <div class="tag-add-row">
+                    <input type="text" class="tag-add-input" placeholder="พิมพ์ค้นสถานี เช่น BTS ทองหล่อ" autocomplete="off" />
+                    <button type="button" class="btn-sm tag-add-btn">+</button>
+                    <ul class="tag-suggest-list hidden"></ul>
+                  </div>
+                </div>
+                <div class="tag-toolbar">
+                  <button type="button" class="btn-sm" id="add-loc-edit">แก้ไขทำเล / BTS</button>
+                  <button type="button" class="btn-sm primary hidden" id="add-loc-save">บันทึก → ทั้งโครงการ</button>
+                  <button type="button" class="btn-sm hidden" id="add-loc-cancel">ยกเลิก</button>
+                </div>
+                <p class="project-match-note hidden" id="add-transit-note"></p>
+              </label>
+              <label class="add-wide">
+                <span>หมายเหตุ (ทีม)</span>
+                <textarea id="add-notes" rows="2" placeholder="บันทึกเพิ่มสำหรับทีม…"></textarea>
               </label>
             </div>
-            <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
-              <button type="button" class="btn-sm primary" id="post-footer-save">บันทึกชุด</button>
-              <button type="button" class="btn-sm" id="post-footer-new">ล้างฟอร์ม / ชุดใหม่</button>
-              <button type="button" class="btn-sm" id="post-footer-delete" style="color:#b91c1c">ลบชุดที่เลือก</button>
+          </section>
+
+          <!-- Zone 3: Post message -->
+          <section class="add-zone add-zone-post" id="add-zone-post">
+            <div class="add-zone-head">
+              <h3><span class="zone-step">3</span>ข้อความสำหรับโพสต์</h3>
+              <p>เลือกท้ายประโยค → สร้างข้อความ → คัดลอกไปโพสต์เพจ/กลุ่ม</p>
             </div>
-            <div id="post-footer-list" style="margin-top:10px;font-size:12px;color:#52525b;max-height:180px;overflow:auto"></div>
-          </div>
-        </div>
-        <div class="toolbar-row" style="margin-top:12px">
-          <button type="button" class="btn-sm primary" id="add-generate">สร้างข้อความ TH + EN</button>
-          <button type="button" class="btn-sm" id="copy-th">คัดลอก TH</button>
-          <button type="button" class="btn-sm" id="copy-en">คัดลอก EN</button>
-        </div>
-        <div class="add-grid" style="margin-top:12px">
-          <label class="add-wide">
-            <span>ข้อความลูกค้า (ไทย) — ตัด contact เจ้าของแล้ว</span>
-            <textarea class="output-box" id="out-th" readonly></textarea>
-          </label>
-          <label class="add-wide">
-            <span>ข้อความลูกค้า (English) — ตัด contact แล้ว</span>
-            <textarea class="output-box" id="out-en" readonly></textarea>
-          </label>
-          <label class="add-wide">
-            <span>ข้อความต้นฉบับ สำหรับโพสต์กลุ่ม</span>
-            <textarea id="add-page-post-text" class="output-box" rows="12" placeholder="วางข้อความเต็มจากโพสต์เพจสาธารณะที่นี่…"></textarea>
-          </label>
-          <div class="add-wide" id="add-page-post-howto" style="margin-top:6px;padding:10px 12px;background:#f4f4f5;border:1px solid #e4e4e7;border-radius:8px;font-size:12px;color:#3f3f46;line-height:1.55">
-            <strong style="display:block;margin-bottom:4px">วิธีใช้</strong>
-            1) เปิดลิงก์「โพสต์บนเพจ」ของทรัพย์นี้<br/>
-            2) คัดลอกข้อความประกาศ<strong>ทั้งดุ้น</strong>จากเพจ (อย่าตัดท้าย)<br/>
-            3) วางในช่องนี้ แล้วกด「บันทึกต้นฉบับ」<br/>
-            4) เลื่อนลงไปที่กลุ่มแนะนำ → กด「โพสต์」 → ระบบคัดลอกข้อความ (กันซ้ำ) + เปิดกลุ่ม<br/>
-            5) ใน Facebook วางข้อความ (Cmd/Ctrl+V) → เพิ่มรูปเอง → กดเผยแพร่<br/>
-            6) คัดลอกลิงก์โพสต์กลุ่มที่ได้ แล้ววางในช่อง「บันทึกลิงก์โพสต์กลุ่ม」ด้านล่าง เพื่อเข้าคิวคอมเมนต์อัตโนมัติ<br/>
-            <span style="color:#71717a;font-size:11px">หมายเหตุ: ระบบคัดลอกแบบเก็บบรรทัดแล้ว (plain + HTML) — ถ้าวางแล้วยังติดกัน ให้ปิดแท็บ Hub เก่าแล้วเปิดใหม่ก่อนลองอีกครั้ง</span>
-          </div>
-          <div class="add-wide toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap;align-items:center">
-            <button type="button" class="btn-sm primary" id="add-save-page-text">บันทึกต้นฉบับ</button>
-            <button type="button" class="btn-sm" id="add-fill-page-text-from-th" title="ดึงข้อความไทย + ต่อท้ายด้วยชุดที่เลือก">เติมจากข้อความไทย</button>
-            <span id="add-page-post-hint" style="font-size:11px;color:#71717a">ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน</span>
-          </div>
-        </div>
-        <div class="toolbar-row" style="margin-top:16px;gap:10px;flex-wrap:wrap;align-items:center">
-          <button type="button" class="btn-sm primary" id="add-proceed" style="font-size:14px;padding:10px 16px">
-            ดำเนินการต่อ — บันทึกทรัพย์
-          </button>
-          <button type="button" class="btn-sm" id="add-recommend-groups">แนะนำกลุ่ม FB</button>
-          <span id="add-proceed-hint" style="font-size:12px;color:#71717a">
-            บันทึกลง Hub · ถ้ามาจากคิวจะลบรายการออกจากรอโพสต์
-          </span>
-        </div>
-        <div id="group-recommend-box" class="add-wide" style="margin-top:14px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-            <strong style="font-size:13px">กลุ่ม FB แนะนำ — 30 กลุ่ม (เรียงจากแนะนำสุด)</strong>
-            <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังมีข้อความต้นฉบับ สำหรับโพสต์กลุ่ม</span>
-          </div>
-          <div id="group-recommend-tabs" class="hidden" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
-          <div id="group-recommend-list" style="margin-top:10px;font-size:12px;color:#a1a1aa;max-height:480px;overflow:auto">ยังไม่มีรายการ</div>
-        </div>
-        <div id="group-post-link-box" class="add-wide" style="margin-top:14px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
-          <strong style="font-size:13px;display:block">บันทึกลิงก์โพสต์กลุ่ม → คอมเมนต์อัตโนมัติ</strong>
-          <p style="font-size:12px;color:#52525b;margin:8px 0 10px;line-height:1.5">
-            หลังโพสต์ในกลุ่มแล้ว คัดลอกลิงก์โพสต์จาก Facebook วางที่นี่ — ระบบจะให้เฟสส่วนตัวไปคอมเมนต์อัตโนมัติตามคิว
-            (เว้นระยะ + หมุนข้อความ/อีโมจิ)
-          </p>
-          <div class="add-grid">
-            <label class="add-wide">
-              <span>ลิงก์โพสต์ในกลุ่ม *</span>
-              <input type="url" id="group-post-link-url" placeholder="https://www.facebook.com/groups/…/posts/… หรือ permalink" />
+            <div id="post-footer-box" style="margin-bottom:12px">
+              <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;align-items:center">
+                <select id="post-footer-select" style="min-width:220px;max-width:100%;flex:1;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
+                  <option value="">— เลือกชุดท้ายประโยค —</option>
+                </select>
+                <button type="button" class="btn-sm" id="post-footer-manage-toggle">จัดการชุด</button>
+                <span id="post-footer-hint" style="font-size:11px;color:#71717a"></span>
+              </div>
+              <div id="post-footer-manage" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #e4e4e7">
+                <input type="hidden" id="post-footer-edit-id" value="" />
+                <div class="add-grid">
+                  <label>
+                    <span>ชื่อชุด</span>
+                    <input type="text" id="post-footer-edit-label" placeholder="เช่น LINE + เบอร์" />
+                  </label>
+                  <label class="add-wide">
+                    <span>ข้อความท้าย</span>
+                    <textarea id="post-footer-edit-text" rows="4" placeholder="วางข้อความท้ายโพสต์ เช่น LINE ID / เบอร์ / CTA"></textarea>
+                  </label>
+                </div>
+                <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+                  <button type="button" class="btn-sm primary" id="post-footer-save">บันทึกชุด</button>
+                  <button type="button" class="btn-sm" id="post-footer-new">ล้างฟอร์ม / ชุดใหม่</button>
+                  <button type="button" class="btn-sm" id="post-footer-delete" style="color:#b91c1c">ลบชุดที่เลือก</button>
+                </div>
+                <div id="post-footer-list" style="margin-top:10px;font-size:12px;color:#52525b;max-height:180px;overflow:auto"></div>
+              </div>
+            </div>
+            <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+              <button type="button" class="btn-sm primary" id="add-generate">สร้างข้อความโพสต์</button>
+              <button type="button" class="btn-sm" id="copy-page-post">คัดลอกข้อความ</button>
+              <button type="button" class="btn-sm" id="add-save-page-text">บันทึกข้อความ</button>
+              <span id="add-page-post-hint" style="font-size:11px;color:#71717a">ยังไม่มีข้อความ — กดสร้างข้อความโพสต์</span>
+            </div>
+            <label class="add-wide" style="margin:0">
+              <span>ข้อความสำหรับโพสต์เพจ / กลุ่ม</span>
+              <textarea id="add-page-post-text" class="output-box" rows="14" placeholder="กด「สร้างข้อความโพสต์」เพื่อดึงข้อความ + ท้ายประโยคมาที่นี่…"></textarea>
             </label>
-            <label>
-              <span>ชื่อกลุ่ม (ถ้ามี)</span>
-              <input type="text" id="group-post-link-group-name" placeholder="เช่น Condo Ladprao For Rent" />
-            </label>
-            <label>
-              <span>ลิงก์กลุ่ม (ถ้ามี)</span>
-              <input type="url" id="group-post-link-group-url" placeholder="https://www.facebook.com/groups/…" />
-            </label>
-          </div>
-          <div class="toolbar-row" style="margin-top:10px;gap:8px;flex-wrap:wrap;align-items:center">
-            <button type="button" class="btn-sm primary" id="group-post-link-save">บันทึกลงคิวคอมเมนต์</button>
-            <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#52525b">
-              <input type="checkbox" id="group-post-link-now" style="width:auto" checked />
-              เริ่มคอมเมนต์รอบแรกทันที (แนะนำ)
-            </label>
-            <span id="group-post-link-hint" style="font-size:11px;color:#71717a"></span>
-          </div>
-          <div id="group-post-link-for-code" style="margin-top:10px;font-size:12px;color:#71717a"></div>
+            <!-- Keep TH/EN for save/API; not shown in UI -->
+            <textarea id="out-th" class="hidden" aria-hidden="true"></textarea>
+            <textarea id="out-en" class="hidden" aria-hidden="true"></textarea>
+            <button type="button" class="hidden" id="copy-th" aria-hidden="true"></button>
+            <button type="button" class="hidden" id="copy-en" aria-hidden="true"></button>
+            <button type="button" class="hidden" id="post-footer-append" aria-hidden="true"></button>
+            <button type="button" class="hidden" id="add-fill-page-text-from-th" aria-hidden="true"></button>
+            <div class="hidden" id="add-page-post-howto" aria-hidden="true"></div>
+          </section>
+
+          <!-- Zone 4: Groups + save -->
+          <section class="add-zone" id="add-zone-groups">
+            <div class="add-zone-head">
+              <h3><span class="zone-step">4</span>โพสต์กลุ่ม &amp; บันทึก</h3>
+              <p>แนะนำกลุ่ม · บันทึกลิงก์โพสต์กลุ่ม · บันทึกทรัพย์</p>
+            </div>
+            <div class="toolbar-row" style="gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+              <button type="button" class="btn-sm primary" id="add-proceed" style="font-size:14px;padding:10px 16px">
+                บันทึกทรัพย์
+              </button>
+              <button type="button" class="btn-sm" id="add-recommend-groups">แนะนำกลุ่ม FB</button>
+              <span id="add-proceed-hint" style="font-size:12px;color:#71717a">
+                บันทึกลง Hub · ถ้ามาจากคิวจะลบรายการออกจากรอโพสต์
+              </span>
+            </div>
+            <div id="group-recommend-box" style="padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+                <strong style="font-size:13px">กลุ่ม FB แนะนำ</strong>
+                <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังมีข้อความโพสต์</span>
+              </div>
+              <div id="group-recommend-tabs" class="hidden" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+              <div id="group-recommend-list" style="margin-top:10px;font-size:12px;color:#a1a1aa;max-height:480px;overflow:auto">ยังไม่มีรายการ</div>
+            </div>
+            <div id="group-post-link-box" style="margin-top:12px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
+              <strong style="font-size:13px;display:block">บันทึกลิงก์โพสต์กลุ่ม → คอมเมนต์อัตโนมัติ</strong>
+              <p style="font-size:12px;color:#52525b;margin:8px 0 10px;line-height:1.5">
+                หลังโพสต์ในกลุ่มแล้ว คัดลอกลิงก์โพสต์จาก Facebook วางที่นี่
+              </p>
+              <div class="add-grid">
+                <label class="add-wide">
+                  <span>ลิงก์โพสต์ในกลุ่ม *</span>
+                  <input type="url" id="group-post-link-url" placeholder="https://www.facebook.com/groups/…/posts/…" />
+                </label>
+                <label>
+                  <span>ชื่อกลุ่ม (ถ้ามี)</span>
+                  <input type="text" id="group-post-link-group-name" placeholder="เช่น Condo Ladprao For Rent" />
+                </label>
+                <label>
+                  <span>ลิงก์กลุ่ม (ถ้ามี)</span>
+                  <input type="url" id="group-post-link-group-url" placeholder="https://www.facebook.com/groups/…" />
+                </label>
+              </div>
+              <div class="toolbar-row" style="margin-top:10px;gap:8px;flex-wrap:wrap;align-items:center">
+                <button type="button" class="btn-sm primary" id="group-post-link-save">บันทึกลงคิวคอมเมนต์</button>
+                <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#52525b">
+                  <input type="checkbox" id="group-post-link-now" style="width:auto" checked />
+                  เริ่มคอมเมนต์รอบแรกทันที
+                </label>
+                <span id="group-post-link-hint" style="font-size:11px;color:#71717a"></span>
+              </div>
+              <div id="group-post-link-for-code" style="margin-top:10px;font-size:12px;color:#71717a"></div>
+            </div>
+          </section>
         </div>
       </div>
     </main>
@@ -7084,8 +7106,9 @@
       document.getElementById("out-th").value = prop.text_th || "";
       document.getElementById("out-en").value = prop.text_en || "";
       var pagePostEl = document.getElementById("add-page-post-text");
-      if (pagePostEl) pagePostEl.value = prop.page_post_text || "";
-      updatePagePostHint(prop.page_post_text || "");
+      var pageText = prop.page_post_text || prop.text_th || "";
+      if (pagePostEl) pagePostEl.value = pageText;
+      updatePagePostHint(pageText);
       if (prop.project_id) {
         applyProjectMaster(prop.project_id);
       } else if (prop.location_ref) {
@@ -7584,15 +7607,13 @@
 
       var w = document.getElementById("add-warnings");
       w.innerHTML = (data.warnings || []).map(function (x) { return "⚠ " + esc(x); }).join("<br>");
-      var hint = document.getElementById("partial-hint");
-      if (hint) {
+      var rawEl = document.getElementById("add-raw");
+      if (rawEl) {
         if (data.is_partial) {
-          hint.classList.remove("hidden");
-          document.getElementById("add-raw").focus();
-          document.getElementById("add-raw").style.borderColor = "#f59e0b";
+          rawEl.style.borderColor = "#f59e0b";
+          rawEl.focus();
         } else {
-          hint.classList.add("hidden");
-          document.getElementById("add-raw").style.borderColor = "";
+          rawEl.style.borderColor = "";
         }
       }
       lockAllLinkFields();
@@ -7718,9 +7739,16 @@
           try { await apiPost("/api/post-footers/use", { id: footerId }); } catch (eUse) { /* ignore */ }
         }
         var data = await apiPost("/api/generate", { property: addFormPayload() });
-        document.getElementById("out-th").value = data.text_th || "";
-        document.getElementById("out-en").value = data.text_en || "";
+        var th = data.text_th || "";
+        var en = data.text_en || "";
+        document.getElementById("out-th").value = th;
+        document.getElementById("out-en").value = en;
         if (data.code) document.getElementById("add-code").value = data.code;
+        var pageEl = document.getElementById("add-page-post-text");
+        if (pageEl) pageEl.value = th;
+        updatePagePostHint(th);
+        var fHint = document.getElementById("post-footer-hint");
+        if (fHint) fHint.textContent = th ? "สร้างข้อความโพสต์แล้ว (รวมท้ายประโยค)" : "";
         await loadGroupRecommendations();
       } catch (e) {
         alert(e.message);
@@ -8100,13 +8128,12 @@
       var t = String(text || "").trim();
       if (!t) {
         hint.style.color = "#71717a";
-        hint.textContent = "ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน";
+        hint.textContent = "ยังไม่มีข้อความ — กดสร้างข้อความโพสต์";
         return;
       }
       var lines = t.split(/\n/).length;
-      hint.style.color = lines >= 8 && t.length >= 180 ? "#137333" : "#b45309";
-      hint.textContent = "ข้อความต้นฉบับ " + t.length + " ตัวอักษร · " + lines + " บรรทัด" +
-        (lines >= 8 && t.length >= 180 ? " · พร้อมใช้กับปุ่มโพสต์กลุ่ม" : " · อาจยังไม่ครบ เทียบกับโพสต์เพจอีกครั้ง");
+      hint.style.color = "#137333";
+      hint.textContent = "พร้อมโพสต์ · " + t.length + " ตัวอักษร · " + lines + " บรรทัด";
     }
 
     function pagePublicCaptionSource() {
@@ -11446,17 +11473,21 @@
         document.getElementById("add-project").focus();
         return;
       }
-      if (!document.getElementById("out-th").value.trim()) {
-        if (!confirm("ยังไม่ได้สร้างข้อความ TH/EN — บันทึกทรัพย์เลย?")) return;
+      if (!(document.getElementById("add-page-post-text") || {}).value.trim() &&
+          !document.getElementById("out-th").value.trim()) {
+        if (!confirm("ยังไม่ได้สร้างข้อความโพสต์ — บันทึกทรัพย์เลย?")) return;
       }
       var btn = document.getElementById("add-proceed");
       btn.disabled = true;
       btn.textContent = editingPropertyId ? "กำลังบันทึก…" : "กำลังบันทึก…";
       try {
         var payload = addFormPayload();
-        payload.text_th = document.getElementById("out-th").value;
+        var pageText = ((document.getElementById("add-page-post-text") || {}).value || "").trim();
+        var thVal = (document.getElementById("out-th").value || "").trim() || pageText;
+        payload.text_th = thVal;
         payload.text_en = document.getElementById("out-en").value;
-        payload.page_post_text = (document.getElementById("add-page-post-text") || { value: "" }).value.trim();
+        payload.page_post_text = pageText || thVal;
+        document.getElementById("out-th").value = thVal;
         var data;
         if (editingPropertyId) {
           payload.id = editingPropertyId;
@@ -12653,6 +12684,23 @@
     });
     document.getElementById("copy-th").addEventListener("click", function () { copyOut("out-th"); });
     document.getElementById("copy-en").addEventListener("click", function () { copyOut("out-en"); });
+    var copyPagePostBtn = document.getElementById("copy-page-post");
+    if (copyPagePostBtn) {
+      copyPagePostBtn.addEventListener("click", function () {
+        var el = document.getElementById("add-page-post-text");
+        var text = el ? (el.value || "").trim() : "";
+        if (!text) {
+          alert("ยังไม่มีข้อความโพสต์ — กดสร้างข้อความโพสต์ก่อน");
+          return;
+        }
+        copyOut("add-page-post-text");
+        var hint = document.getElementById("add-page-post-hint");
+        if (hint) {
+          hint.style.color = "#137333";
+          hint.textContent = "คัดลอกแล้ว — วางใน Facebook ได้เลย";
+        }
+      });
+    }
     document.getElementById("queue-add-btn").addEventListener("click", addToQueue);
     document.getElementById("queue-import-btn").addEventListener("click", importQueueFromSheet);
     document.getElementById("queue-show-done").addEventListener("change", loadQueue);

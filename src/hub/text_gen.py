@@ -143,6 +143,9 @@ def _beds_baths(bedrooms: str) -> tuple[str, str]:
     m = re.search(r"(\d+)\s*ห้องนอน.*?(\d+)\s*ห้องน้ำ", b)
     if m:
         return m.group(1), m.group(2)
+    m = re.search(r"^\s*(\d+)\s*/\s*(\d+)\s*$", b)
+    if m:
+        return m.group(1), m.group(2)
     m = re.search(r"(\d+)", b)
     return (m.group(1) if m else b), ""
 
@@ -629,68 +632,13 @@ def _primary_angle(data: dict) -> str:
     return "lifestyle"
 
 
-def _opening_line(data: dict, angle: str, seed: int) -> str:
-    transit = data.get("transit_tags") or []
-    t0 = str(transit[0]).strip() if transit else ""
-    options: dict[str, list[str]] = {
-        "transit": [
-            f"ใกล้ {t0} แบบใช้ได้จริงในชีวิตประจำวัน" if t0 else "ทำเลเดินทางสะดวก",
-            f"อยู่ใกล้ {t0} เช้าสายไม่ต้องเครียดเรื่องรถติดมากนัก" if t0 else "ทำเลที่ช่วยให้วันทำงานง่ายขึ้น",
-            f"เดินทางต่อจาก {t0} ได้คล่อง" if t0 else "คอนโดทำเลดี น่าอยู่",
-        ],
-        "pet": [
-            "เลี้ยงสัตว์ได้ — อยู่ด้วยกันได้ทั้งบ้าน",
-            "Pet friendly สำหรับคนที่มีน้องหมา/แมว",
-            "ไม่ต้องหาบ้านใหม่แยกจากสัตว์เลี้ยง",
-        ],
-        "family": [
-            "บ้านหลังนี้เหมาะกับอยู่ด้วยกันหลายคน",
-            "พื้นที่แบบบ้าน ในทำเลที่ยังเข้าเมืองได้",
-            "ถ้าอยากได้ความเป็นบ้านมากกว่าคอนโด ลองดูชุดนี้",
-        ],
-        "space": [
-            "ห้องกว้าง อยู่แล้วไม่อึดอัด",
-            "พื้นที่ใช้สอยเยอะ จัดชีวิตได้ตามสบาย",
-            "สำหรับคนที่อยากได้ห้องโล่งๆ",
-        ],
-        "luxury": [
-            "ห้องที่อยู่แล้วรู้สึกดีทุกวัน",
-            "โฟกัสคุณภาพการใช้ชีวิตมากกว่าสเปกยาวๆ",
-            "พร้อมอยู่แบบเรียบหรู ใช้งานจริง",
-        ],
-        "expat": [
-            "ทำเลใกล้โรงเรียนนานาชาติ เดินทางเช้าๆ สะดวกขึ้น",
-            "เหมาะกับครอบครัวที่ต้องส่งลูกเรียนทุกวัน",
-            "เลือกทำเลเพื่อครอบครัวก่อน",
-        ],
-        "wfh": [
-            "มีมุมทำงานที่บ้านได้จริง",
-            "Home office แยกงานกับพักผ่อนได้ชัดขึ้น",
-            "สำหรับคนทำงานที่บ้านและอยากได้พื้นที่หายใจ",
-        ],
-        "rent_ready": [
-            "พร้อมเข้าอยู่เลย ไม่ต้องเซ็ตอัพนาน",
-            "ย้ายเข้าได้ทันที",
-            "ห้องพร้อมใช้ สำหรับคนที่ไม่อยากรอ",
-        ],
-        "lifestyle": [
-            "ห้องที่อยู่แล้วชีวิตง่ายขึ้น",
-            "ทำเลดี พร้อมอยู่",
-            "น่าสนใจสำหรับคนที่กำลังหาที่อยู่ใหม่",
-        ],
-    }
-    pool = options.get(angle) or options["lifestyle"]
-    return re.sub(r"\s+", " ", pool[seed % len(pool)]).strip()
-
-
 def _amenity_bits(data: dict) -> list[str]:
-    """Short factual amenity chips — not preachy benefit essays."""
     raw = _sanitize_source(data.get("raw_text") or "")
     low = raw.lower()
     bits: list[str] = []
-    if any(k in low for k in ("fully furnished", "เฟอร์นิเจอร์ครบ", "ตกแต่งครบ", "furnished")):
+    if any(k in low for k in ("fully furnished", "เฟอร์นิเจอร์ครบ", "ตกแต่งครบ", "furnished", "เฟอร์ครบ")):
         bits.append("เฟอร์ครบ")
-    if "แอร์" in raw or "air" in low:
+    if "แอร์" in raw or re.search(r"\bair\b", low):
         bits.append("มีแอร์")
     if any(k in low for k in ("ซักผ้า", "washing")):
         bits.append("มีเครื่องซักผ้า")
@@ -699,211 +647,208 @@ def _amenity_bits(data: dict) -> list[str]:
     if any(k in low for k in ("น้ำอุ่น", "น้ำร้อน", "water heater")):
         bits.append("มีน้ำอุ่น")
     if _is_pet_friendly(data):
-        bits.append("Pet friendly")
+        bits.append("เลี้ยงสัตว์ได้")
     return bits[:4]
 
 
-def _fact_line_th(data: dict) -> str:
-    """One natural line of key facts (not a sales lecture)."""
-    parts: list[str] = []
+def _spec_bits_th(data: dict) -> list[str]:
+    bits: list[str] = []
     beds, baths = _beds_baths(data.get("bedrooms") or "")
     size_n = _parse_size_num(data.get("size_sqm"))
     floor = str(data.get("floor") or "").strip()
     if beds:
         if beds.lower() == "studio":
-            parts.append("Studio")
+            bits.append("Studio")
         else:
-            parts.append(f"{beds} ห้องนอน")
+            bits.append(f"{beds} นอน")
     if baths:
-        parts.append(f"{baths} ห้องน้ำ")
+        bits.append(f"{baths} น้ำ")
     if size_n > 0:
-        parts.append(f"{int(size_n) if size_n == int(size_n) else size_n} ตร.ม.")
+        bits.append(f"{int(size_n) if size_n == int(size_n) else size_n} ตร.ม.")
     if floor:
-        parts.append(f"ชั้น {floor}")
-    return " · ".join(parts)
+        bits.append(f"ชั้น {floor}")
+    return bits
 
 
-def _soft_bullets_th(data: dict, angle: str, seed: int) -> list[str]:
-    """Few short bullets — mix of facts and light benefits, human tone."""
-    bullets: list[str] = []
-    beds, baths = _beds_baths(data.get("bedrooms") or "")
-    size_n = _parse_size_num(data.get("size_sqm"))
-    transit = [str(t).strip() for t in (data.get("transit_tags") or []) if str(t).strip()]
-    zones = data.get("zone_tags") or data.get("zones") or []
-    if isinstance(zones, str):
-        zones = [z.strip() for z in zones.split(",") if z.strip()]
-    amenities = _amenity_bits(data)
-
-    if angle == "wfh":
-        bullets.append("มีพื้นที่ทำงานแยก มุมทำงานชัดขึ้น")
-    if beds and beds.isdigit() and int(beds) >= 2:
-        bullets.append(f"{beds} ห้องนอน อยู่ด้วยกันหลายคนได้สบาย")
-    elif beds == "1":
-        bullets.append("1 ห้องนอน เหมาะอยู่คนเดียวหรือคู่")
-    elif beds and beds.lower() == "studio":
-        bullets.append("Studio ดูแลง่าย")
-
-    if size_n >= 80:
-        bullets.append("พื้นที่กว้างกว่าคอนโดทั่วไป")
-    elif size_n >= 40:
-        bullets.append("ห้องค่อนข้างกว้าง อยู่แล้วไม่อึดอัด")
-
-    if transit:
-        bullets.append(f"ใกล้ {transit[0]}")
-    elif zones:
-        bullets.append(f"ทำเล {zones[0]}")
-
-    if amenities:
-        bullets.append("พร้อมอยู่ · " + " · ".join(amenities))
-    else:
-        bullets.append("พร้อมเข้าอยู่")
-
-    if baths and baths.isdigit() and int(baths) >= 2 and len(bullets) < 4:
-        bullets.append(f"{baths} ห้องน้ำ")
-
-    # Cap 3–4, stable order with light rotation
-    bullets = bullets[:4]
-    if bullets and seed % 3 == 1 and len(bullets) > 1:
-        bullets = [bullets[-1]] + bullets[:-1]
-    return bullets
-
-
-def _story_paragraph_th(data: dict, angle: str, project: str) -> str:
-    """Conversational middle paragraph."""
+def _hook_th(data: dict, angle: str, seed: int) -> str:
+    """One short line a person would actually type — no ad slogans."""
     transit = [str(t).strip() for t in (data.get("transit_tags") or []) if str(t).strip()]
     t0 = transit[0] if transit else ""
-    fact = _fact_line_th(data)
-    bits = {
-        "transit": (
-            f"อยู่ที่ {project}"
-            + (f" ใกล้ {t0}" if t0 else "")
-            + (f" ({fact})" if fact else "")
-            + " ใช้ชีวิตประจำวันได้คล่อง โดยไม่ต้องเสียเวลาเดินทางมาก"
-        ),
-        "pet": f"ที่ {project} เลี้ยงสัตว์ได้" + (f" · {fact}" if fact else "") + " เหมาะกับคนที่อยากอยู่กับสัตว์เลี้ยงแบบไม่ต้องแยกบ้าน",
-        "family": f"{project} ให้ความรู้สึกบ้านมากกว่าห้องพัก" + (f" — {fact}" if fact else "") + " อยู่ด้วยกันหลายคนได้โดยยังเข้าเมืองสะดวก",
-        "space": f"ที่ {project}" + (f" ({fact})" if fact else "") + " จุดเด่นคือพื้นที่ใช้สอยที่อยู่แล้วรู้สึกโปร่ง",
-        "luxury": f"{project}" + (f" · {fact}" if fact else "") + " โฟกัสความอยู่สบายและการใช้งานจริง",
-        "expat": f"ทำเลของ {project} เหมาะกับครอบครัวที่ต้องเดินทางเช้าบ่อย" + (f" ({fact})" if fact else ""),
-        "wfh": f"{project} มีโจทย์ Home office ค่อนข้างชัด" + (f" · {fact}" if fact else "") + " แยกงานกับพักผ่อนได้ดีขึ้น",
-        "rent_ready": f"ห้องที่ {project} พร้อมเข้าอยู่" + (f" ({fact})" if fact else "") + " ไม่ต้องเซ็ตอัพนาน",
-        "lifestyle": f"ที่ {project}" + (f" · {fact}" if fact else "") + " น่าสนใจสำหรับคนที่กำลังหาที่อยู่ใหม่",
-    }
-    return re.sub(r"\s+", " ", bits.get(angle) or bits["lifestyle"]).strip()
+    if angle == "pet":
+        opts = ["เลี้ยงสัตว์ได้ค่ะ", "Pet friendly นะ", "เลี้ยงสัตว์ได้นะคะ"]
+    elif angle == "wfh":
+        opts = ["มีมุมทำงานที่บ้านได้", "Home office ได้", "ทำงานที่บ้านได้สบาย"]
+    elif angle == "family":
+        opts = ["บ้านหลังนี้น่าอยู่", "พื้นที่แบบบ้านเลย", "อยู่ด้วยกันหลายคนได้"]
+    elif angle == "space":
+        opts = ["ห้องกว้างดี", "พื้นที่เยอะอยู่สบาย", "โล่งดี"]
+    elif angle == "expat":
+        opts = ["ใกล้โรงเรียนนานาชาติ", "ทำเลส่งลูกเรียนสะดวก"]
+    elif angle == "transit" and t0:
+        opts = [f"ใกล้ {t0}", f"เดินถึง {t0} ได้", f"อยู่ใกล้ {t0}"]
+    elif angle == "rent_ready":
+        opts = ["พร้อมเข้าอยู่เลย", "ย้ายเข้าได้เลย", "พร้อมอยู่"]
+    else:
+        opts = ["พร้อมอยู่", "ทำเลดี", "น่าสนใจ"]
+    return opts[seed % len(opts)]
 
 
-def _price_line_th(data: dict, angle: str, seed: int) -> str:
+def _deal_line_th(data: dict) -> str:
     rent = data.get("rent_price") or ""
     sale = data.get("sale_price") or ""
-    if _has_price(rent) and not _has_price(sale):
-        opts = [
-            f"ค่าเช่า {rent} บาท/เดือน",
-            f"เช่า {rent} บาท/เดือน",
-            f"ราคาเช่า {rent} บาท/เดือน",
-        ]
-        return opts[seed % len(opts)]
-    if _has_price(sale) and not _has_price(rent):
-        return f"ราคาขาย {sale} บาท"
     if _has_price(rent) and _has_price(sale):
-        return f"เช่า {rent} บาท/เดือน หรือซื้อ {sale} บาท"
+        return f"เช่า {rent} / ขาย {sale}"
+    if _has_price(rent):
+        return f"เช่า {rent}/เดือน"
+    if _has_price(sale):
+        return f"ขาย {sale}"
     return ""
 
 
 def _build_sell_body_th(data: dict) -> str:
-    """Free local Thai Facebook body — conversational, not formulaic."""
+    """Thai FB post like an agent typed it — plain, short, no AI template."""
     project = _project_display(data.get("project_name") or "", "th")
     angle = _primary_angle(data)
     seed = _variant_seed(data)
-    opening = _opening_line(data, angle, seed)
-    story = _story_paragraph_th(data, angle, project)
-    bullets = _soft_bullets_th(data, angle, seed)
-    price = _price_line_th(data, angle, seed)
+    hook = _hook_th(data, angle, seed)
+    specs = _spec_bits_th(data)
+    amenities = _amenity_bits(data)
+    deal = _deal_line_th(data)
+    transit = [str(t).strip() for t in (data.get("transit_tags") or []) if str(t).strip()]
+    zones = data.get("zone_tags") or data.get("zones") or []
+    if isinstance(zones, str):
+        zones = [z.strip() for z in zones.split(",") if z.strip()]
 
-    # Layout variants so posts don't all share the same skeleton
-    layout = seed % 3
+    layout = seed % 4
     lines: list[str] = []
-    if layout == 0:
-        lines.extend([opening, "", story, ""])
-        if bullets:
-            for b in bullets:
-                lines.append(f"• {b}")
-            lines.append("")
-        if price:
-            lines.append(price)
-    elif layout == 1:
-        lines.extend([opening, "", story])
-        if price:
-            lines.extend(["", price])
-        if bullets:
-            lines.append("")
-            lines.append("รายละเอียดคร่าวๆ")
-            for b in bullets[:3]:
-                lines.append(f"• {b}")
-    else:
-        lines.extend([opening, ""])
-        if bullets:
-            for b in bullets:
-                lines.append(f"• {b}")
-            lines.append("")
-        lines.append(story)
-        if price:
-            lines.extend(["", price])
 
-    return "\n".join(lines).strip()
+    if layout == 0:
+        # project → hook → specs → deal
+        lines.append(project)
+        lines.append("")
+        lines.append(hook)
+        if specs:
+            lines.append("")
+            lines.append(" ".join(specs))
+        extra = []
+        if transit and angle != "transit":
+            extra.append(f"ใกล้ {transit[0]}")
+        if amenities:
+            extra.append(" ".join(amenities))
+        if extra:
+            lines.append(" / ".join(extra) if len(extra) > 1 else extra[0])
+        if deal:
+            lines.extend(["", deal])
+
+    elif layout == 1:
+        # hook first, then project + facts as chat lines
+        lines.append(hook)
+        lines.append("")
+        lines.append(project)
+        for s in specs:
+            lines.append(s)
+        if amenities:
+            lines.append(" ".join(amenities))
+        elif not amenities:
+            lines.append("พร้อมอยู่")
+        if deal:
+            lines.extend(["", deal])
+
+    elif layout == 2:
+        # one short block, almost no bullets
+        bits = [project]
+        if specs:
+            bits.append(" ".join(specs))
+        if transit:
+            bits.append(f"ใกล้ {transit[0]}")
+        elif zones:
+            bits.append(str(zones[0]))
+        if amenities:
+            bits.append(" ".join(amenities))
+        lines.append(hook)
+        lines.append("")
+        lines.append("\n".join(bits))
+        if deal:
+            lines.extend(["", deal])
+
+    else:
+        # rent/sale lead (common agent habit)
+        if deal:
+            lines.append(deal)
+            lines.append("")
+        lines.append(project)
+        lines.append(hook)
+        if specs:
+            lines.append("")
+            lines.append(" · ".join(specs))
+        if amenities:
+            lines.append(" · ".join(amenities))
+        if transit and "ใกล้" not in hook:
+            lines.append(f"ใกล้ {transit[0]}")
+
+    # strip empties at ends, keep single blank gaps
+    out: list[str] = []
+    for ln in lines:
+        if ln == "" and (not out or out[-1] == ""):
+            continue
+        out.append(ln)
+    while out and out[-1] == "":
+        out.pop()
+    return "\n".join(out)
 
 
 def _build_sell_body_en(data: dict) -> str:
-    """Free local English body — short and natural."""
+    """Short English agent-style note."""
     project = _project_display(data.get("project_name") or "", "en")
     transit = data.get("transit_tags") or []
     t0 = _romanize_places(str(transit[0])) if transit else ""
     angle = _primary_angle(data)
     seed = _variant_seed(data)
-    openings = {
-        "transit": f"Handy spot near {t0}" if t0 else "A location that works for daily life",
-        "pet": "Pet-friendly place — keep your pet with you",
-        "family": "More of a home feel than a typical condo",
-        "space": "Spacious enough to live comfortably",
-        "luxury": "Comfortable living in a solid Bangkok address",
-        "wfh": "Home-office friendly layout",
-        "rent_ready": "Ready to move in",
-        "expat": "Practical for school-run mornings",
-    }
-    opening = openings.get(angle) or "A practical Bangkok home"
     beds, baths = _beds_baths(data.get("bedrooms") or "")
     size_n = _parse_size_num(data.get("size_sqm"))
-    facts: list[str] = []
-    if beds:
-        facts.append(beds if beds.lower() == "studio" else f"{beds} bed")
-    if baths:
-        facts.append(f"{baths} bath")
-    if size_n:
-        facts.append(f"{int(size_n)} sqm")
-    fact = " · ".join(facts)
+    floor = str(data.get("floor") or "").strip()
 
-    lines = [opening, "", f"{project}" + (f" · {fact}" if fact else "")]
-    bullets: list[str] = []
-    if t0:
-        bullets.append(f"Near {t0}")
-    if _is_pet_friendly(data):
-        bullets.append("Pet friendly")
-    amen = _amenity_bits(data)
-    if amen:
-        bullets.append(", ".join(amen[:3]))
-    else:
-        bullets.append("Ready to move in")
-    if bullets:
-        lines.append("")
-        for b in bullets[:3]:
-            lines.append(f"• {b}")
+    hooks = {
+        "transit": f"Near {t0}" if t0 else "Good location",
+        "pet": "Pet friendly",
+        "family": "Feels more like a house",
+        "space": "Spacious",
+        "wfh": "Works for home office",
+        "rent_ready": "Ready to move in",
+        "expat": "Handy for school runs",
+        "luxury": "Nice to live in",
+    }
+    hook = hooks.get(angle) or "Ready to move in"
+    specs: list[str] = []
+    if beds:
+        specs.append("Studio" if beds.lower() == "studio" else f"{beds} bed")
+    if baths:
+        specs.append(f"{baths} bath")
+    if size_n:
+        specs.append(f"{int(size_n)} sqm")
+    if floor:
+        specs.append(f"floor {floor}")
+
     rent = data.get("rent_price") or ""
     sale = data.get("sale_price") or ""
-    if _has_price(rent):
-        lines.extend(["", f"Rent {rent} THB/month"])
+    deal = ""
+    if _has_price(rent) and _has_price(sale):
+        deal = f"Rent {rent} / Sale {sale}"
+    elif _has_price(rent):
+        deal = f"Rent {rent}/mo"
     elif _has_price(sale):
-        lines.extend(["", f"Sale {sale} THB"])
-    if seed % 2 == 0 and angle == "wfh":
-        lines[0] = "Good option if you work from home"
+        deal = f"Sale {sale}"
+
+    amen = _amenity_bits(data)
+    lines = [project, "", hook]
+    if specs:
+        lines.append(" · ".join(specs))
+    if amen:
+        lines.append(" · ".join(amen[:3]))
+    if deal:
+        lines.extend(["", deal])
+    if seed % 2 and t0 and angle != "transit":
+        lines.insert(2, f"Near {t0}")
     return "\n".join(lines).strip()
 
 

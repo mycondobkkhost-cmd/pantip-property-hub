@@ -2429,17 +2429,24 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/generate":
-            data = body.get("property") or body
-            code = data.get("code") or next_rxt_code()
-            data["code"] = code
-            self._json(
-                200,
-                {
-                    "code": code,
-                    "text_th": generate_text(data, "th"),
-                    "text_en": generate_text(data, "en"),
-                },
-            )
+            try:
+                data = body.get("property") or body
+                if not isinstance(data, dict):
+                    data = {}
+                else:
+                    data = dict(data)
+                code = data.get("code") or next_rxt_code()
+                data["code"] = code
+                self._json(
+                    200,
+                    {
+                        "code": code,
+                        "text_th": generate_text(data, "th"),
+                        "text_en": generate_text(data, "en"),
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": f"สร้างข้อความไม่สำเร็จ: {exc}"})
             return
 
         if path == "/api/groups/recommend":

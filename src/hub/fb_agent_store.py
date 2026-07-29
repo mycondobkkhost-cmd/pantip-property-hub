@@ -441,8 +441,17 @@ def request_login(agent_id: str | None = None) -> dict[str, Any]:
     with _LOCK:
         store = _load_raw()
         row = _get_agent(store, agent_id)
+        if not is_agent_online(row):
+            raise ValueError(
+                "Agent ยังไม่เปิดบนคอมเครื่องนี้ — "
+                "ให้ดับเบิลคลิกไฟล์「เปิดระบบคอมเมนต์」บน Windows/Mac ของ Agent ก่อน "
+                "แล้วรอจน Hub ขึ้นว่าทำงานอยู่ แล้วค่อยกดล็อกอินอีกครั้ง"
+            )
+        if bool(row.get("work_paused")):
+            raise ValueError("Agent ถูกหยุดงานฉุกเฉินอยู่ — กด「ทำงานต่อ」ก่อน แล้วค่อยล็อกอิน")
         row["login_requested"] = True
         row["agent_message"] = "รอเครื่อง Agent เปิดหน้าต่าง Facebook…"
+        _append_activity(row, "Hub สั่งเปิดหน้าต่างล็อกอินเฟส")
         store["agents"][row["id"]] = row
         _save_raw(store)
         aid = row["id"]

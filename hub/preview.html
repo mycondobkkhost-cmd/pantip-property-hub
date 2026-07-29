@@ -9323,7 +9323,20 @@
       try {
         var data = await apiPost("/api/fb-agent/request-login", { agent_id: fbSelectedAgentId });
         renderFbAgentStatus(data);
-        alert("สั่งเปิดหน้าต่างเฟสแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\nไปที่คอมที่เปิดระบบของ Agent นี้ — Chrome จะเด้งขึ้นและไม่ปิดเอง\nล็อกอินบัญชีที่ต้องการในหน้านั้น\nดูช่อง「รายงานการทำงาน」ใน Hub ว่าสำเร็จหรือยัง");
+        if (!data.agent_online) {
+          alert(
+            "สั่งแล้ว แต่ Agent ยังไม่โชว์ออนไลน์\n\n" +
+            "บนคอม " + agentLabel(fbSelectedAgentId) + " ให้ดับเบิลคลิกไฟล์「เปิดระบบคอมเมนต์」ไว้ก่อน\n" +
+            "รอจน Hub ขึ้นว่าทำงานอยู่ แล้วกดล็อกอินอีกครั้ง"
+          );
+          return;
+        }
+        alert(
+          "สั่งเปิดหน้าต่างเฟสแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\n" +
+          "ไปที่คอมที่เปิดระบบของ Agent นี้ — ภายใน ~1 นาทีควรเห็น Chrome/Chromium เด้งขึ้น\n" +
+          "ถ้าไม่เด้ง: ดูหน้าต่างดำของ Agent ว่ามีข้อความ error หรือกำลังดาวน์โหลดเบราว์เซอร์\n" +
+          "ล็อกอินบัญชีที่ต้องการ แล้วดูช่อง「รายงานการทำงาน」ใน Hub"
+        );
       } catch (e) {
         alert(e.message || "สั่งล็อกอินไม่ได้ — ตรวจว่าขั้นที่ 1 เปิดระบบบนคอมไว้แล้ว");
       }

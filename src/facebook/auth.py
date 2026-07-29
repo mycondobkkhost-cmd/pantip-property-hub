@@ -325,8 +325,19 @@ class FacebookAuth:
                     pass
 
         page = self.start_browser()
+        # Always surface a tab the user can see (especially Windows + CDP attach)
+        try:
+            if not self._owns_browser and self._context is not None:
+                page = self._context.new_page()
+                self._page = page
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("เปิดแท็บใหม่บน Chrome จริงไม่สำเร็จ: {}", exc)
+        try:
+            page.bring_to_front()
+        except Exception:  # noqa: BLE001
+            pass
         if not self._owns_browser:
-            say("ใช้ Google Chrome จริงแล้ว (โปรไฟล์เดิม) — สลับบัญชีจากไอคอนโปรไฟล์มุมขวาบนได้")
+            say("ใช้ Google Chrome จริงแล้ว — เปิดแท็บเฟสใหม่ให้อยู่ด้านหน้าแล้ว")
 
         if not force_manual:
             if self._is_logged_in(page):

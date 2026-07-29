@@ -222,9 +222,16 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
         except Exception:  # noqa: BLE001
             pass
 
+    # Always show a real window for Hub login button
+    os.environ["HEADLESS"] = "false"
+    settings.HEADLESS = False
+
+    progress(f"ได้รับคำสั่งล็อกอิน ({_agent_id}) — กำลังเปิดเบราว์เซอร์…")
+
     # Prefer real Chrome (CDP) — skip Playwright Chromium download when available
     using_cdp = FacebookAuth.cdp_available()
     if not using_cdp:
+        progress("ยังไม่มี Chrome โหมด Agent — จะเปิด Google Chrome / Chromium ขึ้นมาใหม่ให้เห็น")
         try:
             ensure_playwright_chromium(on_progress=progress)
         except Exception as exc:  # noqa: BLE001
@@ -234,8 +241,7 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
                 status="error",
                 message=(
                     f"เตรียมเบราว์เซอร์ไม่สำเร็จ: {exc} · "
-                    "หรือเปิด scripts/mac/เปิดChromeจริงสำหรับAgent.command ก่อน "
-                    "เพื่อใช้ Chrome ที่ล็อกอินเฟสไว้แล้ว"
+                    "ลองดับเบิลคลิก「เปิดChromeจริงสำหรับAgent」ก่อน แล้วกดล็อกอินอีกครั้ง"
                 ),
                 fb_logged_in=False,
                 clear_login_request=True,
@@ -243,7 +249,7 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
             logger.error("ensure browser failed: {}", exc)
             return False
     else:
-        progress("พบ Google Chrome โหมด Agent — จะใช้โปรไฟล์เดิม (ลดโดน 2FA)")
+        progress("พบ Google Chrome โหมด Agent — จะเปิดแท็บเฟสใหม่ให้อยู่ด้านหน้า")
 
     _close_alive_auth()
     if using_cdp:
@@ -253,9 +259,12 @@ def do_login(hub: str, token: str, email: str, password: str) -> bool:
     else:
         progress(
             f"กำลังเปิดหน้าต่าง Facebook ({_agent_id}) — "
-            "ถ้าโดน 2FA บ่อย ให้เปิด「เปิดChromeจริงสำหรับAgent」ก่อน แล้วลองใหม่"
+            "ถ้าไม่เห็นหน้าต่าง ให้ดูแถบงานด้านล่าง (Chrome/Chromium)"
         )
     auth = _make_auth(email, password, headless=False)
+    # Without CDP, force system Chrome channel so a visible window always appears on Windows
+    if not using_cdp:
+        auth.browser_mode = "chrome"
     try:
         auth.login(wait_manual_sec=600, on_status=progress, force_manual=True)
         _alive_auth = auth

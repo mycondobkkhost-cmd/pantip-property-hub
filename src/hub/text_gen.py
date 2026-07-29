@@ -462,6 +462,25 @@ def _hashtags(project: str, lang: str = "th") -> str:
     return " ".join(t for t in tags if t)
 
 
+def _contact_footer(lang: str) -> list[str]:
+    """Customer-facing CTA (may include lin.ee link)."""
+    if lang == "en":
+        return [
+            f"📲 LINE : {LINE_ID}  →  {LINE_URL}",
+            f"📞 {PHONE_NUT_EN[0]} : {PHONE_NUT_EN[1]}",
+            f"📞 {PHONE_PLENG_EN[0]} : {PHONE_PLENG_EN[1]}",
+            "",
+            "Add LINE for viewing / more info 🙏",
+        ]
+    return [
+        f"📲 LINE : {LINE_ID} คลิก {LINE_URL}",
+        f"📞 {PHONE_NUT[0]} : {PHONE_NUT[1]}",
+        f"📞 {PHONE_PLENG[0]} : {PHONE_PLENG[1]}",
+        "",
+        "สนใจนัดชม / ขอรายละเอียด แอดไลน์ได้เลยครับ 🙏",
+    ]
+
+
 def _contact_footer_no_links(lang: str) -> list[str]:
     """CTA without URLs — customers screenshot LINE ID and add manually."""
     if lang == "en":

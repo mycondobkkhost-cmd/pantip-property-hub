@@ -33,6 +33,11 @@ from src.hub.caption_variant import (  # noqa: E402
     list_caption_history,
     prepare_group_caption,
 )
+from src.hub.post_footer_store import (  # noqa: E402
+    delete_snippet as delete_post_footer,
+    list_snippets as list_post_footers,
+    upsert_snippet as upsert_post_footer,
+)
 from src.hub.group_post_store import (  # noqa: E402
     add_code as add_comment_code,
     add_link_for_code,
@@ -1762,6 +1767,12 @@ class HubHandler(BaseHTTPRequestHandler):
             data = list_groups_summary()
             self._json(200, data)
             return
+        if path == "/api/post-footers":
+            try:
+                self._json(200, {"ok": True, "items": list_post_footers()})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/zones":
             try:
                 ensure_masters_ready()
@@ -2494,6 +2505,38 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(200, list_caption_history(code))
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/post-footers":
+            try:
+                self._json(200, {"ok": True, "items": list_post_footers()})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/post-footers/save":
+            try:
+                item = upsert_post_footer(
+                    snippet_id=str(body.get("id") or "").strip(),
+                    label=str(body.get("label") or body.get("name") or "").strip(),
+                    text=str(body.get("text") or "").strip(),
+                )
+                self._json(200, {"ok": True, "item": item, "items": list_post_footers()})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/post-footers/delete":
+            try:
+                ok = delete_post_footer(str(body.get("id") or "").strip())
+                if not ok:
+                    self._json(404, {"ok": False, "error": "ไม่พบชุดข้อความ"})
+                    return
+                self._json(200, {"ok": True, "items": list_post_footers()})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
             return
 
         if path == "/api/group-posts":

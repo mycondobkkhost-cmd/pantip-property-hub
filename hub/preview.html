@@ -3012,6 +3012,39 @@
             <button type="button" class="btn-sm" id="add-fill-page-text-from-th" title="ใช้เมื่อโพสต์เพจกับข้อความไทยใน Hub เป็นชุดเดียวกัน">เติมจากข้อความไทย</button>
             <span id="add-page-post-hint" style="font-size:11px;color:#71717a">ยังไม่มีต้นฉบับ — วางข้อความจากเพจตามวิธีใช้ด้านบน</span>
           </div>
+          <div class="add-wide" id="post-footer-box" style="margin-top:10px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+              <strong style="font-size:13px">ชุดข้อความท้ายโพสต์</strong>
+              <span style="font-size:11px;color:#71717a">เลือกแล้วกดเติมท้าย · แก้/เพิ่มชุดได้</span>
+            </div>
+            <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;align-items:center">
+              <select id="post-footer-select" style="min-width:220px;max-width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
+                <option value="">— เลือกชุดข้อความ —</option>
+              </select>
+              <button type="button" class="btn-sm primary" id="post-footer-append">เติมท้ายข้อความ</button>
+              <button type="button" class="btn-sm" id="post-footer-manage-toggle">จัดการชุด</button>
+              <span id="post-footer-hint" style="font-size:11px;color:#71717a"></span>
+            </div>
+            <div id="post-footer-manage" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #e4e4e7">
+              <input type="hidden" id="post-footer-edit-id" value="" />
+              <div class="add-grid">
+                <label>
+                  <span>ชื่อชุด</span>
+                  <input type="text" id="post-footer-edit-label" placeholder="เช่น LINE + เบอร์" />
+                </label>
+                <label class="add-wide">
+                  <span>ข้อความท้าย</span>
+                  <textarea id="post-footer-edit-text" rows="5" placeholder="วางข้อความท้ายโพสต์ เช่น LINE ID / เบอร์ / CTA"></textarea>
+                </label>
+              </div>
+              <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+                <button type="button" class="btn-sm primary" id="post-footer-save">บันทึกชุด</button>
+                <button type="button" class="btn-sm" id="post-footer-new">ล้างฟอร์ม / ชุดใหม่</button>
+                <button type="button" class="btn-sm" id="post-footer-delete" style="color:#b91c1c">ลบชุดที่เลือก</button>
+              </div>
+              <div id="post-footer-list" style="margin-top:10px;font-size:12px;color:#52525b;max-height:180px;overflow:auto"></div>
+            </div>
+          </div>
         </div>
         <div class="toolbar-row" style="margin-top:16px;gap:10px;flex-wrap:wrap;align-items:center">
           <button type="button" class="btn-sm primary" id="add-proceed" style="font-size:14px;padding:10px 16px">
@@ -8120,6 +8153,127 @@
       }
     }
 
+    var postFooterCache = [];
+
+    function renderPostFooterSelect(items, selectedId) {
+      var sel = document.getElementById("post-footer-select");
+      if (!sel) return;
+      var want = selectedId || sel.value || "";
+      postFooterCache = items || [];
+      sel.innerHTML = '<option value="">— เลือกชุดข้อความ —</option>' +
+        postFooterCache.map(function (it) {
+          return '<option value="' + esc(it.id) + '">' + esc(it.label || "ไม่มีชื่อ") + "</option>";
+        }).join("");
+      if (want) sel.value = want;
+    }
+
+    function renderPostFooterList() {
+      var box = document.getElementById("post-footer-list");
+      if (!box) return;
+      if (!postFooterCache.length) {
+        box.innerHTML = '<div style="color:#94a3b8">ยังไม่มีชุด — กรอกชื่อ+ข้อความแล้วกดบันทึกชุด</div>';
+        return;
+      }
+      box.innerHTML = postFooterCache.map(function (it) {
+        return '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;padding:8px 0;border-top:1px solid #f1f5f9">' +
+          '<div style="flex:1;min-width:160px">' +
+            '<div style="font-weight:600">' + esc(it.label || "") + "</div>" +
+            '<div style="font-size:11px;color:#64748b;white-space:pre-wrap;margin-top:4px;max-height:72px;overflow:hidden">' +
+              esc(it.text || "") + "</div>" +
+          "</div>" +
+          '<button type="button" class="btn-sm" data-footer-edit="' + esc(it.id) + '">แก้ไข</button>' +
+        "</div>";
+      }).join("");
+    }
+
+    async function loadPostFooters() {
+      try {
+        var data = await apiGet("/api/post-footers");
+        renderPostFooterSelect(data.items || []);
+        renderPostFooterList();
+      } catch (e) {
+        var hint = document.getElementById("post-footer-hint");
+        if (hint) hint.textContent = e.message || "โหลดชุดข้อความไม่ได้";
+      }
+    }
+
+    function fillPostFooterEditor(id) {
+      var it = postFooterCache.find(function (x) { return x.id === id; });
+      document.getElementById("post-footer-edit-id").value = it ? (it.id || "") : "";
+      document.getElementById("post-footer-edit-label").value = it ? (it.label || "") : "";
+      document.getElementById("post-footer-edit-text").value = it ? (it.text || "") : "";
+      var sel = document.getElementById("post-footer-select");
+      if (sel && it) sel.value = it.id;
+    }
+
+    function clearPostFooterEditor() {
+      document.getElementById("post-footer-edit-id").value = "";
+      document.getElementById("post-footer-edit-label").value = "";
+      document.getElementById("post-footer-edit-text").value = "";
+    }
+
+    function appendSelectedPostFooter() {
+      var sel = document.getElementById("post-footer-select");
+      var box = document.getElementById("add-page-post-text");
+      var hint = document.getElementById("post-footer-hint");
+      if (!sel || !box) return;
+      var id = sel.value || "";
+      var it = postFooterCache.find(function (x) { return x.id === id; });
+      if (!it || !(it.text || "").trim()) {
+        alert("เลือกชุดข้อความก่อน");
+        return;
+      }
+      var footer = String(it.text || "").trim();
+      var cur = (box.value || "").replace(/\s+$/, "");
+      if (cur.indexOf(footer) >= 0) {
+        if (hint) hint.textContent = "ข้อความชุดนี้อยู่ในต้นฉบับแล้ว";
+        return;
+      }
+      box.value = cur ? (cur + "\n\n" + footer) : footer;
+      updatePagePostHint(box.value);
+      if (hint) hint.textContent = "เติมท้ายแล้ว · กด「บันทึกต้นฉบับ」ถ้าต้องการเซฟ";
+    }
+
+    async function savePostFooterSnippet() {
+      var id = (document.getElementById("post-footer-edit-id").value || "").trim();
+      var label = (document.getElementById("post-footer-edit-label").value || "").trim();
+      var text = (document.getElementById("post-footer-edit-text").value || "").trim();
+      if (!label || !text) {
+        alert("กรอกชื่อชุดและข้อความท้าย");
+        return;
+      }
+      try {
+        var data = await apiPost("/api/post-footers/save", { id: id, label: label, text: text });
+        renderPostFooterSelect(data.items || [], (data.item && data.item.id) || id);
+        renderPostFooterList();
+        var hint = document.getElementById("post-footer-hint");
+        if (hint) hint.textContent = "บันทึกชุดแล้ว";
+        if (data.item) fillPostFooterEditor(data.item.id);
+      } catch (e) {
+        alert(e.message || "บันทึกชุดไม่ได้");
+      }
+    }
+
+    async function deleteSelectedPostFooter() {
+      var id = (document.getElementById("post-footer-edit-id").value || "").trim()
+        || ((document.getElementById("post-footer-select") || {}).value || "").trim();
+      if (!id) {
+        alert("เลือกชุดที่จะลบก่อน");
+        return;
+      }
+      if (!confirm("ลบชุดข้อความนี้?")) return;
+      try {
+        var data = await apiPost("/api/post-footers/delete", { id: id });
+        clearPostFooterEditor();
+        renderPostFooterSelect(data.items || []);
+        renderPostFooterList();
+        var hint = document.getElementById("post-footer-hint");
+        if (hint) hint.textContent = "ลบแล้ว";
+      } catch (e) {
+        alert(e.message || "ลบไม่ได้");
+      }
+    }
+
     async function prepareAndCopyGroupCaption(groupUrl, groupName, btn, forceNew) {
       var src = pagePublicCaptionSource();
       if (!src.page_post_text && !src.base_text) {
@@ -9905,7 +10059,12 @@
       var picker = document.getElementById("queue-project-picker");
       if (!input || !list || input._qBound) return;
       input._qBound = true;
+      var suppressOpen = false;
+      function hideList() {
+        list.classList.add("hidden");
+      }
       function renderList(q) {
+        if (suppressOpen) return;
         var items = filterProjectOptions(q).slice(0, 18);
         if (!items.length) {
           list.innerHTML = '<li data-empty="1" style="color:#71717a;cursor:default">ไม่พบ — กด「+ โครงการใหม่」</li>';
@@ -9918,24 +10077,41 @@
         }).join("");
         list.classList.remove("hidden");
       }
+      function pickProject(pid, label) {
+        var p = PROJECT_INDEX.find(function (x) { return x.id === pid; });
+        document.getElementById("queue-project-id").value = pid;
+        input.value = (p && (p.canonical_name || p.name)) || label || "";
+        hideList();
+        suppressOpen = true;
+        input.blur();
+        var note = document.getElementById("queue-project-note");
+        if (note) note.textContent = "เลือกจาก Master แล้ว";
+        setTimeout(function () { suppressOpen = false; }, 250);
+      }
       input.addEventListener("focus", function () { renderList(input.value.trim()); });
       input.addEventListener("input", function () {
         document.getElementById("queue-project-id").value = "";
+        var note = document.getElementById("queue-project-note");
+        if (note) note.textContent = "";
         renderList(input.value.trim());
       });
-      list.addEventListener("click", function (e) {
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") hideList();
+        if (e.key === "Enter") {
+          e.preventDefault();
+          var first = list.querySelector("li[data-pid]");
+          if (first) pickProject(first.getAttribute("data-pid"), first.textContent.trim());
+        }
+      });
+      // mousedown + preventDefault กันโฟกัสเด้งกลับจนรายชื่อโผล่ซ้ำ (เลือกได้แค่ 1)
+      list.addEventListener("mousedown", function (e) {
         var li = e.target.closest("li[data-pid]");
         if (!li) return;
-        var pid = li.getAttribute("data-pid");
-        var p = PROJECT_INDEX.find(function (x) { return x.id === pid; });
-        document.getElementById("queue-project-id").value = pid;
-        input.value = (p && (p.canonical_name || p.name)) || li.textContent.trim();
-        list.classList.add("hidden");
-        var note = document.getElementById("queue-project-note");
-        if (note) note.textContent = "เลือกจาก Master แล้ว";
+        e.preventDefault();
+        pickProject(li.getAttribute("data-pid"), li.textContent.trim());
       });
       document.addEventListener("click", function (e) {
-        if (picker && !picker.contains(e.target)) list.classList.add("hidden");
+        if (picker && !picker.contains(e.target)) hideList();
       });
     }
 
@@ -12052,6 +12228,41 @@
         updatePagePostHint(th);
       });
     }
+    var postFooterAppend = document.getElementById("post-footer-append");
+    if (postFooterAppend) postFooterAppend.addEventListener("click", appendSelectedPostFooter);
+    var postFooterToggle = document.getElementById("post-footer-manage-toggle");
+    if (postFooterToggle) {
+      postFooterToggle.addEventListener("click", function () {
+        var panel = document.getElementById("post-footer-manage");
+        if (!panel) return;
+        panel.classList.toggle("hidden");
+        if (!panel.classList.contains("hidden")) loadPostFooters();
+      });
+    }
+    var postFooterSave = document.getElementById("post-footer-save");
+    if (postFooterSave) postFooterSave.addEventListener("click", savePostFooterSnippet);
+    var postFooterNew = document.getElementById("post-footer-new");
+    if (postFooterNew) postFooterNew.addEventListener("click", clearPostFooterEditor);
+    var postFooterDel = document.getElementById("post-footer-delete");
+    if (postFooterDel) postFooterDel.addEventListener("click", deleteSelectedPostFooter);
+    var postFooterSel = document.getElementById("post-footer-select");
+    if (postFooterSel) {
+      postFooterSel.addEventListener("change", function () {
+        var id = postFooterSel.value || "";
+        if (id) fillPostFooterEditor(id);
+      });
+    }
+    var postFooterList = document.getElementById("post-footer-list");
+    if (postFooterList) {
+      postFooterList.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-footer-edit]");
+        if (!btn) return;
+        fillPostFooterEditor(btn.getAttribute("data-footer-edit"));
+        var panel = document.getElementById("post-footer-manage");
+        if (panel) panel.classList.remove("hidden");
+      });
+    }
+    loadPostFooters();
     var pagePostTextEl = document.getElementById("add-page-post-text");
     if (pagePostTextEl) {
       pagePostTextEl.addEventListener("input", function () {

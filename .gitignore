@@ -15,6 +15,7 @@ data/preview-data.meta.json
 data/line_chats.jsonl
 data/line_cases.json
 data/caption_copy_history.json
+data/post_footer_snippets.json
 data/group_post_links.json
 data/group_post_codes.json
 data/group_publish_jobs.json

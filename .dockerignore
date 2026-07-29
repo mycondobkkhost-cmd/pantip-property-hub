@@ -29,4 +29,5 @@ data/propertyhub_cache
 data/line_chats.jsonl
 data/line_cases.json
 data/caption_copy_history.json
+data/post_footer_snippets.json
 data/hub.db

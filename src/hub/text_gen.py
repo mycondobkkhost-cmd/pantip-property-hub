@@ -609,39 +609,161 @@ def _project_display(name: str, lang: str) -> str:
     return project
 
 
+def _listing_brief_for_ai(data: dict) -> str:
+    """Structured facts + cleaned owner text for the model (no contact)."""
+    parts: list[str] = []
+
+    def add(label: str, val) -> None:
+        s = str(val or "").strip()
+        if not s or s in {"-", "—", "–"}:
+            return
+        parts.append(f"{label}: {s}")
+
+    add("รหัสทรัพย์", data.get("code"))
+    add("โครงการ", data.get("project_name"))
+    add("ประเภท", data.get("property_type"))
+    add("ห้องนอน", data.get("bedrooms"))
+    add("ขนาด (ตร.ม.)", data.get("size_sqm"))
+    add("ชั้น", data.get("floor"))
+    add("ราคาเช่า", data.get("rent_price"))
+    add("ราคาขาย", data.get("sale_price"))
+    zones = data.get("zone_tags") or data.get("zones") or []
+    if isinstance(zones, str):
+        zones = [z.strip() for z in zones.split(",") if z.strip()]
+    if zones:
+        add("ทำเล/โซน", ", ".join(str(z) for z in zones[:8]))
+    transit = data.get("transit_tags") or []
+    if transit:
+        add("BTS/MRT", ", ".join(str(t) for t in transit[:8]))
+    if data.get("pet_friendly") in (True, "Yes", "yes", "1", 1):
+        add("Pet friendly", "Yes — เลี้ยงสัตว์ได้")
+    notes = strip_contact(str(data.get("notes") or ""))
+    if notes:
+        add("หมายเหตุทีม", notes[:500])
+    raw = _sanitize_source(data.get("raw_text") or "")
+    if raw:
+        parts.append("")
+        parts.append("ข้อความต้นฉบับจากเจ้าของ (ตัด contact แล้ว — ใช้อ้างอิงเท่านั้น ห้ามคัดลอกทั้งดุ้น):")
+        parts.append(raw[:3500])
+    return "\n".join(parts).strip()
+
+
+def _strip_ai_forbidden_tail(text: str) -> str:
+    """Remove contact / hashtag / footer-ish lines the model may still add."""
+    out = (text or "").strip()
+    out = re.sub(r"^```(?:text|markdown)?\s*|\s*```$", "", out, flags=re.I | re.M).strip()
+    drop_re = re.compile(
+        r"(?i)^("
+        r"📲|line\s*:|line\s*id|lin\.ee|"
+        r"📞|tel\s*:|phone|"
+        r"#\w|"
+        r"🤝\s*co-?agent|"
+        r"📌\s*(รหัสทรัพย์|property\s*code)|"
+        r"สนใจทัก|แอดไลน์|add\s*line|"
+        r"https?://"
+        r")"
+    )
+    kept: list[str] = []
+    for ln in out.splitlines():
+        s = ln.strip()
+        if not s:
+            kept.append("")
+            continue
+        if drop_re.search(s):
+            continue
+        if s.startswith("#") and " " not in s[:20]:
+            continue
+        kept.append(ln)
+    text2 = "\n".join(kept)
+    text2 = re.sub(r"\n{3,}", "\n\n", text2).strip()
+    return text2
+
+
+def _openai_generate_facebook_post(data: dict) -> str | None:
+    """Generate Thai-first Facebook body via OpenAI. Fail soft → None."""
+    key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    flag = (os.environ.get("HUB_AI_POST") or "1").strip().lower()
+    if not key or flag in {"0", "false", "no", "off"}:
+        return None
+    brief = _listing_brief_for_ai(data)
+    if not brief or len(brief) < 20:
+        return None
+    try:
+        from openai import OpenAI
+
+        from src.hub.post_gen_prompt import FACEBOOK_POST_SYSTEM_PROMPT
+
+        model = (os.environ.get("OPENAI_MODEL") or "gpt-4o-mini").strip() or "gpt-4o-mini"
+        client = OpenAI(api_key=key)
+        completion = client.chat.completions.create(
+            model=model,
+            temperature=0.85,
+            max_tokens=1200,
+            messages=[
+                {"role": "system", "content": FACEBOOK_POST_SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": (
+                        "เขียนโพสต์ Facebook สำหรับ Pantip Property จากข้อมูลทรัพย์ด้านล่าง\n"
+                        "สร้างเฉพาะเนื้อหาประกาศเท่านั้น\n\n"
+                        f"{brief}"
+                    ),
+                },
+            ],
+            timeout=45.0,
+        )
+        text = (completion.choices[0].message.content or "").strip()
+        text = _strip_ai_forbidden_tail(text)
+        text = re.sub(r"(?i)owner\s*post", "", text)
+        text = re.sub(r"เจ้าของปล่อย", "", text)
+        if len(text) < 80:
+            return None
+        return text
+    except Exception as exc:  # noqa: BLE001
+        print(f"[hub] AI Facebook post skipped: {exc}")
+        return None
+
+
 def generate_text(data: dict, lang: str = "th") -> str:
     project = _project_display(data.get("project_name") or "", lang)
     transit = data.get("transit_tags") or []
     code = (data.get("code") or "RXT????").strip()
     prefix = (data.get("code_prefix") or "RXT").strip().upper()
-    highlights = _extract_highlights(data, lang)
 
-    lines: list[str] = [
-        f"🏢 {project}",
-        _headline(data, lang),
-    ]
-    lines.extend(_offer_block(data.get("rent_price", ""), data.get("sale_price", ""), lang))
-    lines.extend(_spec_block(data, lang))
-    lines.append(
-        "🛋 Fully Furnished พร้อมเข้าอยู่"
-        if lang != "en"
-        else "🛋 Fully Furnished — ready to move in"
-    )
+    ai_body = ""
+    if lang != "en":
+        ai_body = _openai_generate_facebook_post(data) or ""
 
-    if highlights:
+    if ai_body:
+        lines: list[str] = [ai_body, ""]
+    else:
+        highlights = _extract_highlights(data, lang)
+        lines = [
+            f"🏢 {project}",
+            _headline(data, lang),
+        ]
+        lines.extend(_offer_block(data.get("rent_price", ""), data.get("sale_price", ""), lang))
+        lines.extend(_spec_block(data, lang))
+        lines.append(
+            "🛋 Fully Furnished พร้อมเข้าอยู่"
+            if lang != "en"
+            else "🛋 Fully Furnished — ready to move in"
+        )
+
+        if highlights:
+            lines.append("")
+            lines.append("✨ Highlights")
+            for h in highlights:
+                if lang == "en" and _thai_ratio(h) >= 0.2:
+                    continue  # hard safety net
+                lines.append(f"• {h}")
+
+        nearby = _nearby_block(transit, lang)
+        if nearby:
+            lines.append("")
+            lines.extend(nearby)
         lines.append("")
-        lines.append("✨ Highlights")
-        for h in highlights:
-            if lang == "en" and _thai_ratio(h) >= 0.2:
-                continue  # hard safety net
-            lines.append(f"• {h}")
 
-    nearby = _nearby_block(transit, lang)
-    if nearby:
-        lines.append("")
-        lines.extend(nearby)
-
-    lines.append("")
     lines.append("🤝 Co-Agent Welcome")
     if lang == "en":
         lines.append(f"📌 Property Code : #{code}")

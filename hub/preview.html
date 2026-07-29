@@ -2979,6 +2979,39 @@
             <textarea id="add-notes" placeholder="บันทึกเพิ่มสำหรับทีม…"></textarea>
           </label>
         </div>
+        <div class="add-wide" id="post-footer-box" style="margin-top:12px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
+          <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+            <strong style="font-size:13px">ชุดข้อความท้ายโพสต์</strong>
+            <span style="font-size:11px;color:#71717a">เลือกชุดก่อน แล้วค่อยกด「สร้างข้อความ」หรือ「เติมจากข้อความไทย」</span>
+          </div>
+          <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="post-footer-select" style="min-width:220px;max-width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
+              <option value="">— เลือกชุดข้อความ —</option>
+            </select>
+            <button type="button" class="btn-sm primary" id="post-footer-append">เติมท้ายข้อความ</button>
+            <button type="button" class="btn-sm" id="post-footer-manage-toggle">จัดการชุด</button>
+            <span id="post-footer-hint" style="font-size:11px;color:#71717a"></span>
+          </div>
+          <div id="post-footer-manage" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #e4e4e7">
+            <input type="hidden" id="post-footer-edit-id" value="" />
+            <div class="add-grid">
+              <label>
+                <span>ชื่อชุด</span>
+                <input type="text" id="post-footer-edit-label" placeholder="เช่น LINE + เบอร์" />
+              </label>
+              <label class="add-wide">
+                <span>ข้อความท้าย</span>
+                <textarea id="post-footer-edit-text" rows="5" placeholder="วางข้อความท้ายโพสต์ เช่น LINE ID / เบอร์ / CTA"></textarea>
+              </label>
+            </div>
+            <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+              <button type="button" class="btn-sm primary" id="post-footer-save">บันทึกชุด</button>
+              <button type="button" class="btn-sm" id="post-footer-new">ล้างฟอร์ม / ชุดใหม่</button>
+              <button type="button" class="btn-sm" id="post-footer-delete" style="color:#b91c1c">ลบชุดที่เลือก</button>
+            </div>
+            <div id="post-footer-list" style="margin-top:10px;font-size:12px;color:#52525b;max-height:180px;overflow:auto"></div>
+          </div>
+        </div>
         <div class="toolbar-row" style="margin-top:12px">
           <button type="button" class="btn-sm primary" id="add-generate">สร้างข้อความ TH + EN</button>
           <button type="button" class="btn-sm" id="copy-th">คัดลอก TH</button>
@@ -3006,39 +3039,6 @@
             5) ใน Facebook วางข้อความ (Cmd/Ctrl+V) → เพิ่มรูปเอง → กดเผยแพร่<br/>
             6) คัดลอกลิงก์โพสต์กลุ่มที่ได้ แล้ววางในช่อง「บันทึกลิงก์โพสต์กลุ่ม」ด้านล่าง เพื่อเข้าคิวคอมเมนต์อัตโนมัติ<br/>
             <span style="color:#71717a;font-size:11px">หมายเหตุ: ระบบคัดลอกแบบเก็บบรรทัดแล้ว (plain + HTML) — ถ้าวางแล้วยังติดกัน ให้ปิดแท็บ Hub เก่าแล้วเปิดใหม่ก่อนลองอีกครั้ง</span>
-          </div>
-          <div class="add-wide" id="post-footer-box" style="margin-top:10px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
-            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-              <strong style="font-size:13px">ชุดข้อความท้ายโพสต์</strong>
-              <span style="font-size:11px;color:#71717a">เลือกชุดก่อน แล้วค่อยกด「เติมจากข้อความไทย」</span>
-            </div>
-            <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;align-items:center">
-              <select id="post-footer-select" style="min-width:220px;max-width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
-                <option value="">— เลือกชุดข้อความ —</option>
-              </select>
-              <button type="button" class="btn-sm primary" id="post-footer-append">เติมท้ายข้อความ</button>
-              <button type="button" class="btn-sm" id="post-footer-manage-toggle">จัดการชุด</button>
-              <span id="post-footer-hint" style="font-size:11px;color:#71717a"></span>
-            </div>
-            <div id="post-footer-manage" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #e4e4e7">
-              <input type="hidden" id="post-footer-edit-id" value="" />
-              <div class="add-grid">
-                <label>
-                  <span>ชื่อชุด</span>
-                  <input type="text" id="post-footer-edit-label" placeholder="เช่น LINE + เบอร์" />
-                </label>
-                <label class="add-wide">
-                  <span>ข้อความท้าย</span>
-                  <textarea id="post-footer-edit-text" rows="5" placeholder="วางข้อความท้ายโพสต์ เช่น LINE ID / เบอร์ / CTA"></textarea>
-                </label>
-              </div>
-              <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
-                <button type="button" class="btn-sm primary" id="post-footer-save">บันทึกชุด</button>
-                <button type="button" class="btn-sm" id="post-footer-new">ล้างฟอร์ม / ชุดใหม่</button>
-                <button type="button" class="btn-sm" id="post-footer-delete" style="color:#b91c1c">ลบชุดที่เลือก</button>
-              </div>
-              <div id="post-footer-list" style="margin-top:10px;font-size:12px;color:#52525b;max-height:180px;overflow:auto"></div>
-            </div>
           </div>
           <div class="add-wide toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap;align-items:center">
             <button type="button" class="btn-sm primary" id="add-save-page-text">บันทึกต้นฉบับ</button>
@@ -7712,6 +7712,11 @@
         }
       }
       try {
+        var sel = document.getElementById("post-footer-select");
+        var footerId = sel ? (sel.value || "").trim() : "";
+        if (footerId) {
+          try { await apiPost("/api/post-footers/use", { id: footerId }); } catch (eUse) { /* ignore */ }
+        }
         var data = await apiPost("/api/generate", { property: addFormPayload() });
         document.getElementById("out-th").value = data.text_th || "";
         document.getElementById("out-en").value = data.text_en || "";

@@ -5,11 +5,10 @@ No paid AI / tokens. copy is built in text_gen from structured listing fields.
 
 # Kept as documentation of the sell-first style the local generator follows.
 SELL_FIRST_RULES = """
-Do not describe the property — sell the property.
-Convert specs into buyer benefits.
-Never open with property type, price, or copied owner text.
-Never preserve owner sentence/paragraph/headline order.
-Prioritize strongest angle (BTS convenience, family space, pet freedom, lifestyle).
-~90% Thai / 10% natural English keywords only where common.
-Hub appends code + footer separately.
+Sound like a human FB agent — short paragraphs, light tone, not a brochure.
+Lead with one clear angle (home office, family, BTS, pet, space).
+Max 3–4 short bullets; fold amenities into one chip line (not one essay per appliance).
+Price as a plain line (no forced “คุ้มเพราะ…” closer).
+Vary layout; never use a fixed “ทำไมห้องนี้ถึงน่าสนใจ” header every time.
+Never invent facts; Hub appends code + footer separately.
 """.strip()

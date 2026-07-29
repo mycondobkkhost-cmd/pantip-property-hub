@@ -510,55 +510,19 @@ def sanitize_no_urls(text: str) -> str:
 def generate_text_no_links(data: dict, lang: str = "th", *, variant: int = 0) -> str:
     """SEO-oriented caption for group posts: images + text, no URL attachments."""
     project = _project_display(data.get("project_name") or "", lang)
-    transit = data.get("transit_tags") or []
     code = (data.get("code") or "RXT????").strip()
-    highlights = _extract_highlights(data, lang)
-
-    openers_th = (
-        f"🏢 {project}",
-        f"✨ ห้องว่างที่ {project}",
-        f"📍 อัปเดตห้องที่ {project}",
-        f"🔑 พร้อมเข้าอยู่ · {project}",
-    )
-    openers_en = (
-        f"🏢 {project}",
-        f"✨ Available at {project}",
-        f"📍 Update · {project}",
-        f"🔑 Ready to move in · {project}",
-    )
-    opener = (openers_en if lang == "en" else openers_th)[int(variant) % 4]
+    # Reuse sell-first body; variant nudges opening pool via fake code suffix
+    data_v = dict(data)
+    if variant:
+        data_v["code"] = f"{code}-v{int(variant)}"
+    body = _build_sell_body_en(data_v) if lang == "en" else _build_sell_body_th(data_v)
 
     lines: list[str] = [
-        opener,
-        _headline(data, lang),
+        body,
+        "",
+        f"📌 รหัสทรัพย์ : #{code}" if lang != "en" else f"📌 Property Code : #{code}",
+        "",
     ]
-    lines.extend(_offer_block(data.get("rent_price", ""), data.get("sale_price", ""), lang))
-    lines.extend(_spec_block(data, lang))
-    if lang == "en":
-        lines.append("🛋 Fully Furnished — ready to move in")
-    else:
-        lines.append("🛋 Fully Furnished พร้อมเข้าอยู่")
-
-    if highlights:
-        lines.append("")
-        lines.append("✨ Highlights" if lang == "en" else "✨ จุดเด่น")
-        # rotate highlight order slightly by variant
-        hs = list(highlights)
-        if variant:
-            hs = hs[variant % len(hs) :] + hs[: variant % len(hs)]
-        for h in hs:
-            if lang == "en" and _thai_ratio(h) >= 0.2:
-                continue
-            lines.append(f"• {h}")
-
-    nearby = _nearby_block(transit, lang)
-    if nearby:
-        lines.append("")
-        lines.extend(nearby)
-
-    lines.append("")
-    lines.append(f"📌 รหัสทรัพย์ : #{code}" if lang != "en" else f"📌 Property Code : #{code}")
-    lines.append("")
     lines.extend(_contact_footer_no_links(lang))
     lines.append("")
     lines.append(_hashtags(data.get("project_name") or project, lang))
@@ -609,163 +573,305 @@ def _project_display(name: str, lang: str) -> str:
     return project
 
 
-def _listing_brief_for_ai(data: dict) -> str:
-    """Structured facts + cleaned owner text for the model (no contact)."""
-    parts: list[str] = []
+def _variant_seed(data: dict) -> int:
+    code = str(data.get("code") or data.get("project_name") or "x")
+    return sum(ord(c) for c in code) % 97
 
-    def add(label: str, val) -> None:
-        s = str(val or "").strip()
-        if not s or s in {"-", "—", "–"}:
-            return
-        parts.append(f"{label}: {s}")
 
-    add("รหัสทรัพย์", data.get("code"))
-    add("โครงการ", data.get("project_name"))
-    add("ประเภท", data.get("property_type"))
-    add("ห้องนอน", data.get("bedrooms"))
-    add("ขนาด (ตร.ม.)", data.get("size_sqm"))
-    add("ชั้น", data.get("floor"))
-    add("ราคาเช่า", data.get("rent_price"))
-    add("ราคาขาย", data.get("sale_price"))
+def _parse_size_num(raw) -> float:
+    s = re.sub(r"[^\d.]", "", str(raw or ""))
+    try:
+        return float(s) if s else 0.0
+    except ValueError:
+        return 0.0
+
+
+def _is_pet_friendly(data: dict) -> bool:
+    v = data.get("pet_friendly")
+    if v in (True, 1, "1", "Yes", "yes", "true", "TRUE"):
+        return True
+    blob = " ".join(
+        str(x or "")
+        for x in (data.get("notes"), data.get("raw_text"), data.get("project_name"))
+    ).lower()
+    if "ห้ามสัตว์" in blob or "no pet" in blob:
+        return False
+    return "pet friendly" in blob or "เลี้ยงสัตว์ได้" in blob or "สัตว์เลี้ยงได้" in blob
+
+
+def _primary_angle(data: dict) -> str:
+    """Pick the strongest selling angle for this listing."""
+    transit = data.get("transit_tags") or []
+    ptype = str(data.get("property_type") or "").lower()
+    blob = " ".join(
+        str(x or "")
+        for x in (data.get("notes"), data.get("raw_text"), data.get("project_name"))
+    ).lower()
+    size_n = _parse_size_num(data.get("size_sqm"))
+
+    if _is_pet_friendly(data):
+        return "pet"
+    if any(k in ptype for k in ("house", "town", "home", "บ้าน", "ทาวน์")) or "townhouse" in blob:
+        return "family"
+    if size_n >= 80:
+        return "space"
+    if any(k in blob for k in ("international school", "นานาชาติ", "home office", "working space")):
+        return "expat" if "school" in blob or "นานาชาติ" in blob else "wfh"
+    if transit:
+        return "transit"
+    if any(k in blob for k in ("luxury", "ลักซ์", "หรู", "penthouse")):
+        return "luxury"
+    if _has_price(data.get("rent_price")) and not _has_price(data.get("sale_price")):
+        return "rent_ready"
+    return "lifestyle"
+
+
+def _opening_line(data: dict, angle: str, seed: int) -> str:
+    transit = data.get("transit_tags") or []
+    t0 = str(transit[0]).strip() if transit else ""
+    options: dict[str, list[str]] = {
+        "transit": [
+            f"เดินถึง {t0} ได้จริง — ประหยัดเวลาเดินทางในทุกวัน" if t0 else "ทำเลเดินทางสะดวก ใช้ชีวิตได้ง่ายขึ้นทุกวัน",
+            f"ใกล้ {t0} แบบใช้ได้จริง ไม่ใช่แค่เขียนในประกาศ" if t0 else "คอนโดทำเลดี สำหรับคนที่ไม่อยากเสียเวลาบนถนน",
+            f"เช้านี้ลงจากบ้านแล้วไปต่อที่ {t0} ได้เลย" if t0 else "ทำเลที่ช่วยให้วันทำงานสั้นลง",
+        ],
+        "pet": [
+            "อยู่กับเพื่อนขนฟูได้ — ไม่ต้องเลือกระหว่างบ้านกับสัตว์เลี้ยง",
+            "Pet friendly จริงๆ สำหรับคนที่อยากให้สัตว์เลี้ยงอยู่ด้วยอย่างสบายใจ",
+            "เลี้ยงสัตว์ได้ พร้อมพื้นที่ใช้ชีวิตแบบไม่ต้องกังวลเรื่องกฎอาคาร",
+        ],
+        "family": [
+            "บ้านสำหรับครอบครัวที่อยากได้พื้นที่ใช้สอยมากกว่าคอนโดทั่วไป",
+            "พื้นที่ครบสำหรับอยู่ด้วยกันหลายคน โดยยังเดินทางในเมืองได้สะดวก",
+            "เหมาะกับครอบครัวที่อยากได้ความเป็นส่วนตัวแบบบ้าน แต่ใกล้เมือง",
+        ],
+        "space": [
+            "ห้องกว้างที่รู้สึกได้ถึงความโล่งจริงๆ",
+            "พื้นที่ใช้สอยที่ไม่อึดอัดแบบคอนโดเล็กๆ",
+            "ถ้ากำลังหาห้องที่จัดชีวิตได้ตามสไตล์ — ชุดนี้น่าลอง",
+        ],
+        "luxury": [
+            "คอนโดไลฟ์สไตล์ สำหรับคนที่อยากได้อยู่สบายและภาพลักษณ์ชัด",
+            "ห้องที่ขายด้วยคุณภาพการใช้ชีวิต ไม่ใช่แค่ตัวเลขสเปก",
+            "พร้อมอยู่แบบที่ทำให้วันธรรมดาดูดีขึ้นทันที",
+        ],
+        "expat": [
+            "ทำเลใกล้โรงเรียนนานาชาติ — เหมาะกับครอบครัว expatriate ที่อยากลดเวลาเดินทาง",
+            "อยู่ใกล้โรงเรียน ได้เวลาคุณภาพกับครอบครัวมากขึ้นทุกเช้า",
+            "เลือกทำเลเพื่อครอบครัวก่อน แล้วค่อยดูสเปกทีหลัง",
+        ],
+        "wfh": [
+            "มีมุมทำงานที่บ้านได้จริง — ไม่ต้องแย่งโต๊ะกับโซฟาทุกวัน",
+            "Home office ที่ช่วยแยกงานกับพักผ่อนได้ชัดขึ้น",
+            "สำหรับคนทำงานที่บ้านและอยากได้พื้นที่หายใจ",
+        ],
+        "rent_ready": [
+            "พร้อมเข้าอยู่ทันที — ไม่ต้องรอตกแต่ง ไม่ต้องขนเฟอร์ฯ เพิ่ม",
+            "ย้ายเข้าได้เลย สำหรับคนที่อยากเริ่มชีวิตใหม่โดยไม่เสียเวลาเซ็ตอัพ",
+            "ห้องพร้อมใช้จริงๆ สำหรับคนที่ไม่อยากรอ",
+        ],
+        "lifestyle": [
+            "ห้องที่ขายด้วยการใช้ชีวิตประจำวัน ไม่ใช่แค่รายการสเปก",
+            "ถ้ากำลังหาที่อยู่ที่ทำให้วันทำงานง่ายขึ้น ลองดูชุดนี้",
+            "ทำเลดี + พร้อมอยู่ — สองอย่างที่คนส่วนใหญ่ตัดสินใจเร็วที่สุด",
+        ],
+    }
+    pool = options.get(angle) or options["lifestyle"]
+    line = pool[seed % len(pool)]
+    # Clean accidental double spaces from empty size
+    return re.sub(r"\s+", " ", line).strip()
+
+
+def _benefit_bullets_th(data: dict, angle: str) -> list[str]:
+    bullets: list[str] = []
+    beds, baths = _beds_baths(data.get("bedrooms") or "")
+    size_n = _parse_size_num(data.get("size_sqm"))
+    floor = str(data.get("floor") or "").strip()
+    transit = [str(t).strip() for t in (data.get("transit_tags") or []) if str(t).strip()]
     zones = data.get("zone_tags") or data.get("zones") or []
     if isinstance(zones, str):
         zones = [z.strip() for z in zones.split(",") if z.strip()]
-    if zones:
-        add("ทำเล/โซน", ", ".join(str(z) for z in zones[:8]))
-    transit = data.get("transit_tags") or []
+
+    if beds:
+        bl = beds.lower()
+        if bl == "studio":
+            bullets.append("Studio จัดครบในพื้นที่เดียว ดูแลง่าย เหมาะกับอยู่คนเดียว")
+        elif beds == "1":
+            bullets.append("1 ห้องนอน เหมาะกับอยู่คนเดียวหรือคู่รัก ที่อยากได้ความเป็นส่วนตัว")
+        elif beds in {"2", "3"} or (beds.isdigit() and int(beds) >= 2):
+            bullets.append(f"{beds} ห้องนอน แยกพื้นที่ส่วนตัวได้ชัด เหมาะกับอยู่ด้วยกันหลายคน")
+        else:
+            bullets.append(f"{beds} — จัดสรรพื้นที่อยู่อาศัยได้ตามไลฟ์สไตล์")
+    if baths:
+        bullets.append(f"มี {baths} ห้องน้ำ ใช้งานพร้อมกันได้โดยไม่แย่งคิวตอนเช้า")
+
+    if size_n >= 100:
+        bullets.append("พื้นที่ใช้สอยกว้าง เหมาะกับครอบครัวหรือคนที่ต้องการพื้นที่มากกว่าคอนโดทั่วไป")
+    elif size_n >= 50:
+        bullets.append("ห้องกว้างพออยู่สบาย จัดวางของใช้ได้โดยไม่รู้สึกอึดอัด")
+    elif size_n >= 28:
+        bullets.append("ขนาดพอดีสำหรับใช้ชีวิตประจำวัน พร้อมเข้าอยู่ได้เลย")
+    elif size_n > 0:
+        bullets.append("จัดวางของใช้ครบได้โดยยังเดินในห้องได้คล่อง")
+
+    if floor:
+        if re.search(r"^\d+$", floor) and int(floor) >= 20:
+            bullets.append(f"ชั้น {floor} วิวโล่งขึ้น รู้สึกโปร่งกว่าชั้นล่าง")
+        else:
+            bullets.append(f"ชั้น {floor} ขึ้นลงสะดวก ใช้ชีวิตประจำวันง่าย")
+
     if transit:
-        add("BTS/MRT", ", ".join(str(t) for t in transit[:8]))
-    if data.get("pet_friendly") in (True, "Yes", "yes", "1", 1):
-        add("Pet friendly", "Yes — เลี้ยงสัตว์ได้")
-    notes = strip_contact(str(data.get("notes") or ""))
-    if notes:
-        add("หมายเหตุทีม", notes[:500])
+        t0 = transit[0]
+        bullets.append(f"ใกล้ {t0} ช่วยประหยัดเวลาเดินทางในทุกวัน")
+        for t in transit[1:3]:
+            bullets.append(f"เชื่อมต่อ {t} ได้สะดวก")
+
+    if zones:
+        z0 = str(zones[0])
+        bullets.append(f"ทำเล {z0} — ใกล้สิ่งอำนวยความสะดวกที่ใช้จริงในชีวิตประจำวัน")
+
+    if _is_pet_friendly(data):
+        bullets.append("Pet friendly — อยู่กับสัตว์เลี้ยงได้โดยไม่ต้องแยกจากกัน")
+
     raw = _sanitize_source(data.get("raw_text") or "")
-    if raw:
-        parts.append("")
-        parts.append("ข้อความต้นฉบับจากเจ้าของ (ตัด contact แล้ว — ใช้อ้างอิงเท่านั้น ห้ามคัดลอกทั้งดุ้น):")
-        parts.append(raw[:3500])
-    return "\n".join(parts).strip()
+    low = raw.lower()
+    if any(k in low for k in ("fully furnished", "เฟอร์นิเจอร์ครบ", "ตกแต่งครบ", "พร้อมอยู่")):
+        bullets.append("เฟอร์นิเจอร์พร้อม ย้ายเข้าได้เลย ไม่ต้องลงทุนของใช้ใหม่ทั้งชุด")
+    else:
+        bullets.append("พร้อมเข้าอยู่ — ลดเวลาและค่าใช้จ่ายตอนย้ายเข้า")
 
+    if "แอร์" in raw or "air" in low:
+        bullets.append("ระบบความเย็นพร้อมใช้ ทุกมุมห้องอยู่สบายขึ้นทันที")
+    if any(k in low for k in ("ซักผ้า", "washing")):
+        bullets.append("มีเครื่องซักผ้า ช่วยงานบ้านได้โดยไม่ต้องออกไปร้านซักรีดบ่อย")
+    if any(k in low for k in ("ที่จอด", "parking")):
+        bullets.append("มีที่จอดรถ ขับรถกลับบ้านแล้วจบ ไม่ต้องวนหาที่จอด")
 
-def _strip_ai_forbidden_tail(text: str) -> str:
-    """Remove contact / hashtag / footer-ish lines the model may still add."""
-    out = (text or "").strip()
-    out = re.sub(r"^```(?:text|markdown)?\s*|\s*```$", "", out, flags=re.I | re.M).strip()
-    drop_re = re.compile(
-        r"(?i)^("
-        r"📲|line\s*:|line\s*id|lin\.ee|"
-        r"📞|tel\s*:|phone|"
-        r"#\w|"
-        r"🤝\s*co-?agent|"
-        r"📌\s*(รหัสทรัพย์|property\s*code)|"
-        r"สนใจทัก|แอดไลน์|add\s*line|"
-        r"https?://"
-        r")"
-    )
-    kept: list[str] = []
-    for ln in out.splitlines():
-        s = ln.strip()
-        if not s:
-            kept.append("")
+    # Dedupe + cap
+    seen: set[str] = set()
+    out: list[str] = []
+    for b in bullets:
+        k = b.lower()
+        if k in seen:
             continue
-        if drop_re.search(s):
-            continue
-        if s.startswith("#") and " " not in s[:20]:
-            continue
-        kept.append(ln)
-    text2 = "\n".join(kept)
-    text2 = re.sub(r"\n{3,}", "\n\n", text2).strip()
-    return text2
+        seen.add(k)
+        out.append(b)
+        if len(out) >= 7:
+            break
+    return out
 
 
-def _openai_generate_facebook_post(data: dict) -> str | None:
-    """Generate Thai-first Facebook body via OpenAI. Fail soft → None."""
-    key = (os.environ.get("OPENAI_API_KEY") or "").strip()
-    flag = (os.environ.get("HUB_AI_POST") or "1").strip().lower()
-    if not key or flag in {"0", "false", "no", "off"}:
-        return None
-    brief = _listing_brief_for_ai(data)
-    if not brief or len(brief) < 20:
-        return None
-    try:
-        from openai import OpenAI
+def _bridge_line_th(data: dict, angle: str, project: str) -> str:
+    rent = data.get("rent_price") or ""
+    sale = data.get("sale_price") or ""
+    if angle == "transit":
+        return f"ที่ {project} ห้องนี้ตอบโจทย์คนที่อยากได้ทำเลใช้ได้จริง ไม่ใช่แค่ชื่อโครงการสวย"
+    if angle == "pet":
+        return f"ที่ {project} เหมาะกับคนที่มีสัตว์เลี้ยงและอยากได้อยู่สบายในทำเลเมือง"
+    if angle == "family":
+        return f"{project} ให้ความรู้สึกบ้านมากกว่าห้องพักทั่วไป"
+    if angle == "space":
+        return f"ที่ {project} จุดเด่นคือพื้นที่ใช้ชีวิตที่รู้สึกได้จริง"
+    if _has_price(rent) and not _has_price(sale):
+        return f"ห้องเช่าที่ {project} ที่โฟกัสการใช้ชีวิตประจำวันมากกว่าการขายสเปก"
+    if _has_price(sale) and not _has_price(rent):
+        return f"โอกาสสำหรับคนที่มองหาที่อยู่ระยะยาวที่ {project}"
+    return f"ที่ {project} จัดมาให้ตัดสินใจง่ายด้วยทำเลและการใช้งานจริง"
 
-        from src.hub.post_gen_prompt import FACEBOOK_POST_SYSTEM_PROMPT
 
-        model = (os.environ.get("OPENAI_MODEL") or "gpt-4o-mini").strip() or "gpt-4o-mini"
-        client = OpenAI(api_key=key)
-        completion = client.chat.completions.create(
-            model=model,
-            temperature=0.85,
-            max_tokens=1200,
-            messages=[
-                {"role": "system", "content": FACEBOOK_POST_SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": (
-                        "เขียนโพสต์ Facebook สำหรับ Pantip Property จากข้อมูลทรัพย์ด้านล่าง\n"
-                        "ขายทรัพย์ — อย่าแค่บรรยายหรือลิสต์สเปก\n"
-                        "แปลงทุกฟีเจอร์เป็นประโยชน์ต่อลูกค้า\n"
-                        "เปิดด้วยประโยคที่ทำให้หยุดเลื่อนฟีด (ห้ามเปิดด้วยประเภทห้องหรือราคา)\n"
-                        "สร้างเฉพาะเนื้อหาประกาศเท่านั้น\n\n"
-                        f"{brief}"
-                    ),
-                },
-            ],
-            timeout=45.0,
-        )
-        text = (completion.choices[0].message.content or "").strip()
-        text = _strip_ai_forbidden_tail(text)
-        text = re.sub(r"(?i)owner\s*post", "", text)
-        text = re.sub(r"เจ้าของปล่อย", "", text)
-        if len(text) < 80:
-            return None
-        return text
-    except Exception as exc:  # noqa: BLE001
-        print(f"[hub] AI Facebook post skipped: {exc}")
-        return None
+def _price_benefit_th(data: dict) -> str:
+    rent = data.get("rent_price") or ""
+    sale = data.get("sale_price") or ""
+    if _has_price(rent) and not _has_price(sale):
+        return f"ค่าเช่า {rent} บาท/เดือน — คุ้มเมื่อเทียบกับเวลาที่ประหยัดได้ในแต่ละวัน"
+    if _has_price(sale) and not _has_price(rent):
+        return f"ราคาขาย {sale} บาท — สำหรับคนที่พร้อมล็อกที่อยู่ระยะยาว"
+    if _has_price(rent) and _has_price(sale):
+        return f"เช่า {rent} บาท/เดือน หรือซื้อ {sale} บาท — เลือกได้ตามแผนชีวิต"
+    return ""
+
+
+def _build_sell_body_th(data: dict) -> str:
+    """Free local sell-first Thai Facebook body (no AI)."""
+    project = _project_display(data.get("project_name") or "", "th")
+    angle = _primary_angle(data)
+    seed = _variant_seed(data)
+    opening = _opening_line(data, angle, seed)
+    bridge = _bridge_line_th(data, angle, project)
+    bullets = _benefit_bullets_th(data, angle)
+    # Rotate bullet order slightly by seed so posts don't feel identical
+    if bullets and seed:
+        k = seed % len(bullets)
+        bullets = bullets[k:] + bullets[:k]
+
+    lines: list[str] = [opening, "", bridge, ""]
+    if bullets:
+        lines.append("✨ ทำไมห้องนี้ถึงน่าสนใจ")
+        for b in bullets:
+            lines.append(f"• {b}")
+        lines.append("")
+    price = _price_benefit_th(data)
+    if price:
+        lines.append(price)
+    return "\n".join(lines).strip()
+
+
+def _build_sell_body_en(data: dict) -> str:
+    """Free local sell-first English body (no AI)."""
+    project = _project_display(data.get("project_name") or "", "en")
+    transit = data.get("transit_tags") or []
+    t0 = _romanize_places(str(transit[0])) if transit else ""
+    angle = _primary_angle(data)
+    seed = _variant_seed(data)
+    openings = {
+        "transit": f"Real daily convenience near {t0}" if t0 else "A location that saves time every day",
+        "pet": "Pet-friendly living — stay with your pet without compromise",
+        "family": "More space for family life than a typical city condo",
+        "space": "Room to live comfortably — not just sleep",
+        "luxury": "Lifestyle-first living in a strong Bangkok address",
+        "rent_ready": "Ready to move in — skip the setup stress",
+    }
+    opening = openings.get(angle) or "A practical Bangkok home that fits real daily life"
+    if seed % 2 and t0 and angle != "transit":
+        opening = f"{opening} · near {t0}"
+
+    lines = [opening, "", f"At {project}, the focus is how you’ll live here — not a raw spec dump.", ""]
+    beds, _baths = _beds_baths(data.get("bedrooms") or "")
+    size_n = _parse_size_num(data.get("size_sqm"))
+    bullets: list[str] = []
+    if beds:
+        bullets.append(f"{beds} layout that works for everyday living")
+    if size_n >= 50:
+        bullets.append("More usable space than a typical compact condo")
+    elif size_n > 0:
+        bullets.append(f"Efficient {int(size_n)} sqm layout — easy to settle in")
+    if t0:
+        bullets.append(f"Near {t0} to cut daily commute friction")
+    if _is_pet_friendly(data):
+        bullets.append("Pet-friendly — keep your companion with you")
+    bullets.append("Ready to move in with less setup time")
+    lines.append("✨ Why it works")
+    for b in bullets[:6]:
+        lines.append(f"• {b}")
+    rent = data.get("rent_price") or ""
+    sale = data.get("sale_price") or ""
+    if _has_price(rent):
+        lines.append("")
+        lines.append(f"Rent {rent} THB/month — priced for practical city living")
+    elif _has_price(sale):
+        lines.append("")
+        lines.append(f"Sale {sale} THB — for buyers ready to lock a long-term base")
+    return "\n".join(lines).strip()
 
 
 def generate_text(data: dict, lang: str = "th") -> str:
+    """Customer-facing listing post. Local sell-first copy only (no paid AI)."""
     project = _project_display(data.get("project_name") or "", lang)
-    transit = data.get("transit_tags") or []
     code = (data.get("code") or "RXT????").strip()
     prefix = (data.get("code_prefix") or "RXT").strip().upper()
 
-    ai_body = ""
-    if lang != "en":
-        ai_body = _openai_generate_facebook_post(data) or ""
-
-    if ai_body:
-        lines: list[str] = [ai_body, ""]
-    else:
-        highlights = _extract_highlights(data, lang)
-        lines = [
-            f"🏢 {project}",
-            _headline(data, lang),
-        ]
-        lines.extend(_offer_block(data.get("rent_price", ""), data.get("sale_price", ""), lang))
-        lines.extend(_spec_block(data, lang))
-        lines.append(
-            "🛋 Fully Furnished พร้อมเข้าอยู่"
-            if lang != "en"
-            else "🛋 Fully Furnished — ready to move in"
-        )
-
-        if highlights:
-            lines.append("")
-            lines.append("✨ Highlights")
-            for h in highlights:
-                if lang == "en" and _thai_ratio(h) >= 0.2:
-                    continue  # hard safety net
-                lines.append(f"• {h}")
-
-        nearby = _nearby_block(transit, lang)
-        if nearby:
-            lines.append("")
-            lines.extend(nearby)
-        lines.append("")
+    body = _build_sell_body_en(data) if lang == "en" else _build_sell_body_th(data)
+    lines: list[str] = [body, ""]
 
     lines.append("🤝 Co-Agent Welcome")
     if lang == "en":
@@ -786,7 +892,6 @@ def generate_text(data: dict, lang: str = "th") -> str:
 
         snip = get_latest_snippet()
         if snip and (snip.get("text") or "").strip():
-            # Prefer TH footer for th; for en use EN-labelled latest if available else default EN CTA
             use_snip = True
             if lang == "en":
                 label_l = str(snip.get("label") or "").lower()
@@ -809,12 +914,7 @@ def generate_text(data: dict, lang: str = "th") -> str:
     lines.append("")
     lines.append(_hashtags(data.get("project_name") or project, lang))
 
-    # safety: never leak owner-post wording
     text = "\n".join(ln for ln in lines if ln is not None)
     text = re.sub(r"(?i)owner\s*post", "", text)
     text = re.sub(r"เจ้าของปล่อย", "", text)
-    if lang == "en":
-        # Final guard: strip accidental Thai from EN body (keep rare station leftovers minimal)
-        # Don't strip project/station lines that we intentionally romanized above.
-        pass
     return text.strip() + "\n"

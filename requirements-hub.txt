@@ -4,5 +4,3 @@ python-dotenv>=1.0.1
 # Required for「ซิงค์ไปชีท Hub」→ Google Sheets write
 gspread>=6.1.0
 google-auth>=2.36.0
-# Required for「สร้างข้อความโพสต์」AI captions
-openai>=1.40.0

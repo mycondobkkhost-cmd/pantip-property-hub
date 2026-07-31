@@ -26,6 +26,7 @@ STATUS_POSTED = "posted"
 STATUS_FAILED = "failed"
 STATUS_RESTRICTED = "restricted"
 STATUS_CANCELLED = "cancelled"
+STATUS_AWAITING_JOIN = "awaiting_join"
 
 _URL_RE = re.compile(r"https?://\S+|www\.\S+", re.I)
 
@@ -127,6 +128,8 @@ def _normalize_job(raw: dict[str, Any]) -> dict[str, Any] | None:
         "created_at": str(raw.get("created_at") or _now_iso()),
         "updated_at": str(raw.get("updated_at") or _now_iso()),
         "campaign_id": str(raw.get("campaign_id") or "").strip(),
+        "needs_manual_join": bool(raw.get("needs_manual_join")),
+        "join_status": str(raw.get("join_status") or "").strip(),
     }
 
 
@@ -184,6 +187,9 @@ def create_campaign(
     agent_id: str = "owner",
     fb_accounts: list[dict[str, Any]] | None = None,
     schedule_spread: bool = True,
+    start_at: str | None = None,
+    caption_variants: list[str] | None = None,
+    vary_captions: bool = True,
 ) -> dict[str, Any]:
     """Create one job per group, assign accounts round-robin, schedule next_post_at."""
     code = (property_code or "").strip().upper()
@@ -195,6 +201,10 @@ def create_campaign(
     imgs = [str(x).strip() for x in (image_urls or []) if str(x).strip()]
     if not imgs:
         raise ValueError("ต้องมีอย่างน้อย 1 รูป")
+
+    variants = [sanitize_caption_no_links(str(v)) for v in (caption_variants or []) if str(v).strip()]
+    if not variants:
+        variants = [caption_clean]
 
     clean_groups: list[dict[str, str]] = []
     seen: set[str] = set()
@@ -216,12 +226,21 @@ def create_campaign(
 
     accounts = [a for a in (fb_accounts or []) if isinstance(a, dict) and str(a.get("id") or "").strip()]
     if not accounts:
-        # placeholder account — agent can still run if user posts with current session
         accounts = [{"id": "default", "label": "บัญชีปัจจุบัน", "daily_cap": policy.DEFAULT_DAILY_CAP}]
 
     campaign_id = _new_id()
     created: list[dict[str, Any]] = []
-    cursor = _now()
+    # Optional fixed start; else now
+    if start_at and str(start_at).strip():
+        try:
+            cursor = datetime.strptime(str(start_at).strip()[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=BANGKOK)
+        except ValueError:
+            try:
+                cursor = datetime.strptime(str(start_at).strip()[:16], "%Y-%m-%dT%H:%M").replace(tzinfo=BANGKOK)
+            except ValueError:
+                cursor = _now()
+    else:
+        cursor = _now()
 
     with _LOCK:
         data = _load_raw()
@@ -229,18 +248,11 @@ def create_campaign(
         last_map = data.get("group_last_post") if isinstance(data.get("group_last_post"), dict) else {}
         today = _now().strftime("%Y-%m-%d")
 
-        # Prefer accounts that still have daily room
         usable = []
         for acc in accounts:
             if policy.account_is_paused(acc):
                 continue
             aid = str(acc.get("id") or "")
-            posted = _posts_today_for_account(
-                [_normalize_job(j) or {} for j in jobs],  # type: ignore[list-item]
-                aid,
-                today=today,
-            )
-            # recount from raw posted jobs
             posted = 0
             for j in jobs:
                 if str(j.get("fb_account_id") or "") != aid:
@@ -255,13 +267,15 @@ def create_campaign(
         if not usable:
             usable = [a for a in accounts if not policy.account_is_paused(a)] or accounts
 
+        try:
+            from src.hub.publish_caption import micro_vary_caption
+        except Exception:  # noqa: BLE001
+            micro_vary_caption = None  # type: ignore[assignment]
+
         rr = 0
-        for g in clean_groups:
-            key = f"{usable[rr % len(usable)].get('id')}|{g['url']}"
-            last_at = str(last_map.get(key) or last_map.get(g["url"]) or "")
+        for gi, g in enumerate(clean_groups):
+            last_at = str(last_map.get(f"{usable[rr % len(usable)].get('id')}|{g['url']}") or last_map.get(g["url"]) or "")
             if last_at and not policy.group_cooldown_ok(last_at):
-                rr += 1
-                # still allow enqueue but push schedule further
                 pass
             acc = usable[rr % len(usable)]
             rr += 1
@@ -269,7 +283,19 @@ def create_campaign(
                 cursor = policy.schedule_next_slot(after=cursor, account=acc)
                 next_at = cursor.strftime("%Y-%m-%d %H:%M:%S")
             else:
-                next_at = _now_iso()
+                next_at = cursor.strftime("%Y-%m-%d %H:%M:%S") if gi == 0 else _now_iso()
+
+            base_cap = variants[gi % len(variants)]
+            if vary_captions and micro_vary_caption:
+                try:
+                    job_caption = micro_vary_caption(
+                        base_cap, property_code=code, group_url=g["url"], index=gi
+                    ) or base_cap
+                except Exception:  # noqa: BLE001
+                    job_caption = base_cap
+            else:
+                job_caption = base_cap
+
             job = {
                 "id": _new_id(),
                 "property_code": code,
@@ -277,7 +303,7 @@ def create_campaign(
                 "group_name": g["name"],
                 "fb_account_id": str(acc.get("id") or ""),
                 "agent_id": (agent_id or "owner").strip() or "owner",
-                "caption": caption_clean,
+                "caption": job_caption,
                 "image_urls": imgs[:12],
                 "status": STATUS_PENDING,
                 "next_post_at": next_at,
@@ -289,6 +315,8 @@ def create_campaign(
                 "created_at": _now_iso(),
                 "updated_at": _now_iso(),
                 "campaign_id": campaign_id,
+                "needs_manual_join": False,
+                "join_status": "",
             }
             jobs.append(job)
             created.append(_normalize_job(job) or job)
@@ -314,7 +342,7 @@ def list_due(
     now_s = now.strftime("%Y-%m-%d %H:%M:%S")
     due: list[dict[str, Any]] = []
     for job in list_jobs(agent_id=agent_id, limit=2000):
-        if job["status"] not in {STATUS_PENDING, STATUS_DUE, STATUS_FAILED}:
+        if job["status"] not in {STATUS_PENDING, STATUS_DUE, STATUS_FAILED, STATUS_AWAITING_JOIN}:
             continue
         nxt = job.get("next_post_at") or ""
         if nxt and nxt > now_s and job["status"] != STATUS_DUE:
@@ -332,6 +360,9 @@ def mark_result(
     error: str = "",
     action: str = "",
     detail: str = "",
+    join_status: str = "",
+    needs_manual_join: bool | None = None,
+    retry_minutes: int | None = None,
 ) -> dict[str, Any]:
     want = (job_id or "").strip()
     if not want:
@@ -352,22 +383,40 @@ def mark_result(
                 raw["error"] = ""
                 raw["action"] = action or "posted"
                 raw["detail"] = detail or "โพสสำเร็จ"
+                raw["needs_manual_join"] = False
+                raw["join_status"] = join_status or "joined"
                 key = f"{raw.get('fb_account_id')}|{normalize_group_url(str(raw.get('group_url') or ''))}"
                 last_map = data.get("group_last_post") if isinstance(data.get("group_last_post"), dict) else {}
                 last_map[key] = raw["posted_at"]
                 last_map[normalize_group_url(str(raw.get("group_url") or ""))] = raw["posted_at"]
                 data["group_last_post"] = last_map
             else:
-                if (action or "") == "restricted" or "restrict" in (error or "").lower():
+                act = (action or "").strip()
+                if act in {"awaiting_join", "join_pending", "join_requested"} or needs_manual_join:
+                    raw["status"] = STATUS_AWAITING_JOIN
+                    raw["needs_manual_join"] = bool(needs_manual_join) if needs_manual_join is not None else True
+                    raw["join_status"] = join_status or act or "needed"
+                    # Recheck later (default 45–90 min) — do not spam join clicks
+                    from datetime import timedelta
+
+                    mins = retry_minutes if retry_minutes is not None else random.randint(45, 90)
+                    nxt = _now() + timedelta(minutes=max(15, int(mins)))
+                    raw["next_post_at"] = nxt.strftime("%Y-%m-%d %H:%M:%S")
+                elif act == "restricted" or "restrict" in (error or "").lower():
                     raw["status"] = STATUS_RESTRICTED
+                    raw["needs_manual_join"] = False
+                    nxt = policy.schedule_next_slot(account=None)
+                    raw["next_post_at"] = nxt.strftime("%Y-%m-%d %H:%M:%S")
                 else:
                     raw["status"] = STATUS_FAILED
+                    raw["needs_manual_join"] = False
+                    nxt = policy.schedule_next_slot(account=None)
+                    raw["next_post_at"] = nxt.strftime("%Y-%m-%d %H:%M:%S")
                 raw["error"] = (error or "").strip()
-                raw["action"] = action or "failed"
+                raw["action"] = act or "failed"
                 raw["detail"] = detail or error or "โพสไม่สำเร็จ"
-                # retry later with delay
-                nxt = policy.schedule_next_slot(account=None)
-                raw["next_post_at"] = nxt.strftime("%Y-%m-%d %H:%M:%S")
+                if join_status:
+                    raw["join_status"] = join_status
             raw["updated_at"] = _now_iso()
             jobs[i] = raw
             found = _normalize_job(raw)
@@ -411,10 +460,17 @@ def stats(*, agent_id: str | None = None) -> dict[str, Any]:
             posted_today += 1
             aid = j.get("fb_account_id") or "—"
             by_account[aid] = by_account.get(aid, 0) + 1
-    pending = sum(by_status.get(s, 0) for s in (STATUS_PENDING, STATUS_DUE, STATUS_FAILED))
+    pending = sum(
+        by_status.get(s, 0)
+        for s in (STATUS_PENDING, STATUS_DUE, STATUS_FAILED, STATUS_AWAITING_JOIN)
+    )
+    awaiting_join = by_status.get(STATUS_AWAITING_JOIN, 0)
+    needs_manual = sum(1 for j in jobs if j.get("needs_manual_join") and j.get("status") == STATUS_AWAITING_JOIN)
     return {
         "total": len(jobs),
         "pending": pending,
+        "awaiting_join": awaiting_join,
+        "needs_manual_join": needs_manual,
         "posted_today": posted_today,
         "by_status": by_status,
         "by_account_today": by_account,

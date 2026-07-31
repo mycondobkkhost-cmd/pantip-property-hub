@@ -53,11 +53,13 @@ def build_no_link_captions(code: str, *, lang: str = "th", n: int = 4) -> dict[s
 
 
 def resolve_image_urls_for_property(code: str, *, extra: list[str] | None = None) -> list[str]:
-    """Prefer explicit URLs; else try og:image from page/source post."""
+    """Prefer explicit URLs; else collect as many page photos as available (cap 12)."""
     out: list[str] = []
     for u in extra or []:
         s = str(u or "").strip()
         if s.startswith("http") and s not in out:
+            out.append(s)
+        elif s.startswith("/api/publish-uploads/") and s not in out:
             out.append(s)
     if out:
         return out[:12]
@@ -71,18 +73,42 @@ def resolve_image_urls_for_property(code: str, *, extra: list[str] | None = None
         str(prop.get("post_url") or "").strip(),
     ]
     try:
-        from src.hub.scraper import fetch_preview_image
+        from src.hub.scraper import fetch_preview_images
     except Exception:  # noqa: BLE001
         return []
     for page in candidates:
         if not page.startswith("http"):
             continue
         try:
-            img, _warn = fetch_preview_image(page)
+            imgs, _warn = fetch_preview_images(page, limit=12)
         except Exception:  # noqa: BLE001
             continue
-        if img and img.startswith("http") and img not in out:
-            out.append(img)
-        if len(out) >= 3:
+        for img in imgs:
+            if img.startswith("http") and img not in out:
+                out.append(img)
+        if out:
             break
     return out[:12]
+
+
+def micro_vary_caption(base: str, *, property_code: str = "", group_url: str = "", index: int = 0) -> str:
+    """Light per-group variation to reduce identical spam fingerprints."""
+    text = sanitize_caption_no_links(base)
+    if not text:
+        return ""
+    try:
+        from src.hub.caption_variant import build_caption_variant
+
+        varied = build_caption_variant(
+            text,
+            property_code=property_code or "X",
+            group_url=group_url or f"group-{index}",
+            attempt=index,
+        )
+        if varied and str(varied).strip():
+            return sanitize_caption_no_links(str(varied))
+    except Exception:  # noqa: BLE001
+        pass
+    # Fallback: soft newline / zero-width trailer
+    trailers = ["", "\n", "\n\n", "\u200b", "\n\u200b"]
+    return sanitize_caption_no_links(text + trailers[index % len(trailers)])

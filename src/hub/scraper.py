@@ -19,6 +19,13 @@ MOBILE_UA = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
     "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
 )
+# Crawler UAs sometimes get OG tags when browser UAs get a login wall.
+CRAWLER_UAS = (
+    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+    "WhatsApp/2.23.20.0",
+    "TelegramBot (like TwitterBot)",
+    "Twitterbot/1.0",
+)
 TIMEOUT = 25
 
 
@@ -65,21 +72,117 @@ def _living_body(html: str) -> str:
 
 
 def _facebook_fetch_urls(url: str) -> list[str]:
-    """Try original + mobile mirror for share links."""
-    urls = [url.strip()]
-    parsed = urlparse(url)
-    host = parsed.netloc.lower()
+    """Build alternate Facebook URLs — pfbid/story links need several shapes."""
+    from urllib.parse import parse_qs, urlencode, urlunparse
+
+    raw = (url or "").strip()
+    if not raw:
+        return []
+    urls: list[str] = [raw]
+    parsed = urlparse(raw)
+    host = (parsed.netloc or "").lower()
+    qs = parse_qs(parsed.query or "", keep_blank_values=False)
+    story = (qs.get("story_fbid") or qs.get("fbid") or [""])[0].strip()
+    page_id = (qs.get("id") or [""])[0].strip()
+
+    def _swap_host(u: str, new_host: str) -> str:
+        p = urlparse(u)
+        return urlunparse((p.scheme or "https", new_host, p.path, p.params, p.query, p.fragment))
+
     if "www.facebook.com" in host:
-        urls.append(url.replace("www.facebook.com", "m.facebook.com", 1))
-    elif "m.facebook.com" not in host and "facebook.com" in host:
-        urls.append(url.replace("facebook.com", "m.facebook.com", 1))
+        urls.append(_swap_host(raw, "m.facebook.com"))
+    elif host.startswith("m.facebook.com"):
+        urls.append(_swap_host(raw, "www.facebook.com"))
+    elif "facebook.com" in host:
+        urls.append(_swap_host(raw, "m.facebook.com"))
+        urls.append(_swap_host(raw, "www.facebook.com"))
+
+    if story and page_id:
+        for h in ("www.facebook.com", "m.facebook.com"):
+            urls.append(f"https://{h}/{page_id}/posts/{story}")
+            urls.append(f"https://{h}/permalink.php?{urlencode({'story_fbid': story, 'id': page_id})}")
+            urls.append(f"https://{h}/story.php?{urlencode({'story_fbid': story, 'id': page_id})}")
+
+    # share/p links: try www + m
+    if "/share/p/" in (parsed.path or "") or "/share/v/" in (parsed.path or ""):
+        if "www.facebook.com" in host:
+            urls.append(_swap_host(raw, "m.facebook.com"))
+        else:
+            urls.append(_swap_host(raw, "www.facebook.com"))
+
     seen: set[str] = set()
     out: list[str] = []
     for u in urls:
-        if u not in seen:
+        u = (u or "").strip()
+        if u and u not in seen:
             seen.add(u)
             out.append(u)
     return out
+
+
+def _is_generic_fb_icon(image_url: str) -> bool:
+    low = (image_url or "").lower()
+    if not low.startswith("http"):
+        return True
+    if "static.xx.fbcdn" in low or "/rsrc.php/" in low:
+        return True
+    if "emoji.php" in low or "/images/icons/" in low:
+        return True
+    # Tiny profile placeholders
+    if "scontent" in low and ("_s.jpg" in low or "p32x32" in low or "p50x50" in low):
+        return True
+    return False
+
+
+def _extract_image_candidates_from_html(html: str) -> list[str]:
+    """Collect likely photo URLs from meta tags + embedded scontent links."""
+    found: list[str] = []
+    for prop in ("og:image", "og:image:url", "og:image:secure_url", "twitter:image", "twitter:image:src"):
+        img = _meta(html, prop).strip()
+        if img.startswith("//"):
+            img = "https:" + img
+        if img.startswith("http"):
+            found.append(img)
+
+    # Escape-aware scontent URLs inside JSON blobs
+    for m in re.finditer(r"https:\\?/\\?/scontent[^\"'\\s<>]+", html, re.I):
+        u = m.group(0).replace("\\/", "/").replace("\\u00253A", ":").replace("\\u00252F", "/")
+        u = unescape(u)
+        if u.startswith("http"):
+            found.append(u)
+
+    for m in re.finditer(r"https://scontent[^\"'\\s<>]+", html, re.I):
+        found.append(unescape(m.group(0)))
+
+    ranked: list[str] = []
+    seen: set[str] = set()
+    for img in found:
+        if _is_generic_fb_icon(img):
+            continue
+        # Prefer full post photos over tiny thumbs
+        score = 0
+        low = img.lower()
+        if "scontent" in low:
+            score += 2
+        if "t39.30808" in low or "/v/t39." in low:
+            score += 3
+        if "stp=" in low or "_n.jpg" in low or "_n.png" in low:
+            score += 2
+        if score <= 0 and "fbcdn" not in low:
+            continue
+        if img in seen:
+            continue
+        seen.add(img)
+        ranked.append(img)
+    # Keep stable order but prefer higher-looking CDN photo URLs first
+    ranked.sort(
+        key=lambda u: (
+            0 if "t39.30808" in u.lower() else 1,
+            0 if "_n.jpg" in u.lower() or "_n.png" in u.lower() else 1,
+            len(u),
+        )
+    )
+    return ranked
 
 
 def _http_get(url: str, user_agent: str) -> str:
@@ -232,17 +335,31 @@ def pick_text(fetched: str, pasted: str) -> tuple[str, str]:
 
 
 def fetch_preview_image(url: str) -> tuple[str, list[str]]:
-    """Best-effort og:image / twitter:image from listing URL. Facebook often blocked."""
+    """Best-effort single image (first candidate). Prefer fetch_preview_images for galleries."""
+    imgs, warnings = fetch_preview_images(url, limit=1)
+    return (imgs[0] if imgs else ""), warnings
+
+
+def fetch_preview_images(url: str, *, limit: int = 12) -> tuple[list[str], list[str]]:
+    """Collect up to `limit` distinct photo URLs from a listing/page HTML."""
     warnings: list[str] = []
     url = (url or "").strip()
     if not url.startswith("http"):
-        return "", ["URL ไม่ถูกต้อง"]
+        return [], ["URL ไม่ถูกต้อง"]
 
     kind = classify_url(url)
     candidates = _facebook_fetch_urls(url) if kind == "facebook" else [url]
-    agents = [MOBILE_UA, DESKTOP_UA] if kind == "facebook" else [DESKTOP_UA, MOBILE_UA]
-
+    agents = (
+        [MOBILE_UA, DESKTOP_UA, *CRAWLER_UAS]
+        if kind == "facebook"
+        else [DESKTOP_UA, MOBILE_UA]
+    )
+    limit = max(1, min(int(limit or 12), 12))
+    collected: list[str] = []
+    seen: set[str] = set()
     last_error = ""
+    saw_login_wall = False
+
     for candidate in candidates:
         for agent in agents:
             try:
@@ -254,24 +371,32 @@ def fetch_preview_image(url: str) -> tuple[str, list[str]]:
                 last_error = str(exc)
                 continue
 
-            for prop in ("og:image", "og:image:url", "twitter:image", "twitter:image:src"):
-                img = _meta(html, prop).strip()
-                if img.startswith("//"):
-                    img = "https:" + img
-                if not img.startswith("http"):
-                    continue
-                low = img.lower()
-                if kind == "facebook" and ("static.xx.fbcdn" in low or "/rsrc.php/" in low):
-                    continue
-                return img, _unique_warnings(warnings)
+            low_head = html[:8000].lower()
+            if "login" in low_head or "เข้าสู่ระบบ" in html[:8000]:
+                saw_login_wall = True
 
-    if last_error:
-        warnings.append(f"ดึงรูปไม่ได้: {last_error}")
-    elif kind == "facebook":
-        warnings.append("Facebook มักไม่ให้ดึงรูปโดยตรง — Living / ลิงก์สาธารณะมีโอกาสสำเร็จกว่า")
-    else:
-        warnings.append("ไม่พบรูปตัวอย่างในหน้า")
-    return "", _unique_warnings(warnings)
+            for img in _extract_image_candidates_from_html(html):
+                if img in seen:
+                    continue
+                seen.add(img)
+                collected.append(img)
+                if len(collected) >= limit:
+                    return collected, _unique_warnings(warnings)
+
+    if not collected:
+        if last_error:
+            warnings.append(f"ดึงรูปไม่ได้: {last_error}")
+        elif kind == "facebook":
+            if saw_login_wall:
+                warnings.append(
+                    "Facebook บังคับล็อกอินจากเซิร์ฟเวอร์คลาวด์ — "
+                    "อัปรูปเองใน Hub หรือให้ Agent บนเครื่องดึงจากเน็ตบ้าน"
+                )
+            else:
+                warnings.append("Facebook มักไม่ให้ดึงรูปครบ — อัปเองชัวร์กว่า")
+        else:
+            warnings.append("ไม่พบรูปในหน้า")
+    return collected, _unique_warnings(warnings)
 
 
 def fetch_image_bytes(image_url: str) -> tuple[bytes, str]:

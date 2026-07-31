@@ -436,6 +436,74 @@ def _find_account(accounts: list, job: dict) -> dict | None:
     return None
 
 
+def sync_joined_groups(hub: str, token: str, email: str, password: str, *, account_id: str = "") -> dict:
+    """Scrape facebook.com/groups/joins and merge into Hub group book."""
+    global _alive_auth
+    from src.facebook import humanize
+
+    if email:
+        os.environ["FACEBOOK_EMAIL"] = email
+    if password:
+        os.environ["FACEBOOK_PASSWORD"] = password
+
+    auth = _alive_auth
+    if auth is None:
+        auth = _make_auth(email, password, headless=False)
+        try:
+            auth.login(wait_manual_sec=90, force_manual=False)
+            _alive_auth = auth
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": str(exc)}
+    page = getattr(auth, "_page", None)
+    if page is None:
+        return {"ok": False, "error": "no browser page"}
+
+    try:
+        page.goto("https://www.facebook.com/groups/joins/?nav_source=tab", wait_until="domcontentloaded", timeout=60_000)
+        humanize.pause(2.0, 4.0)
+        for _ in range(6):
+            humanize.soft_scroll(page, times=1)
+            humanize.pause(0.6, 1.2)
+        links = page.evaluate(
+            """() => {
+              const out = [];
+              const seen = new Set();
+              for (const a of document.querySelectorAll('a[href*="/groups/"]')) {
+                let href = a.href || '';
+                if (!href.includes('/groups/')) continue;
+                href = href.split('?')[0].replace(/\\/$/, '');
+                if (/\\/groups\\/(joins|feed|create|discover)/.test(href)) continue;
+                const m = href.match(/\\/groups\\/([^\\/]+)/);
+                if (!m) continue;
+                const url = 'https://www.facebook.com/groups/' + m[1];
+                if (seen.has(url)) continue;
+                seen.add(url);
+                const name = (a.innerText || a.getAttribute('aria-label') || '').trim().split('\\n')[0].slice(0, 120);
+                out.push({ url, name, membership: 'joined' });
+              }
+              return out.slice(0, 400);
+            }"""
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+    items = links if isinstance(links, list) else []
+    try:
+        result = _request(
+            "POST",
+            _hub_url(hub, "/api/groups/sync-joins"),
+            token=token,
+            body={
+                "groups": items,
+                "account_id": account_id or "default",
+                "account_label": account_id or "default",
+            },
+        )
+        return {"ok": True, "scraped": len(items), **(result if isinstance(result, dict) else {})}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc), "scraped": len(items)}
+
+
 def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: int = 1) -> dict:
     """Pull due publish jobs → switch FB account → post images+caption → report."""
     global _alive_auth
@@ -537,9 +605,19 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
                 continue
 
         try:
+            # Expand relative Hub upload URLs to absolute for local download
+            hub_base = hub.rstrip("/")
+            resolved_images = []
+            for u in (images if isinstance(images, list) else []):
+                s = str(u or "").strip()
+                if not s:
+                    continue
+                if s.startswith("/api/publish-uploads/"):
+                    s = hub_base + s
+                resolved_images.append(s)
             outcome = poster.post_to_group(
                 caption=caption,
-                image_urls=list(images) if isinstance(images, list) else [],
+                image_urls=resolved_images,
                 property_id=code or "property",
                 group_url=group_url,
             )
@@ -564,7 +642,9 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
                     "action": outcome.get("action") or ("posted" if ok else "failed"),
                     "error": outcome.get("error") or "",
                     "detail": outcome.get("detail") or "",
-                    "comment_immediately": True,
+                    "join_status": outcome.get("join_status") or "",
+                    "needs_manual_join": bool(outcome.get("needs_manual_join")),
+                    "comment_immediately": ok,
                 },
             )
         except Exception as report_exc:  # noqa: BLE001
@@ -575,9 +655,12 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
             progress(f"✓ โพสสำเร็จ {code} · {outcome.get('permalink') or '(รอ permalink)'}")
         else:
             failed += 1
-            progress(f"✗ โพสไม่สำเร็จ: {outcome.get('detail') or outcome.get('error')}")
+            detail = outcome.get("detail") or outcome.get("error") or ""
+            if outcome.get("action") == "awaiting_join" or outcome.get("needs_manual_join"):
+                progress(f"⚠ รอเข้ากลุ่ม: {detail}")
+            else:
+                progress(f"✗ โพสไม่สำเร็จ: {detail}")
             if outcome.get("action") == "restricted":
-                # Stop further posts this tick
                 break
 
         # Anti-ban delay between posts (even if only 1, leave a short settle)
@@ -611,6 +694,7 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
     logger.info("Comment agent started · hub={} · host={}", hub, host)
     last_comment_at = 0.0
     last_publish_at = 0.0
+    last_groups_sync_at = 0.0
     last_session_check = 0.0
     last_thumb_at = 0.0
     last_profiles_at = 0.0
@@ -726,6 +810,12 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
                 if logged_in and (now - last_publish_at >= publish_every_sec):
                     run_publish(hub, token, email, password, max_posts=1)
                     last_publish_at = time.time()
+                if logged_in and (now - last_groups_sync_at >= 6 * 3600):
+                    try:
+                        sync_joined_groups(hub, token, email, password)
+                    except Exception as sync_exc:  # noqa: BLE001
+                        logger.warning("groups sync failed: {}", sync_exc)
+                    last_groups_sync_at = time.time()
 
                 if logged_in and (now - last_comment_at >= comment_every_sec):
                     run_comments(hub, token, email, password)

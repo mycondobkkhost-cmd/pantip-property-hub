@@ -14,7 +14,9 @@ from loguru import logger
 from playwright.sync_api import Page
 
 from config.settings import settings
+from src.facebook import humanize
 from src.hub.group_post_publish_store import sanitize_caption_no_links
+from src.facebook.commenter import FacebookPostCommenter
 
 
 _RESTRICT_NEEDLES = (
@@ -38,7 +40,7 @@ class FacebookGroupPoster:
         self.image_cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _human_delay(self, min_s: float = 1.0, max_s: float = 2.5) -> None:
-        time.sleep(random.uniform(min_s, max_s))
+        humanize.pause(min_s, max_s)
 
     def _page_blob(self) -> str:
         try:
@@ -90,6 +92,49 @@ class FacebookGroupPoster:
         logger.info("Navigating to group: {}", group_url)
         self.page.goto(group_url, wait_until="domcontentloaded", timeout=60_000)
         self._human_delay(2.0, 4.0)
+        humanize.soft_scroll(self.page, times=random.randint(1, 2))
+
+    def ensure_group_membership(self) -> dict[str, Any]:
+        """Try join if needed; return status for Hub (joined / pending / needed)."""
+        commenter = FacebookPostCommenter(self.page)
+        # If composer / write area already available, treat as joined
+        blob = self._page_blob().lower()
+        joined_hints = ("เขียนอะไรสักหน่อย", "write something", "photo/video", "รูปภาพ/วิดีโอ")
+        if any(h in blob for h in joined_hints):
+            return {
+                "ok": True,
+                "join_status": "joined",
+                "action": "already_member",
+                "detail": "ดูเหมือนอยู่ในกลุ่มแล้ว",
+                "needs_manual_join": False,
+            }
+        result = commenter.try_request_join_group()
+        status = str(result.get("join_status") or "")
+        if status in {"joined", "already"} or result.get("action") == "already_member":
+            return {
+                "ok": True,
+                "join_status": "joined",
+                "action": result.get("action") or "joined",
+                "detail": result.get("detail") or "",
+                "needs_manual_join": False,
+            }
+        if status in {"pending", "requested", "clicked"} or result.get("ok"):
+            return {
+                "ok": False,
+                "join_status": status or "pending",
+                "action": "awaiting_join",
+                "detail": result.get("detail") or "รอเข้าร่วมกลุ่ม / รออนุมัติ",
+                "needs_manual_join": status in {"needed", "failed"} or not result.get("ok"),
+                "error": result.get("error"),
+            }
+        return {
+            "ok": False,
+            "join_status": status or "needed",
+            "action": "awaiting_join",
+            "detail": result.get("detail") or "ยังเข้ากลุ่มไม่ได้ — กดเข้าร่วมด้วยมือ",
+            "needs_manual_join": True,
+            "error": result.get("error") or "join needed",
+        }
 
     def _open_composer(self) -> bool:
         triggers = [
@@ -106,9 +151,9 @@ class FacebookGroupPoster:
             loc = self.page.locator(selector).first
             try:
                 if loc.count() > 0 and loc.is_visible():
-                    loc.click(timeout=3000)
-                    self._human_delay(1.2, 2.2)
-                    return True
+                    if humanize.human_click(self.page, loc, timeout=3000):
+                        self._human_delay(1.2, 2.2)
+                        return True
             except Exception:  # noqa: BLE001
                 continue
         return False
@@ -130,18 +175,8 @@ class FacebookGroupPoster:
             except Exception:  # noqa: BLE001
                 continue
             try:
-                box.click(timeout=2500)
-                self._human_delay(0.3, 0.7)
-                try:
-                    box.fill("")
-                except Exception:  # noqa: BLE001
-                    pass
-                # Human-like typing in chunks
-                chunk = 40
-                for i in range(0, len(text), chunk):
-                    box.type(text[i : i + chunk], delay=random.randint(12, 35))
-                    self._human_delay(0.05, 0.2)
-                return True
+                if humanize.type_human(box, text, page=self.page):
+                    return True
             except Exception as exc:  # noqa: BLE001
                 logger.warning("caption type failed on {}: {}", selector, exc)
                 continue
@@ -281,12 +316,29 @@ class FacebookGroupPoster:
                 "detail": f"บัญชีถูกจำกัด: {blocked}",
             }
 
+        membership = self.ensure_group_membership()
+        if not membership.get("ok"):
+            return {
+                "ok": False,
+                "error": membership.get("error") or "join needed",
+                "action": membership.get("action") or "awaiting_join",
+                "detail": membership.get("detail") or "ยังเข้ากลุ่มไม่ได้",
+                "join_status": membership.get("join_status") or "needed",
+                "needs_manual_join": bool(membership.get("needs_manual_join")),
+            }
+        # Brief human pause after join check
+        self._human_delay(1.5, 3.5)
+        humanize.soft_scroll(self.page, times=1)
+
         if not self._open_composer():
+            # Composer missing often means not a member yet
             return {
                 "ok": False,
                 "error": "composer not found",
-                "action": "composer_missing",
-                "detail": "เปิดช่องโพสต์กลุ่มไม่ได้",
+                "action": "awaiting_join",
+                "detail": "เปิดช่องโพสต์ไม่ได้ — อาจยังไม่ได้อยู่ในกลุ่ม กดเข้าร่วมด้วยมือแล้วรอคิวรอบถัดไป",
+                "join_status": "needed",
+                "needs_manual_join": True,
             }
 
         if not self._upload_images(image_paths):

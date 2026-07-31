@@ -850,3 +850,73 @@ def list_groups_summary() -> dict:
         "by_zone": dict(sorted(by_zone.items(), key=lambda x: -x[1])),
         "groups": groups,
     }
+
+
+def merge_joined_groups_from_account(
+    items: list[dict],
+    *,
+    account_id: str = "",
+    account_label: str = "",
+) -> dict:
+    """Merge groups scraped from FB joins into the book; mark membership_by_account."""
+    groups = load_groups()
+    by_url = {_normalize_group_url(str(g.get("url") or "")): g for g in groups}
+    added = 0
+    updated = 0
+    aid = (account_id or account_label or "default").strip() or "default"
+    for raw in items or []:
+        if not isinstance(raw, dict):
+            continue
+        url = _normalize_group_url(str(raw.get("url") or ""))
+        name = str(raw.get("name") or "").strip()
+        if not url or "facebook.com/groups/" not in url:
+            continue
+        status = str(raw.get("membership") or raw.get("status") or "joined").strip() or "joined"
+        if url in by_url:
+            g = by_url[url]
+            memb = g.get("membership_by_account")
+            if not isinstance(memb, dict):
+                memb = {}
+            memb[aid] = status
+            g["membership_by_account"] = memb
+            if account_label:
+                g["source_account"] = account_label
+            if name and (not g.get("name") or g.get("name") in {"?", "กลุ่ม"}):
+                g["name"] = name
+            updated += 1
+        else:
+            g = auto_tag_group(
+                {
+                    "name": name or url.rstrip("/").split("/")[-1],
+                    "url": url,
+                    "notes": "",
+                    "source_account": account_label or aid,
+                    "membership_by_account": {aid: status},
+                },
+                force=True,
+            )
+            groups.append(g)
+            by_url[url] = g
+            added += 1
+    save_groups(groups)
+    return {
+        "ok": True,
+        "added": added,
+        "updated": updated,
+        "total": len(groups),
+        "account_id": aid,
+    }
+
+
+def membership_for_account(group: dict, account_id: str) -> str:
+    """Return joined|pending|unknown for a group x FB account."""
+    memb = group.get("membership_by_account")
+    if isinstance(memb, dict):
+        v = str(memb.get(account_id) or memb.get("default") or "").strip()
+        if v:
+            return v
+    src = str(group.get("source_account") or "").strip()
+    if src and account_id and (src == account_id or account_id in src):
+        return "joined"
+    return "unknown"
+

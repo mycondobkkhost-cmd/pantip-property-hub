@@ -2639,72 +2639,113 @@
       <div class="table-wrap hidden" id="publish-panel">
         <div style="padding:12px;border-bottom:1px solid #e4e4e7">
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-            <strong style="font-size:15px">โพสกลุ่มอัตโนมัติ · หลายบัญชีเฟส</strong>
-            <span style="font-size:12px;color:#71717a">รูป + ข้อความ · ไม่แนบลิงก์ · LINE ID เท่านั้น · กระจาย ~3 บัญชี</span>
+            <strong style="font-size:15px">โพสกลุ่มอัตโนมัติ</strong>
+            <span style="font-size:12px;color:#71717a">ข้อความ · รูป · กลุ่ม · ตั้งเวลา · Agent โพสให้ (กันแบน)</span>
             <span style="flex:1"></span>
             <button type="button" class="btn-sm" id="publish-goto-fbconnect">ตั้งค่าบัญชีเฟส</button>
-            <button type="button" class="btn-sm" id="publish-refresh">รีเฟรช</button>
+            <button type="button" class="btn-sm" id="publish-refresh">รีเฟรชคิว</button>
           </div>
-          <div id="publish-dash" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px">
-            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
-              <div style="font-size:11px;color:#71717a">โพสวันนี้</div>
-              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-today">—</div>
-            </div>
-            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
-              <div style="font-size:11px;color:#71717a">คิวค้าง</div>
-              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-pending">—</div>
-            </div>
-            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
-              <div style="font-size:11px;color:#71717a">โดนจำกัด</div>
-              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-restricted">—</div>
-            </div>
-            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
-              <div style="font-size:11px;color:#71717a">บัญชีที่ลงทะเบียน</div>
-              <div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-accounts">—</div>
-            </div>
+          <div id="publish-manual-join-banner" class="hidden" style="margin-bottom:10px;padding:10px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;line-height:1.45"></div>
+          <div id="publish-dash" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px">
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff"><div style="font-size:11px;color:#71717a">โพสวันนี้</div><div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-today">—</div></div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff"><div style="font-size:11px;color:#71717a">คิวค้าง</div><div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-pending">—</div></div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff"><div style="font-size:11px;color:#71717a">รอเข้ากลุ่ม</div><div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-await-join">—</div></div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff"><div style="font-size:11px;color:#71717a">โดนจำกัด</div><div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-restricted">—</div></div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff"><div style="font-size:11px;color:#71717a">บัญชีเฟส</div><div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-accounts">—</div></div>
           </div>
           <div id="publish-by-account" style="margin-bottom:12px;font-size:12px;color:#52525b"></div>
 
           <div style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fafafa;margin-bottom:14px">
-            <strong style="font-size:14px">สร้างแคมเปญโพส</strong>
-            <p style="margin:6px 0 10px;font-size:12px;color:#71717a;line-height:1.55">
-              เลือกรหัสทรัพย์ + กลุ่มจากแนะนำ → ระบบสร้างแคปชันหลายเวอร์ชัน (ไม่มี URL) · กระจายงานให้ 3 บัญชีตาม daily cap
-              (เริ่มวอร์ม ~15/บัญชี/วัน → สูงสุด 35 · รวมใกล้ 100)
-            </p>
-            <div class="add-grid">
-              <label>
-                <span>รหัสทรัพย์</span>
-                <input type="text" id="publish-code" placeholder="เช่น PTP8236" />
-              </label>
-              <label>
-                <span>Agent</span>
-                <select id="publish-agent">
-                  <option value="owner">เจ้าของ (Mac)</option>
-                  <option value="admin">แอดมิน (Windows)</option>
-                </select>
-              </label>
-              <label class="add-wide">
-                <span>แคปชัน (ว่าง = สร้างอัตโนมัติแบบไม่มีลิงก์)</span>
-                <textarea id="publish-caption" rows="4" placeholder="ปล่อยว่างให้ระบบสร้าง · หรือวางข้อความเอง (URL จะถูกลบ)"></textarea>
-              </label>
-              <label class="add-wide">
-                <span>URL รูป (คั่นบรรทัด · ว่าง = ดึงจากโพสหน้าเพจ)</span>
-                <textarea id="publish-images" rows="2" placeholder="https://…&#10;https://…"></textarea>
-              </label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="publish-steps" role="tablist">
+              <button type="button" class="btn-sm primary" data-pub-step="1">1. ข้อความ</button>
+              <button type="button" class="btn-sm" data-pub-step="2">2. รูป</button>
+              <button type="button" class="btn-sm" data-pub-step="3">3. กลุ่ม</button>
+              <button type="button" class="btn-sm" data-pub-step="4">4. เวลา · สร้างคิว</button>
             </div>
-            <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
-              <button type="button" class="btn-sm" id="publish-gen-caption">สร้างแคปชัน no-link</button>
-              <button type="button" class="btn-sm" id="publish-load-groups">โหลดกลุ่มแนะนำ</button>
-              <button type="button" class="btn-sm primary" id="publish-create">สร้างคิวโพส</button>
-              <span id="publish-create-hint" style="font-size:12px;color:#71717a;align-self:center"></span>
+
+            <div class="pub-step" data-step-panel="1">
+              <strong style="font-size:14px">ขั้น 1 — ทรัพย์และข้อความ</strong>
+              <div class="add-grid" style="margin-top:8px">
+                <label><span>รหัสทรัพย์</span><input type="text" id="publish-code" placeholder="เช่น PTP8236" /></label>
+                <label><span>Agent</span>
+                  <select id="publish-agent"><option value="owner">เจ้าของ (Mac)</option><option value="admin">แอดมิน (Windows)</option></select>
+                </label>
+                <label class="add-wide"><span>แคปชัน (ว่าง = สร้างอัตโนมัติ · ไม่มีลิงก์)</span>
+                  <textarea id="publish-caption" rows="5" placeholder="ปล่อยว่างหรือวางข้อความเอง"></textarea>
+                </label>
+                <label class="add-wide" style="display:flex;align-items:center;gap:8px;flex-direction:row">
+                  <input type="checkbox" id="publish-vary-caption" style="width:auto" checked />
+                  <span style="font-size:12px;color:#52525b">แปรข้อความเล็กน้อยต่อกลุ่ม (กันสแปม) — เปิดแนะนำ</span>
+                </label>
+              </div>
+              <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+                <button type="button" class="btn-sm" id="publish-gen-caption">สร้างแคปชัน no-link</button>
+                <button type="button" class="btn-sm primary" data-pub-next="2">ถัดไป → รูป</button>
+              </div>
+              <div id="publish-variants" style="margin-top:8px;font-size:12px;color:#52525b;white-space:pre-wrap"></div>
             </div>
-            <div id="publish-variants" style="margin-top:8px;font-size:12px;color:#52525b;white-space:pre-wrap"></div>
-            <div id="publish-groups-pick" style="margin-top:10px;max-height:220px;overflow:auto;font-size:13px"></div>
+
+            <div class="pub-step hidden" data-step-panel="2">
+              <strong style="font-size:14px">ขั้น 2 — รูป (อัปเอง หรือดึงจากเพจเท่าที่มี)</strong>
+              <p style="margin:6px 0 8px;font-size:12px;color:#71717a">อัปชั่วคราวบน Hub (~7 วัน) · Agent ดาวน์โหลดลงเครื่องตอนโพส · สูงสุด 12 รูป</p>
+              <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                <button type="button" class="btn-sm" id="publish-fetch-images">ดึงจากโพสเพจ</button>
+                <label class="btn-sm" style="cursor:pointer;display:inline-flex;align-items:center">
+                  อัปโหลดรูป<input type="file" id="publish-upload-input" accept="image/*" multiple hidden />
+                </label>
+                <button type="button" class="btn-sm" id="publish-clear-images">ล้างรูป</button>
+                <button type="button" class="btn-sm" data-pub-prev="1">← กลับ</button>
+                <button type="button" class="btn-sm primary" data-pub-next="3">ถัดไป → กลุ่ม</button>
+              </div>
+              <div id="publish-images-preview" style="display:flex;flex-wrap:wrap;gap:8px;min-height:48px"></div>
+              <textarea id="publish-images" class="hidden" rows="2"></textarea>
+            </div>
+
+            <div class="pub-step hidden" data-step-panel="3">
+              <strong style="font-size:14px">ขั้น 3 — เลือกกลุ่ม (ติ๊ก)</strong>
+              <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin:8px 0">
+                <button type="button" class="btn-sm" id="publish-load-groups">โหลดกลุ่มแนะนำ</button>
+                <button type="button" class="btn-sm" id="publish-load-book">จากสมุดกลุ่ม</button>
+                <button type="button" class="btn-sm" id="publish-sync-hint" title="ให้ Agent ซิงก์กลุ่มจากเฟสที่ล็อกอิน">วิธีซิงก์จากเฟส</button>
+                <button type="button" class="btn-sm" id="publish-select-all">ติ๊กทั้งหมด</button>
+                <button type="button" class="btn-sm" id="publish-select-none">เอาติ๊กออก</button>
+                <button type="button" class="btn-sm" data-pub-prev="2">← กลับ</button>
+                <button type="button" class="btn-sm primary" data-pub-next="4">ถัดไป → เวลา</button>
+              </div>
+              <label class="add-wide"><span>หรือวาง URL กลุ่มเพิ่ม (คั่นบรรทัด)</span>
+                <textarea id="publish-extra-groups" rows="2" placeholder="https://www.facebook.com/groups/…"></textarea>
+              </label>
+              <input type="search" id="publish-groups-q" placeholder="ค้นหาชื่อกลุ่ม…" style="width:100%;max-width:420px;margin:8px 0;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px" />
+              <div id="publish-groups-pick" style="margin-top:6px;max-height:260px;overflow:auto;font-size:13px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px"></div>
+            </div>
+
+            <div class="pub-step hidden" data-step-panel="4">
+              <strong style="font-size:14px">ขั้น 4 — ตั้งเวลาและสร้างคิว</strong>
+              <div class="add-grid" style="margin-top:8px">
+                <label><span>โหมดเวลา</span>
+                  <select id="publish-sched-mode">
+                    <option value="spread">กระจายอัตโนมัติ (3–8 นาที · 9–21 น.)</option>
+                    <option value="start">เริ่มตอน… แล้วค่อยกระจาย</option>
+                    <option value="now">ใส่คิวทันที (ยังเคารพหน่วง anti-ban)</option>
+                  </select>
+                </label>
+                <label id="publish-start-wrap" class="hidden"><span>เริ่มเมื่อ</span>
+                  <input type="datetime-local" id="publish-start-at" />
+                </label>
+              </div>
+              <div id="publish-confirm-summary" style="margin:10px 0;padding:10px;background:#fff;border:1px dashed #d4d4d8;border-radius:8px;font-size:12px;color:#52525b;line-height:1.5"></div>
+              <div class="toolbar-row" style="gap:8px;flex-wrap:wrap">
+                <button type="button" class="btn-sm" data-pub-prev="3">← กลับ</button>
+                <button type="button" class="btn-sm primary" id="publish-create">สร้างคิวโพส</button>
+                <span id="publish-create-hint" style="font-size:12px;color:#71717a;align-self:center"></span>
+              </div>
+              <p style="margin:10px 0 0;font-size:11px;color:#a1a1aa">ต้องเปิด Agent + ล็อกอิน FB ค้างไว้ · ถ้ายังไม่เข้ากลุ่ม ระบบจะขอเข้าก่อน แล้วค่อยโพส · ถ้ากดเองไม่ได้จะฟ้องในแถบส้มด้านบน</p>
+            </div>
           </div>
 
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
             <strong style="font-size:13px">คิวโพสล่าสุด</strong>
-            <span style="font-size:11px;color:#71717a">หน่วง 3–8 นาที · คูลดาวน์กลุ่ม ~3 วัน · หยุดบัญชีอัตโนมัติเมื่อถูกจำกัด</span>
+            <span style="font-size:11px;color:#71717a">หน่วง 3–8 นาที · คูลดาวน์กลุ่ม ~3 วัน · หยุดเมื่อถูกจำกัด</span>
           </div>
         </div>
         <div class="scroll">
@@ -2714,9 +2755,9 @@
                 <th style="width:90px">รหัส</th>
                 <th>กลุ่ม</th>
                 <th style="width:100px">บัญชี</th>
-                <th style="width:90px">สถานะ</th>
-                <th style="width:140px">นัดโพส</th>
-                <th style="width:100px">จัดการ</th>
+                <th style="width:100px">สถานะ</th>
+                <th style="width:140px">เวลา</th>
+                <th style="width:90px"></th>
               </tr>
             </thead>
             <tbody id="publish-jobs-rows"></tbody>
@@ -9225,8 +9266,6 @@
       }
     }
 
-    var publishGroupsCache = [];
-    var publishCaptionVariants = [];
     var fbAccountsDraft = [];
 
     function renderFbAccountsEditor(accounts) {
@@ -9341,6 +9380,59 @@
       }
     }
 
+    var publishGroupsCache = [];
+    var publishCaptionVariants = [];
+    var publishImageUrls = [];
+    var publishStep = 1;
+
+    function setPublishStep(n) {
+      publishStep = Math.max(1, Math.min(4, Number(n) || 1));
+      document.querySelectorAll("#publish-steps [data-pub-step]").forEach(function (b) {
+        var on = Number(b.getAttribute("data-pub-step")) === publishStep;
+        b.classList.toggle("primary", on);
+      });
+      document.querySelectorAll("#publish-panel [data-step-panel]").forEach(function (p) {
+        p.classList.toggle("hidden", Number(p.getAttribute("data-step-panel")) !== publishStep);
+      });
+      if (publishStep === 4) updatePublishSummary();
+      var wrap = document.getElementById("publish-start-wrap");
+      var mode = (document.getElementById("publish-sched-mode") || {}).value || "spread";
+      if (wrap) wrap.classList.toggle("hidden", mode !== "start");
+    }
+
+    function syncPublishImagesField() {
+      var ta = document.getElementById("publish-images");
+      if (ta) ta.value = publishImageUrls.join("\n");
+      var box = document.getElementById("publish-images-preview");
+      if (!box) return;
+      if (!publishImageUrls.length) {
+        box.innerHTML = '<span style="font-size:12px;color:#a1a1aa">ยังไม่มีรูป — อัปโหลดหรือดึงจากเพจ</span>';
+        return;
+      }
+      box.innerHTML = publishImageUrls.map(function (u, i) {
+        var src = u.indexOf("/api/") === 0 ? u : u;
+        return '<div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;background:#fff">' +
+          '<img src="' + esc(src) + '" alt="" style="width:100%;height:100%;object-fit:cover" />' +
+          '<button type="button" data-pub-img-rm="' + i + '" style="position:absolute;top:2px;right:2px;border:0;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;width:20px;height:20px;cursor:pointer;font-size:11px">×</button>' +
+          '</div>';
+      }).join("");
+    }
+
+    function updatePublishSummary() {
+      var el = document.getElementById("publish-confirm-summary");
+      if (!el) return;
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim() || "—";
+      var nImg = publishImageUrls.length;
+      var nGrp = document.querySelectorAll("#publish-groups-pick [data-pub-g]:checked").length;
+      var extra = ((document.getElementById("publish-extra-groups") || {}).value || "").trim().split(/\n+/).filter(Boolean).length;
+      var mode = (document.getElementById("publish-sched-mode") || {}).value || "spread";
+      var vary = document.getElementById("publish-vary-caption") && document.getElementById("publish-vary-caption").checked;
+      el.innerHTML = "รหัส <strong>" + esc(code) + "</strong> · รูป <strong>" + nImg +
+        "</strong> · กลุ่มติ๊ก <strong>" + nGrp + "</strong>" + (extra ? (" + URL เพิ่ม " + extra) : "") +
+        "<br>เวลา: " + esc(({ spread: "กระจายอัตโนมัติ", start: "เริ่มตอนที่เลือก", now: "คิวทันที" })[mode] || mode) +
+        " · แปรข้อความ: " + (vary ? "เปิด" : "ปิด");
+    }
+
     async function loadPublishPanel() {
       var agentEl = document.getElementById("publish-agent");
       var agentId = (agentEl && agentEl.value) || fbSelectedAgentId || "owner";
@@ -9353,16 +9445,25 @@
         };
         set("pdash-today", String(st.posted_today != null ? st.posted_today : "—"));
         set("pdash-pending", String(st.pending != null ? st.pending : "—"));
+        set("pdash-await-join", String(st.awaiting_join != null ? st.awaiting_join : ((st.by_status && st.by_status.awaiting_join) || 0)));
         set("pdash-restricted", String((st.by_status && st.by_status.restricted) || 0));
         var byAcc = st.by_account_today || {};
-        var accBits = Object.keys(byAcc).map(function (k) {
-          return esc(k) + ": " + byAcc[k];
-        });
+        var accBits = Object.keys(byAcc).map(function (k) { return esc(k) + ": " + byAcc[k]; });
         var byBox = document.getElementById("publish-by-account");
         if (byBox) {
-          byBox.textContent = accBits.length
-            ? ("วันนี้ต่อบัญชี — " + accBits.join(" · "))
-            : "ยังไม่มีโพสวันนี้";
+          byBox.textContent = accBits.length ? ("วันนี้ต่อบัญชี — " + accBits.join(" · ")) : "ยังไม่มีโพสวันนี้";
+        }
+        var banner = document.getElementById("publish-manual-join-banner");
+        var need = Number(st.needs_manual_join || 0);
+        if (banner) {
+          if (need > 0) {
+            banner.classList.remove("hidden");
+            banner.innerHTML = "<strong>ต้องกดเข้าร่วมกลุ่มด้วยมือ</strong> — มี " + need +
+              " งานรออยู่ เปิดเฟสใน Chrome ของ Agent → กดเข้าร่วม/ยืนยันคำขอ แล้วคิวจะรีเช็คและโพสต่อเอง";
+          } else {
+            banner.classList.add("hidden");
+            banner.textContent = "";
+          }
         }
         try {
           var fb = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(agentId));
@@ -9392,16 +9493,18 @@
           posted: "โพสแล้ว",
           failed: "ล้มเหลว",
           restricted: "จำกัด",
-          cancelled: "ยกเลิก"
+          cancelled: "ยกเลิก",
+          awaiting_join: (j.needs_manual_join ? "รอเข้ากลุ่ม*" : "รอเข้ากลุ่ม")
         })[st] || st;
-        return "<tr>" +
+        var tip = j.detail || j.error || "";
+        return "<tr title=\"" + esc(tip) + "\">" +
           "<td>" + esc(j.property_code || "") + "</td>" +
           "<td style=\"font-size:12px\">" + esc(j.group_name || j.group_url || "") + "</td>" +
           "<td style=\"font-size:12px\">" + esc(j.fb_account_id || "—") + "</td>" +
           "<td>" + esc(label) + "</td>" +
           "<td style=\"font-size:11px\">" + esc(j.next_post_at || j.posted_at || "—") + "</td>" +
           "<td>" +
-            (st === "pending" || st === "due" || st === "failed"
+            (st === "pending" || st === "due" || st === "failed" || st === "awaiting_join"
               ? '<button type="button" class="btn-sm" data-publish-cancel="' + esc(j.id) + '">ยกเลิก</button>'
               : (j.permalink
                 ? '<a class="btn-sm" href="' + esc(j.permalink) + '" target="_blank" rel="noopener">เปิด</a>'
@@ -9412,10 +9515,7 @@
 
     async function publishGenCaption() {
       var code = ((document.getElementById("publish-code") || {}).value || "").trim();
-      if (!code) {
-        alert("ใส่รหัสทรัพย์ก่อน");
-        return;
-      }
+      if (!code) { alert("ใส่รหัสทรัพย์ก่อน"); return; }
       try {
         var data = await apiPost("/api/groups/prepare-caption-nolink", { code: code, n: 4 });
         publishCaptionVariants = data.variants || [];
@@ -9423,7 +9523,7 @@
         if (cap) cap.value = data.caption || (publishCaptionVariants[0] || "");
         var box = document.getElementById("publish-variants");
         if (box) {
-          box.textContent = publishCaptionVariants.length
+          box.textContent = publishCaptionVariants.length > 1
             ? ("เวอร์ชันสำรอง:\n\n" + publishCaptionVariants.slice(1).join("\n---\n"))
             : "";
         }
@@ -9432,38 +9532,112 @@
       }
     }
 
-    async function publishLoadGroups() {
-      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
-      if (!code) {
-        alert("ใส่รหัสทรัพย์ก่อน");
+    function renderPublishGroupPick(groups) {
+      var box = document.getElementById("publish-groups-pick");
+      if (!box) return;
+      publishGroupsCache = groups || [];
+      var q = softNormText(((document.getElementById("publish-groups-q") || {}).value || ""));
+      var filtered = publishGroupsCache.map(function (g, i) { return { g: g, i: i }; }).filter(function (row) {
+        if (!q) return true;
+        var blob = softNormText((row.g.name || "") + " " + (row.g.url || ""));
+        return blob.indexOf(q) >= 0;
+      });
+      if (!filtered.length) {
+        box.innerHTML = '<div style="color:#71717a;padding:8px">ไม่พบกลุ่ม</div>';
         return;
       }
+      box.innerHTML = filtered.map(function (row) {
+        var g = row.g;
+        var url = g.url || g.group_url || "";
+        var name = g.name || g.group_name || url;
+        var memb = "";
+        if (g.membership_by_account && typeof g.membership_by_account === "object") {
+          var keys = Object.keys(g.membership_by_account);
+          if (keys.length) memb = g.membership_by_account[keys[0]] || "";
+        }
+        if (!memb) memb = g.membership || "";
+        var badge = memb === "joined" ? "เข้าแล้ว" : (memb === "pending" ? "รออนุมัติ" : (memb === "unknown" || !memb ? "" : memb));
+        return '<label style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid #f1f5f9">' +
+          '<input type="checkbox" data-pub-g="' + row.i + '" style="width:auto;margin-top:3px" />' +
+          '<span><strong>' + esc(name) + "</strong>" +
+          (badge ? (' <span style="font-size:10px;color:#6366f1">[' + esc(badge) + "]</span>") : "") +
+          '<br/><span style="font-size:11px;color:#94a3b8;word-break:break-all">' + esc(url) + "</span></span></label>";
+      }).join("");
+    }
+
+    async function publishLoadGroups() {
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
+      if (!code) { alert("ใส่รหัสทรัพย์ก่อน"); return; }
       var box = document.getElementById("publish-groups-pick");
       if (box) box.innerHTML = "กำลังโหลดกลุ่มแนะนำ…";
       try {
-        var data = await apiPost("/api/groups/recommend", { code: code, limit: 40 });
+        var data = await apiPost("/api/groups/recommend", { code: code, limit: 60 });
         var groups = data.groups || data.items || data.recommendations || [];
         if (!groups.length && data.by_category) {
           Object.keys(data.by_category).forEach(function (k) {
             (data.by_category[k] || []).forEach(function (g) { groups.push(g); });
           });
         }
-        publishGroupsCache = groups;
-        if (!box) return;
-        if (!groups.length) {
-          box.innerHTML = '<div style="color:#71717a">ไม่พบกลุ่มแนะนำ — เพิ่มกลุ่มในสมุดก่อน</div>';
-          return;
-        }
-        box.innerHTML = groups.map(function (g, i) {
-          var url = g.url || g.group_url || "";
-          var name = g.name || g.group_name || url;
-          return '<label style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid #f1f5f9">' +
-            '<input type="checkbox" data-pub-g="' + i + '" style="width:auto;margin-top:3px" checked />' +
-            '<span><strong>' + esc(name) + "</strong><br/><span style=\"font-size:11px;color:#94a3b8;word-break:break-all\">" +
-            esc(url) + "</span></span></label>";
-        }).join("");
+        renderPublishGroupPick(groups);
+        document.querySelectorAll("#publish-groups-pick [data-pub-g]").forEach(function (cb) { cb.checked = true; });
       } catch (e) {
         if (box) box.innerHTML = esc(e.message || "โหลดกลุ่มไม่ได้");
+      }
+    }
+
+    async function publishLoadBook() {
+      var box = document.getElementById("publish-groups-pick");
+      if (box) box.innerHTML = "กำลังโหลดสมุดกลุ่ม…";
+      try {
+        var data = await apiGet("/api/groups");
+        var groups = data.groups || data.items || [];
+        renderPublishGroupPick(groups);
+      } catch (e) {
+        if (box) box.innerHTML = esc(e.message || "โหลดสมุดไม่ได้");
+      }
+    }
+
+    async function publishFetchImages() {
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
+      if (!code) { alert("ใส่รหัสทรัพย์ก่อน"); return; }
+      try {
+        var data = await apiPost("/api/publish-images/from-property", { code: code });
+        var urls = data.image_urls || [];
+        if (!urls.length) {
+          alert("ดึงรูปจากเพจไม่ได้ — ลองอัปโหลดเอง (ชัวร์กว่า)");
+          return;
+        }
+        urls.forEach(function (u) {
+          if (publishImageUrls.indexOf(u) < 0) publishImageUrls.push(u);
+        });
+        syncPublishImagesField();
+        alert("ได้รูป " + urls.length + " ใบจากต้นทาง (เท่าที่ดึงได้)");
+      } catch (e) {
+        alert(e.message || "ดึงรูปไม่ได้");
+      }
+    }
+
+    async function publishUploadFiles(fileList) {
+      var files = Array.prototype.slice.call(fileList || [], 0).slice(0, 12);
+      if (!files.length) return;
+      function readFile(file) {
+        return new Promise(function (resolve, reject) {
+          var r = new FileReader();
+          r.onload = function () { resolve({ name: file.name, type: file.type, data: String(r.result || "") }); };
+          r.onerror = reject;
+          r.readAsDataURL(file);
+        });
+      }
+      try {
+        var payload = [];
+        for (var i = 0; i < files.length; i++) payload.push(await readFile(files[i]));
+        var data = await apiPost("/api/publish-uploads", { files: payload });
+        (data.urls || []).forEach(function (u) {
+          if (publishImageUrls.indexOf(u) < 0) publishImageUrls.push(u);
+        });
+        syncPublishImagesField();
+      } catch (e) {
+        alert(e.message || "อัปโหลดไม่ได้");
       }
     }
 
@@ -9471,26 +9645,26 @@
       var code = ((document.getElementById("publish-code") || {}).value || "").trim();
       var agentId = ((document.getElementById("publish-agent") || {}).value || "owner").trim();
       var caption = ((document.getElementById("publish-caption") || {}).value || "").trim();
-      var imagesRaw = ((document.getElementById("publish-images") || {}).value || "").trim();
-      var image_urls = imagesRaw ? imagesRaw.split(/\n+/).map(function (s) { return s.trim(); }).filter(Boolean) : [];
+      var image_urls = publishImageUrls.slice();
       var groups = [];
       document.querySelectorAll("#publish-groups-pick [data-pub-g]:checked").forEach(function (cb) {
         var i = Number(cb.getAttribute("data-pub-g") || -1);
         var g = publishGroupsCache[i];
-        if (g) {
-          groups.push({
-            url: g.url || g.group_url || "",
-            name: g.name || g.group_name || ""
-          });
-        }
+        if (g) groups.push({ url: g.url || g.group_url || "", name: g.name || g.group_name || "" });
       });
-      if (!code) {
-        alert("ใส่รหัสทรัพย์");
-        return;
-      }
-      if (!groups.length) {
-        alert("เลือกอย่างน้อย 1 กลุ่ม (กดโหลดกลุ่มแนะนำก่อน)");
-        return;
+      ((document.getElementById("publish-extra-groups") || {}).value || "").trim().split(/\n+/).forEach(function (line) {
+        var u = line.trim();
+        if (u) groups.push({ url: u, name: "" });
+      });
+      if (!code) { alert("ใส่รหัสทรัพย์"); return; }
+      if (!image_urls.length) { alert("เพิ่มอย่างน้อย 1 รูป (ขั้น 2)"); setPublishStep(2); return; }
+      if (!groups.length) { alert("เลือกอย่างน้อย 1 กลุ่ม"); setPublishStep(3); return; }
+      var mode = (document.getElementById("publish-sched-mode") || {}).value || "spread";
+      var startAt = "";
+      if (mode === "start") {
+        var local = (document.getElementById("publish-start-at") || {}).value || "";
+        if (!local) { alert("เลือกเวลาเริ่ม"); return; }
+        startAt = local.replace("T", " ") + ":00";
       }
       var hint = document.getElementById("publish-create-hint");
       if (hint) hint.textContent = "กำลังสร้างคิว…";
@@ -9502,10 +9676,12 @@
           caption: caption,
           caption_variants: publishCaptionVariants,
           image_urls: image_urls,
-          schedule_spread: true
+          schedule_spread: mode !== "now",
+          start_at: startAt,
+          vary_captions: !!(document.getElementById("publish-vary-caption") && document.getElementById("publish-vary-caption").checked)
         };
         var data = await apiPost("/api/publish-jobs/create", body);
-        if (hint) hint.textContent = "สร้างแล้ว " + (data.created || 0) + " งาน";
+        if (hint) hint.textContent = "สร้างแล้ว " + (data.created || 0) + " งาน — เปิด Agent ให้ทำงานต่อ";
         loadPublishPanel();
       } catch (e) {
         if (hint) hint.textContent = "";
@@ -12775,8 +12951,64 @@
     if (publishGenCap) publishGenCap.addEventListener("click", publishGenCaption);
     var publishLoadG = document.getElementById("publish-load-groups");
     if (publishLoadG) publishLoadG.addEventListener("click", publishLoadGroups);
+    var publishLoadBookBtn = document.getElementById("publish-load-book");
+    if (publishLoadBookBtn) publishLoadBookBtn.addEventListener("click", publishLoadBook);
+    var publishFetchImg = document.getElementById("publish-fetch-images");
+    if (publishFetchImg) publishFetchImg.addEventListener("click", publishFetchImages);
+    var publishClearImg = document.getElementById("publish-clear-images");
+    if (publishClearImg) publishClearImg.addEventListener("click", function () {
+      publishImageUrls = [];
+      syncPublishImagesField();
+    });
+    var publishUploadInp = document.getElementById("publish-upload-input");
+    if (publishUploadInp) publishUploadInp.addEventListener("change", function () {
+      publishUploadFiles(this.files);
+      this.value = "";
+    });
+    var publishImgPrev = document.getElementById("publish-images-preview");
+    if (publishImgPrev) publishImgPrev.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-pub-img-rm]");
+      if (!btn) return;
+      var i = Number(btn.getAttribute("data-pub-img-rm") || -1);
+      if (i >= 0) {
+        publishImageUrls.splice(i, 1);
+        syncPublishImagesField();
+      }
+    });
+    document.querySelectorAll("#publish-steps [data-pub-step]").forEach(function (b) {
+      b.addEventListener("click", function () { setPublishStep(b.getAttribute("data-pub-step")); });
+    });
+    document.querySelectorAll("#publish-panel [data-pub-next]").forEach(function (b) {
+      b.addEventListener("click", function () { setPublishStep(b.getAttribute("data-pub-next")); });
+    });
+    document.querySelectorAll("#publish-panel [data-pub-prev]").forEach(function (b) {
+      b.addEventListener("click", function () { setPublishStep(b.getAttribute("data-pub-prev")); });
+    });
+    var publishSchedMode = document.getElementById("publish-sched-mode");
+    if (publishSchedMode) publishSchedMode.addEventListener("change", function () {
+      var wrap = document.getElementById("publish-start-wrap");
+      if (wrap) wrap.classList.toggle("hidden", this.value !== "start");
+      updatePublishSummary();
+    });
+    var publishGroupsQ = document.getElementById("publish-groups-q");
+    if (publishGroupsQ) publishGroupsQ.addEventListener("input", function () {
+      renderPublishGroupPick(publishGroupsCache);
+    });
+    var publishSelAll = document.getElementById("publish-select-all");
+    if (publishSelAll) publishSelAll.addEventListener("click", function () {
+      document.querySelectorAll("#publish-groups-pick [data-pub-g]").forEach(function (cb) { cb.checked = true; });
+    });
+    var publishSelNone = document.getElementById("publish-select-none");
+    if (publishSelNone) publishSelNone.addEventListener("click", function () {
+      document.querySelectorAll("#publish-groups-pick [data-pub-g]").forEach(function (cb) { cb.checked = false; });
+    });
+    var publishSyncHint = document.getElementById("publish-sync-hint");
+    if (publishSyncHint) publishSyncHint.addEventListener("click", function () {
+      alert("ให้ Agent ที่ล็อกอินเฟสแล้วรันซิงก์กลุ่ม (หรือใช้ scripts/export_facebook_groups.py) แล้วกลุ่มใหม่จะเข้าสมุดอัตโนมัติ · สถานะ「เข้าแล้ว」จะโชว์ตอนติ๊ก");
+    });
     var publishCreate = document.getElementById("publish-create");
     if (publishCreate) publishCreate.addEventListener("click", publishCreateCampaign);
+    try { setPublishStep(1); syncPublishImagesField(); } catch (ePub) {}
     var fbAccSave = document.getElementById("fb-accounts-save");
     if (fbAccSave) fbAccSave.addEventListener("click", saveFbAccounts);
     var fbAccAdd = document.getElementById("fb-accounts-add-row");

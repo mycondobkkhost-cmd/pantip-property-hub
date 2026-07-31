@@ -25,6 +25,8 @@ from src.hub.group_store import (  # noqa: E402
     create_group,
     list_groups_summary,
     mark_group_used,
+    merge_joined_groups_from_account,
+    membership_for_account,
     recommend_groups,
     retag_all,
     update_group,
@@ -87,6 +89,11 @@ from src.hub.group_post_publish_store import (  # noqa: E402
 from src.hub.publish_caption import (  # noqa: E402
     build_no_link_captions,
     resolve_image_urls_for_property,
+)
+from src.hub.publish_upload_store import (  # noqa: E402
+    purge_expired as purge_publish_uploads,
+    resolve_file as resolve_publish_upload,
+    save_upload as save_publish_upload,
 )
 from src.hub.publish_policy import (  # noqa: E402
     DEFAULT_DAILY_CAP,
@@ -1866,6 +1873,20 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path.startswith("/api/publish-uploads/"):
+            name = path.rsplit("/", 1)[-1]
+            file_path = resolve_publish_upload(name)
+            if not file_path:
+                self.send_error(404)
+                return
+            try:
+                data = file_path.read_bytes()
+            except OSError:
+                self.send_error(404)
+                return
+            ctype = mimetypes.guess_type(str(file_path))[0] or "image/jpeg"
+            self._send_bytes(200, data, content_type=ctype, cache_control="private, max-age=3600")
+            return
         if path in {"/co", "/co/"}:
             path = "/co/index.html"
         if path == "/":
@@ -2001,6 +2022,8 @@ class HubHandler(BaseHTTPRequestHandler):
         )
         if path not in {"/api/co/match", "/api/co/track"}:
             if is_agent_api and _is_agent_authorized(self):
+                pass
+            elif path == "/api/groups/sync-joins" and _is_agent_authorized(self):
                 pass
             elif not self._session_user():
                 self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
@@ -2228,6 +2251,8 @@ class HubHandler(BaseHTTPRequestHandler):
                     error=str(body.get("error") or ""),
                     action=action,
                     detail=str(body.get("detail") or ""),
+                    join_status=str(body.get("join_status") or ""),
+                    needs_manual_join=body.get("needs_manual_join"),
                 )
                 agent_id = _agent_id_from_handler(self) or job.get("agent_id") or "owner"
                 # Auto-pause FB account on restriction
@@ -2425,6 +2450,9 @@ class HubHandler(BaseHTTPRequestHandler):
                     agent_id=agent_id,
                     fb_accounts=accounts,
                     schedule_spread=body.get("schedule_spread", True) is not False,
+                    start_at=str(body.get("start_at") or "").strip() or None,
+                    caption_variants=[str(x) for x in variants if str(x).strip()],
+                    vary_captions=body.get("vary_captions", True) is not False,
                 )
                 result["stats"] = publish_job_stats(agent_id=agent_id)
                 self._json(200, result)
@@ -2441,6 +2469,67 @@ class HubHandler(BaseHTTPRequestHandler):
                     self._json(404, {"ok": False, "error": "ไม่พบงานโพส"})
                     return
                 self._json(200, {"ok": True, "stats": publish_job_stats()})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/publish-uploads":
+            try:
+                import base64
+
+                purge_publish_uploads()
+                files = body.get("files") or []
+                if not isinstance(files, list):
+                    files = []
+                saved = []
+                for f in files[:12]:
+                    if not isinstance(f, dict):
+                        continue
+                    b64 = str(f.get("data") or f.get("base64") or "")
+                    if "," in b64 and b64.strip().startswith("data:"):
+                        b64 = b64.split(",", 1)[1]
+                    raw = base64.b64decode(b64)
+                    saved.append(
+                        save_publish_upload(
+                            raw,
+                            filename=str(f.get("name") or f.get("filename") or "photo.jpg"),
+                            content_type=str(f.get("content_type") or f.get("type") or ""),
+                        )
+                    )
+                if not saved:
+                    self._json(400, {"ok": False, "error": "ไม่มีไฟล์อัปโหลด"})
+                    return
+                self._json(200, {"ok": True, "items": saved, "urls": [x["url"] for x in saved]})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/publish-images/from-property":
+            try:
+                code = (body.get("code") or body.get("property_code") or "").strip()
+                urls = resolve_image_urls_for_property(code, extra=[])
+                self._json(200, {"ok": True, "code": code.upper(), "image_urls": urls, "count": len(urls)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/groups/sync-joins":
+            # Agent reports joined groups from Facebook; Hub merges into book
+            if not (_is_agent_authorized(self) or self._session_user()):
+                self._json(401, {"ok": False, "error": "unauthorized"})
+                return
+            try:
+                items = body.get("groups") or body.get("items") or []
+                if not isinstance(items, list):
+                    items = []
+                result = merge_joined_groups_from_account(
+                    items,
+                    account_id=str(body.get("account_id") or body.get("fb_account_id") or ""),
+                    account_label=str(body.get("account_label") or body.get("label") or ""),
+                )
+                self._json(200, result)
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return

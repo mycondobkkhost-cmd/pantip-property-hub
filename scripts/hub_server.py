@@ -170,6 +170,7 @@ from src.hub.location_master_store import (  # noqa: E402
 )
 from src.hub.customer_match import recommend_for_case  # noqa: E402
 from src.hub.co_catalog import get_co_catalog, match_co_brief  # noqa: E402
+from src.hub.co_traffic_store import analytics_summary, record_event  # noqa: E402
 from src.hub.scraper import scrape_url, fetch_preview_image, fetch_image_bytes  # noqa: E402
 from src.hub.sheet_sync import (  # noqa: E402
     refresh_main_sheet,
@@ -940,6 +941,46 @@ def _cookie_value(headers: dict | None, name: str) -> str:
     return ""
 
 
+def _client_ip(handler: BaseHTTPRequestHandler) -> str:
+    """Best-effort client IP (Fly/Cloudflare forwarded headers). Never store raw in analytics."""
+    xff = (handler.headers.get("Fly-Client-IP") or handler.headers.get("CF-Connecting-IP") or "").strip()
+    if xff:
+        return xff.split(",")[0].strip()
+    forwarded = (handler.headers.get("X-Forwarded-For") or "").strip()
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    try:
+        return str(handler.client_address[0] or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _co_track_side(
+    handler: BaseHTTPRequestHandler,
+    *,
+    event: str,
+    meta: dict | None = None,
+) -> None:
+    """Best-effort server-side Co event (does not fail the main request)."""
+    try:
+        vid = (handler.headers.get("X-Co-Vid") or "").strip()
+        sid = (handler.headers.get("X-Co-Sid") or "").strip()
+        if not vid and not sid:
+            return
+        record_event(
+            event=event,
+            vid=vid,
+            sid=sid,
+            path="/co/",
+            referrer=(handler.headers.get("Referer") or "").strip(),
+            user_agent=(handler.headers.get("User-Agent") or "").strip(),
+            ip=_client_ip(handler),
+            meta=meta or {},
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[hub] co_track_side skipped: {exc}")
+
+
 def _preview_data_meta() -> dict:
     """Lightweight fingerprint of the embedded catalog (for cache-bust + freshness)."""
     if PREVIEW_META.is_file():
@@ -1170,7 +1211,7 @@ class HubHandler(BaseHTTPRequestHandler):
         else:
             self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Co-Vid, X-Co-Sid")
         self.send_header("Vary", "Origin")
 
     def _json(self, status: int, payload: dict, *, set_cookie: str | None = None, clear_cookie: bool = False) -> None:
@@ -1244,6 +1285,7 @@ class HubHandler(BaseHTTPRequestHandler):
 
         # Public GET APIs (no Hub session). Everything else under /api/* requires login.
         # Static Hub/Co pages and preview-data.js stay public below (SPA has its own login gate).
+        # Co-Agent: only /api/co/catalog is public GET — /api/co/analytics requires session.
         _public_get_apis = frozenset(
             {
                 "/api/auth/me",
@@ -1256,7 +1298,6 @@ class HubHandler(BaseHTTPRequestHandler):
         if (
             path.startswith("/api/")
             and path not in _public_get_apis
-            and not path.startswith("/api/co/")
             and not path.startswith("/api/auth/")
         ):
             if path.startswith("/api/fb-agent/") and _is_agent_authorized(self):
@@ -1805,7 +1846,23 @@ class HubHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/co/catalog":
             try:
-                self._json(200, get_co_catalog())
+                payload = get_co_catalog()
+                self._json(200, payload)
+                try:
+                    items = (payload or {}).get("items") or (payload or {}).get("rows") or []
+                    _co_track_side(self, event="api_catalog", meta={"items": len(items)})
+                except Exception:  # noqa: BLE001
+                    pass
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/co/analytics":
+            try:
+                from urllib.parse import parse_qs
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                range_key = ((qs.get("range") or ["7d"])[0] or "7d").strip()
+                self._json(200, analytics_summary(range_key))
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -1936,13 +1993,13 @@ class HubHandler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True}, clear_cookie=True)
             return
 
-        # Hub SPA uses cookie session; Co-Agent match stays public for /co/.
+        # Hub SPA uses cookie session; Co-Agent match + track stay public for /co/.
         # LINE webhook is handled above (raw body) before JSON parse.
         # Comment agent may use bearer token on /api/fb-agent/*.
         is_agent_api = any(path.startswith(p) or path == p for p in _AGENT_API_PREFIXES) or path.startswith(
             "/api/fb-agent/"
         )
-        if path != "/api/co/match":
+        if path not in {"/api/co/match", "/api/co/track"}:
             if is_agent_api and _is_agent_authorized(self):
                 pass
             elif not self._session_user():
@@ -3367,11 +3424,46 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"error": str(exc)})
             return
 
+        if path == "/api/co/track":
+            try:
+                raw_size = len(json.dumps(body, ensure_ascii=False).encode("utf-8"))
+                if raw_size > 8192:
+                    self._json(413, {"ok": False, "error": "payload too large"})
+                    return
+                event = (body.get("event") or "").strip()
+                utm = body.get("utm") if isinstance(body.get("utm"), dict) else {}
+                meta = body.get("meta") if isinstance(body.get("meta"), dict) else {}
+                result = record_event(
+                    event=event,
+                    vid=str(body.get("vid") or ""),
+                    sid=str(body.get("sid") or ""),
+                    path=str(body.get("path") or "/co/"),
+                    referrer=str(body.get("referrer") or self.headers.get("Referer") or ""),
+                    user_agent=str(body.get("ua") or self.headers.get("User-Agent") or ""),
+                    ip=_client_ip(self),
+                    utm={str(k): str(v) for k, v in utm.items()},
+                    meta=meta,
+                    screen=str(body.get("screen") or ""),
+                    lang=str(body.get("lang") or ""),
+                    tz=str(body.get("tz") or ""),
+                )
+                self._json(200, result)
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/co/match":
             try:
                 limit = int(body.get("limit") or 30)
                 result = match_co_brief(body, limit=limit)
                 self._json(200, result)
+                try:
+                    n = len((result or {}).get("items") or [])
+                    _co_track_side(self, event="api_match", meta={"results": n})
+                except Exception:  # noqa: BLE001
+                    pass
             except ValueError as exc:
                 self._json(400, {"ok": False, "error": str(exc)})
             except Exception as exc:  # noqa: BLE001

@@ -20,6 +20,7 @@ data/group_post_links.json
 data/group_post_codes.json
 data/group_publish_jobs.json
 data/fb_agent.json
+data/co_traffic/
 scripts/mac/เปิดระบบคอมเมนต์.command
 scripts/windows/เปิดระบบคอมเมนต์.bat
 

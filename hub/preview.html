@@ -1517,6 +1517,61 @@
       background: var(--accent-soft); border-color: #ceead6; color: #137333;
     }
 
+    /* Co-Agent traffic dashboard */
+    .co-traffic-panel { padding: 4px 0 24px; }
+    .co-traffic-toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin-bottom: 12px;
+    }
+    .co-traffic-toolbar .range-btns { display: flex; flex-wrap: wrap; gap: 4px; }
+    .co-traffic-toolbar .range-btns button {
+      appearance: none; border: 1px solid var(--line); background: var(--surface);
+      border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600;
+      color: #5f6368; cursor: pointer; font-family: inherit;
+    }
+    .co-traffic-toolbar .range-btns button.active {
+      background: #eef2ff; border-color: #c7d2fe; color: #3730a3;
+    }
+    .co-kpi-grid {
+      display: grid; gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      margin-bottom: 14px;
+    }
+    .co-kpi {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow);
+    }
+    .co-kpi .label { font-size: 11px; color: #71717a; font-weight: 600; margin-bottom: 4px; }
+    .co-kpi .value { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+    .co-chart-card, .co-table-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+    .co-chart-card h3, .co-table-card h3 {
+      margin: 0 0 10px; font-size: 13px; font-weight: 700;
+    }
+    .co-chart-wrap { width: 100%; overflow-x: auto; }
+    .co-chart-wrap svg { display: block; width: 100%; min-width: 480px; height: 180px; }
+    .co-grid-2 {
+      display: grid; gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 900px) {
+      .co-grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+    .co-mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .co-mini-table th, .co-mini-table td {
+      text-align: left; padding: 6px 4px; border-bottom: 1px solid #f0f0f2;
+    }
+    .co-mini-table th { color: #71717a; font-weight: 600; font-size: 11px; }
+    .co-mini-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .co-empty {
+      padding: 28px 16px; text-align: center; color: #71717a; font-size: 13px; line-height: 1.5;
+      background: #fafafa; border: 1px dashed var(--line); border-radius: 12px;
+    }
+    .co-empty a { color: #4338ca; }
+
     @media (min-width: 769px) and (max-width: 1100px) {
       #props-panel table { min-width: 0; }
       main { padding: 0 14px 28px; }
@@ -1586,6 +1641,10 @@
           <button type="button" class="tab" data-view="tenants">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>
             ลูกค้าปัจจุบัน<span class="tab-badge hidden" id="tenants-badge">0</span>
+          </button>
+          <button type="button" class="tab" data-view="co-traffic">
+            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
+            Co-Agent ทราฟฟิก
           </button>
           <button type="button" class="tab" data-view="db">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
@@ -2186,6 +2245,60 @@
           <div class="toolbar-row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
             <button type="button" class="btn-sm primary" id="tn-save-btn">บันทึก</button>
             <button type="button" class="btn-sm" id="tn-clear-btn">ล้างฟอร์ม</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hidden" id="co-traffic-panel">
+        <div class="co-traffic-panel">
+          <div class="co-traffic-toolbar">
+            <div class="range-btns" id="co-traffic-range" role="group" aria-label="ช่วงเวลา">
+              <button type="button" data-range="today">วันนี้</button>
+              <button type="button" data-range="7d" class="active">7 วัน</button>
+              <button type="button" data-range="30d">30 วัน</button>
+              <button type="button" data-range="90d">90 วัน</button>
+            </div>
+            <button type="button" class="btn-sm" id="co-traffic-refresh">รีเฟรช</button>
+            <a class="btn-sm" href="/co/" target="_blank" rel="noopener">เปิด Co-Agent</a>
+            <span id="co-traffic-meta" style="font-size:12px;color:#71717a"></span>
+          </div>
+          <div id="co-traffic-empty" class="co-empty hidden">
+            ยังไม่มีข้อมูลทราฟฟิก — เปิด
+            <a href="/co/" target="_blank" rel="noopener">/co/</a>
+            ยอมรับคุกกี้ แล้วกลับมารีเฟรชหน้านี้
+          </div>
+          <div id="co-traffic-body">
+            <div class="co-kpi-grid" id="co-kpi-grid"></div>
+            <div class="co-chart-card">
+              <h3>แนวโน้มรายวัน</h3>
+              <div class="co-chart-wrap" id="co-chart"></div>
+            </div>
+            <div class="co-grid-2">
+              <div class="co-table-card">
+                <h3>แหล่งที่มา (referrer)</h3>
+                <table class="co-mini-table"><thead><tr><th>แหล่ง</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-ref-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>อุปกรณ์</h3>
+                <table class="co-mini-table"><thead><tr><th>ประเภท</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-device-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>เบราว์เซอร์</h3>
+                <table class="co-mini-table"><thead><tr><th>เบราว์เซอร์</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-browser-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>อีเวนต์ยอดนิยม</h3>
+                <table class="co-mini-table"><thead><tr><th>อีเวนต์</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-event-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>ชั่วโมงพีค (Bangkok)</h3>
+                <div class="co-chart-wrap" id="co-hour-chart"></div>
+              </div>
+              <div class="co-table-card">
+                <h3>UTM source</h3>
+                <table class="co-mini-table"><thead><tr><th>source</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-utm-rows"></tbody></table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -3155,6 +3268,10 @@
           <button type="button" data-view="tenants">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>
             เช่า<span class="nav-badge" id="mobile-tenants-badge">0</span>
+          </button>
+          <button type="button" data-view="co-traffic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
+            ทราฟฟิก
           </button>
           <button type="button" data-view="db">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
@@ -7050,7 +7167,7 @@
       var inProjectDrill = activeView === "properties" &&
         !!(f && ((f.projectIds && f.projectIds.length === 1) || f.projectId));
       var show = activeView === "add" || activeView === "queue" || activeView === "followup" ||
-        activeView === "db" || activeView === "focus" || inProjectDrill;
+        activeView === "db" || activeView === "focus" || activeView === "co-traffic" || inProjectDrill;
       bar.classList.toggle("hidden", !show);
       saveBtn.classList.toggle("hidden", activeView !== "add");
 
@@ -7078,6 +7195,9 @@
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "focus") {
         title.textContent = "ทรัพย์ Focus";
+        if (backBtn) backBtn.textContent = "← กลับทรัพย์";
+      } else if (activeView === "co-traffic") {
+        title.textContent = "Co-Agent ทราฟฟิก";
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "db") {
         title.textContent = ({
@@ -7469,6 +7589,8 @@
       document.getElementById("followup-panel").classList.toggle("hidden", view !== "followup");
       var tnPanel = document.getElementById("tenants-panel");
       if (tnPanel) tnPanel.classList.toggle("hidden", view !== "tenants");
+      var coTrafficPanel = document.getElementById("co-traffic-panel");
+      if (coTrafficPanel) coTrafficPanel.classList.toggle("hidden", view !== "co-traffic");
       document.getElementById("groups-panel").classList.toggle("hidden", view !== "db" || activeDbTab !== "groups");
       var commentsPanel = document.getElementById("comments-panel");
       if (commentsPanel) commentsPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "comments");
@@ -7491,6 +7613,7 @@
         queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
         followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
         tenants: ["ลูกค้าปัจจุบัน", "กำลังเช่า · ค่าเช่า · หมดสัญญา · แจ้งเตือน"],
+        "co-traffic": ["Co-Agent ทราฟฟิก", "ผู้เข้าชม · เซสชัน · Match · คลิก LINE ของ /co/"],
         db: ["ฐานข้อมูล", ({
           groups: "สมุดกลุ่ม Facebook สำหรับโพสต์",
           comments: "แดชบอร์ด + คิวคอมเมนต์กลุ่มอัตโนมัติ",
@@ -7541,6 +7664,9 @@
       else if (view === "tenants") {
         hideTenantFormSection();
         loadTenants();
+      }
+      else if (view === "co-traffic") {
+        loadCoTraffic();
       }
       else if (view === "db") {
         if (activeDbTab === "groups") {
@@ -11297,6 +11423,163 @@
         }
       }
     }
+
+    var coTrafficRange = "7d";
+
+    function coFmt(n) {
+      return Number(n || 0).toLocaleString("th-TH");
+    }
+
+    function coFillRows(tbodyId, rows) {
+      var tb = document.getElementById(tbodyId);
+      if (!tb) return;
+      if (!rows || !rows.length) {
+        tb.innerHTML = '<tr><td colspan="2" style="color:#a1a1aa">ไม่มีข้อมูล</td></tr>';
+        return;
+      }
+      tb.innerHTML = rows.map(function (r) {
+        return "<tr><td>" + esc(r.name) + '</td><td class="num">' + coFmt(r.count) + "</td></tr>";
+      }).join("");
+    }
+
+    function coLineChart(elId, series, key) {
+      var el = document.getElementById(elId);
+      if (!el) return;
+      var pts = series || [];
+      var w = Math.max(480, pts.length * 36);
+      var h = 180;
+      var pad = { t: 12, r: 12, b: 28, l: 36 };
+      var max = 1;
+      pts.forEach(function (p) { max = Math.max(max, Number(p[key] || 0)); });
+      var iw = w - pad.l - pad.r;
+      var ih = h - pad.t - pad.b;
+      var path = [];
+      var circles = [];
+      pts.forEach(function (p, i) {
+        var x = pad.l + (pts.length <= 1 ? iw / 2 : (i / (pts.length - 1)) * iw);
+        var y = pad.t + ih - (Number(p[key] || 0) / max) * ih;
+        path.push((i ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1));
+        circles.push('<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.5" fill="#4f46e5"/>');
+      });
+      var labels = pts.map(function (p, i) {
+        if (pts.length > 14 && i % 2) return "";
+        var x = pad.l + (pts.length <= 1 ? iw / 2 : (i / (pts.length - 1)) * iw);
+        var d = String(p.date || "").slice(5);
+        return '<text x="' + x.toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" font-size="10" fill="#71717a">' + esc(d) + "</text>";
+      }).join("");
+      el.innerHTML =
+        '<svg viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none">' +
+        '<line x1="' + pad.l + '" y1="' + (pad.t + ih) + '" x2="' + (w - pad.r) + '" y2="' + (pad.t + ih) + '" stroke="#e4e4e7"/>' +
+        '<path d="' + path.join(" ") + '" fill="none" stroke="#4f46e5" stroke-width="2"/>' +
+        circles.join("") + labels +
+        '<text x="8" y="' + (pad.t + 8) + '" font-size="10" fill="#a1a1aa">' + coFmt(max) + "</text>" +
+        "</svg>";
+    }
+
+    function coHourBars(elId, hours) {
+      var el = document.getElementById(elId);
+      if (!el) return;
+      var rows = hours || [];
+      var max = 1;
+      rows.forEach(function (h) { max = Math.max(max, Number(h.count || 0)); });
+      var w = 480, h = 140, pad = 20;
+      var bw = (w - pad * 2) / 24;
+      var bars = rows.map(function (row) {
+        var hh = Number(row.hour || 0);
+        var c = Number(row.count || 0);
+        var bh = (c / max) * (h - 40);
+        var x = pad + hh * bw;
+        var y = h - 24 - bh;
+        return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(2, bw - 2).toFixed(1) +
+          '" height="' + Math.max(0, bh).toFixed(1) + '" fill="#6366f1" rx="2"/>';
+      }).join("");
+      el.innerHTML =
+        '<svg viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none">' + bars +
+        '<text x="' + pad + '" y="' + (h - 6) + '" font-size="10" fill="#71717a">0</text>' +
+        '<text x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="10" fill="#71717a">12</text>' +
+        '<text x="' + (w - pad) + '" y="' + (h - 6) + '" text-anchor="end" font-size="10" fill="#71717a">23</text>' +
+        "</svg>";
+    }
+
+    function renderCoTraffic(data) {
+      var empty = document.getElementById("co-traffic-empty");
+      var body = document.getElementById("co-traffic-body");
+      var meta = document.getElementById("co-traffic-meta");
+      if (!data || data.empty) {
+        if (empty) empty.classList.remove("hidden");
+        if (body) body.classList.add("hidden");
+        if (meta) meta.textContent = "";
+        return;
+      }
+      if (empty) empty.classList.add("hidden");
+      if (body) body.classList.remove("hidden");
+      var kpi = data.kpi || {};
+      var grid = document.getElementById("co-kpi-grid");
+      if (grid) {
+        var items = [
+          ["ผู้เข้าชม (UV)", kpi.visitors],
+          ["เซสชัน", kpi.sessions],
+          ["Pageviews", kpi.pageviews],
+          ["อีเวนต์ทั้งหมด", kpi.events],
+          ["คลิก LINE", kpi.line_clicks],
+          ["Match", kpi.matches]
+        ];
+        grid.innerHTML = items.map(function (it) {
+          return '<div class="co-kpi"><div class="label">' + esc(it[0]) + '</div><div class="value">' +
+            coFmt(it[1]) + "</div></div>";
+        }).join("");
+      }
+      coLineChart("co-chart", data.series || [], "pageviews");
+      coHourBars("co-hour-chart", data.hours || []);
+      coFillRows("co-ref-rows", data.referrers || []);
+      coFillRows("co-device-rows", data.devices || []);
+      coFillRows("co-browser-rows", data.browsers || []);
+      coFillRows("co-event-rows", data.events || []);
+      coFillRows("co-utm-rows", data.utm_sources || []);
+      if (meta) {
+        meta.textContent = (data.start || "") + " → " + (data.end || "") + " · " + (data.timezone || "Asia/Bangkok");
+      }
+    }
+
+    async function loadCoTraffic() {
+      var meta = document.getElementById("co-traffic-meta");
+      if (meta) meta.textContent = "กำลังโหลด…";
+      try {
+        var res = await fetch(API_BASE + "/api/co/analytics?range=" + encodeURIComponent(coTrafficRange), {
+          credentials: "same-origin",
+          cache: "no-store"
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || "โหลดทราฟฟิกไม่ได้");
+        renderCoTraffic(data);
+      } catch (e) {
+        var empty = document.getElementById("co-traffic-empty");
+        var body = document.getElementById("co-traffic-body");
+        if (body) body.classList.add("hidden");
+        if (empty) {
+          empty.classList.remove("hidden");
+          empty.innerHTML = "<strong>โหลดไม่สำเร็จ</strong><br>" + esc(e.message);
+        }
+        if (meta) meta.textContent = "";
+      }
+    }
+
+    (function wireCoTrafficUi() {
+      var rangeBox = document.getElementById("co-traffic-range");
+      if (rangeBox) {
+        rangeBox.addEventListener("click", function (e) {
+          var btn = e.target.closest("button[data-range]");
+          if (!btn) return;
+          coTrafficRange = btn.getAttribute("data-range") || "7d";
+          rangeBox.querySelectorAll("button").forEach(function (b) {
+            b.classList.toggle("active", b === btn);
+          });
+          if (activeView === "co-traffic") loadCoTraffic();
+        });
+      }
+      var refresh = document.getElementById("co-traffic-refresh");
+      if (refresh) refresh.addEventListener("click", function () { loadCoTraffic(); });
+    })();
 
     async function saveTenant() {
       var payload = tnFormPayload();

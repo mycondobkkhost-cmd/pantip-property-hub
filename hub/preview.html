@@ -1565,11 +1565,40 @@
       background: var(--accent-soft); border-color: #ddd6fe; color: #5b21b6;
     }
 
-    /* Co-Agent traffic dashboard */
+    /* Co-Agent traffic dashboard — plain-language */
     .co-traffic-panel { padding: 4px 0 24px; }
+    .co-traffic-intro {
+      background: #faf8fc; border: 1px solid var(--line); border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 12px; font-size: 13px; line-height: 1.55; color: #3c3548;
+    }
+    .co-traffic-intro strong { color: var(--ink); }
+    .co-traffic-summary {
+      margin-top: 8px; padding: 10px 12px; border-radius: 10px;
+      background: var(--accent-soft); border: 1px solid var(--accent-border);
+      color: #5b21b6; font-size: 13px; font-weight: 600; line-height: 1.45;
+    }
+    .co-summary-grid {
+      display: grid; gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 700px) {
+      .co-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .co-summary-item {
+      background: rgba(255,255,255,0.72); border-radius: 8px; padding: 8px 10px;
+    }
+    .co-summary-item .k { font-size: 11px; font-weight: 600; color: #6b5b8a; margin-bottom: 2px; }
+    .co-summary-item .v { font-size: 16px; font-weight: 700; color: #4c1d95; }
+    .co-summary-tip {
+      margin-top: 8px; font-size: 12px; font-weight: 500; color: #5b21b6; line-height: 1.5;
+    }
+    .co-muted { color: var(--muted); font-size: 12px; padding: 6px 0; }
     .co-traffic-toolbar {
       display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
       margin-bottom: 12px;
+    }
+    .co-traffic-toolbar .range-label {
+      font-size: 12px; font-weight: 600; color: var(--muted); margin-right: 2px;
     }
     .co-traffic-toolbar .range-btns { display: flex; flex-wrap: wrap; gap: 4px; }
     .co-traffic-toolbar .range-btns button {
@@ -1578,26 +1607,39 @@
       color: #5f6368; cursor: pointer; font-family: inherit;
     }
     .co-traffic-toolbar .range-btns button.active {
-      background: #eef2ff; border-color: #c7d2fe; color: #3730a3;
+      background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent);
+    }
+    .co-section {
+      margin: 18px 0 8px; padding-top: 4px;
+    }
+    .co-section h3 {
+      margin: 0 0 2px; font-size: 15px; font-weight: 700; color: var(--ink);
+    }
+    .co-section p {
+      margin: 0 0 10px; font-size: 12px; color: var(--muted); line-height: 1.4;
     }
     .co-kpi-grid {
       display: grid; gap: 10px;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      margin-bottom: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      margin-bottom: 8px;
     }
     .co-kpi {
       background: var(--surface); border: 1px solid var(--line);
       border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow);
     }
-    .co-kpi .label { font-size: 11px; color: #71717a; font-weight: 600; margin-bottom: 4px; }
-    .co-kpi .value { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+    .co-kpi .label { font-size: 12px; color: var(--ink); font-weight: 700; margin-bottom: 2px; }
+    .co-kpi .value { font-size: 24px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.2; }
+    .co-kpi .hint { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
     .co-chart-card, .co-table-card {
       background: var(--surface); border: 1px solid var(--line);
       border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow);
       margin-bottom: 12px;
     }
     .co-chart-card h3, .co-table-card h3 {
-      margin: 0 0 10px; font-size: 13px; font-weight: 700;
+      margin: 0 0 4px; font-size: 14px; font-weight: 700;
+    }
+    .co-card-desc {
+      margin: 0 0 10px; font-size: 12px; color: var(--muted); line-height: 1.4;
     }
     .co-chart-wrap { width: 100%; overflow-x: auto; }
     .co-chart-wrap svg { display: block; width: 100%; min-width: 480px; height: 180px; }
@@ -1608,17 +1650,23 @@
     @media (min-width: 900px) {
       .co-grid-2 { grid-template-columns: 1fr 1fr; }
     }
-    .co-mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .co-mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .co-mini-table th, .co-mini-table td {
-      text-align: left; padding: 6px 4px; border-bottom: 1px solid #f0f0f2;
+      text-align: left; padding: 8px 4px; border-bottom: 1px solid #f0ebf7;
     }
-    .co-mini-table th { color: #71717a; font-weight: 600; font-size: 11px; }
-    .co-mini-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .co-mini-table th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    .co-mini-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); }
+    .co-bar-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; }
+    .co-bar-name { flex: 1.1; min-width: 0; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .co-bar-track { flex: 1.2; height: 8px; background: #f3f0f8; border-radius: 999px; overflow: hidden; }
+    .co-bar-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+    .co-bar-count { min-width: 72px; text-align: right; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .co-bar-pct { font-weight: 500; color: var(--muted); font-size: 12px; }
     .co-empty {
       padding: 28px 16px; text-align: center; color: #71717a; font-size: 13px; line-height: 1.5;
       background: #faf8fc; border: 1px dashed var(--line); border-radius: 12px;
     }
-    .co-empty a { color: #4338ca; }
+    .co-empty a { color: var(--accent); font-weight: 600; }
 
     @media (min-width: 769px) and (max-width: 1100px) {
       #props-panel table { min-width: 0; }
@@ -1697,7 +1745,7 @@
           </div>
           <button type="button" class="tab" data-view="co-traffic">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
-            Co-Agent ทราฟฟิก
+            รายงาน Co-Agent
           </button>
           <button type="button" class="tab" data-view="db">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
@@ -2354,76 +2402,116 @@
 
       <div class="hidden" id="co-traffic-panel">
         <div class="co-traffic-panel">
+          <div class="co-traffic-intro">
+            หน้านี้สรุปว่า <strong>คนเข้าเว็บโคเอเจนต์แล้วทำอะไรบ้าง</strong>
+            — มาจากช่องทางไหน อยู่ดูนานไหม กดหาห้อง หรือกดติดต่อไลน์หรือยัง
+            <div class="co-traffic-summary" id="co-traffic-summary">กำลังโหลดสรุป…</div>
+          </div>
           <div class="co-traffic-toolbar">
+            <span class="range-label">ดูช่วง</span>
             <div class="range-btns" id="co-traffic-range" role="group" aria-label="ช่วงเวลา">
               <button type="button" data-range="today">วันนี้</button>
-              <button type="button" data-range="7d" class="active">7 วัน</button>
-              <button type="button" data-range="30d">30 วัน</button>
-              <button type="button" data-range="90d">90 วัน</button>
+              <button type="button" data-range="7d" class="active">7 วันล่าสุด</button>
+              <button type="button" data-range="30d">30 วันล่าสุด</button>
+              <button type="button" data-range="90d">3 เดือนล่าสุด</button>
             </div>
-            <button type="button" class="btn-sm" id="co-traffic-refresh">รีเฟรช</button>
-            <a class="btn-sm" href="/co/" target="_blank" rel="noopener">เปิด Co-Agent</a>
+            <button type="button" class="btn-sm" id="co-traffic-refresh">อัปเดตตัวเลข</button>
+            <a class="btn-sm" href="/co/" target="_blank" rel="noopener">เปิดเว็บโคเอเจนต์</a>
             <span id="co-traffic-meta" style="font-size:12px;color:#71717a"></span>
           </div>
           <div id="co-traffic-empty" class="co-empty hidden">
-            ยังไม่มีข้อมูลทราฟฟิก — เปิด
-            <a href="/co/" target="_blank" rel="noopener">/co/</a>
-            ยอมรับคุกกี้ แล้วกลับมารีเฟรชหน้านี้
+            ยังไม่มีข้อมูลให้สรุป<br>
+            ให้ใครสักคนเปิด <a href="/co/" target="_blank" rel="noopener">เว็บโคเอเจนต์</a>
+            แล้วกด <strong>ยอมรับ</strong> คุกกี้ จากนั้นกลับมาหน้านี้กด「อัปเดตตัวเลข」
           </div>
           <div id="co-traffic-body">
-            <div class="co-kpi-grid" id="co-kpi-grid"></div>
-            <div class="co-chart-card">
-              <h3>แนวโน้มรายวัน</h3>
-              <div class="co-chart-wrap" id="co-chart"></div>
+            <div class="co-section">
+              <h3>1) ภาพรวมแบบเร็ว</h3>
+              <p>ตัวเลขหลักที่ควรดูก่อน — ไม่ต้องอ่านศัพท์เทคนิค</p>
+              <div class="co-kpi-grid" id="co-kpi-grid"></div>
             </div>
-            <div class="co-grid-2">
-              <div class="co-table-card">
-                <h3>ช่องทาง (channel)</h3>
-                <table class="co-mini-table"><thead><tr><th>ช่องทาง</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-channel-rows"></tbody></table>
+
+            <div class="co-section">
+              <h3>2) คนเข้าเว็บมากน้อยแค่ไหน</h3>
+              <p>กราฟด้านล่างยิ่งสูง วันนั้นยิ่งมีคนเข้าเว็บโคเอเจนต์เยอะ</p>
+              <div class="co-chart-card">
+                <h3>จำนวนครั้งที่เปิดหน้าเว็บ ต่อวัน</h3>
+                <p class="co-card-desc">นับทุกครั้งที่มีคนเปิดหรือกลับมาที่หน้าโคเอเจนต์</p>
+                <div class="co-chart-wrap" id="co-chart"></div>
               </div>
-              <div class="co-table-card">
-                <h3>แคมเปญ (utm_campaign)</h3>
-                <table class="co-mini-table"><thead><tr><th>แคมเปญ</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-campaign-rows"></tbody></table>
+            </div>
+
+            <div class="co-section">
+              <h3>3) คนมาจากไหน</h3>
+              <p>ช่วยดูว่าโฆษณา/โพสต์ช่องทางไหนพาคนเข้ามาได้จริง</p>
+              <div class="co-grid-2">
+                <div class="co-table-card">
+                  <h3>ช่องทางที่มา</h3>
+                  <p class="co-card-desc">เช่น โฆษณาเฟส, กูเกิล, ไลน์, หรือพิมพ์ลิงก์ตรง</p>
+                  <div id="co-channel-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>ชื่อแคมเปญโฆษณา</h3>
+                  <p class="co-card-desc">ชื่อชุดโฆษณาที่ใส่ไว้ในลิงก์ (ถ้ามี)</p>
+                  <div id="co-campaign-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>ประเภทสื่อ</h3>
+                  <p class="co-card-desc">เช่น โฆษณาแบบเสียเงิน, โซเชียล, อีเมล</p>
+                  <div id="co-medium-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>คลิกจากโฆษณาแพลตฟอร์มไหน</h3>
+                  <p class="co-card-desc">ระบบจับได้เมื่อคนกดโฆษณา Google / Facebook / TikTok แล้วเข้าเว็บ</p>
+                  <div id="co-adclick-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>เว็บหรือแอปที่ส่งคนมา</h3>
+                  <p class="co-card-desc">เช่น facebook.com, line.me หรือเข้าตรงๆ</p>
+                  <div id="co-ref-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>ชื่อแหล่งที่ใส่ในลิงก์</h3>
+                  <p class="co-card-desc">ค่าที่ทีมใส่ตอนยิงลิงก์ เช่น facebook, google, line</p>
+                  <div id="co-utm-rows"></div>
+                </div>
               </div>
-              <div class="co-table-card">
-                <h3>สื่อ (utm_medium)</h3>
-                <table class="co-mini-table"><thead><tr><th>medium</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-medium-rows"></tbody></table>
+            </div>
+
+            <div class="co-section">
+              <h3>4) คนสนใจแค่ไหน / ทำอะไรบ้าง</h3>
+              <p>ดูว่าเข้ามาแล้วแค่แวะ หรือใช้งานจริง เช่น กดหาห้อง, กดไลน์, คัดลอกรหัส</p>
+              <div class="co-grid-2">
+                <div class="co-table-card">
+                  <h3>สิ่งที่คนทำบนเว็บ</h3>
+                  <p class="co-card-desc">เรียงจากทำบ่อยไปน้อย</p>
+                  <div id="co-event-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>เลื่อนหน้าจอลงไปไกลแค่ไหน</h3>
+                  <p class="co-card-desc">ยิ่งถึง 75–100% แปลว่าอ่าน/ดูรายการค่อนข้างลึก</p>
+                  <div id="co-scroll-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>ใช้มือถือหรือคอม</h3>
+                  <p class="co-card-desc">ช่วยตัดสินใจว่าโฆษณาควรเน้นมือถือหรือคอม</p>
+                  <div id="co-device-rows"></div>
+                </div>
+                <div class="co-table-card">
+                  <h3>เปิดด้วยโปรแกรมอะไร</h3>
+                  <p class="co-card-desc">เช่น Safari, Chrome, แอปในมือถือ</p>
+                  <div id="co-browser-rows"></div>
+                </div>
               </div>
-              <div class="co-table-card">
-                <h3>คลิกโฆษณา (click id)</h3>
-                <table class="co-mini-table"><thead><tr><th>แพลตฟอร์ม</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-adclick-rows"></tbody></table>
-              </div>
-              <div class="co-table-card">
-                <h3>แหล่งที่มา (referrer)</h3>
-                <table class="co-mini-table"><thead><tr><th>แหล่ง</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-ref-rows"></tbody></table>
-              </div>
-              <div class="co-table-card">
-                <h3>หน้าแรกที่เข้า (landing)</h3>
-                <table class="co-mini-table"><thead><tr><th>path</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-landing-rows"></tbody></table>
-              </div>
-              <div class="co-table-card">
-                <h3>อุปกรณ์</h3>
-                <table class="co-mini-table"><thead><tr><th>ประเภท</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-device-rows"></tbody></table>
-              </div>
-              <div class="co-table-card">
-                <h3>เบราว์เซอร์</h3>
-                <table class="co-mini-table"><thead><tr><th>เบราว์เซอร์</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-browser-rows"></tbody></table>
-              </div>
-              <div class="co-table-card">
-                <h3>อีเวนต์ยอดนิยม</h3>
-                <table class="co-mini-table"><thead><tr><th>อีเวนต์</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-event-rows"></tbody></table>
-              </div>
-              <div class="co-table-card">
-                <h3>ความลึกการเลื่อน (scroll)</h3>
-                <table class="co-mini-table"><thead><tr><th>ระดับ</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-scroll-rows"></tbody></table>
-              </div>
-              <div class="co-table-card">
-                <h3>ชั่วโมงพีค (Bangkok)</h3>
+            </div>
+
+            <div class="co-section">
+              <h3>5) ช่วงเวลาที่คนเข้าเยอะ</h3>
+              <p>ดูชั่วโมงไหนคึกคัก เพื่อยิงโฆษณาหรือโพสต์ในช่วงนั้น</p>
+              <div class="co-chart-card">
+                <h3>ชั่วโมงที่คนเข้าเว็บ (เวลาไทย)</h3>
+                <p class="co-card-desc">แท่งยิ่งสูง = ช่วงนั้นคนเข้าเยอะ</p>
                 <div class="co-chart-wrap" id="co-hour-chart"></div>
-              </div>
-              <div class="co-table-card">
-                <h3>UTM source</h3>
-                <table class="co-mini-table"><thead><tr><th>source</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-utm-rows"></tbody></table>
               </div>
             </div>
           </div>
@@ -3555,7 +3643,7 @@
           </button>
           <button type="button" data-view="co-traffic">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
-            ทราฟฟิก
+            รายงาน
           </button>
           <button type="button" data-view="db">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
@@ -7657,7 +7745,7 @@
         title.textContent = "ทรัพย์ Focus";
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "co-traffic") {
-        title.textContent = "Co-Agent ทราฟฟิก";
+        title.textContent = "รายงานเว็บโคเอเจนต์";
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "db") {
         title.textContent = ({
@@ -8098,7 +8186,7 @@
         queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
         followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
         tenants: ["เช่า · ลูกค้าปัจจุบัน", "กำลังเช่า · ค่าเช่า · หมดสัญญา · แจ้งเตือน"],
-        "co-traffic": ["Co-Agent ทราฟฟิก", "ผู้เข้าชม · เซสชัน · Match · คลิก LINE ของ /co/"],
+        "co-traffic": ["รายงานเว็บโคเอเจนต์", "สรุปภาษาคน · คนมาจากไหน · สนใจแค่ไหน · กดไลน์หรือยัง"],
         db: ["ฐานข้อมูล", ({
           groups: "สมุดกลุ่ม Facebook สำหรับโพสต์",
           comments: "แดชบอร์ด + คิวคอมเมนต์กลุ่มอัตโนมัติ",
@@ -12857,26 +12945,142 @@
 
     var coTrafficRange = "7d";
 
+    var CO_CHANNEL_TH = {
+      direct: "เปิดลิงก์เอง / พิมพ์เว็บตรง",
+      organic_search: "ค้นหาจาก Google / Yahoo",
+      social: "โซเชียลมีเดีย (เช่น Facebook)",
+      line: "จาก LINE",
+      facebook: "จาก Facebook",
+      paid: "จากโฆษณาที่จ่ายเงิน",
+      referral: "คลิกมาจากเว็บอื่น",
+      email: "จากอีเมล",
+      unknown: "ไม่ระบุแหล่งที่มา"
+    };
+    var CO_DEVICE_TH = {
+      mobile: "มือถือ",
+      desktop: "คอมพิวเตอร์",
+      tablet: "แท็บเล็ต",
+      unknown: "ไม่ระบุ"
+    };
+    var CO_BROWSER_TH = {
+      Chrome: "Chrome",
+      Safari: "Safari (iPhone/iPad)",
+      "Mobile Safari": "Safari มือถือ",
+      Facebook: "เปิดใน Facebook",
+      LINE: "เปิดใน LINE",
+      Firefox: "Firefox",
+      Edge: "Edge",
+      Samsung: "เบราว์เซอร์ Samsung",
+      Opera: "Opera",
+      Other: "อื่นๆ",
+      unknown: "ไม่ระบุ"
+    };
+    var CO_EVENT_TH = {
+      page_view: "เปิดหน้าเว็บ",
+      session_start: "เริ่มเข้าชม",
+      engaged: "อยู่ดูนานพอสมควร",
+      match: "กดหาห้องที่ตรงเงื่อนไข",
+      line_click: "กดติดต่อผ่าน LINE",
+      copy_code: "คัดลอกรหัสห้อง",
+      scroll_depth: "เลื่อนดูหน้าลงไป",
+      section_view: "เห็นส่วนสำคัญของหน้า",
+      cta_view: "เห็นปุ่มติดต่อ",
+      cta_click: "กดปุ่มติดต่อ",
+      outbound_click: "คลิกลิงก์ออกนอกเว็บ",
+      form_start: "เริ่มกรอกแบบฟอร์ม",
+      form_submit: "ส่งแบบฟอร์ม",
+      share_click: "กดแชร์",
+      heartbeat: "ยังอยู่บนหน้า",
+      visibility: "สลับแท็บเบราว์เซอร์",
+      page_leave: "ออกจากหน้า"
+    };
+    var CO_SCROLL_TH = {
+      "25": "เลื่อนดูประมาณ 1/4 ของหน้า",
+      "50": "เลื่อนดูครึ่งหน้า",
+      "75": "เลื่อนดูเกือบหมดหน้า",
+      "90": "เลื่อนดูเกือบสุดหน้า",
+      "100": "เลื่อนดูจนสุดหน้า"
+    };
+
     function coFmt(n) {
       return Number(n || 0).toLocaleString("th-TH");
     }
 
-    function coFillRows(tbodyId, rows) {
-      var tb = document.getElementById(tbodyId);
-      if (!tb) return;
+    function coLabel(map, key) {
+      var k = String(key == null || key === "" ? "unknown" : key);
+      return map[k] || k;
+    }
+
+    function coPct(part, whole) {
+      var w = Number(whole || 0);
+      if (!w) return 0;
+      return Math.round((Number(part || 0) / w) * 1000) / 10;
+    }
+
+    function coFillBars(elId, rows, opts) {
+      opts = opts || {};
+      var el = document.getElementById(elId);
+      if (!el) return;
       if (!rows || !rows.length) {
-        tb.innerHTML = '<tr><td colspan="2" style="color:#a1a1aa">ไม่มีข้อมูล</td></tr>';
+        el.innerHTML = '<div class="co-muted">ยังไม่มีข้อมูลในช่วงนี้</div>';
         return;
       }
-      tb.innerHTML = rows.map(function (r) {
-        return "<tr><td>" + esc(r.name) + '</td><td class="num">' + coFmt(r.count) + "</td></tr>";
+      var max = 1;
+      rows.forEach(function (r) { max = Math.max(max, Number(r.count || 0)); });
+      var total = opts.total || 0;
+      if (!total) {
+        rows.forEach(function (r) { total += Number(r.count || 0); });
+      }
+      el.innerHTML = rows.map(function (r) {
+        var name = opts.labelFn ? opts.labelFn(r.name) : String(r.name || "—");
+        var count = Number(r.count || 0);
+        var pct = total ? coPct(count, total) : coPct(count, max);
+        var width = Math.max(4, Math.round((count / max) * 100));
+        return '<div class="co-bar-row">' +
+          '<div class="co-bar-name" title="' + esc(name) + '">' + esc(name) + "</div>" +
+          '<div class="co-bar-track"><div class="co-bar-fill" style="width:' + width + '%"></div></div>' +
+          '<div class="co-bar-count">' + coFmt(count) +
+          (opts.showPct ? '<span class="co-bar-pct"> · ' + pct + "%</span>" : "") +
+          "</div></div>";
       }).join("");
+    }
+
+    function coBuildSummary(kpi) {
+      var visitors = Number(kpi.visitors || 0);
+      var matches = Number(kpi.matches || 0);
+      var line = Number(kpi.line_clicks || 0);
+      var avgSec = Number(kpi.avg_active_sec || 0);
+      var mins = Math.floor(avgSec / 60);
+      var secs = avgSec % 60;
+      var timeText = mins > 0 ? (mins + " นาที " + secs + " วินาที") : (secs + " วินาที");
+      var tips = [];
+      if (visitors === 0) {
+        tips.push("ช่วงนี้ยังไม่มีคนเข้าเว็บ — ลองแชร์ลิงก์ หรือยิงโฆษณาไปที่ https://hub.realxtateth.com/co/");
+      } else {
+        if (matches === 0) tips.push("มีคนเข้าแล้ว แต่ยังไม่มีใครกดหาห้อง — ลองเช็กว่าคำโปรโมทชัดพอไหม");
+        else if (line === 0) tips.push("มีคนหาห้องแล้ว แต่ยังไม่กด LINE — ลองทำให้ปุ่มติดต่อเด่นขึ้น");
+        else if (line < matches) tips.push("มีคนสนใจหาห้องแล้ว แต่ยังกด LINE น้อยกว่าคนที่หาห้อง — โอกาสปิดการขายยังมี");
+        else tips.push("คนเข้า → หาห้อง → กด LINE ไหลได้ดี ช่วงนี้ถือว่าใช้ได้");
+        if (avgSec > 0 && avgSec < 15) tips.push("คนอยู่บนหน้าสั้นมาก — อาจเข้ามาแล้วออกเร็ว ลองปรับข้อความหน้าแรกให้น่าสนใจขึ้น");
+        else if (avgSec >= 45) tips.push("คนอยู่ดูค่อนข้างนาน แปลว่าสนใจเนื้อหาดี");
+      }
+      return '<div class="co-summary-grid">' +
+        '<div class="co-summary-item"><div class="k">คนเข้าเว็บ</div><div class="v">' + coFmt(visitors) + " คน</div></div>" +
+        '<div class="co-summary-item"><div class="k">กดหาห้อง</div><div class="v">' + coFmt(matches) + " ครั้ง</div></div>" +
+        '<div class="co-summary-item"><div class="k">กดติดต่อ LINE</div><div class="v">' + coFmt(line) + " ครั้ง</div></div>" +
+        '<div class="co-summary-item"><div class="k">อยู่ดูเฉลี่ย</div><div class="v">' + esc(timeText) + "</div></div>" +
+        "</div>" +
+        (tips.length ? '<div class="co-summary-tip">' + tips.map(function (t) { return "• " + esc(t); }).join("<br>") + "</div>" : "");
     }
 
     function coLineChart(elId, series, key) {
       var el = document.getElementById(elId);
       if (!el) return;
       var pts = series || [];
+      if (!pts.length) {
+        el.innerHTML = '<div class="co-muted" style="padding:24px">ยังไม่มีกราฟในช่วงนี้</div>';
+        return;
+      }
       var w = Math.max(480, pts.length * 36);
       var h = 180;
       var pad = { t: 12, r: 12, b: 28, l: 36 };
@@ -12890,7 +13094,7 @@
         var x = pad.l + (pts.length <= 1 ? iw / 2 : (i / (pts.length - 1)) * iw);
         var y = pad.t + ih - (Number(p[key] || 0) / max) * ih;
         path.push((i ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1));
-        circles.push('<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.5" fill="#4f46e5"/>');
+        circles.push('<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.5" fill="#6d28d9"/>');
       });
       var labels = pts.map(function (p, i) {
         if (pts.length > 14 && i % 2) return "";
@@ -12900,8 +13104,8 @@
       }).join("");
       el.innerHTML =
         '<svg viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none">' +
-        '<line x1="' + pad.l + '" y1="' + (pad.t + ih) + '" x2="' + (w - pad.r) + '" y2="' + (pad.t + ih) + '" stroke="#e4e4e7"/>' +
-        '<path d="' + path.join(" ") + '" fill="none" stroke="#4f46e5" stroke-width="2"/>' +
+        '<line x1="' + pad.l + '" y1="' + (pad.t + ih) + '" x2="' + (w - pad.r) + '" y2="' + (pad.t + ih) + '" stroke="#e9d5ff"/>' +
+        '<path d="' + path.join(" ") + '" fill="none" stroke="#6d28d9" stroke-width="2"/>' +
         circles.join("") + labels +
         '<text x="8" y="' + (pad.t + 8) + '" font-size="10" fill="#a1a1aa">' + coFmt(max) + "</text>" +
         "</svg>";
@@ -12913,6 +13117,10 @@
       var rows = hours || [];
       var max = 1;
       rows.forEach(function (h) { max = Math.max(max, Number(h.count || 0)); });
+      if (max <= 1 && rows.every(function (h) { return !Number(h.count || 0); })) {
+        el.innerHTML = '<div class="co-muted" style="padding:24px">ยังไม่มีข้อมูลชั่วโมง</div>';
+        return;
+      }
       var w = 480, h = 140, pad = 20;
       var bw = (w - pad * 2) / 24;
       var bars = rows.map(function (row) {
@@ -12922,13 +13130,13 @@
         var x = pad + hh * bw;
         var y = h - 24 - bh;
         return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(2, bw - 2).toFixed(1) +
-          '" height="' + Math.max(0, bh).toFixed(1) + '" fill="#6366f1" rx="2"/>';
+          '" height="' + Math.max(0, bh).toFixed(1) + '" fill="#8b5cf6" rx="2"/>';
       }).join("");
       el.innerHTML =
         '<svg viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none">' + bars +
-        '<text x="' + pad + '" y="' + (h - 6) + '" font-size="10" fill="#71717a">0</text>' +
-        '<text x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="10" fill="#71717a">12</text>' +
-        '<text x="' + (w - pad) + '" y="' + (h - 6) + '" text-anchor="end" font-size="10" fill="#71717a">23</text>' +
+        '<text x="' + pad + '" y="' + (h - 6) + '" font-size="10" fill="#71717a">ตี 0</text>' +
+        '<text x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="10" fill="#71717a">เที่ยง</text>' +
+        '<text x="' + (w - pad) + '" y="' + (h - 6) + '" text-anchor="end" font-size="10" fill="#71717a">ทุ่ม 11</text>' +
         "</svg>";
     }
 
@@ -12937,7 +13145,10 @@
       var body = document.getElementById("co-traffic-body");
       var meta = document.getElementById("co-traffic-meta");
       if (!data || data.empty) {
-        if (empty) empty.classList.remove("hidden");
+        if (empty) {
+          empty.classList.remove("hidden");
+          empty.innerHTML = "<strong>ยังไม่มีข้อมูลในช่วงนี้</strong><br>เมื่อมีคนเปิดหน้า Co-Agent ระบบจะเริ่มนับให้อัตโนมัติ";
+        }
         if (body) body.classList.add("hidden");
         if (meta) meta.textContent = "";
         return;
@@ -12945,41 +13156,72 @@
       if (empty) empty.classList.add("hidden");
       if (body) body.classList.remove("hidden");
       var kpi = data.kpi || {};
+      var summary = document.getElementById("co-traffic-summary");
+      if (summary) summary.innerHTML = coBuildSummary(kpi);
+
       var grid = document.getElementById("co-kpi-grid");
       if (grid) {
+        var matchRate = ((kpi.match_rate || 0) * 100).toFixed(0) + "%";
+        var lineRate = ((kpi.line_ctr || 0) * 100).toFixed(0) + "%";
         var items = [
-          ["ผู้เข้าชม (UV)", kpi.visitors],
-          ["เซสชัน", kpi.sessions],
-          ["เซสชันมีส่วนร่วม", kpi.engaged_sessions],
-          ["เวลาใช้เฉลี่ย (วิ)", kpi.avg_active_sec],
-          ["Pageviews", kpi.pageviews],
-          ["Match", kpi.matches],
-          ["คลิก LINE", kpi.line_clicks],
-          ["คัดลอกรหัส", kpi.copy_codes],
-          ["LINE CTR", ((kpi.line_ctr || 0) * 100).toFixed(1) + "%"],
-          ["Match rate", ((kpi.match_rate || 0) * 100).toFixed(1) + "%"],
-          ["อีเวนต์ทั้งหมด", kpi.events]
+          ["คนเข้าเว็บ", kpi.visitors, "นับคนที่ไม่ซ้ำในช่วงที่เลือก"],
+          ["ครั้งที่เข้ามาดู", kpi.sessions, "เข้า 1 รอบ = 1 ครั้ง (ออกแล้วกลับมาใหม่ = อีกรอบ)"],
+          ["อยู่ดูต่อเนื่อง", kpi.engaged_sessions, "รอบที่อยู่ดูนานพอสมควร ไม่ใช่เปิดแล้วปิดทันที"],
+          ["เวลาอยู่ดูเฉลี่ย", (kpi.avg_active_sec || 0) + " วิ", "เฉลี่ยต่อรอบที่เข้ามา"],
+          ["เปิดหน้าเว็บ", kpi.pageviews, "รวมทุกครั้งที่เปิด/รีเฟรชหน้า"],
+          ["กดหาห้อง", kpi.matches, "กดปุ่มหาห้องที่ตรงเงื่อนไข"],
+          ["กดติดต่อ LINE", kpi.line_clicks, "กดเพื่อคุยกับเราผ่าน LINE"],
+          ["คัดลอกรหัสห้อง", kpi.copy_codes, "เก็บรหัสไว้ส่งต่อ/ถามต่อ"],
+          ["สัดส่วนกดหาห้อง", matchRate, "จากคนที่เข้ามา กี่ % กดหาห้อง"],
+          ["สัดส่วนกด LINE", lineRate, "จากคนที่เข้ามา กี่ % กดติดต่อ LINE"],
+          ["การใช้งานทั้งหมด", kpi.events, "รวมทุกการกด/เลื่อน/เปิดหน้า"]
         ];
         grid.innerHTML = items.map(function (it) {
           return '<div class="co-kpi"><div class="label">' + esc(it[0]) + '</div><div class="value">' +
-            (typeof it[1] === "number" ? coFmt(it[1]) : esc(String(it[1] == null ? "—" : it[1]))) + "</div></div>";
+            (typeof it[1] === "number" ? coFmt(it[1]) : esc(String(it[1] == null ? "—" : it[1]))) +
+            '</div><div class="hint">' + esc(it[2] || "") + "</div></div>";
         }).join("");
       }
+
       coLineChart("co-chart", data.series || [], "pageviews");
       coHourBars("co-hour-chart", data.hours || []);
-      coFillRows("co-channel-rows", data.channels || []);
-      coFillRows("co-campaign-rows", data.utm_campaigns || []);
-      coFillRows("co-medium-rows", data.utm_mediums || []);
-      coFillRows("co-adclick-rows", data.ad_clicks || []);
-      coFillRows("co-ref-rows", data.referrers || []);
-      coFillRows("co-landing-rows", data.landings || []);
-      coFillRows("co-device-rows", data.devices || []);
-      coFillRows("co-browser-rows", data.browsers || []);
-      coFillRows("co-event-rows", data.events || []);
-      coFillRows("co-scroll-rows", data.scroll_depth || []);
-      coFillRows("co-utm-rows", data.utm_sources || []);
+      coFillBars("co-channel-rows", data.channels || [], {
+        labelFn: function (n) { return coLabel(CO_CHANNEL_TH, n); },
+        showPct: true
+      });
+      coFillBars("co-campaign-rows", data.utm_campaigns || [], { showPct: true });
+      coFillBars("co-medium-rows", data.utm_mediums || [], { showPct: true });
+      coFillBars("co-adclick-rows", data.ad_clicks || [], {
+        labelFn: function (n) {
+          var map = { fbclid: "โฆษณา Facebook", gclid: "โฆษณา Google", ttclid: "โฆษณา TikTok", li_fat_id: "โฆษณา LinkedIn" };
+          return map[n] || ("คลิกโฆษณา: " + n);
+        },
+        showPct: true
+      });
+      coFillBars("co-ref-rows", data.referrers || [], { showPct: true });
+      coFillBars("co-landing-rows", data.landings || [], { showPct: true });
+      coFillBars("co-device-rows", data.devices || [], {
+        labelFn: function (n) { return coLabel(CO_DEVICE_TH, n); },
+        showPct: true
+      });
+      coFillBars("co-browser-rows", data.browsers || [], {
+        labelFn: function (n) { return coLabel(CO_BROWSER_TH, n); },
+        showPct: true
+      });
+      coFillBars("co-event-rows", data.events || [], {
+        labelFn: function (n) { return coLabel(CO_EVENT_TH, n); },
+        showPct: true
+      });
+      coFillBars("co-scroll-rows", data.scroll_depth || [], {
+        labelFn: function (n) { return coLabel(CO_SCROLL_TH, String(n)); },
+        showPct: true
+      });
+      coFillBars("co-utm-rows", data.utm_sources || [], { showPct: true });
+
       if (meta) {
-        meta.textContent = (data.start || "") + " → " + (data.end || "") + " · " + (data.timezone || "Asia/Bangkok");
+        var start = data.start || "";
+        var end = data.end || "";
+        meta.textContent = start && end ? ("ข้อมูลวันที่ " + start + " ถึง " + end) : "";
       }
     }
 
@@ -12992,7 +13234,7 @@
           cache: "no-store"
         });
         var data = await res.json();
-        if (!res.ok) throw new Error(data.error || "โหลดทราฟฟิกไม่ได้");
+        if (!res.ok) throw new Error(data.error || "ดึงตัวเลขรายงานไม่ได้");
         renderCoTraffic(data);
       } catch (e) {
         var empty = document.getElementById("co-traffic-empty");
@@ -13000,7 +13242,8 @@
         if (body) body.classList.add("hidden");
         if (empty) {
           empty.classList.remove("hidden");
-          empty.innerHTML = "<strong>โหลดไม่สำเร็จ</strong><br>" + esc(e.message);
+          empty.innerHTML = "<strong>ดึงรายงานไม่สำเร็จ</strong><br>" + esc(e.message) +
+            "<br>ลองกด「อัปเดตตัวเลข」อีกครั้ง หรือรีเฟรชหน้านี้";
         }
         if (meta) meta.textContent = "";
       }

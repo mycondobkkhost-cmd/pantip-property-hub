@@ -175,6 +175,18 @@
       background: rgba(167, 139, 250, .18);
       color: #e9d5ff;
     }
+    .tab-sub .tab-badge {
+      display: inline-flex; margin-left: 6px; vertical-align: middle;
+      position: static; min-width: 16px; height: 16px; padding: 0 4px;
+      font-size: 9px;
+    }
+    .follow-inline-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 16px; height: 16px; padding: 0 4px; margin-left: 4px;
+      border-radius: 999px; background: var(--accent); color: #fff;
+      font-size: 10px; font-weight: 700; vertical-align: middle;
+    }
+    .follow-inline-badge.hidden { display: none !important; }
 
     .sidebar-user {
       margin-top: auto; padding: 12px 10px 6px;
@@ -1679,10 +1691,10 @@
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
             ฟอโล่ว<span class="tab-badge hidden" id="followup-badge">0</span>
           </button>
-          <button type="button" class="tab" data-view="tenants">
-            <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>
-            ลูกค้าปัจจุบัน<span class="tab-badge hidden" id="tenants-badge">0</span>
-          </button>
+          <div class="sidebar-subnav" id="follow-sidebar-sub" aria-label="ซับเมนู ฟอโล่ว">
+            <button type="button" class="tab-sub" data-view="followup">ฟอโล่วเคส</button>
+            <button type="button" class="tab-sub" data-view="tenants">เช่า<span class="tab-badge hidden" id="tenants-badge">0</span></button>
+          </div>
           <button type="button" class="tab" data-view="co-traffic">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
             Co-Agent ทราฟฟิก
@@ -2100,6 +2112,13 @@
               <tbody id="queue-rows"></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <div class="hidden" id="follow-subnav-wrap" style="padding:10px 12px 0">
+        <div id="follow-subnav" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" role="tablist" aria-label="ซับเมนู ฟอโล่ว">
+          <button type="button" class="btn-sm primary" data-follow-tab="followup" id="follow-tab-cases">ฟอโล่วเคส</button>
+          <button type="button" class="btn-sm" data-follow-tab="tenants" id="follow-tab-tenants">เช่า<span class="follow-inline-badge hidden" id="mobile-tenants-badge">0</span></button>
         </div>
       </div>
 
@@ -3509,10 +3528,6 @@
           <button type="button" data-view="followup">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
             ฟอโล่ว<span class="nav-badge" id="mobile-followup-badge">0</span>
-          </button>
-          <button type="button" data-view="tenants">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>
-            เช่า<span class="nav-badge" id="mobile-tenants-badge">0</span>
           </button>
           <button type="button" data-view="co-traffic">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
@@ -7582,7 +7597,8 @@
       var inProjectDrill = activeView === "properties" &&
         !!(f && ((f.projectIds && f.projectIds.length === 1) || f.projectId));
       var show = activeView === "add" || activeView === "queue" || activeView === "followup" ||
-        activeView === "db" || activeView === "focus" || activeView === "co-traffic" || inProjectDrill;
+        activeView === "tenants" || activeView === "db" || activeView === "focus" ||
+        activeView === "co-traffic" || inProjectDrill;
       bar.classList.toggle("hidden", !show);
       saveBtn.classList.toggle("hidden", activeView !== "add");
 
@@ -7607,6 +7623,9 @@
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "followup") {
         title.textContent = "ฟอโล่วเคส";
+        if (backBtn) backBtn.textContent = "← กลับทรัพย์";
+      } else if (activeView === "tenants") {
+        title.textContent = "เช่า · ลูกค้าปัจจุบัน";
         if (backBtn) backBtn.textContent = "← กลับทรัพย์";
       } else if (activeView === "focus") {
         title.textContent = "ทรัพย์ Focus";
@@ -7992,6 +8011,16 @@
       updateSubmenuBar();
     }
 
+    function syncFollowSubnav(view) {
+      var tab = (view === "tenants") ? "tenants" : "followup";
+      document.querySelectorAll("#follow-subnav [data-follow-tab]").forEach(function (b) {
+        b.classList.toggle("primary", b.getAttribute("data-follow-tab") === tab);
+      });
+      document.querySelectorAll("#follow-sidebar-sub .tab-sub[data-view]").forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-view") === tab);
+      });
+    }
+
     function switchView(view) {
       // Legacy aliases → ฐานข้อมูล
       if (view === "projects" || view === "groups" || view === "zones" || view === "transits") {
@@ -8010,6 +8039,9 @@
       document.getElementById("followup-panel").classList.toggle("hidden", view !== "followup");
       var tnPanel = document.getElementById("tenants-panel");
       if (tnPanel) tnPanel.classList.toggle("hidden", view !== "tenants");
+      var followSubWrap = document.getElementById("follow-subnav-wrap");
+      if (followSubWrap) followSubWrap.classList.toggle("hidden", view !== "followup" && view !== "tenants");
+      syncFollowSubnav(view);
       var coTrafficPanel = document.getElementById("co-traffic-panel");
       if (coTrafficPanel) coTrafficPanel.classList.toggle("hidden", view !== "co-traffic");
       document.getElementById("groups-panel").classList.toggle("hidden", view !== "db" || activeDbTab !== "groups");
@@ -8035,7 +8067,7 @@
         focus: ["ทรัพย์ Focus", "พิมพ์รหัสทรัพย์เพื่อเพิ่มรายการที่ทีมกำลังโฟกัส"],
         queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
         followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
-        tenants: ["ลูกค้าปัจจุบัน", "กำลังเช่า · ค่าเช่า · หมดสัญญา · แจ้งเตือน"],
+        tenants: ["เช่า · ลูกค้าปัจจุบัน", "กำลังเช่า · ค่าเช่า · หมดสัญญา · แจ้งเตือน"],
         "co-traffic": ["Co-Agent ทราฟฟิก", "ผู้เข้าชม · เซสชัน · Match · คลิก LINE ของ /co/"],
         db: ["ฐานข้อมูล", ({
           groups: "สมุดกลุ่ม Facebook สำหรับโพสต์",
@@ -8061,10 +8093,12 @@
         b.setAttribute("aria-selected", on ? "true" : "false");
       });
       document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
-        b.classList.toggle("active", b.getAttribute("data-view") === view);
+        var dv = b.getAttribute("data-view");
+        b.classList.toggle("active", dv === view || (dv === "followup" && view === "tenants"));
       });
       document.querySelectorAll("#view-tabs .tab").forEach(function (tEl) {
-        tEl.classList.toggle("active", tEl.getAttribute("data-view") === view);
+        var dv = tEl.getAttribute("data-view");
+        tEl.classList.toggle("active", dv === view || (dv === "followup" && view === "tenants"));
       });
       if (typeof window.closeAppSidebar === "function") window.closeAppSidebar();
       var projectBanner = document.getElementById("project-view-banner");
@@ -13576,6 +13610,14 @@
         switchView("focus");
         return;
       }
+      var followSub = e.target.closest("#follow-sidebar-sub .tab-sub[data-view]");
+      if (followSub && document.getElementById("view-tabs").contains(followSub)) {
+        e.preventDefault();
+        var followView = followSub.getAttribute("data-view") || "followup";
+        if (followView !== "add" && editingPropertyId) setEditMode(false, null);
+        switchView(followView);
+        return;
+      }
       var tab = e.target.closest(".tab");
       if (!tab || !document.getElementById("view-tabs").contains(tab)) return;
       document.querySelectorAll("#view-tabs .tab").forEach(function (t) { t.classList.remove("active"); });
@@ -13586,6 +13628,17 @@
       }
       switchView(view);
     });
+
+    var followSubnav = document.getElementById("follow-subnav");
+    if (followSubnav) {
+      followSubnav.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-follow-tab]");
+        if (!btn) return;
+        var v = btn.getAttribute("data-follow-tab") || "followup";
+        if (v !== "add" && editingPropertyId) setEditMode(false, null);
+        switchView(v);
+      });
+    }
 
     var dbSubnav = document.getElementById("db-subnav");
     if (dbSubnav) {

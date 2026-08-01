@@ -752,15 +752,15 @@
     var drop = document.getElementById(key + "-drop");
     var state = P[key];
     var query = String(q || "").trim();
-    if (!query) {
-      drop.innerHTML = "";
-      return;
+    var opts = (state.opts || []);
+    if (query) {
+      opts = opts.filter(function (o) {
+        return labelMatches(o.name, query) || soft(o.id).indexOf(soft(query)) >= 0;
+      });
     }
-    var opts = (state.opts || []).filter(function (o) {
-      return labelMatches(o.name, query) || soft(o.id).indexOf(soft(query)) >= 0;
-    });
+    opts = opts.slice(0, 80);
     if (!opts.length) {
-      drop.innerHTML = '<div class="empty">ไม่พบรายการ</div>';
+      drop.innerHTML = query ? '<div class="empty">ไม่พบรายการ</div>' : "";
       return;
     }
     drop.innerHTML = opts.map(function (o) {
@@ -1027,11 +1027,31 @@
       var code = copy.getAttribute("data-copy") || "";
       var link = copy.getAttribute("data-url") || "";
       var text = link ? (code + "\n" + link) : code;
-      navigator.clipboard.writeText(text).then(function () {
+      function markCopied() {
         copy.classList.add("ok"); copy.textContent = "คัดลอกแล้ว";
         toast(link ? "คัดลอกรหัส+ลิงก์แล้ว" : ("คัดลอก " + code));
         setTimeout(function () { copy.classList.remove("ok"); copy.textContent = "คัดลอก+ลิงก์"; }, 1200);
-      }).catch(function () { toast(text); });
+      }
+      function fallbackCopy() {
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.select();
+          var ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          if (ok) { markCopied(); return; }
+        } catch (err) { /* fall through */ }
+        toast(text);
+      }
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        navigator.clipboard.writeText(text).then(markCopied).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
       return;
     }
     var row = e.target.closest(".prop-row[data-page]");
@@ -1054,12 +1074,11 @@
     var wrap = document.getElementById(wrapId);
     var input = document.getElementById(inputId);
     function refreshDrop() {
-      var q = String(input.value || "").trim();
       onFocusFill(input.value);
-      if (q) openPick(wrapId);
-      else {
-        wrap.classList.remove("open");
-      }
+      var drop = wrap.querySelector(".drop");
+      var hasOpts = drop && drop.children.length > 0;
+      if (hasOpts) openPick(wrapId);
+      else wrap.classList.remove("open");
     }
     input.addEventListener("focus", refreshDrop);
     input.addEventListener("click", refreshDrop);

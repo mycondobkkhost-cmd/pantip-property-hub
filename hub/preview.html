@@ -3878,14 +3878,16 @@
       }
       if (typeof state.page === "number" && state.page >= 0) page = state.page;
 
-      if (state.dbTab === "groups" || state.dbTab === "projects" || state.dbTab === "zones" || state.dbTab === "transits" || state.dbTab === "sheettools" || state.dbTab === "comments" || state.dbTab === "fbconnect") activeDbTab = state.dbTab;
+      if (state.dbTab === "groups" || state.dbTab === "projects" || state.dbTab === "zones" || state.dbTab === "transits" || state.dbTab === "sheettools" || state.dbTab === "comments" || state.dbTab === "publish" || state.dbTab === "livereport" || state.dbTab === "fbconnect") activeDbTab = state.dbTab;
 
       if (state.view && typeof switchView === "function") {
         document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
-          t.classList.toggle("active", t.getAttribute("data-view") === state.view);
+          var dv = t.getAttribute("data-view");
+          t.classList.toggle("active", dv === state.view || (dv === "followup" && state.view === "tenants"));
         });
         document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
-          b.classList.toggle("active", b.getAttribute("data-view") === state.view);
+          var dv = b.getAttribute("data-view");
+          b.classList.toggle("active", dv === state.view || (dv === "followup" && state.view === "tenants"));
         });
         if (state.view !== activeView) switchView(state.view);
         else if (state.view === "db" && typeof switchDbTab === "function") switchDbTab(activeDbTab);
@@ -7637,6 +7639,9 @@
         title.textContent = ({
           groups: "ฐานข้อมูล · กลุ่ม FB",
           comments: "ฐานข้อมูล · คอมเมนต์กลุ่ม",
+          publish: "ฐานข้อมูล · โพสกลุ่มอัตโนมัติ",
+          livereport: "ฐานข้อมูล · รายงานเรียลไทม์",
+          fbconnect: "ฐานข้อมูล · เชื่อมต่อเฟส",
           zones: "ฐานข้อมูล · ทำเล / โซน",
           transits: "ฐานข้อมูล · BTS / MRT",
           projects: "ฐานข้อมูล · โครงการ",
@@ -8012,12 +8017,13 @@
     }
 
     function syncFollowSubnav(view) {
+      var inFollow = view === "followup" || view === "tenants";
       var tab = (view === "tenants") ? "tenants" : "followup";
       document.querySelectorAll("#follow-subnav [data-follow-tab]").forEach(function (b) {
-        b.classList.toggle("primary", b.getAttribute("data-follow-tab") === tab);
+        b.classList.toggle("primary", inFollow && b.getAttribute("data-follow-tab") === tab);
       });
       document.querySelectorAll("#follow-sidebar-sub .tab-sub[data-view]").forEach(function (b) {
-        b.classList.toggle("active", b.getAttribute("data-view") === tab);
+        b.classList.toggle("active", inFollow && b.getAttribute("data-view") === tab);
       });
     }
 
@@ -11746,18 +11752,37 @@
 
     function updateFollowupBadge(stats) {
       var due = (stats && stats.due) || 0;
-      ["followup-badge", "mobile-followup-badge"].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (!el) return;
+      window._fuBadgeDue = due;
+      var el = document.getElementById("followup-badge");
+      if (el) {
         el.textContent = String(due);
         el.classList.toggle("hidden", !due);
         el.classList.toggle("show", !!due);
-      });
+      }
+      refreshMobileFollowBadge();
       var st = document.getElementById("fu-stats");
       if (st && stats) {
         st.textContent = "ทั้งหมด " + (stats.total || 0);
       }
       renderFollowupStatsStrip(stats || {});
+    }
+
+    function refreshMobileFollowBadge() {
+      var due = window._fuBadgeDue || 0;
+      var alerts = window._tnBadgeAlerts || 0;
+      var total = due + alerts;
+      var el = document.getElementById("mobile-followup-badge");
+      if (!el) return;
+      el.textContent = String(total);
+      el.classList.toggle("hidden", !total);
+      el.classList.toggle("show", !!total);
+      if (total) {
+        el.title = (due ? ("ฟอโล่วถึงคิว " + due) : "") +
+          (due && alerts ? " · " : "") +
+          (alerts ? ("แจ้งเตือนเช่า " + alerts) : "");
+      } else {
+        el.removeAttribute("title");
+      }
     }
 
     function fuDaysUntil(dateStr) {
@@ -12580,6 +12605,7 @@
 
     function updateTenantsBadge(stats) {
       var n = (stats && stats.alerts) || 0;
+      window._tnBadgeAlerts = n;
       ["tenants-badge", "mobile-tenants-badge"].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
@@ -12587,6 +12613,7 @@
         el.classList.toggle("hidden", !n);
         el.classList.toggle("show", !!n);
       });
+      refreshMobileFollowBadge();
       var st = document.getElementById("tn-stats");
       if (st && stats) {
         st.textContent = "กำลังเช่า " + (stats.active || 0) + " · แจ้งเตือน " + (stats.alerts || 0);

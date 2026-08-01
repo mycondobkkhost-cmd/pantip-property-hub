@@ -5,23 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
+  <meta name="theme-color" content="#2e1065" />
   <title>Property Hub — PTP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #eef1f4;
+      --bg: #f3f0f8;
       --surface: #ffffff;
-      --ink: #15202b;
-      --muted: #6b7785;
-      --line: #e3e8ee;
-      --sidebar: #15202b;
-      --sidebar-2: #1c2a38;
-      --accent: #1f8a4c;
-      --accent-soft: #e7f6ee;
-      --gold: #c9a227;
-      --shadow: 0 8px 24px rgba(21, 32, 43, 0.08);
+      --ink: #1e1433;
+      --muted: #6b6280;
+      --line: #e8e2f1;
+      --sidebar: #2e1065;
+      --sidebar-2: #3b0764;
+      --accent: #6d28d9;
+      --accent-soft: #f3e8ff;
+      --accent-border: #ddd6fe;
+      --gold: #a78bfa;
+      --shadow: 0 8px 24px rgba(46, 16, 101, 0.08);
       --radius: 14px;
       --sidebar-w: 248px;
       --safe-b: env(safe-area-inset-bottom, 0px);
@@ -57,9 +59,9 @@
       display: flex; align-items: center; justify-content: center;
       padding: 16px;
       background:
-        radial-gradient(ellipse at 20% 10%, rgba(31,138,76,.18), transparent 45%),
-        radial-gradient(ellipse at 90% 90%, rgba(201,162,39,.12), transparent 40%),
-        #e9eef2;
+        radial-gradient(ellipse at 20% 10%, rgba(109,40,217,.18), transparent 45%),
+        radial-gradient(ellipse at 90% 90%, rgba(109,40,217,.12), transparent 40%),
+        #f3f0f8;
     }
     .login-box {
       background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
@@ -69,25 +71,25 @@
     .login-box h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em; }
     .login-box p { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
     label { display: block; margin-bottom: 12px; }
-    label span { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #3c4043; }
+    label span { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #3c3548; }
     input, select, textarea {
-      width: 100%; padding: 8px 10px; border: 1px solid #dadce0; border-radius: 8px;
+      width: 100%; padding: 8px 10px; border: 1px solid #d8d0e6; border-radius: 8px;
       font-size: 13px; font-family: inherit; background: #fff;
     }
     input:focus, select:focus, textarea:focus {
-      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31,138,76,.15);
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109,40,217,.15);
     }
     .btn {
       width: 100%; padding: 10px 12px; border: none; border-radius: 10px;
       font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
     }
     .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: #187a43; }
+    .btn-primary:hover { background: #5b21b6; }
     .btn-outline {
-      background: #fff; border: 1px solid var(--line); color: #3c4043;
+      background: #fff; border: 1px solid var(--line); color: #3c3548;
       padding: 8px 12px; width: auto; font-size: 12px; border-radius: 10px;
     }
-    .btn-outline:hover { background: #f8f9fa; }
+    .btn-outline:hover { background: #faf8fc; }
     .error { background: #fce8e6; color: #c5221f; padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
     .hint { text-align: center; font-size: 11px; color: #80868b; margin-top: 12px; line-height: 1.5; }
 
@@ -99,13 +101,13 @@
       min-height: 100dvh;
     }
     .sidebar-backdrop {
-      display: none; position: fixed; inset: 0; background: rgba(15,23,32,.45);
+      display: none; position: fixed; inset: 0; background: rgba(30,20,51,.45);
       z-index: 40;
     }
     .sidebar-backdrop.open { display: block; }
     .sidebar {
       background: linear-gradient(180deg, var(--sidebar) 0%, var(--sidebar-2) 100%);
-      color: #e8eef4;
+      color: #f5f3ff;
       display: flex; flex-direction: column;
       padding: 18px 14px 14px;
       position: sticky; top: 0; height: 100dvh;
@@ -118,13 +120,13 @@
     }
     .brand-mark {
       width: 40px; height: 40px; border-radius: 12px;
-      background: linear-gradient(145deg, #d4af37, #9a7418);
-      color: #1a1408; font-weight: 700; font-size: 18px;
+      background: linear-gradient(145deg, #a78bfa, #6d28d9);
+      color: #f5f3ff; font-weight: 700; font-size: 18px;
       display: grid; place-items: center; flex-shrink: 0;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
     }
     .brand-text strong { display: block; font-size: 15px; letter-spacing: -0.01em; }
-    .brand-text span { display: block; font-size: 11px; color: rgba(232,238,244,.62); margin-top: 2px; }
+    .brand-text span { display: block; font-size: 11px; color: rgba(245,243,255,.62); margin-top: 2px; }
 
     .tabs {
       display: flex; flex-direction: column; gap: 4px;
@@ -136,16 +138,43 @@
       width: 100%; text-align: left;
       padding: 11px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;
       border: none; cursor: pointer; white-space: nowrap;
-      background: transparent; color: rgba(232,238,244,.78);
+      background: transparent; color: rgba(245,243,255,.78);
       position: relative; font-family: inherit;
     }
     .tab .tab-ico { width: 18px; opacity: .85; flex-shrink: 0; }
     .tab:hover { background: rgba(255,255,255,.06); color: #fff; }
     .tab.active {
-      background: rgba(31,138,76,.22); color: #fff;
+      background: rgba(109,40,217,.22); color: #fff;
       box-shadow: inset 3px 0 0 var(--gold);
     }
     .tab.active .tab-ico { opacity: 1; }
+    .sidebar-subnav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin: -2px 8px 8px 28px;
+      padding: 0;
+    }
+    .tab-sub {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      line-height: 1.3;
+    }
+    .tab-sub:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.92); }
+    .tab-sub.active {
+      background: rgba(167, 139, 250, .18);
+      color: #e9d5ff;
+    }
 
     .sidebar-user {
       margin-top: auto; padding: 12px 10px 6px;
@@ -154,7 +183,7 @@
     }
     .user-avatar {
       width: 36px; height: 36px; border-radius: 50%;
-      background: #2b3d4f; color: #d7e2ec; font-weight: 700; font-size: 13px;
+      background: #4c1d95; color: #ede9fe; font-weight: 700; font-size: 13px;
       display: grid; place-items: center; flex-shrink: 0;
     }
     .user-meta { flex: 1; min-width: 0; }
@@ -162,9 +191,9 @@
       display: block; font-size: 13px; font-weight: 600; color: #fff;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .user-meta .user-role { font-size: 11px; color: rgba(232,238,244,.55); }
+    .user-meta .user-role { font-size: 11px; color: rgba(245,243,255,.55); }
     .sidebar-user .btn-outline {
-      border-color: rgba(255,255,255,.18); color: #e8eef4; background: transparent;
+      border-color: rgba(255,255,255,.18); color: #f5f3ff; background: transparent;
       padding: 7px 8px; font-size: 11px;
     }
     .sidebar-user .btn-outline:hover { background: rgba(255,255,255,.08); }
@@ -176,7 +205,7 @@
     .topbar {
       display: flex; align-items: center; gap: 10px;
       padding: 10px 16px 6px; position: sticky; top: 0; z-index: 20;
-      background: linear-gradient(180deg, var(--bg) 70%, rgba(238,241,244,0));
+      background: linear-gradient(180deg, var(--bg) 70%, rgba(243,240,248,0));
     }
     .menu-toggle {
       display: none; width: 36px; height: 36px; border-radius: 10px;
@@ -206,14 +235,14 @@
     .topbar-action {
       display: inline-flex; align-items: center; gap: 5px;
       padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
-      border: 1px solid var(--line); background: var(--surface); color: #3c4043;
+      border: 1px solid var(--line); background: var(--surface); color: #3c3548;
       cursor: pointer; font-family: inherit; white-space: nowrap; line-height: 1.2;
     }
-    .topbar-action:hover { background: #f8f9fa; }
+    .topbar-action:hover { background: #faf8fc; }
     .topbar-action.primary {
-      background: #188038; color: #fff; border-color: #188038;
+      background: #6d28d9; color: #fff; border-color: #6d28d9;
     }
-    .topbar-action.primary:hover { background: #137333; }
+    .topbar-action.primary:hover { background: #5b21b6; }
     .topbar-action:disabled { opacity: .65; cursor: wait; }
     .topbar-action .ta-ico {
       width: 14px; height: 14px; flex-shrink: 0; opacity: .9;
@@ -229,15 +258,15 @@
     main.main-wide { max-width: none; }
     .open-note, .legend, .cards { display: none !important; }
 
-    .toolbar { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 6px 10px; border-bottom: 1px solid #e8eaed; background: #fff; }
+    .toolbar { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 6px 10px; border-bottom: 1px solid #e8e2f1; background: #fff; }
     .toolbar-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .toolbar input[type=search], .toolbar select, .filter-grid select, .filter-grid input {
-      padding: 6px 8px; border: 1px solid #dadce0; border-radius: 4px; font-size: 12px; background: #fff;
+      padding: 6px 8px; border: 1px solid #d8d0e6; border-radius: 4px; font-size: 12px; background: #fff;
     }
 
     .filter-panel {
       background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-      padding: 6px 8px; margin: 0 0 6px; box-shadow: 0 2px 8px rgba(21, 32, 43, 0.04);
+      padding: 6px 8px; margin: 0 0 6px; box-shadow: 0 2px 8px rgba(46, 16, 101, 0.04);
     }
     .filter-hint-bar {
       display: none; /* save vertical space — tips stay in placeholders */
@@ -269,14 +298,14 @@
     }
 
     .smart-search {
-      width: 100%; padding: 6px 9px; border: 1px solid #dadce0; border-radius: 6px;
+      width: 100%; padding: 6px 9px; border: 1px solid #d8d0e6; border-radius: 6px;
       font-size: 13px; background: #fff; outline: none; line-height: 1.3;
     }
-    .smart-search:focus { border-color: #188038; background: #fff; box-shadow: 0 0 0 2px rgba(24,128,56,.12); }
+    .smart-search:focus { border-color: #6d28d9; background: #fff; box-shadow: 0 0 0 2px rgba(109,40,217,.12); }
     .search-suggest {
       position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 40;
       max-height: 320px; overflow: auto; background: #fff;
-      border: 1px solid #dadce0; border-radius: 8px;
+      border: 1px solid #d8d0e6; border-radius: 8px;
       box-shadow: 0 8px 24px rgba(0,0,0,.12); list-style: none; margin: 0; padding: 4px 0;
     }
     .search-suggest.hidden { display: none !important; }
@@ -289,7 +318,7 @@
       display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
     }
     .search-suggest li[data-kind]:hover, .search-suggest li[data-kind].active {
-      background: #e8f0fe;
+      background: #ede9fe;
     }
     .search-suggest li .sg-name { color: #202124; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .search-suggest li .sg-meta { color: #80868b; font-size: 11px; flex-shrink: 0; }
@@ -303,20 +332,20 @@
     .chip-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .chip {
       padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 500;
-      border: 1px solid #e0e0e0; background: #fff; color: #3c4043; cursor: pointer;
+      border: 1px solid #e0e0e0; background: #fff; color: #3c3548; cursor: pointer;
     }
-    .chip.active { background: #e6f4ea; color: #137333; border-color: #137333; }
+    .chip.active { background: #f3e8ff; color: #5b21b6; border-color: #5b21b6; }
     .active-filter-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
     .active-filter-chips:empty { display: none; margin: 0; }
     .active-filter-chip {
       display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px;
-      font-size: 11px; background: #e6f4ea; color: #137333; border: none;
+      font-size: 11px; background: #f3e8ff; color: #5b21b6; border: none;
     }
     .active-filter-chip button {
       border: none; background: transparent; color: #5f6368; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px;
     }
     .filter-badge {
-      background: #188038; color: #fff; font-size: 11px; font-weight: 600;
+      background: #6d28d9; color: #fff; font-size: 11px; font-weight: 600;
       padding: 2px 7px; border-radius: 999px; min-width: 18px; text-align: center;
     }
     .filter-grid { display: grid; gap: 8px; margin-top: 4px; grid-template-columns: 1fr; }
@@ -331,8 +360,8 @@
     .check-group {
       display: flex; flex-direction: column; gap: 2px;
       max-height: 160px; overflow: auto;
-      border: 1px solid #e8eaed; border-radius: 8px;
-      padding: 6px 8px; background: #fafafa;
+      border: 1px solid #e8e2f1; border-radius: 8px;
+      padding: 6px 8px; background: #faf8fc;
     }
     .check-group.short { max-height: none; }
     .check-group.is-search-hidden { display: none !important; }
@@ -352,10 +381,10 @@
     .filter-picked-chip {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 3px 8px; border-radius: 8px; cursor: pointer;
-      background: #e8f5e9; color: #137333; font-size: 12px;
-      border: 1px solid #c8e6c9; font-family: inherit; line-height: 1.3;
+      background: #f3e8ff; color: #5b21b6; font-size: 12px;
+      border: 1px solid #ddd6fe; font-family: inherit; line-height: 1.3;
     }
-    .filter-picked-chip:hover { background: #dcedc8; }
+    .filter-picked-chip:hover { background: #ede9fe; }
     .filter-picked-chip .x { opacity: .7; font-size: 14px; line-height: 1; }
     .check-item.is-filtered-out { display: none !important; }
     .filter-dropdown { position: relative; }
@@ -365,12 +394,12 @@
       background: #fff; font-size: 13px; color: #202124; cursor: pointer; font-family: inherit;
       text-align: left;
     }
-    .filter-dropdown-toggle:hover { border-color: #86efac; }
+    .filter-dropdown-toggle:hover { border-color: #c4b5fd; }
     .filter-dropdown.is-open .filter-dropdown-toggle {
-      border-color: #188038; box-shadow: 0 0 0 2px rgba(24,128,56,.12);
+      border-color: #6d28d9; box-shadow: 0 0 0 2px rgba(109,40,217,.12);
     }
     .filter-dropdown-toggle .dd-meta { color: #71717a; font-size: 12px; white-space: nowrap; }
-    .filter-dropdown-toggle .dd-meta.has-value { color: #137333; font-weight: 600; }
+    .filter-dropdown-toggle .dd-meta.has-value { color: #5b21b6; font-weight: 600; }
     .filter-dropdown-panel {
       position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 40;
       background: #fff; border: 1px solid #e4e4e7; border-radius: 12px;
@@ -390,21 +419,21 @@
       line-height: 1.4; padding: 4px 0;
     }
     .check-item input {
-      margin: 2px 0 0; flex-shrink: 0; width: 16px; height: 16px; accent-color: #188038;
+      margin: 2px 0 0; flex-shrink: 0; width: 16px; height: 16px; accent-color: #6d28d9;
     }
     .filter-note { display: none; }
     .btn-sm {
       padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 500;
-      border: 1px solid #e0e0e0; background: #fff; color: #3c4043; cursor: pointer; width: auto; font-family: inherit;
+      border: 1px solid #e0e0e0; background: #fff; color: #3c3548; cursor: pointer; width: auto; font-family: inherit;
       white-space: nowrap;
     }
     .sheet-search-actions .btn-sm { padding: 6px 9px; font-size: 12px; }
-    .btn-sm.primary { background: #188038; color: #fff; border-color: #188038; }
-    .btn-sm.active-filter-btn { background: #e6f4ea; border-color: #137333; color: #137333; }
+    .btn-sm.primary { background: #6d28d9; color: #fff; border-color: #6d28d9; }
+    .btn-sm.active-filter-btn { background: #f3e8ff; border-color: #5b21b6; color: #5b21b6; }
 
     .table-wrap {
       background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-      overflow: hidden; box-shadow: 0 2px 8px rgba(21, 32, 43, 0.04); margin: 0;
+      overflow: hidden; box-shadow: 0 2px 8px rgba(46, 16, 101, 0.04); margin: 0;
     }
     .props-table-scroll { display: block !important; }
     .scroll { overflow: auto; -webkit-overflow-scrolling: touch; max-height: calc(100dvh - 148px); }
@@ -414,8 +443,8 @@
       display: grid;
       grid-template-columns: 104px minmax(0, 1.4fr) minmax(140px, 0.9fr);
       gap: 12px; align-items: center;
-      padding: 8px 12px; background: #f3f5f7; border-bottom: 1px solid var(--line);
-      font-size: 11px; font-weight: 600; color: #6b7785;
+      padding: 8px 12px; background: #f7f4fb; border-bottom: 1px solid var(--line);
+      font-size: 11px; font-weight: 600; color: #6b6280;
       position: sticky; top: 0; z-index: 2;
     }
     .prop-list { display: flex; flex-direction: column; }
@@ -423,10 +452,10 @@
       display: grid;
       grid-template-columns: 104px minmax(0, 1.4fr) minmax(140px, 0.9fr);
       gap: 12px; align-items: start;
-      padding: 12px; border-bottom: 1px solid #eef1f4;
+      padding: 12px; border-bottom: 1px solid #f3f0f8;
       cursor: pointer; background: #fff;
     }
-    .prop-sheet-row:nth-child(even) { background: #fafbfc; }
+    .prop-sheet-row:nth-child(even) { background: #faf8fc; }
     .prop-sheet-row:hover { background: #eef6f1; }
     .prop-sheet-main { min-width: 0; }
     .prop-sheet-top {
@@ -449,26 +478,33 @@
       font-size: 13px; font-weight: 700; color: #3d3410;
     }
     .prop-sheet-top .date.is-empty {
-      background: #f3f5f7; border-color: #dfe3e8;
+      background: #f7f4fb; border-color: #dfe3e8;
     }
     .prop-sheet-top .date.is-empty .date-val { color: #9aa0a6; font-weight: 600; }
     .focus-add-bar {
       display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
       margin: 0 0 12px;
     }
+    .focus-add-bar .search-suggest-wrap {
+      flex: 1 1 180px; min-width: 0; position: relative;
+    }
     .focus-add-bar input {
-      flex: 1 1 180px; min-width: 0; margin: 0;
+      width: 100%; margin: 0;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      letter-spacing: 0.02em; text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
     .focus-add-bar .btn-sm { flex: 0 0 auto; }
+    .code-suggest-label { position: relative; display: block; }
+    .code-suggest-label .search-suggest {
+      left: 0; right: 0; top: calc(100% + 4px);
+    }
     .focus-add-msg {
       font-size: 12px; color: #71717a; margin: -4px 0 10px; min-height: 1.2em;
     }
     .focus-add-msg.is-error { color: #b42318; }
-    .focus-add-msg.is-ok { color: #137333; }
+    .focus-add-msg.is-ok { color: #5b21b6; }
     .focus-remove-btn {
-      appearance: none; border: 1px solid #e3e8ee; background: #fff;
+      appearance: none; border: 1px solid #e8e2f1; background: #fff;
       color: #5f6368; font-size: 11px; font-weight: 600; line-height: 1;
       padding: 5px 8px; border-radius: 8px; cursor: pointer;
       margin-left: auto; flex-shrink: 0; white-space: nowrap;
@@ -481,12 +517,12 @@
     #focus-panel .prop-list-head { border-radius: 12px 12px 0 0; }
     #focus-panel .table-wrap { margin-top: 0; }
     .prop-sheet-project {
-      font-size: 14px; font-weight: 600; color: #15202b; line-height: 1.35;
+      font-size: 14px; font-weight: 600; color: #1e1433; line-height: 1.35;
       word-break: break-word;
     }
     .prop-sheet-project .prop-project-link {
       display: inline; padding: 0; margin: 0; border: 0; background: none;
-      font: inherit; font-weight: 600; color: #137333; cursor: pointer; text-align: left;
+      font: inherit; font-weight: 600; color: #5b21b6; cursor: pointer; text-align: left;
       text-decoration: none;
     }
     .prop-sheet-project .prop-project-link:hover { text-decoration: underline; }
@@ -496,11 +532,11 @@
     .prop-sheet-meta .meta-chip {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500;
-      background: #f1f3f5; color: #3c4043; border: 1px solid #e3e8ee;
+      background: #f1f3f5; color: #3c3548; border: 1px solid #e8e2f1;
       max-width: 100%;
     }
-    .prop-sheet-meta .meta-chip strong { font-weight: 600; color: #6b7785; font-size: 10px; }
-    .prop-sheet-meta .meta-chip.loc { background: #e8f5e9; border-color: #c8e6c9; color: #137333; }
+    .prop-sheet-meta .meta-chip strong { font-weight: 600; color: #6b6280; font-size: 10px; }
+    .prop-sheet-meta .meta-chip.loc { background: #f3e8ff; border-color: #ddd6fe; color: #5b21b6; }
     .prop-sheet-notes {
       margin-top: 6px; font-size: 12px; line-height: 1.4; color: #5f6368;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
@@ -514,10 +550,10 @@
       display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
     }
     .prop-sheet-side .price-stack { align-items: flex-end; }
-    .prop-sheet-side .price-stack .rent { color: #137333; font-weight: 700; font-size: 14px; }
+    .prop-sheet-side .price-stack .rent { color: #5b21b6; font-weight: 700; font-size: 14px; }
     .prop-sheet-side .price-stack .sale { color: #1967d2; font-weight: 600; font-size: 12px; }
     .prop-sheet-side .price-stack .muted { color: #9aa0a6; font-size: 11px; }
-    .prop-sheet-side .side-note { font-size: 11px; color: #6b7785; }
+    .prop-sheet-side .side-note { font-size: 11px; color: #6b6280; }
     .prop-quick-actions {
       display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px;
       max-width: 100%;
@@ -531,22 +567,22 @@
       -webkit-tap-highlight-color: transparent;
     }
     .prop-qa-btn.has-link {
-      border-color: #b7e1c3; background: #f0faf3; color: #137333;
+      border-color: #c4b5fd; background: #f5f3ff; color: #5b21b6;
     }
     .prop-qa-btn.has-link:hover { border-color: #86c99a; background: #e6f6eb; }
     .prop-qa-btn.edit {
       border-color: #c5d4f0; background: #f3f7ff; color: #1967d2;
     }
-    .prop-qa-btn.edit:hover { border-color: #9db7e8; background: #e8f0fe; }
+    .prop-qa-btn.edit:hover { border-color: #9db7e8; background: #ede9fe; }
     .prop-qa-btn:disabled,
     .prop-qa-btn.is-disabled {
       opacity: .42; cursor: not-allowed; pointer-events: none;
-      border-color: #e3e8ee; background: #f8f9fa; color: #9aa0a6;
+      border-color: #e8e2f1; background: #faf8fc; color: #9aa0a6;
     }
     .prop-list .empty {
-      padding: 28px 16px; text-align: center; color: #6b7785; font-size: 13px;
+      padding: 28px 16px; text-align: center; color: #6b6280; font-size: 13px;
     }
-    .prop-list .empty span { display: block; font-weight: 600; color: #15202b; margin-bottom: 4px; }
+    .prop-list .empty span { display: block; font-weight: 600; color: #1e1433; margin-bottom: 4px; }
 
     .prop-sheet-thumb {
       flex-shrink: 0; width: 96px; aspect-ratio: 1 / 1;
@@ -554,20 +590,20 @@
     .prop-thumb {
       width: 100%; height: 100%; aspect-ratio: 1 / 1;
       border-radius: 12px; object-fit: cover; object-position: center;
-      background: #eef1f4; border: 1px solid #e3e8ee; display: block;
+      background: #f3f0f8; border: 1px solid #e8e2f1; display: block;
     }
     .prop-thumb-ph {
       width: 100%; height: 100%; aspect-ratio: 1 / 1; box-sizing: border-box;
       border-radius: 12px;
-      background: linear-gradient(135deg, #eef1f4, #e3e8ee);
-      border: 1px solid #e3e8ee; color: #9aa0a6; font-size: 11px;
+      background: linear-gradient(135deg, #f3f0f8, #e8e2f1);
+      border: 1px solid #e8e2f1; color: #9aa0a6; font-size: 11px;
       display: grid; place-items: center; line-height: 1.2; text-align: center; padding: 6px;
     }
     .price-stack { display: flex; flex-direction: column; gap: 1px; line-height: 1.2; }
 
     table { min-width: 960px; width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
     th {
-      position: sticky; top: 0; z-index: 2; background: #f8f9fa; text-align: left;
+      position: sticky; top: 0; z-index: 2; background: #faf8fc; text-align: left;
       padding: 6px 8px; font-size: 11px; font-weight: 600; color: #5f6368;
       border-bottom: 1px solid #dadce0; white-space: nowrap;
     }
@@ -579,16 +615,16 @@
     .prop-loc-bubble {
       display: inline-flex; align-items: center;
       padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600;
-      border: 1px solid #c8e6c9; background: #e8f5e9; color: #137333;
+      border: 1px solid #ddd6fe; background: #f3e8ff; color: #5b21b6;
       cursor: pointer; line-height: 1.35; max-width: 140px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .prop-loc-bubble.kind-transit {
-      background: #e8f0fe; color: #1967d2; border-color: #c5d8f8;
+      background: #ede9fe; color: #1967d2; border-color: #c5d8f8;
     }
-    .prop-loc-bubble:hover { filter: brightness(0.97); box-shadow: 0 0 0 2px rgba(24,128,56,.15); }
+    .prop-loc-bubble:hover { filter: brightness(0.97); box-shadow: 0 0 0 2px rgba(109,40,217,.15); }
     .prop-loc-bubble.is-active {
-      outline: 2px solid #188038; outline-offset: 1px;
+      outline: 2px solid #6d28d9; outline-offset: 1px;
     }
     .col-project .prop-name { font-weight: 500; }
     .col-project .prop-project-link {
@@ -599,7 +635,7 @@
       background: none;
       font: inherit;
       font-weight: 600;
-      color: #137333;
+      color: #5b21b6;
       cursor: pointer;
       text-align: left;
       text-decoration: underline;
@@ -619,15 +655,15 @@
       td.col-loc { display: none !important; }
       th.col-loc { display: none !important; }
     }
-    #props-panel tbody tr:nth-child(even) td { background: #fafbfc; }
-    tbody tr:hover td { background: #e8f0fe !important; }
+    #props-panel tbody tr:nth-child(even) td { background: #faf8fc; }
+    tbody tr:hover td { background: #ede9fe !important; }
     #props-panel th.col-code, #props-panel td.col-code {
       position: sticky; left: 0; z-index: 1; background: #fff;
-      box-shadow: 1px 0 0 #e8eaed;
+      box-shadow: 1px 0 0 #e8e2f1;
     }
-    #props-panel th.col-code { z-index: 3; background: #f8f9fa; }
-    #props-panel tbody tr:nth-child(even) td.col-code { background: #fafbfc; }
-    #props-panel tbody tr:hover td.col-code { background: #e8f0fe !important; }
+    #props-panel th.col-code { z-index: 3; background: #faf8fc; }
+    #props-panel tbody tr:nth-child(even) td.col-code { background: #faf8fc; }
+    #props-panel tbody tr:hover td.col-code { background: #ede9fe !important; }
     .empty { text-align: center; padding: 48px 16px; color: #80868b; }
     .empty p:first-child, .empty span { color: #5f6368; font-weight: 500; margin-bottom: 4px; display: block; }
 
@@ -641,7 +677,7 @@
       color: #9aa0a6; text-decoration: underline dotted;
     }
     button.linkish:hover { color: #1a73e8; }
-    .rent { color: #137333; font-weight: 500; }
+    .rent { color: #5b21b6; font-weight: 500; }
     .sale { color: #e37400; font-weight: 500; }
     a { color: #1a73e8; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -666,7 +702,7 @@
       border-radius: 999px; background: rgba(255,255,255,.14); color: #fff;
       font-size: 10px; font-weight: 700; line-height: 1;
     }
-    .tab.active .tab-badge { background: var(--gold); color: #1a1408; }
+    .tab.active .tab-badge { background: var(--gold); color: #2e1065; }
 
     .queue-add, .add-panel {
       background: var(--surface); border: 1px solid var(--line);
@@ -675,7 +711,7 @@
     }
     .fu-recommend-box {
       margin-top: 0; margin-bottom: 12px; padding: 12px; border: 1px solid var(--line);
-      border-radius: var(--radius); background: #fafbfc;
+      border-radius: var(--radius); background: #faf8fc;
     }
     .fu-rec-item {
       display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start;
@@ -702,7 +738,7 @@
     .fu-picker-chips:empty { display: none; margin: 0; }
     .fu-chip {
       display: inline-flex; align-items: center; gap: 4px;
-      padding: 2px 8px; border-radius: 999px; background: #e6f4ea; color: #137333;
+      padding: 2px 8px; border-radius: 999px; background: #f3e8ff; color: #5b21b6;
       font-size: 11px; font-weight: 600; border: 0; cursor: pointer; font-family: inherit;
     }
     .fu-chip .x { opacity: .7; font-weight: 700; }
@@ -745,8 +781,8 @@
     .fu-stat-chip.is-overdue .n { color: #b91c1c; }
     .fu-stat-chip.is-today { background: #fffbeb; border-color: #fde68a; }
     .fu-stat-chip.is-today .n { color: #b45309; }
-    .fu-stat-chip.is-open { background: var(--accent-soft); border-color: #ceead6; }
-    .fu-stat-chip.is-open .n { color: #137333; }
+    .fu-stat-chip.is-open { background: var(--accent-soft); border-color: #ddd6fe; }
+    .fu-stat-chip.is-open .n { color: #5b21b6; }
     #fu-stats { font-size: 12px; color: var(--muted); }
     .fu-board {
       display: flex; flex-direction: column; gap: 10px; margin: 0 0 12px;
@@ -815,7 +851,7 @@
     .fu-meta-pill {
       display: inline-flex; align-items: center; padding: 2px 7px;
       border-radius: 6px; font-size: 10px; font-weight: 600;
-      background: #f3f5f7; color: #5f6368;
+      background: #f7f4fb; color: #5f6368;
     }
     .fu-status-lg {
       display: inline-flex; align-items: center; justify-content: center;
@@ -824,7 +860,7 @@
       line-height: 1.2; white-space: nowrap;
       border: 1px solid transparent;
     }
-    .fu-st-new { background: #e8f0fe; color: #174ea6; border-color: #d2e3fc; }
+    .fu-st-new { background: #ede9fe; color: #174ea6; border-color: #d2e3fc; }
     .fu-st-contacted { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
     .fu-st-waiting_info { background: #fef3c7; color: #92400e; border-color: #fde68a; }
     .fu-st-offered { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
@@ -835,7 +871,7 @@
     .fu-st-contract_pending { background: #fef9c3; color: #854d0e; border-color: #fde047; }
     .fu-st-contract_started { background: #ccfbf1; color: #0f766e; border-color: #99f6e4; }
     .fu-st-paused { background: #f4f4f5; color: #52525b; border-color: #e4e4e7; }
-    .fu-st-closed_won { background: #e6f4ea; color: #137333; border-color: #ceead6; }
+    .fu-st-closed_won { background: #f3e8ff; color: #5b21b6; border-color: #ddd6fe; }
     .fu-st-closed_lost { background: #fce8e6; color: #c5221f; border-color: #f5c2c0; }
     .fu-filter-chips {
       display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0;
@@ -846,7 +882,7 @@
       color: #52525b; cursor: pointer; font-family: inherit;
     }
     .fu-filter-chip.is-on {
-      background: var(--accent-soft); border-color: #ceead6; color: #137333;
+      background: var(--accent-soft); border-color: #ddd6fe; color: #5b21b6;
     }
     .fu-card-note {
       margin: 0 14px 10px; padding: 10px 12px;
@@ -902,12 +938,12 @@
     #queue-panel .queue-actions { gap: 3px; }
     .q-link-cell { width: 1%; white-space: nowrap; }
     .q-link-ico {
-      appearance: none; border: 1px solid #dadce0; background: #fff;
+      appearance: none; border: 1px solid #d8d0e6; background: #fff;
       border-radius: 6px; padding: 3px 7px; font-size: 10px; font-weight: 700;
       color: #5f6368; cursor: pointer; font-family: inherit; line-height: 1.2;
     }
     .q-link-ico:disabled { opacity: .4; cursor: default; }
-    .q-link-ico.has-link { border-color: #c5d8f8; background: #e8f0fe; color: #1967d2; }
+    .q-link-ico.has-link { border-color: #c5d8f8; background: #ede9fe; color: #1967d2; }
     #queue-link-sheet.modal-backdrop {
       align-items: flex-end; justify-content: center; padding: 0;
       z-index: 60;
@@ -925,7 +961,7 @@
     #queue-link-sheet .q-link-sheet-box h3 { margin-bottom: 8px; }
     #queue-link-sheet .q-link-preview {
       margin: 0 0 14px; padding: 10px 12px; border-radius: 8px;
-      background: #f8f9fa; border: 1px solid #e8eaed;
+      background: #faf8fc; border: 1px solid #e8e2f1;
       font-size: 12px; color: #202124; word-break: break-all; line-height: 1.45;
       max-height: 4.8em; overflow: auto; -webkit-overflow-scrolling: touch;
     }
@@ -955,7 +991,7 @@
         width: auto; flex: 1 1 auto; min-width: 110px;
       }
     }
-    .q-date-cell { font-variant-numeric: tabular-nums; font-size: 11px; color: #3c4043; }
+    .q-date-cell { font-variant-numeric: tabular-nums; font-size: 11px; color: #3c3548; }
     .q-empty-msg {
       padding: 28px 16px; text-align: center; color: var(--muted); font-size: 13px;
     }
@@ -1010,7 +1046,7 @@
       display: none;
       padding: 0 14px 14px;
       border-top: 1px solid var(--line);
-      background: #fafbfc;
+      background: #faf8fc;
     }
     .fu-card.is-open .fu-card-detail { display: block; }
     .fu-card.is-open .fu-card-brief {
@@ -1047,10 +1083,10 @@
     }
     .add-panel { max-width: none; }
     .phase-banner {
-      background: #e8f0fe; border: 1px solid #d2e3fc; color: #1967d2;
+      background: #ede9fe; border: 1px solid #d2e3fc; color: #1967d2;
       border-radius: 4px; padding: 8px 10px; font-size: 12px; margin-bottom: 10px;
     }
-    .phase-banner.ok { background: #e6f4ea; border-color: #ceead6; color: #137333; }
+    .phase-banner.ok { background: #f3e8ff; border-color: #ddd6fe; color: #5b21b6; }
     .phase-banner.err { background: #fce8e6; border-color: #f5c2c0; color: #c5221f; }
     .add-zones { display: flex; flex-direction: column; gap: 14px; }
     .add-zone {
@@ -1086,17 +1122,17 @@
     .project-picker-list {
       position: absolute; left: 0; right: 0; top: 100%; z-index: 20;
       max-height: 220px; overflow: auto; background: #fff;
-      border: 1px solid #dadce0; border-radius: 4px; margin-top: 2px; list-style: none;
+      border: 1px solid #d8d0e6; border-radius: 4px; margin-top: 2px; list-style: none;
     }
     .project-picker-list li { padding: 8px 10px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f1f3f4; }
-    .project-picker-list li:hover, .project-picker-list li.active { background: #e8f0fe; }
+    .project-picker-list li:hover, .project-picker-list li.active { background: #ede9fe; }
     .transit-row { display: flex; gap: 6px; align-items: center; }
     .transit-row input { flex: 1; min-width: 0; }
     .tag-field {
       border: 1px solid #d4d4d8; border-radius: 10px; padding: 8px 10px;
-      background: #fafafa; min-height: 42px;
+      background: #faf8fc; min-height: 42px;
     }
-    .tag-field.is-editing { background: #fff; border-color: #86efac; box-shadow: 0 0 0 2px rgba(24,128,56,.12); }
+    .tag-field.is-editing { background: #fff; border-color: #c4b5fd; box-shadow: 0 0 0 2px rgba(109,40,217,.12); }
     .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 24px; }
     .tag-chips:empty::before {
       content: attr(data-empty);
@@ -1105,10 +1141,10 @@
     .tag-chip {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 4px 8px; border-radius: 999px;
-      background: #e8f5e9; color: #137333; font-size: 12px; font-weight: 600;
-      border: 1px solid #c8e6c9; line-height: 1.2;
+      background: #f3e8ff; color: #5b21b6; font-size: 12px; font-weight: 600;
+      border: 1px solid #ddd6fe; line-height: 1.2;
     }
-    .tag-chip.kind-transit { background: #e8f0fe; color: #1967d2; border-color: #c5d8f8; }
+    .tag-chip.kind-transit { background: #ede9fe; color: #1967d2; border-color: #c5d8f8; }
     .tag-chip-x {
       appearance: none; border: 0; background: transparent; cursor: pointer;
       color: inherit; opacity: .55; font-size: 14px; line-height: 1; padding: 0 0 0 2px;
@@ -1124,34 +1160,34 @@
     .tag-suggest-list {
       position: absolute; left: 0; right: 44px; top: calc(100% + 2px); z-index: 30;
       max-height: 200px; overflow: auto; background: #fff;
-      border: 1px solid #dadce0; border-radius: 8px; margin: 0; padding: 0;
+      border: 1px solid #d8d0e6; border-radius: 8px; margin: 0; padding: 0;
       list-style: none; box-shadow: 0 8px 20px rgba(0,0,0,.08);
     }
     .tag-suggest-list li {
       padding: 8px 10px; cursor: pointer; font-size: 12px;
       border-bottom: 1px solid #f1f3f4;
     }
-    .tag-suggest-list li:hover, .tag-suggest-list li.active { background: #e8f0fe; }
-    .tag-suggest-list li.is-new { color: #137333; font-weight: 600; }
+    .tag-suggest-list li:hover, .tag-suggest-list li.active { background: #ede9fe; }
+    .tag-suggest-list li.is-new { color: #5b21b6; font-weight: 600; }
     .tag-suggest-list.hidden { display: none !important; }
     .tag-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
     .queue-add textarea, .add-panel textarea {
-      width: 100%; min-height: 88px; padding: 8px; border: 1px solid #dadce0;
+      width: 100%; min-height: 88px; padding: 8px; border: 1px solid #d8d0e6;
       border-radius: 4px; font-size: 13px; resize: vertical;
     }
     .queue-status {
       display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px;
     }
     .queue-status.pending { background: #fef7e0; color: #b06000; }
-    .queue-status.working { background: #e8f0fe; color: #1967d2; }
-    .queue-status.done { background: #e6f4ea; color: #137333; }
+    .queue-status.working { background: #ede9fe; color: #1967d2; }
+    .queue-status.done { background: #f3e8ff; color: #5b21b6; }
     .link-section-title {
       font-size: 12px !important;
       font-weight: 700 !important;
-      color: #137333 !important;
+      color: #5b21b6 !important;
       margin: 10px 0 2px !important;
       padding-top: 8px;
-      border-top: 1px solid #e8eaed;
+      border-top: 1px solid #e8e2f1;
     }
     .link-section-title:first-of-type,
     .add-grid > .link-section-title:nth-of-type(1) {
@@ -1160,7 +1196,7 @@
     }
     .link-field { display: block; margin: 0; }
     .link-field > span {
-      display: block; font-size: 12px; font-weight: 500; color: #3c4043; margin-bottom: 4px;
+      display: block; font-size: 12px; font-weight: 500; color: #3c3548; margin-bottom: 4px;
     }
     .link-field-row {
       display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
@@ -1169,13 +1205,13 @@
       flex: 1; min-width: 160px;
     }
     .link-field-row input[readonly] {
-      background: #f8f9fa; color: #3c4043; cursor: default;
+      background: #faf8fc; color: #3c3548; cursor: default;
     }
     .link-field-row .btn-sm {
       padding: 7px 10px; font-size: 12px; border-radius: 6px;
     }
     .link-field-row .btn-sm.editing {
-      background: #e8f0fe; border-color: #1a73e8; color: #1967d2;
+      background: #ede9fe; border-color: #1a73e8; color: #1967d2;
     }
     @media (max-width: 768px) {
       .link-field-row .btn-sm { flex: 1 1 auto; text-align: center; }
@@ -1307,17 +1343,17 @@
       font-size: 11px;
       line-height: 1.2;
       border-radius: 4px;
-      border: 1px solid #dadce0;
+      border: 1px solid #d8d0e6;
       background: #fff;
-      color: #3c4043;
+      color: #3c3548;
       cursor: pointer;
       white-space: nowrap;
       flex: 0 0 auto;
     }
     .queue-actions .btn-xs.primary {
-      background: #188038;
+      background: #6d28d9;
       color: #fff;
-      border-color: #188038;
+      border-color: #6d28d9;
     }
     .queue-actions .btn-xs.danger {
       color: #c5221f;
@@ -1336,7 +1372,7 @@
       display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px;
     }
     .modal-box {
-      background: #fff; border-radius: 8px; padding: 20px; width: 100%; max-width: 420px; border: 1px solid #dadce0;
+      background: #fff; border-radius: 8px; padding: 20px; width: 100%; max-width: 420px; border: 1px solid #d8d0e6;
     }
     .modal-box h3 { font-size: 16px; margin-bottom: 6px; }
     .modal-box p { font-size: 12px; color: #5f6368; margin-bottom: 14px; line-height: 1.5; }
@@ -1344,13 +1380,13 @@
     .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
 
     .group-rec-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
-    .group-card { border: 1px solid #dadce0; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-size: 12px; }
+    .group-card { border: 1px solid #d8d0e6; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-size: 12px; }
 
     /* Cards retired — sheet table is primary */
     .prop-cards { display: none !important; }
     .prop-card-warn { color: #b45309; font-size: 10px; font-weight: 600; }
     tbody tr.prop-row { cursor: pointer; }
-    td .code { color: #188038; font-weight: 600; }
+    td .code { color: #6d28d9; font-weight: 600; }
     td .rent, td .sale { font-weight: 600; font-variant-numeric: tabular-nums; }
     tbody tr.project-row { cursor: pointer; }
     tbody tr.project-row:hover td { background: #f8fbf9; }
@@ -1361,12 +1397,12 @@
     .project-standard-form.hidden { display: none !important; }
     .project-standard-head {
       display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;
-      color: #137333; font-size: 14px;
+      color: #5b21b6; font-size: 14px;
     }
     .project-view-banner {
       display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
       margin: 0 0 12px; padding: 10px 14px; border-radius: 12px;
-      background: #e6f4ea; color: #137333; font-size: 13px; font-weight: 500;
+      background: #f3e8ff; color: #5b21b6; font-size: 13px; font-weight: 500;
       box-shadow: var(--shadow);
     }
     .project-view-banner.hidden { display: none !important; }
@@ -1386,7 +1422,7 @@
     .prop-pet-badge {
       display: inline-flex; align-items: center;
       padding: 2px 7px; border-radius: 999px;
-      background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;
+      background: #f3e8ff; color: #5b21b6; border: 1px solid #ddd6fe;
       font-size: 10px; font-weight: 700; letter-spacing: 0.01em;
     }
     .prop-card-warn { color: #b45309; font-size: 10px; font-weight: 600; }
@@ -1394,16 +1430,16 @@
       position: sticky; top: 0; z-index: 30;
       display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
       margin: 0 0 12px; padding: 10px 12px;
-      background: var(--surface); border: 1px solid #ceead6; border-radius: 12px;
+      background: var(--surface); border: 1px solid #ddd6fe; border-radius: 12px;
       box-shadow: var(--shadow);
     }
     .submenu-bar.hidden { display: none !important; }
     .submenu-bar-title {
-      flex: 1; min-width: 120px; font-size: 13px; font-weight: 600; color: #137333;
+      flex: 1; min-width: 120px; font-size: 13px; font-weight: 600; color: #5b21b6;
     }
-    .submenu-bar .btn-sm.primary { background: #188038; color: #fff; border-color: #188038; }
+    .submenu-bar .btn-sm.primary { background: #6d28d9; color: #fff; border-color: #6d28d9; }
     .edit-banner {
-      background: #e6f4ea; border-bottom: 1px solid #ceead6; color: #137333;
+      background: #f3e8ff; border-bottom: 1px solid #ddd6fe; color: #5b21b6;
       padding: 10px 16px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
     }
     .edit-banner.hidden { display: none !important; }
@@ -1472,12 +1508,12 @@
       .mobile-nav {
         display: grid; grid-template-columns: repeat(6, 1fr);
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
-        background: #15202b; border-top: 1px solid rgba(255,255,255,.08);
+        background: #1e1433; border-top: 1px solid rgba(255,255,255,.08);
         padding: 6px 2px calc(6px + var(--safe-b));
         box-shadow: 0 -8px 24px rgba(0,0,0,.18);
       }
       .mobile-nav button {
-        appearance: none; border: none; background: transparent; color: rgba(232,238,244,.7);
+        appearance: none; border: none; background: transparent; color: rgba(245,243,255,.7);
         font-family: inherit; font-size: 9px; font-weight: 600; padding: 6px 1px;
         display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
         min-height: 44px;
@@ -1487,7 +1523,7 @@
       .mobile-nav .nav-badge {
         position: absolute; top: 2px; right: calc(50% - 18px);
         min-width: 14px; height: 14px; padding: 0 3px; border-radius: 999px;
-        background: var(--gold); color: #1a1408; font-size: 9px; font-weight: 700;
+        background: var(--gold); color: #2e1065; font-size: 9px; font-weight: 700;
         display: none; align-items: center; justify-content: center;
       }
       .mobile-nav button { position: relative; }
@@ -1514,7 +1550,7 @@
     }
     .db-subtab:hover { background: #f4f6f8; color: var(--ink); }
     .db-subtab.active {
-      background: var(--accent-soft); border-color: #ceead6; color: #137333;
+      background: var(--accent-soft); border-color: #ddd6fe; color: #5b21b6;
     }
 
     /* Co-Agent traffic dashboard */
@@ -1568,7 +1604,7 @@
     .co-mini-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
     .co-empty {
       padding: 28px 16px; text-align: center; color: #71717a; font-size: 13px; line-height: 1.5;
-      background: #fafafa; border: 1px dashed var(--line); border-radius: 12px;
+      background: #faf8fc; border: 1px dashed var(--line); border-radius: 12px;
     }
     .co-empty a { color: #4338ca; }
 
@@ -1630,6 +1666,11 @@
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5 14.2 9h5.8l-4.7 3.4 1.8 5.6L12 14.8 7 18l1.8-5.6L4 9h5.8L12 3.5Z"/></svg>
             Focus<span class="tab-badge hidden" id="focus-badge">0</span>
           </button>
+          <div class="sidebar-subnav" id="focus-sidebar-sub" aria-label="ซับเมนู Focus">
+            <button type="button" class="tab-sub" data-view="focus" data-focus-tab="team">ทรัพย์ Focus</button>
+            <button type="button" class="tab-sub" data-view="focus" data-focus-tab="publish">โพสอัตโนมัติ</button>
+            <button type="button" class="tab-sub" data-view="focus" data-focus-tab="comment">คอมเมนต์อัตโนมัติ</button>
+          </div>
           <button type="button" class="tab" data-view="queue">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
             รอโพสต์<span class="tab-badge hidden" id="queue-badge">0</span>
@@ -1920,23 +1961,66 @@
       </div>
 
       <div class="hidden" id="focus-panel">
-        <p class="focus-panel-intro">
-          ทรัพย์ที่ทีมกำลัง Focus — พิมพ์รหัสทรัพย์แล้วกดเพิ่ม · ไม่ผูกคอลัมน์ชีท
-        </p>
-        <div class="focus-add-bar">
-          <input type="text" id="focus-code-input" placeholder="เช่น PTP8212 หรือ RXT1234, PTP9999" autocomplete="off" spellcheck="false" />
-          <button type="button" class="btn-sm primary" id="focus-add-btn">เพิ่มรหัส</button>
+        <div style="padding:10px 12px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="focus-subnav" role="tablist">
+          <button type="button" class="btn-sm primary" data-focus-tab="team" id="focus-tab-team">ทรัพย์ Focus</button>
+          <button type="button" class="btn-sm" data-focus-tab="publish" id="focus-tab-publish">โพสอัตโนมัติ</button>
+          <button type="button" class="btn-sm" data-focus-tab="comment" id="focus-tab-comment">คอมเมนต์อัตโนมัติ</button>
         </div>
-        <div class="focus-add-msg" id="focus-add-msg" aria-live="polite"></div>
-        <div class="table-wrap">
-          <div class="prop-list-head">
-            <span>รูป</span>
-            <span>รหัส · วันที่เพิ่ม · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล · หมายเหตุ</span>
-            <span class="head-side">ราคา</span>
+
+        <div id="focus-team-section" style="padding:0 0 8px">
+          <p class="focus-panel-intro">
+            ทรัพย์ที่ทีมกำลัง Focus — พิมพ์รหัสทรัพย์แล้วกดเพิ่ม · ไม่ผูกคอลัมน์ชีท
+          </p>
+          <div class="focus-add-bar">
+            <div class="search-suggest-wrap">
+              <input type="search" id="focus-code-input" class="smart-search" placeholder="พิมพ์รหัสหรือโครงการ เช่น 4865, Thru…" autocomplete="off" spellcheck="false" />
+              <ul class="search-suggest hidden" id="focus-code-suggest" role="listbox"></ul>
+            </div>
+            <button type="button" class="btn-sm primary" id="focus-add-btn">เพิ่มรหัส</button>
           </div>
-          <div class="scroll props-table-scroll">
-            <div id="focus-rows" class="prop-list"></div>
+          <div class="focus-add-msg" id="focus-add-msg" aria-live="polite"></div>
+          <div class="table-wrap">
+            <div class="prop-list-head">
+              <span>รูป</span>
+              <span>รหัส · วันที่เพิ่ม · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล · หมายเหตุ</span>
+              <span class="head-side">ราคา</span>
+            </div>
+            <div class="scroll props-table-scroll">
+              <div id="focus-rows" class="prop-list"></div>
+            </div>
           </div>
+        </div>
+
+        <div class="hidden" id="focus-autofollow-publish-section" style="padding:12px">
+          <p class="fu-board-intro" style="margin:0 0 10px">
+            รหัสที่เตรียมไว้สำหรับ<strong>โพสกลุ่มอัตโนมัติ</strong> — เพิ่มที่นี่ แล้วดึงไปใช้ในแท็บโพสได้ทันที
+          </p>
+          <div class="focus-add-bar">
+            <div class="search-suggest-wrap">
+              <input type="search" id="af-publish-code-input" class="smart-search" placeholder="พิมพ์รหัสหรือโครงการ เช่น 4865, Thru…" autocomplete="off" spellcheck="false" />
+              <ul class="search-suggest hidden" id="af-publish-code-suggest" role="listbox"></ul>
+            </div>
+            <button type="button" class="btn-sm primary" id="af-publish-add-btn">เพิ่มรหัส</button>
+            <button type="button" class="btn-sm" id="af-publish-goto">เปิดโพสอัตโนมัติ</button>
+          </div>
+          <div class="focus-add-msg" id="af-publish-msg" aria-live="polite"></div>
+          <div id="af-publish-list" style="margin-top:10px"></div>
+        </div>
+
+        <div class="hidden" id="focus-autofollow-comment-section" style="padding:12px">
+          <p class="fu-board-intro" style="margin:0 0 10px">
+            รหัสที่เตรียมไว้สำหรับ<strong>คอมเมนต์กลุ่มอัตโนมัติ</strong> — เพิ่มที่นี่ แล้วดึงไปใส่คิวคอมเมนต์ได้ทันที
+          </p>
+          <div class="focus-add-bar">
+            <div class="search-suggest-wrap">
+              <input type="search" id="af-comment-code-input" class="smart-search" placeholder="พิมพ์รหัสหรือโครงการ เช่น 4865, Thru…" autocomplete="off" spellcheck="false" />
+              <ul class="search-suggest hidden" id="af-comment-code-suggest" role="listbox"></ul>
+            </div>
+            <button type="button" class="btn-sm primary" id="af-comment-add-btn">เพิ่มรหัส</button>
+            <button type="button" class="btn-sm" id="af-comment-goto">เปิดคอมเมนต์กลุ่ม</button>
+          </div>
+          <div class="focus-add-msg" id="af-comment-msg" aria-live="polite"></div>
+          <div id="af-comment-list" style="margin-top:10px"></div>
         </div>
       </div>
 
@@ -2311,6 +2395,7 @@
           <button type="button" class="db-subtab" data-db-tab="groups" role="tab" aria-selected="false">กลุ่ม FB</button>
           <button type="button" class="db-subtab" data-db-tab="comments" role="tab" aria-selected="false">คอมเมนต์กลุ่ม</button>
           <button type="button" class="db-subtab" data-db-tab="publish" role="tab" aria-selected="false">โพสกลุ่มอัตโนมัติ</button>
+          <button type="button" class="db-subtab" data-db-tab="livereport" role="tab" aria-selected="false">รายงานเรียลไทม์</button>
           <button type="button" class="db-subtab" data-db-tab="fbconnect" role="tab" aria-selected="false">เชื่อมต่อเฟส</button>
           <button type="button" class="db-subtab" data-db-tab="sheettools" role="tab" aria-selected="false">เครื่องมือชีท</button>
         </div>
@@ -2491,6 +2576,7 @@
             <button type="button" class="btn-sm" data-comments-agent="admin" id="comments-agent-btn-admin">แอดมิน (Windows)</button>
             <span style="font-size:11px;color:#94a3b8">รายงานผล / คิว / สถานะเฟส แยกตามเครื่อง</span>
             <span style="flex:1"></span>
+            <button type="button" class="btn-sm" id="comments-clear-work" style="border-color:#f59e0b;color:#92400e;font-weight:600">ล้างการทำงาน</button>
             <button type="button" class="btn-sm" id="comments-emergency-pause" style="background:#b91c1c;color:#fff;border-color:#991b1b;font-weight:700">⏹ หยุดงานฉุกเฉิน</button>
             <button type="button" class="btn-sm hidden" id="comments-emergency-resume" style="background:#15803d;color:#fff;border-color:#166534;font-weight:700">▶ ทำงานต่อ</button>
           </div>
@@ -2532,17 +2618,21 @@
           <div id="comments-ready-banner" style="display:none;margin-bottom:12px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.5"></div>
           <div id="comments-schedule-box" style="margin-bottom:12px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
             <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-              <strong style="font-size:13px">ตารางคิวคอมเมนต์ — จะโพสต์ตอนไหน</strong>
-              <span style="font-size:11px;color:#71717a">ลิงก์ใหม่เริ่มคอมเมนต์ทันทีเมื่อ Agent พร้อม</span>
+              <strong style="font-size:13px">ตารางคิวคอมเมนต์ — นับถอยหลังเรียลไทม์</strong>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <span style="font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:#166534" id="comments-global-next" data-live-cd="comment-panel-next">—</span>
+                <button type="button" class="btn-sm" id="comments-goto-livereport">รายงานเรียลไทม์</button>
+              </div>
             </div>
             <div id="comments-schedule-list" style="font-size:13px;color:#3f3f46;line-height:1.55">กำลังโหลด…</div>
             <p style="margin:10px 0 0;font-size:12px;color:#71717a;line-height:1.55">
               <strong>รอบแรกเริ่มทันที</strong>หลังล็อกอิน Chrome สำเร็จ · รอบถัดไปของโพสต์เดิมประมาณ <strong>5–8 วัน</strong> ·
-              จำกัดด้วย「รอบ/วัน」และ「วันสิ้นสุด」· Agent เช็คคิวประมาณทุก 5 นาที
+              จำกัดด้วย「รอบ/วัน」และ「วันสิ้นสุด」· หน้านี้รีเฟรชสถานะอัตโนมัติทุกไม่กี่วินาที
             </p>
           </div>
           <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;align-items:end">
             <button type="button" class="btn-sm primary" id="comments-code-add-btn">+ เพิ่มรหัส</button>
+            <button type="button" class="btn-sm" id="comments-from-follow-btn" title="ดึงรหัสจาก Focus · คอมเมนต์อัตโนมัติ">จาก Focus</button>
             <label style="flex:1;min-width:200px">
               <span style="display:block;font-size:11px;color:#71717a;margin-bottom:4px">กรองรหัสในตาราง</span>
               <input type="search" id="comments-codes-filter" placeholder="กรองรหัสที่เพิ่มแล้ว เช่น PTP82" style="width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px" />
@@ -2643,9 +2733,16 @@
             <span style="font-size:12px;color:#71717a">ข้อความ · รูป · กลุ่ม · ตั้งเวลา · Agent โพสให้ (กันแบน)</span>
             <span style="flex:1"></span>
             <button type="button" class="btn-sm" id="publish-goto-fbconnect">ตั้งค่าบัญชีเฟส</button>
+            <button type="button" class="btn-sm" id="publish-clear-work" style="border-color:#f59e0b;color:#92400e;font-weight:600">ล้างการทำงาน</button>
             <button type="button" class="btn-sm" id="publish-refresh">รีเฟรชคิว</button>
           </div>
           <div id="publish-manual-join-banner" class="hidden" style="margin-bottom:10px;padding:10px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;line-height:1.45"></div>
+          <div id="publish-next-bar" style="margin-bottom:10px;padding:10px 12px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;font-size:13px;line-height:1.45;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <span style="color:#1e40af;font-weight:600">โพสถัดไป</span>
+            <span style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums" id="publish-next-countdown" data-live-cd="publish-panel-next">—</span>
+            <span style="font-size:12px;color:#64748b;flex:1" id="publish-next-detail">—</span>
+            <button type="button" class="btn-sm" id="publish-goto-livereport">เปิดรายงานเรียลไทม์</button>
+          </div>
           <div id="publish-dash" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px">
             <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff"><div style="font-size:11px;color:#71717a">โพสวันนี้</div><div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-today">—</div></div>
             <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff"><div style="font-size:11px;color:#71717a">คิวค้าง</div><div style="font-size:18px;font-weight:700;margin-top:4px" id="pdash-pending">—</div></div>
@@ -2655,7 +2752,7 @@
           </div>
           <div id="publish-by-account" style="margin-bottom:12px;font-size:12px;color:#52525b"></div>
 
-          <div style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fafafa;margin-bottom:14px">
+          <div style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#faf8fc;margin-bottom:14px">
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="publish-steps" role="tablist">
               <button type="button" class="btn-sm primary" data-pub-step="1">1. ข้อความ</button>
               <button type="button" class="btn-sm" data-pub-step="2">2. รูป</button>
@@ -2666,12 +2763,30 @@
             <div class="pub-step" data-step-panel="1">
               <strong style="font-size:14px">ขั้น 1 — ทรัพย์และข้อความ</strong>
               <div class="add-grid" style="margin-top:8px">
-                <label><span>รหัสทรัพย์</span><input type="text" id="publish-code" placeholder="เช่น PTP8236" /></label>
+                <label class="code-suggest-label"><span>รหัสทรัพย์</span>
+                  <div class="search-suggest-wrap">
+                    <input type="search" id="publish-code" class="smart-search" placeholder="พิมพ์รหัสหรือโครงการ เช่น 4865, Thru…" autocomplete="off" />
+                    <ul class="search-suggest hidden" id="publish-code-suggest" role="listbox"></ul>
+                  </div>
+                </label>
+                <label><span>จาก Focus โพส</span>
+                  <select id="publish-from-follow">
+                    <option value="">— เลือกรหัสจาก Focus โพส —</option>
+                  </select>
+                </label>
                 <label><span>Agent</span>
                   <select id="publish-agent"><option value="owner">เจ้าของ (Mac)</option><option value="admin">แอดมิน (Windows)</option></select>
                 </label>
-                <label class="add-wide"><span>แคปชัน (ว่าง = สร้างอัตโนมัติ · ไม่มีลิงก์)</span>
-                  <textarea id="publish-caption" rows="5" placeholder="ปล่อยว่างหรือวางข้อความเอง"></textarea>
+                <label class="add-wide"><span>แคปชัน (วางเอง · ไม่มีลิงก์ · คงการเคาะบรรทัดตามต้นฉบับ)</span>
+                  <textarea id="publish-caption" rows="16" placeholder="วางข้อความแคปชันจากโพสเพจที่นี่ (รองรับเคาะบรรทัด/เว้นบรรทัดว่าง)" style="white-space:pre-wrap;line-height:1.5;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px"></textarea>
+                </label>
+                <label class="add-wide"><span>ท้ายประโยค (ชุดเดียวกับหน้าโพสปกติ)</span>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px">
+                    <select id="publish-footer-select" style="min-width:220px;max-width:100%;flex:1;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:13px">
+                      <option value="">— เลือกชุดท้ายประโยค —</option>
+                    </select>
+                    <button type="button" class="btn-sm primary" id="publish-footer-append">เติมท้ายประโยค</button>
+                  </div>
                 </label>
                 <label class="add-wide" style="display:flex;align-items:center;gap:8px;flex-direction:row">
                   <input type="checkbox" id="publish-vary-caption" style="width:auto" checked />
@@ -2679,19 +2794,20 @@
                 </label>
               </div>
               <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
-                <button type="button" class="btn-sm" id="publish-gen-caption">สร้างแคปชัน no-link</button>
+                <a class="btn-sm" id="publish-open-page" href="#" target="_blank" rel="noopener" data-prop-ext-link="1" style="display:none">เปิดโพสเพจ (ก๊อปเอง)</a>
+                <a class="btn-sm" id="publish-open-profile" href="#" target="_blank" rel="noopener" data-prop-ext-link="1" style="display:none">เปิดโพสโปรไฟล์</a>
                 <button type="button" class="btn-sm primary" data-pub-next="2">ถัดไป → รูป</button>
               </div>
-              <div id="publish-variants" style="margin-top:8px;font-size:12px;color:#52525b;white-space:pre-wrap"></div>
+              <div id="publish-page-links-hint" class="hidden" style="margin-top:6px;font-size:12px;color:#71717a">เปิดลิงก์เพื่อคัดลอกข้อความต้นฉบับมาวางด้านบน · หรือใช้ปุ่มเติมท้ายประโยค</div>
+              <div id="publish-page-status" style="margin-top:6px;font-size:12px;color:#52525b"></div>
             </div>
 
             <div class="pub-step hidden" data-step-panel="2">
-              <strong style="font-size:14px">ขั้น 2 — รูป (อัปเอง หรือดึงจากเพจเท่าที่มี)</strong>
-              <p style="margin:6px 0 8px;font-size:12px;color:#71717a">อัปชั่วคราวบน Hub (~7 วัน) · Agent ดาวน์โหลดลงเครื่องตอนโพส · สูงสุด 12 รูป</p>
+              <strong style="font-size:14px">ขั้น 2 — อัปโหลดรูป</strong>
+              <p style="margin:6px 0 8px;font-size:12px;color:#71717a">เลือกรูปจากเครื่อง → อัปขึ้น Hub ชั่วคราว (~7 วัน) → Agent ดาวน์โหลดลงเครื่องตอนโพส · สูงสุด 12 รูป</p>
               <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
-                <button type="button" class="btn-sm" id="publish-fetch-images">ดึงจากโพสเพจ</button>
-                <label class="btn-sm" style="cursor:pointer;display:inline-flex;align-items:center">
-                  อัปโหลดรูป<input type="file" id="publish-upload-input" accept="image/*" multiple hidden />
+                <label class="btn-sm primary" style="cursor:pointer;display:inline-flex;align-items:center">
+                  อัปโหลดรูปจากเครื่อง<input type="file" id="publish-upload-input" accept="image/*" multiple hidden />
                 </label>
                 <button type="button" class="btn-sm" id="publish-clear-images">ล้างรูป</button>
                 <button type="button" class="btn-sm" data-pub-prev="1">← กลับ</button>
@@ -2716,7 +2832,8 @@
                 <textarea id="publish-extra-groups" rows="2" placeholder="https://www.facebook.com/groups/…"></textarea>
               </label>
               <input type="search" id="publish-groups-q" placeholder="ค้นหาชื่อกลุ่ม…" style="width:100%;max-width:420px;margin:8px 0;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px" />
-              <div id="publish-groups-pick" style="margin-top:6px;max-height:260px;overflow:auto;font-size:13px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px"></div>
+              <div id="publish-groups-meta" style="font-size:12px;color:#64748b;margin:4px 0 6px"></div>
+              <div id="publish-groups-pick" style="margin-top:6px;max-height:520px;overflow:auto;font-size:13px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px"></div>
             </div>
 
             <div class="pub-step hidden" data-step-panel="4">
@@ -2744,19 +2861,20 @@
           </div>
 
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            <strong style="font-size:13px">คิวโพสล่าสุด</strong>
-            <span style="font-size:11px;color:#71717a">หน่วง 3–8 นาที · คูลดาวน์กลุ่ม ~3 วัน · หยุดเมื่อถูกจำกัด</span>
+            <strong style="font-size:13px">คิวโพสล่าสุด · รายงานเรียลไทม์</strong>
+            <span style="font-size:11px;color:#71717a">หน่วง 3–8 นาที · คูลดาวน์กลุ่ม ~3 วัน · นับถอยหลังสดทุกวินาที</span>
           </div>
         </div>
         <div class="scroll">
           <table>
             <thead>
               <tr>
-                <th style="width:90px">รหัส</th>
+                <th style="width:80px">รหัส</th>
                 <th>กลุ่ม</th>
-                <th style="width:100px">บัญชี</th>
+                <th style="width:90px">บัญชี</th>
                 <th style="width:100px">สถานะ</th>
-                <th style="width:140px">เวลา</th>
+                <th style="width:150px">นับถอยหลัง</th>
+                <th style="width:160px">รายงาน</th>
                 <th style="width:90px"></th>
               </tr>
             </thead>
@@ -2765,9 +2883,95 @@
         </div>
       </div>
 
+      <div class="table-wrap hidden" id="livereport-panel">
+        <div style="padding:12px;border-bottom:1px solid #e4e4e7">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+            <strong style="font-size:15px">รายงานผลเรียลไทม์</strong>
+            <span style="font-size:12px;color:#71717a">คอมเมนต์ + โพสกลุ่ม · นับถอยหลังสด · อัปเดตอัตโนมัติ</span>
+            <span style="flex:1"></span>
+            <button type="button" class="btn-sm primary" data-live-agent="owner" id="live-agent-btn-owner">เจ้าของ (Mac)</button>
+            <button type="button" class="btn-sm" data-live-agent="admin" id="live-agent-btn-admin">แอดมิน (Windows)</button>
+            <button type="button" class="btn-sm" id="live-report-refresh">รีเฟรชทันที</button>
+            <button type="button" class="btn-sm" id="live-clear-work" style="border-color:#f59e0b;color:#92400e;font-weight:600">ล้างการทำงาน</button>
+            <span id="live-report-updated" style="font-size:11px;color:#94a3b8"></span>
+          </div>
+          <div id="live-agent-strip" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+              <div style="font-size:11px;color:#71717a">Agent</div>
+              <div style="font-size:16px;font-weight:700;margin-top:4px" id="live-agent-status">—</div>
+              <div style="font-size:11px;color:#71717a;margin-top:2px" id="live-agent-sub">—</div>
+            </div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+              <div style="font-size:11px;color:#71717a">เฟส</div>
+              <div style="font-size:16px;font-weight:700;margin-top:4px" id="live-fb-status">—</div>
+              <div style="font-size:11px;color:#71717a;margin-top:2px" id="live-fb-sub">—</div>
+            </div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#f0fdf4">
+              <div style="font-size:11px;color:#166534">คอมเมนต์ถัดไป</div>
+              <div style="font-size:18px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums" id="live-next-comment" data-live-cd="comment-next">—</div>
+              <div style="font-size:11px;color:#64748b;margin-top:2px" id="live-next-comment-detail">—</div>
+            </div>
+            <div style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#eff6ff">
+              <div style="font-size:11px;color:#1e40af">โพสกลุ่มถัดไป</div>
+              <div style="font-size:18px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums" id="live-next-publish" data-live-cd="publish-next">—</div>
+              <div style="font-size:11px;color:#64748b;margin-top:2px" id="live-next-publish-detail">—</div>
+            </div>
+          </div>
+          <div id="live-manual-join-banner" class="hidden" style="margin-bottom:12px;padding:10px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;line-height:1.45"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:420px" class="live-report-grid">
+          <div style="border-right:1px solid #e4e4e7;display:flex;flex-direction:column;min-width:0">
+            <div style="padding:10px 12px;background:#f8fafc;border-bottom:1px solid #e4e4e7;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <strong style="font-size:13px">คอมเมนต์อัตโนมัติ</strong>
+              <span style="font-size:11px;color:#64748b" id="live-comment-stats">—</span>
+            </div>
+            <div style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#475569" id="live-comment-summary">กำลังโหลด…</div>
+            <div class="scroll" style="flex:1;max-height:520px">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:90px">รหัส</th>
+                    <th>กลุ่ม / โพสต์</th>
+                    <th style="width:110px">สถานะ</th>
+                    <th style="width:150px">นับถอยหลัง</th>
+                  </tr>
+                </thead>
+                <tbody id="live-comment-rows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <div style="padding:10px 12px;background:#f8fafc;border-bottom:1px solid #e4e4e7;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <strong style="font-size:13px">โพสกลุ่มอัตโนมัติ</strong>
+              <span style="font-size:11px;color:#64748b" id="live-publish-stats">—</span>
+            </div>
+            <div style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#475569" id="live-publish-summary">กำลังโหลด…</div>
+            <div class="scroll" style="flex:1;max-height:520px">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:80px">รหัส</th>
+                    <th>กลุ่ม</th>
+                    <th style="width:110px">สถานะ</th>
+                    <th style="width:150px">นับถอยหลัง</th>
+                  </tr>
+                </thead>
+                <tbody id="live-publish-rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <style>
+          @media (max-width: 960px) {
+            .live-report-grid { grid-template-columns: 1fr !important; }
+            .live-report-grid > div { border-right: none !important; border-bottom: 1px solid #e4e4e7; }
+          }
+        </style>
+      </div>
+
       <div class="table-wrap hidden" id="fb-connect-panel">
         <div style="padding:12px">
-          <div id="fb-agent-panel" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fafafa">
+          <div id="fb-agent-panel" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#faf8fc">
             <div id="fb-agent-switcher" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
               <span style="font-size:12px;color:#71717a">ตั้งค่า Agent:</span>
               <button type="button" class="btn-sm primary" data-fb-agent="owner" id="fb-agent-btn-owner">เจ้าของ (Mac)</button>
@@ -2821,7 +3025,7 @@
                 <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
                   <button type="button" class="btn-sm primary" id="fb-agent-download-win">⬇ ดาวน์โหลดไฟล์ Windows</button>
                   <button type="button" class="btn-sm" id="fb-agent-copy-win-cmd">📋 คัดลอกคำสั่ง PowerShell</button>
-                  <span id="fb-agent-copy-win-ok" style="font-size:12px;color:#137333;align-self:center"></span>
+                  <span id="fb-agent-copy-win-ok" style="font-size:12px;color:#5b21b6;align-self:center"></span>
                 </div>
               </div>
 
@@ -2835,7 +3039,7 @@
                 </ol>
                 <div class="toolbar-row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">
                   <button type="button" class="btn-sm primary" id="fb-agent-copy-mac-cmd">📋 คัดลอกคำสั่งเปิดระบบ</button>
-                  <span id="fb-agent-copy-mac-ok" style="font-size:12px;color:#137333;align-self:center"></span>
+                  <span id="fb-agent-copy-mac-ok" style="font-size:12px;color:#5b21b6;align-self:center"></span>
                 </div>
                 <details style="font-size:13px;color:#3f3f46">
                   <summary style="cursor:pointer;font-weight:600">หรือดาวน์โหลดไฟล์ (ถ้าขึ้นเหลือง ทำตามนี้)</summary>
@@ -2870,7 +3074,7 @@
                 <li>กดปุ่มด้านล่างให้ระบบเชื่อม · <strong>อย่าปิด Chrome</strong></li>
                 <li>ดูช่อง「รายงานการทำงาน」ว่าสำเร็จ แล้วไปแท็บคอมเมนต์กลุ่ม</li>
               </ol>
-              <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:12px;color:#065f46;line-height:1.55">
+              <div style="margin:0 0 10px;padding:10px 12px;border-radius:8px;background:#f3e8ff;border:1px solid #ddd6fe;font-size:12px;color:#5b21b6;line-height:1.55">
                 สลับบัญชีกลางทาง: กด「หยุดงานฉุกเฉิน」→ เลือกโปรไฟล์ใหม่ → เปิด Chrome ใหม่ → กด「ทำงานต่อ」
               </div>
               <div style="margin:0 0 12px;padding:12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa">
@@ -2919,7 +3123,7 @@
               </div>
               <div class="toolbar-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
                 <button type="button" class="btn-sm" id="fb-agent-save-cred">บันทึกไว้ช่วยพิมพ์ (ถ้าต้องการ)</button>
-                <span id="fb-agent-step1-ok" style="font-size:12px;color:#137333;align-self:center"></span>
+                <span id="fb-agent-step1-ok" style="font-size:12px;color:#5b21b6;align-self:center"></span>
               </div>
             </details>
 
@@ -3247,7 +3451,7 @@
                 บันทึกลง Hub · ถ้ามาจากคิวจะลบรายการออกจากรอโพสต์
               </span>
             </div>
-            <div id="group-recommend-box" style="padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
+            <div id="group-recommend-box" style="padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#faf8fc">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
                 <strong style="font-size:13px">กลุ่ม FB แนะนำ</strong>
                 <span id="group-recommend-meta" style="font-size:11px;color:#71717a">กด「แนะนำกลุ่ม FB」หลังมีข้อความโพสต์</span>
@@ -3255,7 +3459,7 @@
               <div id="group-recommend-tabs" class="hidden" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
               <div id="group-recommend-list" style="margin-top:10px;font-size:12px;color:#a1a1aa;max-height:480px;overflow:auto">ยังไม่มีรายการ</div>
             </div>
-            <div id="group-post-link-box" style="margin-top:12px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#fafafa">
+            <div id="group-post-link-box" style="margin-top:12px;padding:12px;border:1px solid #e4e4e7;border-radius:10px;background:#faf8fc">
               <strong style="font-size:13px;display:block">บันทึกลิงก์โพสต์กลุ่ม → คอมเมนต์อัตโนมัติ</strong>
               <p style="font-size:12px;color:#52525b;margin:8px 0 10px;line-height:1.5">
                 หลังโพสต์ในกลุ่มแล้ว คัดลอกลิงก์โพสต์จาก Facebook วางที่นี่
@@ -3355,6 +3559,44 @@
     </div>
   </div>
 
+  <div class="modal-backdrop hidden" id="clear-work-modal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="clear-work-title" style="max-width:440px">
+      <h3 id="clear-work-title">ล้างการทำงาน</h3>
+      <p>เคลียร์งานปัจจุบันของ Agent ที่เลือก — โพสที่สำเร็จแล้วและประวัติไม่ถูกลบ</p>
+      <label style="display:block;margin-bottom:10px">
+        <span style="display:block;font-size:12px;color:#71717a;margin-bottom:4px">Agent</span>
+        <select id="clear-work-agent" style="width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px">
+          <option value="owner">เจ้าของ (Mac)</option>
+          <option value="admin">แอดมิน (Windows)</option>
+        </select>
+      </label>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;cursor:pointer">
+        <input type="checkbox" id="clear-work-publish" checked style="width:auto;margin-top:3px" />
+        <span><strong>ล้างคิวโพสกลุ่ม</strong><br/><span style="font-size:12px;color:#64748b">ยกเลิกงานที่รอ / รอเข้ากลุ่ม / ไม่สำเร็จ</span></span>
+      </label>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;cursor:pointer">
+        <input type="checkbox" id="clear-work-comments" checked style="width:auto;margin-top:3px" />
+        <span><strong>ล้างคิวคอมเมนต์</strong><br/><span style="font-size:12px;color:#64748b">ปิดรหัส + พักลิงก์ทั้งหมดของ Agent นี้</span></span>
+      </label>
+      <label id="clear-work-comment-mode-wrap" style="display:block;margin:0 0 10px 26px">
+        <span style="display:block;font-size:12px;color:#71717a;margin-bottom:4px">วิธีล้างคอมเมนต์</span>
+        <select id="clear-work-comment-mode" style="width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px">
+          <option value="pause">พักงาน (เก็บรหัสไว้ เปิดใหม่ได้)</option>
+          <option value="delete">ลบรหัสและลิงก์ทั้งหมด</option>
+        </select>
+      </label>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px;cursor:pointer">
+        <input type="checkbox" id="clear-work-pause-agent" style="width:auto;margin-top:3px" />
+        <span><strong>หยุดงานฉุกเฉินด้วย</strong><br/><span style="font-size:12px;color:#64748b">Agent จะไม่ทำงานจนกว่าจะกด「ทำงานต่อ」</span></span>
+      </label>
+      <div id="clear-work-hint" style="font-size:12px;color:#b45309;margin-bottom:10px;line-height:1.45"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-sm" id="clear-work-cancel">ยกเลิก</button>
+        <button type="button" class="btn-sm primary" id="clear-work-confirm" style="background:#b45309;border-color:#92400e">ยืนยันล้างงาน</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop hidden" id="comments-add-code-modal" aria-hidden="true">
     <div class="modal-box" role="dialog" aria-modal="true" style="max-width:min(960px,96vw);width:100%;max-height:92dvh;display:flex;flex-direction:column;padding:16px;border-radius:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
@@ -3365,8 +3607,12 @@
         <button type="button" class="btn-sm" id="comments-add-modal-close">ปิด</button>
       </div>
       <input type="search" id="comments-add-modal-q" placeholder="พิมพ์รหัสหรือโครงการ เช่น PTP8235, niche, life asoke" autocomplete="off" style="width:100%;padding:12px 14px;border:1px solid #d4d4d8;border-radius:10px;font-size:15px;margin-bottom:10px" />
+      <div id="comments-add-from-follow" style="margin-bottom:10px;padding:10px;border:1px dashed #d4d4d8;border-radius:10px;background:#faf8fc">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px">จาก Focus · คอมเมนต์อัตโนมัติ</div>
+        <div id="comments-add-follow-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px"></div>
+      </div>
       <div id="comments-add-modal-meta" style="font-size:12px;color:#71717a;margin-bottom:8px">พิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา</div>
-      <div id="comments-add-modal-results" style="flex:1;overflow:auto;min-height:260px;max-height:min(62dvh,580px);border:1px solid #e5e7eb;border-radius:10px;background:#fafafa"></div>
+      <div id="comments-add-modal-results" style="flex:1;overflow:auto;min-height:260px;max-height:min(62dvh,580px);border:1px solid #e5e7eb;border-radius:10px;background:#faf8fc"></div>
     </div>
   </div>
 
@@ -6370,6 +6616,134 @@
       }
     }
 
+    function codeSuggestToken(raw) {
+      var s = String(raw || "");
+      var m = s.match(/^(.*[,;]\s*)([^,;]*)$/);
+      if (m) return { prefix: m[1], token: m[2] };
+      return { prefix: "", token: s };
+    }
+
+    function applyCodeSuggestToken(raw, code) {
+      var parts = codeSuggestToken(raw);
+      return (parts.prefix || "") + code;
+    }
+
+    function propertyCodeSuggestHits(q, limit) {
+      var token = codeSuggestToken(q).token.trim();
+      if (!token || token.length < 1) return [];
+      var maxN = Math.max(8, Math.min(Number(limit) || 14, 24));
+      var byCode = Object.create(null);
+      var out = [];
+      function pushHit(h) {
+        var code = String(h.code || "").trim().toUpperCase();
+        if (!code || byCode[code]) return;
+        byCode[code] = true;
+        out.push({
+          code: code,
+          name: h.name || "—",
+          beds: h.beds || "",
+          id: h.id || ""
+        });
+      }
+      findPropertiesByCodeQuery(token).forEach(pushHit);
+      if (token.length >= 2) {
+        commentsCodeSearchHits(token, maxN).forEach(pushHit);
+      }
+      return out.slice(0, maxN);
+    }
+
+    function renderCodeSuggestList(listEl, q) {
+      if (!listEl) return;
+      var token = codeSuggestToken(q).token.trim();
+      if (!token) {
+        listEl.classList.add("hidden");
+        listEl.innerHTML = "";
+        return;
+      }
+      var hits = propertyCodeSuggestHits(q, 14);
+      if (!hits.length) {
+        listEl.innerHTML = '<li class="sg-empty">ไม่พบรหัส/โครงการ「' + esc(token) + "」</li>";
+        listEl.classList.remove("hidden");
+        return;
+      }
+      listEl.innerHTML = '<li class="search-suggest-head">เลือกรหัสทรัพย์</li>' + hits.map(function (h) {
+        return '<li data-kind="code" data-code="' + esc(h.code) + '">' +
+          '<span class="sg-name">' + esc(h.code) + "</span>" +
+          '<span class="sg-meta">' + esc(h.name) + (h.beds ? (" · " + esc(h.beds)) : "") + "</span></li>";
+      }).join("");
+      listEl.classList.remove("hidden");
+    }
+
+    function bindPropertyCodeSuggest(inputId, listId, onPick) {
+      var input = document.getElementById(inputId);
+      var list = document.getElementById(listId);
+      if (!input || !list) return;
+      var timer = null;
+      function hide() {
+        list.classList.add("hidden");
+      }
+      function showForValue() {
+        renderCodeSuggestList(list, input.value);
+      }
+      function pick(li) {
+        if (!li || !li.getAttribute("data-code")) return;
+        var code = li.getAttribute("data-code");
+        input.value = applyCodeSuggestToken(input.value, code);
+        hide();
+        if (typeof onPick === "function") onPick(code, input);
+        try { input.focus(); } catch (e) { /* ignore */ }
+      }
+      input.addEventListener("input", function () {
+        clearTimeout(timer);
+        var v = input.value;
+        timer = setTimeout(function () { renderCodeSuggestList(list, v); }, 70);
+      });
+      input.addEventListener("focus", function () {
+        if (input.value.trim()) showForValue();
+      });
+      input.addEventListener("keydown", function (e) {
+        var items = !list.classList.contains("hidden")
+          ? Array.prototype.slice.call(list.querySelectorAll("li[data-kind]"))
+          : [];
+        var active = list.querySelector("li[data-kind].active");
+        var idx = active ? items.indexOf(active) : -1;
+        if (e.key === "ArrowDown" && items.length) {
+          e.preventDefault();
+          if (active) active.classList.remove("active");
+          idx = Math.min(items.length - 1, idx + 1);
+          items[idx].classList.add("active");
+          items[idx].scrollIntoView({ block: "nearest" });
+          return;
+        }
+        if (e.key === "ArrowUp" && items.length) {
+          e.preventDefault();
+          if (active) active.classList.remove("active");
+          idx = Math.max(0, idx <= 0 ? 0 : idx - 1);
+          items[idx].classList.add("active");
+          items[idx].scrollIntoView({ block: "nearest" });
+          return;
+        }
+        if (e.key === "Escape") {
+          hide();
+          return;
+        }
+        if (e.key === "Enter" && active) {
+          e.preventDefault();
+          pick(active);
+        }
+      });
+      list.addEventListener("mousedown", function (e) {
+        var li = e.target.closest("li[data-kind]");
+        if (!li) return;
+        e.preventDefault();
+        pick(li);
+      });
+      document.addEventListener("click", function (e) {
+        if (e.target === input || list.contains(e.target) || (input.closest(".search-suggest-wrap") && input.closest(".search-suggest-wrap").contains(e.target))) return;
+        hide();
+      });
+    }
+
     function renderProjectOptions(q) {
       var list = document.getElementById("add-project-list");
       var items = filterProjectOptions(q);
@@ -7550,7 +7924,7 @@
     }
 
     function switchDbTab(tab) {
-      var allowed = { projects: 1, groups: 1, zones: 1, transits: 1, sheettools: 1, comments: 1, publish: 1, fbconnect: 1 };
+      var allowed = { projects: 1, groups: 1, zones: 1, transits: 1, sheettools: 1, comments: 1, publish: 1, livereport: 1, fbconnect: 1 };
       activeDbTab = allowed[tab] ? tab : "projects";
       document.querySelectorAll("#db-subnav .db-subtab").forEach(function (b) {
         var on = b.getAttribute("data-db-tab") === activeDbTab;
@@ -7561,6 +7935,7 @@
       var grpPanel = document.getElementById("groups-panel");
       var commentsPanel = document.getElementById("comments-panel");
       var publishPanel = document.getElementById("publish-panel");
+      var liveReportPanel = document.getElementById("livereport-panel");
       var fbConnectPanel = document.getElementById("fb-connect-panel");
       var zonesPanel = document.getElementById("zones-panel");
       var transitsPanel = document.getElementById("transits-panel");
@@ -7569,6 +7944,7 @@
       if (grpPanel) grpPanel.classList.toggle("hidden", activeDbTab !== "groups");
       if (commentsPanel) commentsPanel.classList.toggle("hidden", activeDbTab !== "comments");
       if (publishPanel) publishPanel.classList.toggle("hidden", activeDbTab !== "publish");
+      if (liveReportPanel) liveReportPanel.classList.toggle("hidden", activeDbTab !== "livereport");
       if (fbConnectPanel) fbConnectPanel.classList.toggle("hidden", activeDbTab !== "fbconnect");
       if (zonesPanel) zonesPanel.classList.toggle("hidden", activeDbTab !== "zones");
       if (transitsPanel) transitsPanel.classList.toggle("hidden", activeDbTab !== "transits");
@@ -7581,6 +7957,7 @@
           groups: "สมุดกลุ่ม Facebook สำหรับโพสต์",
           comments: "แดชบอร์ด + คิวคอมเมนต์กลุ่มอัตโนมัติ",
           publish: "แคมเปญโพสกลุ่ม · หลายบัญชี · ไม่แนบลิงก์",
+          livereport: "รายงานผลเรียลไทม์ · นับถอยหลัง · สถานะกลุ่ม",
           fbconnect: "ตั้งค่าเฟสส่วนตัว · เปิดเครื่องทำงาน · ล็อกอิน",
           zones: "มาสเตอร์ทำเล / โซน · ค้นหา · เพิ่ม",
           transits: "มาสเตอร์ BTS / MRT · ค้นหา · เพิ่ม",
@@ -7595,8 +7972,11 @@
         loadCommentsQueue();
         loadFbAgentStatus();
       } else if (activeDbTab === "publish") {
+        loadAllAutoFollowCaches();
         loadPublishPanel();
         loadFbAgentStatus();
+      } else if (activeDbTab === "livereport") {
+        loadLiveReport();
       } else if (activeDbTab === "fbconnect") {
         loadFbAgentStatus();
       } else if (activeDbTab === "zones") {
@@ -7637,6 +8017,8 @@
       if (commentsPanel) commentsPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "comments");
       var publishPanel = document.getElementById("publish-panel");
       if (publishPanel) publishPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "publish");
+      var liveReportPanel = document.getElementById("livereport-panel");
+      if (liveReportPanel) liveReportPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "livereport");
       var fbConnectPanel = document.getElementById("fb-connect-panel");
       if (fbConnectPanel) fbConnectPanel.classList.toggle("hidden", view !== "db" || activeDbTab !== "fbconnect");
       var zonesPanel = document.getElementById("zones-panel");
@@ -7659,6 +8041,7 @@
           groups: "สมุดกลุ่ม Facebook สำหรับโพสต์",
           comments: "แดชบอร์ด + คิวคอมเมนต์กลุ่มอัตโนมัติ",
           publish: "แคมเปญโพสกลุ่ม · หลายบัญชี · ไม่แนบลิงก์",
+          livereport: "รายงานผลเรียลไทม์ · นับถอยหลัง · สถานะกลุ่ม",
           fbconnect: "ตั้งค่าเฟสส่วนตัว · เปิดเครื่องทำงาน · ล็อกอิน",
           zones: "มาสเตอร์ทำเล / โซน · ค้นหา · เพิ่ม",
           transits: "มาสเตอร์ BTS / MRT · ค้นหา · เพิ่ม",
@@ -7694,8 +8077,7 @@
         loadQueue();
       }
       else if (view === "focus") {
-        loadFocus();
-        renderFocusRows();
+        switchFocusTab(activeFocusTab || "team");
       }
       else if (view === "followup") {
         hideFollowupFormSection();
@@ -7716,6 +8098,11 @@
         } else if (activeDbTab === "comments") {
           loadCommentsQueue();
           loadFbAgentStatus();
+        } else if (activeDbTab === "publish") {
+          loadPublishPanel();
+          loadFbAgentStatus();
+        } else if (activeDbTab === "livereport") {
+          loadLiveReport();
         } else if (activeDbTab === "fbconnect") {
           loadFbAgentStatus();
         } else if (activeDbTab === "zones") {
@@ -8000,10 +8387,10 @@
           var tierLabel = ({ project: "โครงการ", zone: "โซน", large: "กลุ่มใหญ่", fit: "แมตช์", other: "" })[tier] || "";
           var url = g.url || "";
           return '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid #eee">' +
-            '<span style="color:#188038;font-weight:600;min-width:22px">' + (i + 1) + "</span>" +
+            '<span style="color:#6d28d9;font-weight:600;min-width:22px">' + (i + 1) + "</span>" +
             '<div style="flex:1;min-width:0">' +
               '<div style="font-weight:600;color:#18181b">' + esc(g.name) +
-                (tierLabel ? ' <span class="tag" style="background:#e6f4ea;color:#137333">' + esc(tierLabel) + "</span>" : "") +
+                (tierLabel ? ' <span class="tag" style="background:#f3e8ff;color:#5b21b6">' + esc(tierLabel) + "</span>" : "") +
               "</div>" +
               '<div style="font-size:11px;color:#71717a;margin-top:2px">' + esc((g.reasons || []).join(" · ")) + "</div>" +
               '<div class="group-caption-status" data-caption-status-for="' + esc(url) + '" style="font-size:10px;color:#a1a1aa;margin-top:4px"></div>' +
@@ -8246,6 +8633,65 @@
         .replace(/"/g, "&quot;");
     }
 
+    function facebookHtmlToPlainCaption(html) {
+      // FB copies line/blank breaks mainly in text/html (<div>/<br>), not text/plain.
+      var tmp = document.createElement("div");
+      tmp.innerHTML = String(html || "")
+        .replace(/\u200b/g, "")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(div|p|li|h[1-6]|tr)>/gi, "\n")
+        .replace(/<(div|p|li|h[1-6])(?:\s[^>]*)?>/gi, "");
+      return (tmp.textContent || tmp.innerText || "")
+        .replace(/\u00a0/g, " ")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .replace(/^\n+|\n+$/g, "");
+    }
+
+    function countCaptionLines(text) {
+      var s = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      if (!s) return 0;
+      return s.split("\n").length;
+    }
+
+    function countCaptionBlankBreaks(text) {
+      return (String(text || "").match(/\n\n+/g) || []).length;
+    }
+
+    function bindFacebookCaptionPaste(el, onAfter) {
+      if (!el || el.dataset.fbPasteBound === "1") return;
+      el.dataset.fbPasteBound = "1";
+      el.addEventListener("paste", function (e) {
+        try {
+          var cd = e.clipboardData || window.clipboardData;
+          if (!cd) return;
+          var html = cd.getData("text/html") || "";
+          var plain = (cd.getData("text/plain") || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+          var converted = "";
+          if (html && /<br\s*\/?>|<\/(div|p|li)|<div[\s>]/i.test(html)) {
+            converted = facebookHtmlToPlainCaption(html);
+          }
+          // Prefer HTML when it keeps more structure / blank lines than plain paste.
+          var useHtml = converted && (
+            countCaptionLines(converted) > countCaptionLines(plain) ||
+            countCaptionBlankBreaks(converted) > countCaptionBlankBreaks(plain) ||
+            countCaptionLines(plain) < 3
+          );
+          if (!useHtml) return;
+          e.preventDefault();
+          var start = el.selectionStart || 0;
+          var end = el.selectionEnd || 0;
+          var cur = el.value || "";
+          el.value = cur.slice(0, start) + converted + cur.slice(end);
+          var pos = start + converted.length;
+          try { el.setSelectionRange(pos, pos); } catch (err) { /* ignore */ }
+          if (typeof onAfter === "function") onAfter(el.value);
+        } catch (err) { /* keep default paste */ }
+      });
+    }
+
     function captionToClipboardHtml(text) {
       // Facebook / contenteditable paste keeps line breaks from HTML <div>/<br>,
       // but often flattens plain-text \n into one line.
@@ -8335,7 +8781,7 @@
         }
       }
       if (!el) return;
-      el.style.color = isError ? "#b91c1c" : "#137333";
+      el.style.color = isError ? "#b91c1c" : "#5b21b6";
       el.textContent = message || "";
     }
 
@@ -8349,7 +8795,7 @@
         return;
       }
       var lines = t.split(/\n/).length;
-      hint.style.color = "#137333";
+      hint.style.color = "#5b21b6";
       hint.textContent = "พร้อมโพสต์ · " + t.length + " ตัวอักษร · " + lines + " บรรทัด";
     }
 
@@ -8387,7 +8833,7 @@
           await reloadPreviewData();
           var hint = document.getElementById("add-page-post-hint");
           if (hint) {
-            hint.style.color = "#137333";
+            hint.style.color = "#5b21b6";
             hint.textContent = "บันทึกข้อความต้นฉบับแล้ว · " + text.length + " ตัวอักษร";
           }
         } catch (e) {
@@ -8396,7 +8842,7 @@
       } else {
         var hint2 = document.getElementById("add-page-post-hint");
         if (hint2) {
-          hint2.style.color = "#137333";
+          hint2.style.color = "#5b21b6";
           hint2.textContent = "เก็บในฟอร์มแล้ว — กด「บันทึกทรัพย์」เพื่อเซฟถาวร · " + text.length + " ตัวอักษร";
         }
       }
@@ -8414,6 +8860,7 @@
           return '<option value="' + esc(it.id) + '">' + esc(it.label || "ไม่มีชื่อ") + "</option>";
         }).join("");
       if (want) sel.value = want;
+      if (typeof fillPublishFooterSelect === "function") fillPublishFooterSelect();
     }
 
     function renderPostFooterList() {
@@ -8439,6 +8886,7 @@
       try {
         var data = await apiGet("/api/post-footers");
         var prefer = data.active_id || data.latest_id || "";
+        window._postFooterActiveId = prefer || "";
         renderPostFooterSelect(data.items || [], prefer);
         renderPostFooterList();
       } catch (e) {
@@ -8750,16 +9198,66 @@
       var h = Math.floor(n / 3600);
       var m = Math.floor((n % 3600) / 60);
       var s = Math.floor(n % 60);
-      if (h > 0) return "อีก " + h + " ชม. " + m + " นาที";
-      if (m > 0) return "อีก " + m + " นาที" + (s > 0 ? " " + s + " วิ" : "");
-      return "อีก " + s + " วิ";
+      var parts = [];
+      if (h > 0) parts.push(h + " ชม.");
+      if (h > 0 || m > 0) parts.push(m + " นาที");
+      parts.push(s + " วิ");
+      return "อีก " + parts.join(" ");
     }
 
     function nextInSecFromAt(at) {
       if (!at) return null;
-      var t = Date.parse(String(at).replace(" ", "T"));
+      var raw = String(at).trim();
+      // Prefer ISO; also accept "YYYY-MM-DD HH:MM:SS"
+      var t = Date.parse(raw.indexOf("T") >= 0 ? raw : raw.replace(" ", "T"));
       if (isNaN(t)) return null;
       return Math.floor((t - Date.now()) / 1000);
+    }
+
+    function applyCountdownEl(el, sec) {
+      if (!el) return;
+      el.textContent = formatCountdown(sec);
+      if (sec == null) {
+        el.style.color = "#94a3b8";
+        return;
+      }
+      el.style.color = sec <= 0 ? "#5b21b6" : "#1e1433";
+    }
+
+    var publishJobsCache = [];
+    var publishStatsCache = {};
+    var commentsUpcomingCache = [];
+    var liveReportAgentId = localStorage.getItem("ptp_live_agent") || commentsSelectedAgentId || "owner";
+    var liveCommentFlatCache = [];
+    var liveCountdownTargets = {}; // id -> ISO datetime string
+
+    function setLiveCountdownTarget(id, at) {
+      if (!id) return;
+      if (at) liveCountdownTargets[id] = at;
+      else delete liveCountdownTargets[id];
+    }
+
+    function publishStatusLabel(st, job) {
+      job = job || {};
+      return ({
+        pending: "รอ",
+        due: "ถึงคิว",
+        posted: "สำเร็จ",
+        failed: "ไม่สำเร็จ",
+        restricted: "ถูกจำกัด",
+        cancelled: "ยกเลิก",
+        awaiting_join: job.needs_manual_join ? "ต้องเข้ากลุ่มเอง" : "รอเข้ากลุ่ม"
+      })[st] || st || "—";
+    }
+
+    function publishReportText(j) {
+      var parts = [];
+      if (j.needs_manual_join) parts.push("ต้องกดเข้าร่วมกลุ่มด้วยมือ");
+      if (j.detail) parts.push(j.detail);
+      if (j.error) parts.push(j.error);
+      if (j.permalink) parts.push("มีลิงก์โพส");
+      if (j.posted_at) parts.push("โพสแล้ว " + j.posted_at);
+      return parts.length ? parts.join(" · ") : "—";
     }
 
     function commentActionLabel(action) {
@@ -8821,21 +9319,21 @@
       if (!links.length) {
         return '<div style="padding:10px 12px;font-size:12px;color:#71717a">ยังไม่มีลิงก์กลุ่มในรหัสนี้ — กดแก้ไขเพื่อเพิ่ม</div>';
       }
-      return '<div style="padding:8px 10px">' + links.map(function (it) {
+      return '<div style="padding:8px 10px">' + links.map(function (it, idx) {
         var url = it.post_url || "";
         var gname = it.group_name || "กลุ่มเฟส";
+        var linkKey = "clink-" + (it.id || idx);
+        setLiveCountdownTarget(linkKey, it.next_comment_at);
         var whenSec = nextInSecFromAt(it.next_comment_at);
-        var when = whenSec == null
-          ? (it.next_comment_at || "—")
-          : (whenSec <= 0 ? "ถึงคิวแล้ว" : formatCountdown(whenSec));
+        var when = formatCountdown(whenSec);
         var detail = commentResultText(it);
         return '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;padding:10px 0;border-top:1px solid #f1f5f9">' +
           '<div style="flex:1;min-width:200px">' +
             '<div style="font-weight:600;font-size:13px">' + esc(gname) +
               ' <span style="font-weight:400;color:#64748b">· ' + esc(commentStatusLabel(it.status)) +
               ' · คอมเมนต์แล้ว ' + esc(String(it.comment_count || 0)) + ' ครั้ง</span></div>' +
-            '<div style="font-size:11px;color:#64748b;margin-top:4px">โพสถัดไป: ' + esc(when) +
-              (it.next_comment_at ? ' <span style="color:#94a3b8">(' + esc(it.next_comment_at) + ')</span>' : '') + '</div>' +
+            '<div style="font-size:12px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums" data-live-cd="' + esc(linkKey) + '">' + esc(when) + "</div>" +
+            (it.next_comment_at ? '<div style="font-size:11px;color:#94a3b8">กำหนด ' + esc(it.next_comment_at) + "</div>" : "") +
             '<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.5">' + esc(detail) + '</div>' +
             '<div style="font-size:11px;color:#94a3b8;margin-top:4px;word-break:break-all">' + esc(url) + '</div>' +
           '</div>' +
@@ -8864,16 +9362,25 @@
         var endDate = s.end_date || "—";
         var code = String(it.code || "");
         var expanded = !!commentsExpandedCodes[code];
-        var sec = it.next_in_sec != null ? Number(it.next_in_sec) : nextInSecFromAt(it.next_comment_at);
+        var cdKey = "ccode-" + code;
+        setLiveCountdownTarget(cdKey, it.next_comment_at);
+        var sec = nextInSecFromAt(it.next_comment_at);
+        if (sec == null && it.next_in_sec != null) sec = Number(it.next_in_sec);
         var countdown = formatCountdown(sec);
         var reportBits = [];
         var links = it.links || [];
+        var okN = links.filter(function (l) { return l.status === "commented" || l.last_action === "commented"; }).length;
         var failed = links.filter(function (l) { return l.status === "failed"; }).length;
         var joinPend = links.filter(function (l) {
-          return l.join_status === "requested" || l.join_status === "pending" || l.last_action === "join_requested";
+          return l.join_status === "requested" || l.join_status === "pending" || l.last_action === "join_requested" || l.last_action === "join_pending";
         }).length;
-        if (failed) reportBits.push("ล้มเหลว " + failed);
+        var joinNeed = links.filter(function (l) {
+          return l.join_status === "needed" || l.last_action === "join_needed" || l.last_action === "join_failed";
+        }).length;
+        if (okN) reportBits.push("สำเร็จ " + okN);
+        if (failed) reportBits.push("ไม่สำเร็จ " + failed);
         if (joinPend) reportBits.push("รอเข้ากลุ่ม " + joinPend);
+        if (joinNeed) reportBits.push("ยังไม่เข้า " + joinNeed);
         var report = reportBits.length ? reportBits.join(" · ") : (freq + " · สิ้นสุด " + endDate);
         var arrow = expanded ? "▼" : "▶";
         var main = "<tr data-code-row=\"" + esc(code) + "\">" +
@@ -8882,7 +9389,7 @@
           "<td><label class=\"ios-switch is-small\"><input type=\"checkbox\" data-comment-toggle-code=\"" + esc(code) + "\" " + (it.active ? "checked" : "") + " /><span class=\"slider\"><span class=\"knob\"></span></span></label></td>" +
           "<td>" + esc(String(it.link_count || 0)) + "/20</td>" +
           "<td>" + esc(String(it.due_count || 0)) + "</td>" +
-          '<td style="font-size:12px;font-weight:600;color:' + ((sec != null && sec <= 0) ? "#137333" : "#15202b") + '" data-countdown-code="' + esc(code) + '">' + esc(countdown) + "</td>" +
+          '<td style="font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:' + ((sec != null && sec <= 0) ? "#5b21b6" : "#1e1433") + '" data-live-cd="' + esc(cdKey) + '" data-countdown-code="' + esc(code) + '">' + esc(countdown) + "</td>" +
           "<td style=\"font-size:11px;line-height:1.45\">" + esc(report) + "</td>" +
           '<td><div class="group-actions">' +
             '<button type="button" class="btn-sm" data-comment-edit-code="' + esc(code) + '">แก้ไข</button>' +
@@ -8897,27 +9404,28 @@
       }).join("");
     }
 
-    function tickCommentCountdowns() {
+    function tickLiveCountdowns() {
+      Object.keys(liveCountdownTargets).forEach(function (id) {
+        var at = liveCountdownTargets[id];
+        var sec = nextInSecFromAt(at);
+        document.querySelectorAll('[data-live-cd="' + id.replace(/"/g, '\\"') + '"]').forEach(function (el) {
+          applyCountdownEl(el, sec);
+        });
+      });
+      // Legacy comment code cells that still use data-countdown-code
       (commentsCodesCache || []).forEach(function (it) {
         var code = String(it.code || "");
-        var el = document.querySelector('[data-countdown-code="' + code.replace(/"/g, '\\"') + '"]');
-        if (!el) return;
         var sec = nextInSecFromAt(it.next_comment_at);
-        if (sec == null && it.next_in_sec != null) {
-          // drift from last poll
-          sec = Number(it.next_in_sec);
-        }
+        if (sec == null && it.next_in_sec != null) sec = Number(it.next_in_sec);
         if (sec == null) return;
         it.next_in_sec = Math.max(0, sec);
-        el.textContent = formatCountdown(sec);
-        el.style.color = sec <= 0 ? "#137333" : "#15202b";
+        var el = document.querySelector('[data-countdown-code="' + code.replace(/"/g, '\\"') + '"]');
+        applyCountdownEl(el, sec);
       });
-      // refresh expanded link "when" texts lightly by re-render if any expanded
-      var any = Object.keys(commentsExpandedCodes).some(function (k) { return commentsExpandedCodes[k]; });
-      if (any) {
-        // only update countdown cells in expanded panels via re-render of dropdowns is heavy;
-        // skip — main row countdown is enough for realtime
-      }
+    }
+
+    function tickCommentCountdowns() {
+      tickLiveCountdowns();
     }
 
     function renderCommentCodeLinks(links) {
@@ -8987,12 +9495,12 @@
       };
       var fbOk = !!fb.fb_logged_in;
       var pcOk = !!fb.agent_online;
-      setText("cdash-fb", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#137333" : "#b42318");
+      setText("cdash-fb", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#5b21b6" : "#b42318");
       setText("cdash-fb-sub", fb.email ? ("บัญชีที่บันทึกไว้ " + fb.email + " (ไม่บังคับ)") : "ล็อกอินในหน้าต่าง Chrome ได้เลย");
       var pcLabel = !pcOk ? "ยังไม่เปิด" : (fb.agent_status === "working" ? "กำลังคอมเมนต์" : "ทำงานอยู่");
-      setText("cdash-pc", pcLabel, pcOk ? "#137333" : "#b42318");
+      setText("cdash-pc", pcLabel, pcOk ? "#5b21b6" : "#b42318");
       setText("cdash-pc-sub", fb.agent_hostname || fb.agent_message || "—");
-      setText("cdash-today", String(dash.comments_today != null ? dash.comments_today : "—"), "#15202b");
+      setText("cdash-today", String(dash.comments_today != null ? dash.comments_today : "—"), "#1e1433");
       var lr = fb.last_run || {};
       if (lr.at) {
         setText("cdash-lastrun", "สำเร็จ " + (lr.done || 0) + " · ไม่สำเร็จ " + (lr.failed || 0));
@@ -9012,9 +9520,9 @@
       if (banner) {
         if (fbOk && pcOk) {
           banner.style.display = "block";
-          banner.style.background = "#e7f6ee";
+          banner.style.background = "#f3e8ff";
           banner.style.border = "1px solid #b7e4c7";
-          banner.style.color = "#137333";
+          banner.style.color = "#5b21b6";
           banner.innerHTML = "ระบบพร้อมทำงาน — ดูตารางคิวด้านล่างว่าจะคอมเมนต์ตอนไหน · เพิ่มรหัส/ลิงก์ได้เลย";
         } else {
           banner.style.display = "block";
@@ -9029,23 +9537,42 @@
     function renderCommentsSchedule(rows) {
       var box = document.getElementById("comments-schedule-list");
       if (!box) return;
-      rows = rows || [];
-      if (!rows.length) {
+      commentsUpcomingCache = rows || [];
+      var earliestAt = null;
+      commentsUpcomingCache.forEach(function (it) {
+        var at = it.next_comment_at;
+        if (at && (!earliestAt || at < earliestAt)) earliestAt = at;
+      });
+      setLiveCountdownTarget("comment-panel-next", earliestAt);
+      setLiveCountdownTarget("comment-next", earliestAt);
+      applyCountdownEl(document.getElementById("comments-global-next"), nextInSecFromAt(earliestAt));
+      if (!commentsUpcomingCache.length) {
         box.innerHTML = '<span style="color:#94a3b8">ยังไม่มีลิงก์ในคิว — เพิ่มรหัสแล้วใส่ลิงก์โพสต์กลุ่มก่อน</span>';
         return;
       }
-      box.innerHTML = rows.map(function (it) {
+      box.innerHTML = commentsUpcomingCache.map(function (it, idx) {
         var due = !!it.is_due;
+        var key = "csched-" + (it.id || idx);
+        setLiveCountdownTarget(key, due ? null : it.next_comment_at);
         var when = due
-          ? '<span style="color:#137333;font-weight:700">ถึงคิวแล้ว</span>'
-          : '<span style="font-weight:600">' + esc(it.next_comment_at || "—") + "</span>";
+          ? '<span style="color:#5b21b6;font-weight:700">ถึงคิวแล้ว</span>'
+          : '<span style="font-weight:700;font-variant-numeric:tabular-nums" data-live-cd="' + esc(key) + '">' +
+              esc(formatCountdown(nextInSecFromAt(it.next_comment_at))) + "</span>";
         var url = it.post_url || "";
+        var stLabel = commentStatusLabel(it.status);
+        var joinBit = "";
+        if (it.join_status === "pending" || it.join_status === "requested") joinBit = " · รอเข้ากลุ่ม";
+        else if (it.join_status === "needed" || it.join_status === "failed") joinBit = " · ยังไม่เข้ากลุ่ม";
         return '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:8px 0;border-top:1px solid #f1f5f9">' +
-          "<div style=\"min-width:140px\">" + when + "</div>" +
+          "<div style=\"min-width:180px\">" + when +
+            (it.next_comment_at && !due ? '<div style="font-size:11px;color:#94a3b8">' + esc(it.next_comment_at) + "</div>" : "") +
+          "</div>" +
           "<div style=\"font-weight:600\">" + esc(it.property_code || "—") + "</div>" +
-          "<div style=\"flex:1;min-width:160px;font-size:12px;color:#64748b;word-break:break-all\">" + esc(url) + "</div>" +
+          "<div style=\"font-size:12px;color:#64748b\">" + esc(stLabel) + esc(joinBit) + "</div>" +
+          "<div style=\"flex:1;min-width:140px;font-size:12px;color:#64748b;word-break:break-all\">" +
+            esc(it.group_name || url || "—") + "</div>" +
           (isHttpUrl(url)
-            ? '<a class="btn-sm" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" style="text-decoration:none">เปิดโพสต์</a>'
+            ? '<a class="btn-sm" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" style="text-decoration:none">เปิด</a>'
             : "") +
           "</div>";
       }).join("");
@@ -9080,11 +9607,11 @@
         }
         onlineEl.textContent = label;
         onlineEl.style.color = !data.agent_online ? "#b42318"
-          : (paused || st === "paused" ? "#b45309" : (st === "error" ? "#b42318" : "#137333"));
+          : (paused || st === "paused" ? "#b45309" : (st === "error" ? "#b42318" : "#5b21b6"));
       }
       if (fbEl) {
         fbEl.textContent = data.fb_logged_in ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน";
-        fbEl.style.color = data.fb_logged_in ? "#137333" : "#b42318";
+        fbEl.style.color = data.fb_logged_in ? "#5b21b6" : "#b42318";
       }
       if (msgEl) {
         msgEl.textContent = data.agent_message
@@ -9135,12 +9662,12 @@
       };
       var fbOk = !!data.fb_logged_in;
       var pcOk = !!data.agent_online;
-      setText("cdash-fb", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#137333" : "#b42318");
+      setText("cdash-fb", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#5b21b6" : "#b42318");
       setText("cdash-fb-sub", data.email ? ("บัญชีที่บันทึกไว้ " + data.email + " (ไม่บังคับ)") : "ล็อกอินในหน้าต่าง Chrome ได้เลย");
       var pcLabel = !pcOk ? "ยังไม่เปิด"
         : (paused || data.agent_status === "paused" ? "⏸ หยุดงาน"
           : (data.agent_status === "working" ? "กำลังคอมเมนต์" : "ทำงานอยู่"));
-      setText("cdash-pc", pcLabel, !pcOk ? "#b42318" : (paused ? "#b45309" : "#137333"));
+      setText("cdash-pc", pcLabel, !pcOk ? "#b42318" : (paused ? "#b45309" : "#5b21b6"));
       setText("cdash-pc-sub", data.agent_hostname || data.agent_message || "—");
       var lr2 = data.last_run || {};
       if (lr2.at) {
@@ -9157,9 +9684,9 @@
           banner.innerHTML = "⏸ <strong>หยุดงานฉุกเฉิน</strong> — Agent จะไม่โพสและไม่คอมเมนต์จนกว่าจะกด「ทำงานต่อ」";
         } else if (fbOk && pcOk) {
           banner.style.display = "block";
-          banner.style.background = "#e7f6ee";
+          banner.style.background = "#f3e8ff";
           banner.style.border = "1px solid #b7e4c7";
-          banner.style.color = "#137333";
+          banner.style.color = "#5b21b6";
           banner.innerHTML = "ระบบพร้อมทำงาน — เพิ่มรหัส/ลิงก์ด้านล่างได้เลย";
         } else {
           banner.style.display = "block";
@@ -9182,7 +9709,7 @@
         selectedEl.textContent = selected
           ? ("เลือกแล้ว: " + (selectedName || selected))
           : "ยังไม่ได้เลือก";
-        selectedEl.style.color = selected ? "#137333" : "#64748b";
+        selectedEl.style.color = selected ? "#5b21b6" : "#64748b";
       }
       if (!profiles.length) {
         list.innerHTML = '<div style="font-size:12px;color:#94a3b8;grid-column:1/-1">เปิด「เปิดระบบคอมเมนต์」บนคอมก่อน — Agent จะดึงรายชื่อโปรไฟล์มาให้เลือกที่นี่</div>';
@@ -9196,7 +9723,7 @@
         return (
           '<button type="button" class="btn-sm' + (isOn ? " primary" : "") + '" data-chrome-profile="' + esc(dir) + '" data-chrome-name="' + esc(name) + '" ' +
           'style="text-align:left;padding:10px 12px;height:auto;white-space:normal;line-height:1.35' +
-          (isOn ? ";outline:2px solid #137333" : "") + '">' +
+          (isOn ? ";outline:2px solid #5b21b6" : "") + '">' +
           '<div style="font-weight:700;font-size:13px">' + esc(name) + (isOn ? " ✓" : "") + "</div>" +
           (email ? '<div style="font-size:11px;color:#64748b;margin-top:2px">' + esc(email) + "</div>" : "") +
           '<div style="font-size:10px;color:#94a3b8;margin-top:2px">' + esc(dir) + "</div>" +
@@ -9263,6 +9790,92 @@
         renderFbAgentStatus(data);
       } catch (e) {
         alert(e.message || (paused ? "สั่งหยุดไม่ได้" : "สั่งทำงานต่อไม่ได้"));
+      }
+    }
+
+    function openClearWorkModal(prefAgent) {
+      var modal = document.getElementById("clear-work-modal");
+      if (!modal) return;
+      var agentEl = document.getElementById("clear-work-agent");
+      var aid = prefAgent || commentsSelectedAgentId || liveReportAgentId || fbSelectedAgentId || "owner";
+      if (agentEl) agentEl.value = aid;
+      var pub = document.getElementById("clear-work-publish");
+      var com = document.getElementById("clear-work-comments");
+      var mode = document.getElementById("clear-work-comment-mode");
+      var pause = document.getElementById("clear-work-pause-agent");
+      if (pub) pub.checked = true;
+      if (com) com.checked = true;
+      if (mode) mode.value = "pause";
+      if (pause) pause.checked = false;
+      var hint = document.getElementById("clear-work-hint");
+      if (hint) hint.textContent = "เลือกสิ่งที่จะล้างแล้วกดยืนยัน — โหมดลบรหัสกู้คืนไม่ได้";
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeClearWorkModal() {
+      var modal = document.getElementById("clear-work-modal");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    async function confirmClearWork() {
+      var agentEl = document.getElementById("clear-work-agent");
+      var agentId = (agentEl && agentEl.value) || "owner";
+      var clearPublish = !!(document.getElementById("clear-work-publish") || {}).checked;
+      var clearComments = !!(document.getElementById("clear-work-comments") || {}).checked;
+      var commentMode = ((document.getElementById("clear-work-comment-mode") || {}).value || "pause");
+      var pauseAgent = !!(document.getElementById("clear-work-pause-agent") || {}).checked;
+      if (!clearPublish && !clearComments && !pauseAgent) {
+        alert("เลือกอย่างน้อย 1 อย่าง");
+        return;
+      }
+      var bits = [];
+      if (clearPublish) bits.push("ยกเลิกคิวโพส");
+      if (clearComments) bits.push(commentMode === "delete" ? "ลบรหัสคอมเมนต์ทั้งหมด" : "พักคิวคอมเมนต์");
+      if (pauseAgent) bits.push("หยุดงานฉุกเฉิน");
+      if (!window.confirm("ล้างการทำงานของ " + agentLabel(agentId) + "?\n\n• " + bits.join("\n• "))) return;
+      var btn = document.getElementById("clear-work-confirm");
+      if (btn) { btn.disabled = true; btn.textContent = "กำลังล้าง…"; }
+      try {
+        var data = await apiPost("/api/work/clear", {
+          agent_id: agentId,
+          clear_publish: clearPublish,
+          clear_comments: clearComments,
+          comment_mode: commentMode,
+          pause_agent: pauseAgent
+        });
+        closeClearWorkModal();
+        var summary = [];
+        if (data.publish) summary.push("ยกเลิกโพส " + (data.publish.cancelled || 0) + " งาน");
+        if (data.comments) {
+          if (data.comments.mode === "delete") {
+            summary.push("ลบรหัส " + (data.comments.codes_deleted || 0) + " · ลิงก์ " + (data.comments.links_deleted || 0));
+          } else {
+            summary.push("พักรหัส " + (data.comments.codes_paused || 0) + " · ลิงก์ " + (data.comments.links_paused || 0));
+          }
+        }
+        if (data.agent) summary.push("หยุดงานฉุกเฉินแล้ว");
+        alert(summary.length ? ("ล้างแล้ว\n" + summary.join("\n")) : "ล้างแล้ว");
+        commentsSelectedAgentId = agentId;
+        liveReportAgentId = agentId;
+        fbSelectedAgentId = agentId;
+        try {
+          localStorage.setItem("ptp_comments_agent", agentId);
+          localStorage.setItem("ptp_live_agent", agentId);
+          localStorage.setItem("ptp_fb_agent", agentId);
+        } catch (eLs) { /* ignore */ }
+        syncAgentSwitcherButtons();
+        if (typeof syncLiveAgentButtons === "function") syncLiveAgentButtons();
+        await loadCommentsQueue();
+        await loadPublishPanel();
+        await loadFbAgentStatus();
+        if (activeDbTab === "livereport") await loadLiveReport();
+      } catch (e) {
+        alert(e.message || "ล้างงานไม่ได้");
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "ยืนยันล้างงาน"; }
       }
     }
 
@@ -9434,11 +10047,15 @@
     }
 
     async function loadPublishPanel() {
+      if (typeof syncPublishPageLinksFromCode === "function") syncPublishPageLinksFromCode();
+      if (typeof fillPublishFooterSelect === "function") fillPublishFooterSelect();
       var agentEl = document.getElementById("publish-agent");
       var agentId = (agentEl && agentEl.value) || fbSelectedAgentId || "owner";
       try {
         var data = await apiGet("/api/publish-jobs?agent=" + encodeURIComponent(agentId) + "&limit=100");
         var st = data.stats || {};
+        publishStatsCache = st;
+        publishJobsCache = data.jobs || [];
         var set = function (id, v) {
           var el = document.getElementById(id);
           if (el) el.textContent = v;
@@ -9465,44 +10082,71 @@
             banner.textContent = "";
           }
         }
+        var nextAt = st.next_post_at || (st.next_job && st.next_job.next_post_at) || null;
+        if (!nextAt) {
+          publishJobsCache.forEach(function (j) {
+            var s = j.status || "";
+            if (s !== "pending" && s !== "due" && s !== "failed" && s !== "awaiting_join") return;
+            var at = j.next_post_at;
+            if (at && (!nextAt || at < nextAt)) nextAt = at;
+          });
+        }
+        setLiveCountdownTarget("publish-panel-next", nextAt);
+        setLiveCountdownTarget("publish-next", nextAt);
+        applyCountdownEl(document.getElementById("publish-next-countdown"), nextInSecFromAt(nextAt));
+        var nextDetail = document.getElementById("publish-next-detail");
+        if (nextDetail) {
+          var nj = st.next_job;
+          if (nj) {
+            nextDetail.textContent = (nj.property_code || "") + " · " + (nj.group_name || "") +
+              (nj.needs_manual_join ? " · ต้องเข้ากลุ่มเอง" : "") +
+              (nextAt ? " · " + nextAt : "");
+          } else if (nextAt) {
+            nextDetail.textContent = nextAt;
+          } else {
+            nextDetail.textContent = "ยังไม่มีคิวรอ";
+          }
+        }
         try {
           var fb = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(agentId));
           set("pdash-accounts", String((fb.fb_accounts || []).length));
         } catch (e2) {
           set("pdash-accounts", "—");
         }
-        renderPublishJobs(data.jobs || []);
+        renderPublishJobs(publishJobsCache);
       } catch (e) {
         var tbody = document.getElementById("publish-jobs-rows");
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="empty"><p>' + esc(e.message || "โหลดคิวไม่ได้") + "</p></td></tr>";
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty"><p>' + esc(e.message || "โหลดคิวไม่ได้") + "</p></td></tr>";
       }
     }
 
     function renderPublishJobs(jobs) {
       var tbody = document.getElementById("publish-jobs-rows");
       if (!tbody) return;
-      if (!jobs.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty"><p>ยังไม่มีคิวโพส — สร้างแคมเปญด้านบน</p></td></tr>';
+      publishJobsCache = jobs || [];
+      if (!publishJobsCache.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty"><p>ยังไม่มีคิวโพส — สร้างแคมเปญด้านบน</p></td></tr>';
         return;
       }
-      tbody.innerHTML = jobs.map(function (j) {
+      tbody.innerHTML = publishJobsCache.map(function (j) {
         var st = j.status || "";
-        var label = ({
-          pending: "รอ",
-          due: "ถึงคิว",
-          posted: "โพสแล้ว",
-          failed: "ล้มเหลว",
-          restricted: "จำกัด",
-          cancelled: "ยกเลิก",
-          awaiting_join: (j.needs_manual_join ? "รอเข้ากลุ่ม*" : "รอเข้ากลุ่ม")
-        })[st] || st;
-        var tip = j.detail || j.error || "";
+        var label = publishStatusLabel(st, j);
+        var tip = publishReportText(j);
+        var cdKey = "pjob-" + (j.id || "");
+        var showCd = st === "pending" || st === "due" || st === "failed" || st === "awaiting_join";
+        setLiveCountdownTarget(cdKey, showCd ? j.next_post_at : null);
+        var cdHtml = showCd
+          ? '<span style="font-weight:700;font-variant-numeric:tabular-nums" data-live-cd="' + esc(cdKey) + '">' +
+              esc(formatCountdown(nextInSecFromAt(j.next_post_at))) + "</span>" +
+              (j.next_post_at ? '<div style="font-size:10px;color:#94a3b8">' + esc(j.next_post_at) + "</div>" : "")
+          : esc(j.posted_at || "—");
         return "<tr title=\"" + esc(tip) + "\">" +
           "<td>" + esc(j.property_code || "") + "</td>" +
           "<td style=\"font-size:12px\">" + esc(j.group_name || j.group_url || "") + "</td>" +
           "<td style=\"font-size:12px\">" + esc(j.fb_account_id || "—") + "</td>" +
           "<td>" + esc(label) + "</td>" +
-          "<td style=\"font-size:11px\">" + esc(j.next_post_at || j.posted_at || "—") + "</td>" +
+          "<td style=\"font-size:12px\">" + cdHtml + "</td>" +
+          "<td style=\"font-size:11px;color:#64748b;line-height:1.4\">" + esc(tip) + "</td>" +
           "<td>" +
             (st === "pending" || st === "due" || st === "failed" || st === "awaiting_join"
               ? '<button type="button" class="btn-sm" data-publish-cancel="' + esc(j.id) + '">ยกเลิก</button>'
@@ -9513,23 +10157,329 @@
       }).join("");
     }
 
-    async function publishGenCaption() {
-      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
-      if (!code) { alert("ใส่รหัสทรัพย์ก่อน"); return; }
-      try {
-        var data = await apiPost("/api/groups/prepare-caption-nolink", { code: code, n: 4 });
-        publishCaptionVariants = data.variants || [];
-        var cap = document.getElementById("publish-caption");
-        if (cap) cap.value = data.caption || (publishCaptionVariants[0] || "");
-        var box = document.getElementById("publish-variants");
-        if (box) {
-          box.textContent = publishCaptionVariants.length > 1
-            ? ("เวอร์ชันสำรอง:\n\n" + publishCaptionVariants.slice(1).join("\n---\n"))
-            : "";
-        }
-      } catch (e) {
-        alert(e.message || "สร้างแคปชันไม่ได้");
+    function syncLiveAgentButtons() {
+      ["owner", "admin"].forEach(function (id) {
+        var btn = document.getElementById("live-agent-btn-" + id);
+        if (btn) btn.classList.toggle("primary", liveReportAgentId === id);
+      });
+    }
+
+    function flattenCommentLinksForLive(items) {
+      var out = [];
+      (items || []).forEach(function (codeRow) {
+        var code = codeRow.code || "";
+        (codeRow.links || []).forEach(function (lnk) {
+          out.push({
+            code: code,
+            id: lnk.id,
+            group_name: lnk.group_name,
+            post_url: lnk.post_url,
+            status: lnk.status,
+            join_status: lnk.join_status,
+            last_action: lnk.last_action,
+            next_comment_at: lnk.next_comment_at,
+            comment_count: lnk.comment_count,
+            report: commentResultText(lnk),
+            active: !!codeRow.active
+          });
+        });
+      });
+      out.sort(function (a, b) {
+        var aa = a.next_comment_at || "9999";
+        var bb = b.next_comment_at || "9999";
+        return aa < bb ? -1 : (aa > bb ? 1 : 0);
+      });
+      return out;
+    }
+
+    function renderLiveCommentRows(rows) {
+      var tbody = document.getElementById("live-comment-rows");
+      if (!tbody) return;
+      liveCommentFlatCache = rows || [];
+      if (!liveCommentFlatCache.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty"><p>ยังไม่มีลิงก์คอมเมนต์ใน Agent นี้</p></td></tr>';
+        return;
       }
+      tbody.innerHTML = liveCommentFlatCache.slice(0, 80).map(function (it, idx) {
+        var key = "live-c-" + (it.id || idx);
+        setLiveCountdownTarget(key, it.next_comment_at);
+        var st = commentStatusLabel(it.status);
+        if (it.join_status === "pending" || it.join_status === "requested") st = "รอเข้ากลุ่ม";
+        else if (it.join_status === "needed" || it.last_action === "join_needed") st = "ยังไม่เข้ากลุ่ม";
+        else if (it.last_action === "commented") st = "สำเร็จ";
+        else if (it.status === "failed") st = "ไม่สำเร็จ";
+        return "<tr>" +
+          "<td><strong>" + esc(it.code || "—") + "</strong></td>" +
+          "<td style=\"font-size:12px\">" + esc(it.group_name || it.post_url || "—") +
+            '<div style="font-size:11px;color:#64748b;margin-top:2px">' + esc(it.report) + "</div></td>" +
+          "<td style=\"font-size:12px\">" + esc(st) + (!it.active ? " · ปิด" : "") + "</td>" +
+          '<td style="font-size:12px;font-weight:700;font-variant-numeric:tabular-nums" data-live-cd="' + esc(key) + '">' +
+            esc(formatCountdown(nextInSecFromAt(it.next_comment_at))) + "</td>" +
+          "</tr>";
+      }).join("");
+    }
+
+    function renderLivePublishRows(jobs) {
+      var tbody = document.getElementById("live-publish-rows");
+      if (!tbody) return;
+      jobs = jobs || [];
+      if (!jobs.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty"><p>ยังไม่มีคิวโพส</p></td></tr>';
+        return;
+      }
+      tbody.innerHTML = jobs.slice(0, 80).map(function (j) {
+        var key = "live-p-" + (j.id || "");
+        var st = j.status || "";
+        var showCd = st === "pending" || st === "due" || st === "failed" || st === "awaiting_join";
+        setLiveCountdownTarget(key, showCd ? j.next_post_at : null);
+        return "<tr>" +
+          "<td><strong>" + esc(j.property_code || "—") + "</strong></td>" +
+          "<td style=\"font-size:12px\">" + esc(j.group_name || j.group_url || "—") +
+            '<div style="font-size:11px;color:#64748b;margin-top:2px">' + esc(publishReportText(j)) + "</div></td>" +
+          "<td style=\"font-size:12px\">" + esc(publishStatusLabel(st, j)) + "</td>" +
+          '<td style="font-size:12px;font-weight:700;font-variant-numeric:tabular-nums" data-live-cd="' + esc(key) + '">' +
+            esc(showCd ? formatCountdown(nextInSecFromAt(j.next_post_at)) : (j.posted_at || "—")) + "</td>" +
+          "</tr>";
+      }).join("");
+    }
+
+    async function loadLiveReport() {
+      syncLiveAgentButtons();
+      var agentId = liveReportAgentId || "owner";
+      var updatedEl = document.getElementById("live-report-updated");
+      try {
+        var commentData = await apiGet("/api/comment-codes?agent=" + encodeURIComponent(agentId));
+        var publishData = await apiGet("/api/publish-jobs?agent=" + encodeURIComponent(agentId) + "&limit=200");
+        var fb = {};
+        try {
+          fb = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(agentId));
+        } catch (eFb) { fb = {}; }
+
+        var dash = (commentData && commentData.dashboard) || {};
+        var items = (commentData && commentData.items) || [];
+        var upcoming = dash.upcoming || [];
+        commentsUpcomingCache = upcoming;
+        var flat = flattenCommentLinksForLive(items);
+        renderLiveCommentRows(flat);
+
+        var pst = (publishData && publishData.stats) || {};
+        publishStatsCache = pst;
+        publishJobsCache = (publishData && publishData.jobs) || [];
+        renderLivePublishRows(publishJobsCache);
+
+        var setT = function (id, t, color) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.textContent = t;
+          if (color) el.style.color = color;
+        };
+        var pcOk = !!fb.agent_online;
+        var fbOk = !!fb.fb_logged_in;
+        var paused = !!fb.work_paused;
+        var agentLabelText = !pcOk ? "ออฟไลน์" : (paused ? "หยุดฉุกเฉิน" : (fb.agent_status === "working" ? "กำลังทำงาน" : "ออนไลน์"));
+        setT("live-agent-status", agentLabelText, pcOk && !paused ? "#5b21b6" : "#b42318");
+        setT("live-agent-sub", fb.agent_hostname || fb.agent_message || agentLabel(agentId));
+        setT("live-fb-status", fbOk ? "ล็อกอินแล้ว" : "ยังไม่ล็อกอิน", fbOk ? "#5b21b6" : "#b42318");
+        setT("live-fb-sub", (fb.fb_accounts && fb.fb_accounts.length) ? (fb.fb_accounts.length + " บัญชี") : (fb.email || "—"));
+
+        var commentNextAt = null;
+        upcoming.forEach(function (it) {
+          if (it.next_comment_at && (!commentNextAt || it.next_comment_at < commentNextAt)) commentNextAt = it.next_comment_at;
+        });
+        if (!commentNextAt) {
+          flat.forEach(function (it) {
+            if (it.next_comment_at && (!commentNextAt || it.next_comment_at < commentNextAt)) commentNextAt = it.next_comment_at;
+          });
+        }
+        setLiveCountdownTarget("comment-next", commentNextAt);
+        setLiveCountdownTarget("comment-panel-next", commentNextAt);
+        applyCountdownEl(document.getElementById("live-next-comment"), nextInSecFromAt(commentNextAt));
+        var cDetail = document.getElementById("live-next-comment-detail");
+        if (cDetail) {
+          var hit = upcoming[0] || flat[0];
+          cDetail.textContent = hit
+            ? ((hit.property_code || hit.code || "") + " · " + (hit.group_name || hit.post_url || "") + (commentNextAt ? " · " + commentNextAt : ""))
+            : "ไม่มีคิวรอ";
+        }
+
+        var pubNextAt = pst.next_post_at || null;
+        if (!pubNextAt && pst.next_job) pubNextAt = pst.next_job.next_post_at;
+        if (!pubNextAt) {
+          publishJobsCache.forEach(function (j) {
+            var s = j.status || "";
+            if (s !== "pending" && s !== "due" && s !== "failed" && s !== "awaiting_join") return;
+            if (j.next_post_at && (!pubNextAt || j.next_post_at < pubNextAt)) pubNextAt = j.next_post_at;
+          });
+        }
+        setLiveCountdownTarget("publish-next", pubNextAt);
+        setLiveCountdownTarget("publish-panel-next", pubNextAt);
+        applyCountdownEl(document.getElementById("live-next-publish"), nextInSecFromAt(pubNextAt));
+        var pDetail = document.getElementById("live-next-publish-detail");
+        if (pDetail) {
+          var nj = pst.next_job;
+          pDetail.textContent = nj
+            ? ((nj.property_code || "") + " · " + (nj.group_name || "") + (pubNextAt ? " · " + pubNextAt : ""))
+            : (pubNextAt || "ไม่มีคิวรอ");
+        }
+
+        var okC = flat.filter(function (x) { return x.last_action === "commented" || x.status === "commented"; }).length;
+        var failC = flat.filter(function (x) { return x.status === "failed"; }).length;
+        var joinC = flat.filter(function (x) {
+          return x.join_status === "pending" || x.join_status === "requested" || x.join_status === "needed";
+        }).length;
+        var cStats = document.getElementById("live-comment-stats");
+        if (cStats) cStats.textContent = "สำเร็จ " + okC + " · ไม่สำเร็จ " + failC + " · เข้ากลุ่ม " + joinC;
+        var cSum = document.getElementById("live-comment-summary");
+        if (cSum) {
+          cSum.textContent = "วันนี้ " + (dash.comments_today != null ? dash.comments_today : "—") +
+            " · ถึงคิว " + (dash.due_total != null ? dash.due_total : 0) +
+            " · รหัสเปิด " + (dash.codes_active != null ? dash.codes_active : 0) +
+            "/" + (dash.codes_total != null ? dash.codes_total : items.length);
+        }
+
+        var by = pst.by_status || {};
+        var pStats = document.getElementById("live-publish-stats");
+        if (pStats) {
+          pStats.textContent = "สำเร็จวันนี้ " + (pst.posted_today || 0) +
+            " · รอ " + (pst.pending || 0) +
+            " · รอเข้ากลุ่ม " + (pst.awaiting_join || by.awaiting_join || 0) +
+            " · พลาด " + (by.failed || 0);
+        }
+        var pSum = document.getElementById("live-publish-summary");
+        if (pSum) {
+          pSum.textContent = "จำกัด " + (by.restricted || 0) +
+            " · ต้องเข้าเอง " + (pst.needs_manual_join || 0) +
+            " · งานทั้งหมด " + (pst.total != null ? pst.total : publishJobsCache.length);
+        }
+
+        var mb = document.getElementById("live-manual-join-banner");
+        var need = Number(pst.needs_manual_join || 0);
+        if (mb) {
+          if (need > 0) {
+            mb.classList.remove("hidden");
+            mb.innerHTML = "<strong>ต้องกดเข้าร่วมกลุ่มด้วยมือ</strong> — มี " + need +
+              " งานโพสค้าง · เปิดเฟสใน Chrome ของ Agent แล้วกดเข้าร่วม";
+          } else {
+            mb.classList.add("hidden");
+            mb.textContent = "";
+          }
+        }
+
+        if (updatedEl) {
+          var now = new Date();
+          updatedEl.textContent = "อัปเดต " + now.toLocaleTimeString("th-TH");
+        }
+        tickLiveCountdowns();
+      } catch (e) {
+        if (updatedEl) updatedEl.textContent = "โหลดไม่ได้: " + (e.message || "");
+        var ct = document.getElementById("live-comment-rows");
+        var pt = document.getElementById("live-publish-rows");
+        if (ct) ct.innerHTML = '<tr><td colspan="4" class="empty"><p>' + esc(e.message || "โหลดไม่ได้") + "</p></td></tr>";
+        if (pt) pt.innerHTML = '<tr><td colspan="4" class="empty"><p>' + esc(e.message || "โหลดไม่ได้") + "</p></td></tr>";
+      }
+    }
+
+    function setPublishPageStatus(msg, isError) {
+      var el = document.getElementById("publish-page-status");
+      if (!el) return;
+      el.textContent = msg || "";
+      el.style.color = isError ? "#b91c1c" : "#52525b";
+    }
+
+    function updatePublishPageLinks(pageUrl, postUrl) {
+      pageUrl = String(pageUrl || "").trim();
+      postUrl = String(postUrl || "").trim();
+      var pageBtn = document.getElementById("publish-open-page");
+      var profileBtn = document.getElementById("publish-open-profile");
+      var hint = document.getElementById("publish-page-links-hint");
+      var hasPage = /^https?:\/\//i.test(pageUrl);
+      var hasPost = /^https?:\/\//i.test(postUrl) && postUrl !== pageUrl;
+      if (pageBtn) {
+        pageBtn.style.display = hasPage ? "inline-flex" : "none";
+        if (hasPage) {
+          pageBtn.href = pageUrl;
+          pageBtn.setAttribute("href", pageUrl);
+        } else {
+          pageBtn.removeAttribute("href");
+        }
+      }
+      if (profileBtn) {
+        profileBtn.style.display = hasPost ? "inline-flex" : "none";
+        if (hasPost) {
+          profileBtn.href = postUrl;
+          profileBtn.setAttribute("href", postUrl);
+        } else {
+          profileBtn.removeAttribute("href");
+        }
+      }
+      if (hint) hint.classList.toggle("hidden", !hasPage && !hasPost);
+    }
+
+    function findPropertyLinksByCode(code) {
+      var want = String(code || "").trim().toUpperCase();
+      if (!want) return { page_url: "", post_url: "" };
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      for (var i = 0; i < props.length; i++) {
+        var p = props[i];
+        if (String(p.code || "").trim().toUpperCase() !== want) continue;
+        return {
+          page_url: String(p.post_pages_url || "").trim(),
+          post_url: String(p.source_url || p.post_url || "").trim()
+        };
+      }
+      return { page_url: "", post_url: "" };
+    }
+
+    function syncPublishPageLinksFromCode() {
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
+      var links = findPropertyLinksByCode(code);
+      updatePublishPageLinks(links.page_url, links.post_url);
+      return links;
+    }
+
+    function fillPublishFooterSelect() {
+      var sel = document.getElementById("publish-footer-select");
+      if (!sel) return;
+      var cur = sel.value || "";
+      var items = postFooterCache || [];
+      sel.innerHTML = '<option value="">— เลือกชุดท้ายประโยค —</option>' + items.map(function (it) {
+        return '<option value="' + esc(it.id || "") + '">' + esc(it.label || it.id || "ชุด") + "</option>";
+      }).join("");
+      if (cur) sel.value = cur;
+      if (!sel.value && items.length) {
+        var active = items.find(function (x) { return x.id === (window._postFooterActiveId || ""); });
+        sel.value = (active && active.id) || items[0].id || "";
+      }
+    }
+
+    async function appendPublishPostFooter() {
+      var box = document.getElementById("publish-caption");
+      var sel = document.getElementById("publish-footer-select");
+      if (!box || !sel) return;
+      var id = (sel.value || "").trim();
+      var it = (postFooterCache || []).find(function (x) { return x.id === id; });
+      if (!it || !(it.text || "").trim()) {
+        alert("เลือกชุดท้ายประโยคก่อน (ชุดเดียวกับหน้าโพสปกติ)");
+        return;
+      }
+      var footer = String(it.text || "").trim();
+      var code = ((document.getElementById("publish-code") || {}).value || "").trim().replace(/^#/, "");
+      if (code) {
+        footer = footer.replace(/\{code\}/gi, code).replace(/\{CODE\}/g, code);
+        footer = footer.replace(/#\{code\}/gi, "#" + code);
+        if (footer.indexOf("#" + code) < 0 && footer.indexOf(code) < 0) {
+          footer = "📌 รหัสทรัพย์ : #" + code + "\n\n" + footer;
+        }
+      }
+      var cur = (box.value || "").replace(/\s+$/, "");
+      if (cur.indexOf(footer) >= 0) {
+        setPublishPageStatus("ท้ายประโยคนี้อยู่ในแคปชันแล้ว");
+        return;
+      }
+      box.value = cur ? (cur + "\n\n" + footer) : footer;
+      setPublishPageStatus("เติมท้ายประโยคแล้ว · ตรวจข้อความก่อนสร้างคิว");
+      try { await apiPost("/api/post-footers/use", { id: id }); } catch (eUse) { /* ignore */ }
+      if (typeof updatePublishSummary === "function") updatePublishSummary();
     }
 
     function renderPublishGroupPick(groups) {
@@ -9557,10 +10507,22 @@
         }
         if (!memb) memb = g.membership || "";
         var badge = memb === "joined" ? "เข้าแล้ว" : (memb === "pending" ? "รออนุมัติ" : (memb === "unknown" || !memb ? "" : memb));
-        return '<label style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid #f1f5f9">' +
+        var tier = g.tier ? String(g.tier) : "";
+        var reasons = (g.reasons || []).slice(0, 4).join(" · ");
+        var tierLabel = {
+          project: "ตรงโครงการ",
+          transit: "สถานีรถไฟฟ้า",
+          zone: "โซน/ทำเล",
+          large: "กลุ่มใหญ่",
+          fit: "เกี่ยวข้องน้อย",
+          other: ""
+        }[tier] || tier;
+        return '<label style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid #f1f5f9">' +
           '<input type="checkbox" data-pub-g="' + row.i + '" style="width:auto;margin-top:3px" />' +
           '<span><strong>' + esc(name) + "</strong>" +
+          (tierLabel ? (' <span style="font-size:10px;color:#6d28d9">[' + esc(tierLabel) + "]</span>") : "") +
           (badge ? (' <span style="font-size:10px;color:#6366f1">[' + esc(badge) + "]</span>") : "") +
+          (reasons ? ('<br/><span style="font-size:11px;color:#64748b">' + esc(reasons) + "</span>") : "") +
           '<br/><span style="font-size:11px;color:#94a3b8;word-break:break-all">' + esc(url) + "</span></span></label>";
       }).join("");
     }
@@ -9570,8 +10532,9 @@
       if (!code) { alert("ใส่รหัสทรัพย์ก่อน"); return; }
       var box = document.getElementById("publish-groups-pick");
       if (box) box.innerHTML = "กำลังโหลดกลุ่มแนะนำ…";
+      setPublishPageStatus("");
       try {
-        var data = await apiPost("/api/groups/recommend", { code: code, limit: 60 });
+        var data = await apiPost("/api/groups/recommend", { code: code, limit: 80 });
         var groups = data.groups || data.items || data.recommendations || [];
         if (!groups.length && data.by_category) {
           Object.keys(data.by_category).forEach(function (k) {
@@ -9579,7 +10542,22 @@
           });
         }
         renderPublishGroupPick(groups);
-        document.querySelectorAll("#publish-groups-pick [data-pub-g]").forEach(function (cb) { cb.checked = true; });
+        // Do NOT auto-tick — user picks groups intentionally
+        var keys = (data.project_keys || []).join(", ");
+        var zones = (data.zones || []).join(", ");
+        var transit = (data.transit_keys || []).join(", ");
+        var proj = data.project_name || "";
+        var meta = "เรียงตามความเกี่ยวข้อง: โครงการ → สถานี → โซน → กลุ่มใหญ่ · " +
+          (proj ? ("โครงการ「" + proj + "」") : ("รหัส " + code)) +
+          " · จับคู่ [" + (keys || "—") + "]" +
+          " · สถานี [" + (transit || "—") + "]" +
+          " · โซน [" + (zones || "—") + "]" +
+          " · ได้ " + groups.length + " กลุ่ม" +
+          (data.skipped_owner ? (" · ตัด Owner " + data.skipped_owner + " กลุ่ม") : "") +
+          " · ติ๊กเองเฉพาะกลุ่มที่ต้องการ";
+        setPublishPageStatus(meta);
+        var statusEl = document.getElementById("publish-groups-meta");
+        if (statusEl) statusEl.textContent = meta;
       } catch (e) {
         if (box) box.innerHTML = esc(e.message || "โหลดกลุ่มไม่ได้");
       }
@@ -9592,28 +10570,10 @@
         var data = await apiGet("/api/groups");
         var groups = data.groups || data.items || [];
         renderPublishGroupPick(groups);
+        var statusEl = document.getElementById("publish-groups-meta");
+        if (statusEl) statusEl.textContent = "แสดงจากสมุดกลุ่มทั้งหมด · ค้นหาชื่อได้ด้านบน";
       } catch (e) {
         if (box) box.innerHTML = esc(e.message || "โหลดสมุดไม่ได้");
-      }
-    }
-
-    async function publishFetchImages() {
-      var code = ((document.getElementById("publish-code") || {}).value || "").trim();
-      if (!code) { alert("ใส่รหัสทรัพย์ก่อน"); return; }
-      try {
-        var data = await apiPost("/api/publish-images/from-property", { code: code });
-        var urls = data.image_urls || [];
-        if (!urls.length) {
-          alert("ดึงรูปจากเพจไม่ได้ — ลองอัปโหลดเอง (ชัวร์กว่า)");
-          return;
-        }
-        urls.forEach(function (u) {
-          if (publishImageUrls.indexOf(u) < 0) publishImageUrls.push(u);
-        });
-        syncPublishImagesField();
-        alert("ได้รูป " + urls.length + " ใบจากต้นทาง (เท่าที่ดึงได้)");
-      } catch (e) {
-        alert(e.message || "ดึงรูปไม่ได้");
       }
     }
 
@@ -9991,6 +10951,8 @@
     function openCommentsAddCodeModal() {
       var modal = document.getElementById("comments-add-code-modal");
       if (!modal) return;
+      fillCommentsFollowChips(autoFollowCache.comment);
+      if (!autoFollowCache.comment.length) loadAutoFollow("comment");
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
       var q = document.getElementById("comments-add-modal-q");
@@ -10040,7 +11002,7 @@
               '<strong style="display:block;color:#111827;font-size:15px">' + esc(h.code) + "</strong>" +
               '<span style="display:block;font-size:12px;color:#475569;margin-top:2px;line-height:1.35">' + esc(h.name) + "</span>" +
               '<span style="display:block;font-size:11px;color:#94a3b8;margin-top:4px">ห้อง: ' + esc(h.beds) + (h.room ? " · " + esc(h.room) : "") + "</span>" +
-              '<span style="display:inline-block;margin-top:8px;font-size:11px;color:#137333;font-weight:600">เลือก → เพิ่มลิงก์คอมเมนต์</span>' +
+              '<span style="display:inline-block;margin-top:8px;font-size:11px;color:#5b21b6;font-weight:600">เลือก → เพิ่มลิงก์คอมเมนต์</span>' +
             "</span></button>";
         }).join("") +
         "</div>";
@@ -10098,7 +11060,7 @@
         if (!data || !data.ok) throw new Error((data && data.error) || "บันทึกไม่ได้");
         if (urlEl) urlEl.value = "";
         if (hint) {
-          hint.style.color = "#137333";
+          hint.style.color = "#5b21b6";
           hint.textContent = "บันทึกแล้ว · คอมเมนต์ถัดไป " + ((data.item && data.item.next_comment_at) || "—");
         }
         refreshGroupPostLinksForCode(code);
@@ -10531,6 +11493,8 @@
     }
 
     var followupItems = [];
+    var activeFocusTab = localStorage.getItem("ptp_focus_tab") || "team";
+    var autoFollowCache = { publish: [], comment: [] };
     var FU_STATUS = {
       new: "ใหม่", contacted: "ติดต่อแล้ว", waiting_info: "รอข้อมูล", offered: "เสนอแล้ว",
       viewing: "นัดชม", deciding: "รอตัดสินใจ", deposit: "มัดจำแล้ว", reserved: "จองแล้ว",
@@ -10539,6 +11503,212 @@
     };
     var fuStatusFilter = "";
     var activeRecommendCaseId = "";
+
+    function propMetaForCode(code) {
+      var want = String(code || "").trim().toUpperCase();
+      if (!want) return { code: "", name: "—", beds: "" };
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      var pmap = (window.PTP_DATA && window.PTP_DATA.project_map) || {};
+      for (var i = 0; i < props.length; i++) {
+        var p = props[i];
+        if (String(p.code || "").trim().toUpperCase() !== want) continue;
+        var proj = pmap[p.project_id] || {};
+        return {
+          code: want,
+          name: String(proj.canonical_name || p.project_name || "—"),
+          beds: String(p.bedrooms || ""),
+          id: p.id
+        };
+      }
+      return { code: want, name: "—", beds: "" };
+    }
+
+    function switchFocusTab(tab) {
+      var allowed = { team: 1, publish: 1, comment: 1 };
+      activeFocusTab = allowed[tab] ? tab : "team";
+      try { localStorage.setItem("ptp_focus_tab", activeFocusTab); } catch (e) { /* ignore */ }
+      document.querySelectorAll("#focus-subnav [data-focus-tab]").forEach(function (b) {
+        b.classList.toggle("primary", b.getAttribute("data-focus-tab") === activeFocusTab);
+      });
+      document.querySelectorAll("#focus-sidebar-sub [data-focus-tab]").forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-focus-tab") === activeFocusTab);
+      });
+      var team = document.getElementById("focus-team-section");
+      var pub = document.getElementById("focus-autofollow-publish-section");
+      var com = document.getElementById("focus-autofollow-comment-section");
+      if (team) team.classList.toggle("hidden", activeFocusTab !== "team");
+      if (pub) pub.classList.toggle("hidden", activeFocusTab !== "publish");
+      if (com) com.classList.toggle("hidden", activeFocusTab !== "comment");
+      var titleEl = document.getElementById("panel-title");
+      var subEl = document.getElementById("panel-sub");
+      if (activeView === "focus") {
+        if (titleEl) {
+          titleEl.textContent = ({
+            team: "ทรัพย์ Focus",
+            publish: "Focus · โพสอัตโนมัติ",
+            comment: "Focus · คอมเมนต์อัตโนมัติ"
+          })[activeFocusTab] || "Focus";
+        }
+        if (subEl) {
+          subEl.textContent = ({
+            team: "พิมพ์รหัสทรัพย์เพื่อเพิ่มรายการที่ทีมกำลังโฟกัส",
+            publish: "รหัสเตรียมโพสกลุ่มอัตโนมัติ · กดใช้โพสเพื่อเปิดแคมเปญ",
+            comment: "รหัสเตรียมคอมเมนต์อัตโนมัติ · กดใช้คอมเมนต์เพื่อใส่คิว"
+          })[activeFocusTab] || "";
+        }
+      }
+      if (activeFocusTab === "team") {
+        loadFocus();
+        renderFocusRows();
+      } else if (activeFocusTab === "publish") {
+        loadAutoFollow("publish");
+      } else {
+        loadAutoFollow("comment");
+      }
+    }
+
+    function setAutoFollowMsg(kind, text, tone) {
+      var el = document.getElementById(kind === "publish" ? "af-publish-msg" : "af-comment-msg");
+      if (!el) return;
+      el.textContent = text || "";
+      el.classList.toggle("is-error", tone === "error");
+      el.classList.toggle("is-ok", tone === "ok");
+    }
+
+    function renderAutoFollowList(kind, items) {
+      var box = document.getElementById(kind === "publish" ? "af-publish-list" : "af-comment-list");
+      if (!box) return;
+      items = items || [];
+      autoFollowCache[kind] = items;
+      if (kind === "publish") fillPublishFollowSelect(items);
+      if (kind === "comment") fillCommentsFollowChips(items);
+      if (!items.length) {
+        box.innerHTML = '<div class="fu-board-empty"><strong>ยังไม่มีรหัส</strong><p>พิมพ์รหัสทรัพย์ด้านบนแล้วกดเพิ่ม</p></div>';
+        return;
+      }
+      var useLabel = kind === "publish" ? "ใช้โพส" : "ใช้คอมเมนต์";
+      box.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px">' + items.map(function (it) {
+        var meta = propMetaForCode(it.code);
+        return '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">' +
+          '<div style="flex:1;min-width:160px">' +
+            '<strong style="font-size:15px">' + esc(it.code || "—") + "</strong>" +
+            '<div style="font-size:12px;color:#64748b;margin-top:2px">' + esc(meta.name) +
+              (meta.beds ? (" · ห้อง " + esc(meta.beds)) : "") + "</div>" +
+            (it.pinned_at ? '<div style="font-size:11px;color:#94a3b8;margin-top:2px">เพิ่ม ' + esc(it.pinned_at) + "</div>" : "") +
+          "</div>" +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+            '<button type="button" class="btn-sm primary" data-af-use="' + esc(kind) + '" data-af-code="' + esc(it.code || "") + '">' + useLabel + "</button>" +
+            '<button type="button" class="btn-sm" data-af-remove="' + esc(kind) + '" data-af-id="' + esc(it.id || "") + '" data-af-code="' + esc(it.code || "") + '">ลบ</button>' +
+          "</div></div>";
+      }).join("") + "</div>";
+    }
+
+    async function loadAutoFollow(kind) {
+      kind = kind === "comment" ? "comment" : "publish";
+      try {
+        var data = await apiGet("/api/auto-follow?kind=" + encodeURIComponent(kind));
+        renderAutoFollowList(kind, data.items || []);
+      } catch (e) {
+        var box = document.getElementById(kind === "publish" ? "af-publish-list" : "af-comment-list");
+        if (box) box.innerHTML = '<div class="fu-board-empty"><strong>โหลดไม่ได้</strong><p>' + esc(e.message || "") + "</p></div>";
+      }
+    }
+
+    async function loadAllAutoFollowCaches() {
+      try {
+        var data = await apiGet("/api/auto-follow");
+        var lists = data.lists || {};
+        autoFollowCache.publish = (lists.publish && lists.publish.items) || [];
+        autoFollowCache.comment = (lists.comment && lists.comment.items) || [];
+        fillPublishFollowSelect(autoFollowCache.publish);
+        fillCommentsFollowChips(autoFollowCache.comment);
+      } catch (e) { /* ignore */ }
+    }
+
+    async function addAutoFollowCodes(kind) {
+      var input = document.getElementById(kind === "publish" ? "af-publish-code-input" : "af-comment-code-input");
+      var text = ((input && input.value) || "").trim();
+      if (!text) {
+        setAutoFollowMsg(kind, "กรุณาระบุรหัสทรัพย์", "error");
+        return;
+      }
+      setAutoFollowMsg(kind, "กำลังเพิ่ม…", "");
+      try {
+        var data = await apiPost("/api/auto-follow/add", { kind: kind, code: text });
+        renderAutoFollowList(kind, data.items || []);
+        var addedN = (data.added && data.added.length) || 0;
+        var skippedN = (data.skipped && data.skipped.length) || 0;
+        var errN = (data.errors && data.errors.length) || 0;
+        var parts = [];
+        if (addedN) parts.push("เพิ่ม " + addedN);
+        if (skippedN) parts.push("มีอยู่แล้ว " + skippedN);
+        if (errN) parts.push((data.errors[0] && data.errors[0].error) || ("ไม่พบ " + errN));
+        setAutoFollowMsg(kind, parts.join(" · ") || "บันทึกแล้ว", errN && !addedN ? "error" : "ok");
+        if (input && addedN) input.value = "";
+      } catch (e) {
+        setAutoFollowMsg(kind, e.message || "เพิ่มไม่ได้", "error");
+      }
+    }
+
+    async function removeAutoFollowItem(kind, id, code) {
+      try {
+        var data = await apiPost("/api/auto-follow/remove", { kind: kind, id: id || "", code: code || "" });
+        renderAutoFollowList(kind, data.items || []);
+        setAutoFollowMsg(kind, "ลบแล้ว", "ok");
+      } catch (e) {
+        alert(e.message || "ลบไม่ได้");
+      }
+    }
+
+    function fillPublishFollowSelect(items) {
+      var sel = document.getElementById("publish-from-follow");
+      items = items || autoFollowCache.publish || [];
+      if (sel) {
+        var cur = sel.value;
+        sel.innerHTML = '<option value="">— เลือกรหัสจาก Focus โพส —</option>' +
+          items.map(function (it) {
+            var meta = propMetaForCode(it.code);
+            return '<option value="' + esc(it.code) + '">' + esc(it.code) +
+              (meta.name && meta.name !== "—" ? (" · " + esc(meta.name)) : "") + "</option>";
+          }).join("");
+        if (cur) sel.value = cur;
+      }
+    }
+
+    function fillCommentsFollowChips(items) {
+      var box = document.getElementById("comments-add-follow-chips");
+      if (!box) return;
+      items = items || autoFollowCache.comment || [];
+      if (!items.length) {
+        box.innerHTML = '<span style="font-size:12px;color:#94a3b8">ยังไม่มีรหัสใน Focus คอมเมนต์ — ไปแท็บ Focus เพื่อเพิ่ม</span>';
+        return;
+      }
+      box.innerHTML = items.map(function (it) {
+        return '<button type="button" class="btn-sm" data-comment-pick-code="' + esc(it.code || "") + '">' + esc(it.code || "") + "</button>";
+      }).join("");
+    }
+
+    async function useAutoFollowCode(kind, code) {
+      code = String(code || "").trim().toUpperCase();
+      if (!code) return;
+      if (kind === "publish") {
+        switchView("db");
+        switchDbTab("publish");
+        var inp = document.getElementById("publish-code");
+        if (inp) inp.value = code;
+        var agent = document.getElementById("publish-agent");
+        if (typeof setPublishStep === "function") setPublishStep(1);
+        fillPublishFollowSelect(autoFollowCache.publish);
+        var sel = document.getElementById("publish-from-follow");
+        if (sel) sel.value = code;
+        if (typeof updatePublishSummary === "function") updatePublishSummary();
+        syncPublishPageLinksFromCode();
+      } else {
+        switchView("db");
+        switchDbTab("comments");
+        await pickCommentCodeAndOpen(code);
+      }
+    }
 
     function updateFollowupBadge(stats) {
       var due = (stats && stats.due) || 0;
@@ -12395,6 +13565,17 @@
     }
 
     document.getElementById("view-tabs").addEventListener("click", function (e) {
+      var sub = e.target.closest(".tab-sub[data-focus-tab]");
+      if (sub && document.getElementById("view-tabs").contains(sub)) {
+        e.preventDefault();
+        document.querySelectorAll("#view-tabs .tab").forEach(function (t) { t.classList.remove("active"); });
+        var focusMain = document.querySelector('#view-tabs .tab[data-view="focus"]');
+        if (focusMain) focusMain.classList.add("active");
+        activeFocusTab = sub.getAttribute("data-focus-tab") || "team";
+        try { localStorage.setItem("ptp_focus_tab", activeFocusTab); } catch (err) { /* ignore */ }
+        switchView("focus");
+        return;
+      }
       var tab = e.target.closest(".tab");
       if (!tab || !document.getElementById("view-tabs").contains(tab)) return;
       document.querySelectorAll("#view-tabs .tab").forEach(function (t) { t.classList.remove("active"); });
@@ -12592,12 +13773,21 @@
       }
       if (input) {
         input.addEventListener("keydown", function (e) {
-          if (e.key === "Enter") {
+          var list = document.getElementById("focus-code-suggest");
+          var active = list && !list.classList.contains("hidden") && list.querySelector("li[data-kind].active");
+          if (e.key === "Enter" && !active) {
             e.preventDefault();
             addFocusByCode(input.value);
           }
         });
       }
+      bindPropertyCodeSuggest("focus-code-input", "focus-code-suggest", null);
+      bindPropertyCodeSuggest("af-publish-code-input", "af-publish-code-suggest", null);
+      bindPropertyCodeSuggest("af-comment-code-input", "af-comment-code-suggest", null);
+      bindPropertyCodeSuggest("publish-code", "publish-code-suggest", function () {
+        if (typeof updatePublishSummary === "function") updatePublishSummary();
+        syncPublishPageLinksFromCode();
+      });
     })();
     var cancelEditBtn = document.getElementById("cancel-edit");
     if (cancelEditBtn) cancelEditBtn.addEventListener("click", cancelPropertyEdit);
@@ -12855,37 +14045,13 @@
       pagePostTextEl.addEventListener("input", function () {
         updatePagePostHint(pagePostTextEl.value);
       });
-      // Facebook copies often put line breaks only in text/html — convert to real \n on paste.
-      pagePostTextEl.addEventListener("paste", function (e) {
-        try {
-          var cd = e.clipboardData || window.clipboardData;
-          if (!cd) return;
-          var html = cd.getData("text/html") || "";
-          var plain = cd.getData("text/plain") || "";
-          var plainLines = plain ? plain.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").length : 0;
-          if (html && /<br\s*\/?>|<\/(div|p|li)>/i.test(html) && plainLines < 3) {
-            e.preventDefault();
-            var tmp = document.createElement("div");
-            tmp.innerHTML = html
-              .replace(/<br\s*\/?>/gi, "\n")
-              .replace(/<\/(div|p|li|h[1-6])>/gi, "\n")
-              .replace(/<\/tr>/gi, "\n");
-            var converted = (tmp.textContent || tmp.innerText || "")
-              .replace(/\u00a0/g, " ")
-              .replace(/\n{3,}/g, "\n\n")
-              .replace(/[ \t]+\n/g, "\n")
-              .trim();
-            if (!converted) converted = plain;
-            var start = pagePostTextEl.selectionStart || 0;
-            var end = pagePostTextEl.selectionEnd || 0;
-            var cur = pagePostTextEl.value || "";
-            pagePostTextEl.value = cur.slice(0, start) + converted + cur.slice(end);
-            var pos = start + converted.length;
-            try { pagePostTextEl.setSelectionRange(pos, pos); } catch (err) { /* ignore */ }
-            updatePagePostHint(pagePostTextEl.value);
-          }
-        } catch (err) { /* keep default paste */ }
+      bindFacebookCaptionPaste(pagePostTextEl, function (v) {
+        updatePagePostHint(v);
       });
+    }
+    var publishCaptionEl = document.getElementById("publish-caption");
+    if (publishCaptionEl) {
+      bindFacebookCaptionPaste(publishCaptionEl);
     }
     document.getElementById("add-recommend-groups").addEventListener("click", loadGroupRecommendations);
     var groupPostLinkSave = document.getElementById("group-post-link-save");
@@ -12897,19 +14063,23 @@
     });
     var fbAgentRefresh = document.getElementById("fb-agent-refresh");
     if (fbAgentRefresh) fbAgentRefresh.addEventListener("click", loadFbAgentStatus);
-    // Live status while watching login / comments
+    // Live status while watching login / comments / publish / live report
     setInterval(function () {
       try {
         var panel = document.getElementById("fb-connect-panel");
         var comments = document.getElementById("comments-panel");
         var publish = document.getElementById("publish-panel");
+        var live = document.getElementById("livereport-panel");
         var onFb = panel && !panel.classList.contains("hidden");
         var onComments = comments && !comments.classList.contains("hidden");
         var onPublish = publish && !publish.classList.contains("hidden");
-        if (onFb || onComments) loadFbAgentStatus();
+        var onLive = live && !live.classList.contains("hidden");
+        if (onFb || onComments || onLive) loadFbAgentStatus();
+        if (onComments) loadCommentsQueue();
         if (onPublish) loadPublishPanel();
+        if (onLive) loadLiveReport();
       } catch (ePoll) { /* ignore */ }
-    }, 5000);
+    }, 4000);
     var fbAgentSave = document.getElementById("fb-agent-save-cred");
     if (fbAgentSave) fbAgentSave.addEventListener("click", saveFbAgentCredentials);
     var fbAgentLogin = document.getElementById("fb-agent-request-login");
@@ -12925,6 +14095,36 @@
     bindEmergency("comments-emergency-resume", false, true);
     bindEmergency("fb-agent-emergency-pause", true, false);
     bindEmergency("fb-agent-emergency-resume", false, false);
+    function bindClearWork(id, agentGetter) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("click", function () {
+        var aid = typeof agentGetter === "function" ? agentGetter() : agentGetter;
+        openClearWorkModal(aid || "owner");
+      });
+    }
+    bindClearWork("comments-clear-work", function () { return commentsSelectedAgentId; });
+    bindClearWork("publish-clear-work", function () {
+      var el = document.getElementById("publish-agent");
+      return (el && el.value) || fbSelectedAgentId || "owner";
+    });
+    bindClearWork("live-clear-work", function () { return liveReportAgentId; });
+    var clearWorkCancel = document.getElementById("clear-work-cancel");
+    if (clearWorkCancel) clearWorkCancel.addEventListener("click", closeClearWorkModal);
+    var clearWorkConfirm = document.getElementById("clear-work-confirm");
+    if (clearWorkConfirm) clearWorkConfirm.addEventListener("click", confirmClearWork);
+    var clearWorkModal = document.getElementById("clear-work-modal");
+    if (clearWorkModal) clearWorkModal.addEventListener("click", function (e) {
+      if (e.target === clearWorkModal) closeClearWorkModal();
+    });
+    var clearWorkCommentsCb = document.getElementById("clear-work-comments");
+    var clearWorkModeWrap = document.getElementById("clear-work-comment-mode-wrap");
+    if (clearWorkCommentsCb && clearWorkModeWrap) {
+      clearWorkCommentsCb.addEventListener("change", function () {
+        clearWorkModeWrap.style.opacity = clearWorkCommentsCb.checked ? "1" : "0.45";
+        clearWorkModeWrap.style.pointerEvents = clearWorkCommentsCb.checked ? "auto" : "none";
+      });
+    }
     var fbAgentDownload = document.getElementById("fb-agent-download-win");
     if (fbAgentDownload) fbAgentDownload.addEventListener("click", function () { downloadFbAgentStarter("windows"); });
     var fbAgentDownloadMac = document.getElementById("fb-agent-download-mac");
@@ -12947,14 +14147,32 @@
     if (publishGotoFb) publishGotoFb.addEventListener("click", function () { switchDbTab("fbconnect"); });
     var publishRefresh = document.getElementById("publish-refresh");
     if (publishRefresh) publishRefresh.addEventListener("click", loadPublishPanel);
-    var publishGenCap = document.getElementById("publish-gen-caption");
-    if (publishGenCap) publishGenCap.addEventListener("click", publishGenCaption);
+    var publishGotoLive = document.getElementById("publish-goto-livereport");
+    if (publishGotoLive) publishGotoLive.addEventListener("click", function () { switchDbTab("livereport"); });
+    var commentsGotoLive = document.getElementById("comments-goto-livereport");
+    if (commentsGotoLive) commentsGotoLive.addEventListener("click", function () { switchDbTab("livereport"); });
+    var liveRefresh = document.getElementById("live-report-refresh");
+    if (liveRefresh) liveRefresh.addEventListener("click", loadLiveReport);
+    document.querySelectorAll("[data-live-agent]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        liveReportAgentId = btn.getAttribute("data-live-agent") || "owner";
+        try { localStorage.setItem("ptp_live_agent", liveReportAgentId); } catch (e) { /* ignore */ }
+        syncLiveAgentButtons();
+        loadLiveReport();
+      });
+    });
     var publishLoadG = document.getElementById("publish-load-groups");
     if (publishLoadG) publishLoadG.addEventListener("click", publishLoadGroups);
     var publishLoadBookBtn = document.getElementById("publish-load-book");
     if (publishLoadBookBtn) publishLoadBookBtn.addEventListener("click", publishLoadBook);
-    var publishFetchImg = document.getElementById("publish-fetch-images");
-    if (publishFetchImg) publishFetchImg.addEventListener("click", publishFetchImages);
+    var publishFooterAppendBtn = document.getElementById("publish-footer-append");
+    if (publishFooterAppendBtn) publishFooterAppendBtn.addEventListener("click", appendPublishPostFooter);
+    var publishCodeInp = document.getElementById("publish-code");
+    if (publishCodeInp) {
+      publishCodeInp.addEventListener("change", function () {
+        syncPublishPageLinksFromCode();
+      });
+    }
     var publishClearImg = document.getElementById("publish-clear-images");
     if (publishClearImg) publishClearImg.addEventListener("click", function () {
       publishImageUrls = [];
@@ -13261,7 +14479,7 @@
         copyOut("add-page-post-text");
         var hint = document.getElementById("add-page-post-hint");
         if (hint) {
-          hint.style.color = "#137333";
+          hint.style.color = "#5b21b6";
           hint.textContent = "คัดลอกแล้ว — วางใน Facebook ได้เลย";
         }
       });
@@ -13288,6 +14506,71 @@
     document.getElementById("fu-save-btn").addEventListener("click", saveFollowup);
     document.getElementById("fu-clear-btn").addEventListener("click", clearFollowupForm);
     document.getElementById("fu-add-case-btn").addEventListener("click", openNewFollowupForm);
+    document.querySelectorAll("#focus-subnav [data-focus-tab]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        switchFocusTab(btn.getAttribute("data-focus-tab"));
+      });
+    });
+    var afPubAdd = document.getElementById("af-publish-add-btn");
+    if (afPubAdd) afPubAdd.addEventListener("click", function () { addAutoFollowCodes("publish"); });
+    var afComAdd = document.getElementById("af-comment-add-btn");
+    if (afComAdd) afComAdd.addEventListener("click", function () { addAutoFollowCodes("comment"); });
+    ["af-publish-code-input", "af-comment-code-input"].forEach(function (id) {
+      var inp = document.getElementById(id);
+      if (!inp) return;
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addAutoFollowCodes(id.indexOf("publish") >= 0 ? "publish" : "comment");
+        }
+      });
+    });
+    var afPubGoto = document.getElementById("af-publish-goto");
+    if (afPubGoto) afPubGoto.addEventListener("click", function () {
+      switchView("db");
+      switchDbTab("publish");
+      fillPublishFollowSelect(autoFollowCache.publish);
+    });
+    var afComGoto = document.getElementById("af-comment-goto");
+    if (afComGoto) afComGoto.addEventListener("click", function () {
+      switchView("db");
+      switchDbTab("comments");
+    });
+    var focusPanelEl = document.getElementById("focus-panel");
+    if (focusPanelEl) focusPanelEl.addEventListener("click", function (e) {
+      var useBtn = e.target.closest("[data-af-use]");
+      if (useBtn) {
+        useAutoFollowCode(useBtn.getAttribute("data-af-use"), useBtn.getAttribute("data-af-code"));
+        return;
+      }
+      var rmBtn = e.target.closest("[data-af-remove]");
+      if (rmBtn) {
+        removeAutoFollowItem(
+          rmBtn.getAttribute("data-af-remove"),
+          rmBtn.getAttribute("data-af-id"),
+          rmBtn.getAttribute("data-af-code")
+        );
+      }
+    });
+    var publishFromFollow = document.getElementById("publish-from-follow");
+    if (publishFromFollow) publishFromFollow.addEventListener("change", function () {
+      var code = (publishFromFollow.value || "").trim();
+      if (!code) return;
+      var inp = document.getElementById("publish-code");
+      if (inp) inp.value = code;
+      if (typeof updatePublishSummary === "function") updatePublishSummary();
+      syncPublishPageLinksFromCode();
+    });
+    var commentsFromFollowBtn = document.getElementById("comments-from-follow-btn");
+    if (commentsFromFollowBtn) commentsFromFollowBtn.addEventListener("click", function () {
+      openCommentsAddCodeModal();
+    });
+    var commentsFollowChips = document.getElementById("comments-add-from-follow");
+    if (commentsFollowChips) commentsFollowChips.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-comment-pick-code]");
+      if (!btn) return;
+      pickCommentCodeAndOpen(btn.getAttribute("data-comment-pick-code"));
+    });
     document.getElementById("fu-close-form-btn").addEventListener("click", closeFollowupForm);
     document.getElementById("fu-recommend-form-btn").addEventListener("click", recommendFromForm);
     document.getElementById("fu-recommend-close").addEventListener("click", function () {
@@ -13525,6 +14808,7 @@
     loadQueue();
     loadFollowups();
     loadFocus();
+    loadAllAutoFollowCaches();
     loadTenants();
 
     // Tenants UI bindings

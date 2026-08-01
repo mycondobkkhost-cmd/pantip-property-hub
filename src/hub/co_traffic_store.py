@@ -20,7 +20,7 @@ DAILY_PATH = TRAFFIC_DIR / "daily.json"
 _LOCK = threading.Lock()
 BANGKOK = ZoneInfo("Asia/Bangkok")
 RETENTION_DAYS = 90
-MAX_META_KEYS = 12
+MAX_META_KEYS = 16
 MAX_STR = 200
 ALLOWED_EVENTS = frozenset(
     {
@@ -33,9 +33,32 @@ ALLOWED_EVENTS = frozenset(
         "match_result",
         "property_open",
         "line_click",
+        "copy_code",
+        "scroll_depth",
+        "engage_tick",
+        "session_end",
+        "consent_accept",
+        "consent_deny",
         "api_catalog",
         "api_match",
     }
+)
+CLICK_ID_KEYS = (
+    "gclid",
+    "gbraid",
+    "wbraid",
+    "fbclid",
+    "ttclid",
+    "msclkid",
+    "li_fat_id",
+)
+UTM_KEYS = (
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "utm_id",
 )
 
 
@@ -218,6 +241,14 @@ def record_event(
     screen: str = "",
     lang: str = "",
     tz: str = "",
+    channel: str = "",
+    landing: str = "",
+    clicks: dict[str, str] | None = None,
+    attr: dict[str, Any] | None = None,
+    active_ms: int | float | None = None,
+    visible_ms: int | float | None = None,
+    scroll_pct: int | float | None = None,
+    viewport: str = "",
 ) -> dict[str, Any]:
     """Append one event. Returns ok payload."""
     ev = _clip(event, 40).lower().replace(" ", "_")
@@ -230,9 +261,28 @@ def record_event(
     day_key = now.date().isoformat()
     utm_clean: dict[str, str] = {}
     if isinstance(utm, dict):
-        for k in ("utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"):
+        for k in UTM_KEYS:
             if utm.get(k):
                 utm_clean[k] = _clip(utm.get(k), 80)
+
+    clicks_clean: dict[str, str] = {}
+    if isinstance(clicks, dict):
+        for k in CLICK_ID_KEYS:
+            if clicks.get(k):
+                clicks_clean[k] = _clip(clicks.get(k), 120)
+
+    attr_clean: dict[str, Any] = {}
+    if isinstance(attr, dict):
+        for touch in ("first", "last"):
+            raw = attr.get(touch)
+            if not isinstance(raw, dict):
+                continue
+            cleaned: dict[str, str] = {}
+            for k in (*UTM_KEYS, "channel", "landing", "ref_host", *CLICK_ID_KEYS):
+                if raw.get(k):
+                    cleaned[k] = _clip(raw.get(k), 120)
+            if cleaned:
+                attr_clean[touch] = cleaned
 
     meta_clean: dict[str, Any] = {}
     if isinstance(meta, dict):
@@ -245,22 +295,86 @@ def record_event(
             else:
                 meta_clean[key] = _clip(v, 120)
 
+    def _ms(v: int | float | None) -> int | None:
+        if v is None:
+            return None
+        try:
+            n = int(v)
+        except (TypeError, ValueError):
+            return None
+        return max(0, min(n, 1000 * 60 * 60 * 12))
+
+    def _pct(v: int | float | None) -> int | None:
+        if v is None:
+            return None
+        try:
+            n = int(v)
+        except (TypeError, ValueError):
+            return None
+        return max(0, min(n, 100))
+
+    ch = _clip(channel, 40).lower().replace(" ", "_")
+    if not ch:
+        # derive from payload when client omitted it
+        if clicks_clean.get("gclid") or clicks_clean.get("gbraid") or clicks_clean.get("wbraid"):
+            ch = "google_ads"
+        elif clicks_clean.get("fbclid"):
+            ch = "meta_ads"
+        elif clicks_clean.get("ttclid"):
+            ch = "tiktok_ads"
+        elif clicks_clean.get("msclkid"):
+            ch = "microsoft_ads"
+        elif utm_clean.get("utm_medium") or utm_clean.get("utm_source"):
+            medium = (utm_clean.get("utm_medium") or "").lower()
+            source = (utm_clean.get("utm_source") or "").lower()
+            if re.search(r"cpc|ppc|paidsearch|paid_search", medium):
+                ch = "paid_search"
+            elif re.search(r"paid[_-]?social|paidsocial", medium):
+                ch = "paid_social"
+            elif re.search(r"email|newsletter", medium) or re.search(r"email|newsletter", source):
+                ch = "email"
+            elif re.search(r"sms|line", medium):
+                ch = "messaging"
+            elif re.search(r"organic|seo", medium):
+                ch = "organic_search"
+            elif "social" in medium or re.search(r"facebook|instagram|tiktok|twitter|x\.com|line", source):
+                ch = "organic_social"
+            else:
+                ch = "campaign"
+        elif ref_host and ref_host != "(direct)":
+            if re.search(r"google\.|bing\.|yahoo\.|duckduckgo\.", ref_host):
+                ch = "organic_search"
+            elif re.search(r"facebook|instagram|tiktok|t\.co|x\.com|twitter|line\.me", ref_host):
+                ch = "organic_social"
+            else:
+                ch = "referral"
+        else:
+            ch = "direct"
+
     row = {
         "ts": now.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "event": ev,
         "vid": _clip(vid, 64),
         "sid": _clip(sid, 64),
-        "path": _clip(path or "/co/", 120),
+        "path": _clip(path or "/co/", 180),
+        "landing": _clip(landing, 180),
+        "channel": ch,
         "ref_host": ref_host,
         "referrer": _clip(referrer, 240),
         "ua_family": ua_family,
         "device": device,
         "ip_hash": _hash_ip(ip),
         "utm": utm_clean,
+        "clicks": clicks_clean,
+        "attr": attr_clean,
         "meta": meta_clean,
         "screen": _clip(screen, 40),
+        "viewport": _clip(viewport, 40),
         "lang": _clip(lang, 24),
         "tz": _clip(tz, 40),
+        "active_ms": _ms(active_ms),
+        "visible_ms": _ms(visible_ms),
+        "scroll_pct": _pct(scroll_pct),
     }
 
     with _LOCK:
@@ -311,22 +425,41 @@ def analytics_summary(range_key: str = "7d") -> dict[str, Any]:
     start, end = _range_dates(range_key)
     visitors: set[str] = set()
     sessions: set[str] = set()
+    engaged_sessions: set[str] = set()
     pageviews = 0
     line_clicks = 0
     matches = 0
+    copy_codes = 0
     events_total = 0
+    active_ms_total = 0
+    active_ms_samples = 0
     by_day: dict[str, dict[str, int]] = defaultdict(
-        lambda: {"pageviews": 0, "visitors": 0, "sessions": 0, "events": 0, "line_clicks": 0, "matches": 0}
+        lambda: {
+            "pageviews": 0,
+            "visitors": 0,
+            "sessions": 0,
+            "events": 0,
+            "line_clicks": 0,
+            "matches": 0,
+            "engaged": 0,
+        }
     )
     day_visitors: dict[str, set[str]] = defaultdict(set)
     day_sessions: dict[str, set[str]] = defaultdict(set)
+    day_engaged: dict[str, set[str]] = defaultdict(set)
     devices = Counter()
     browsers = Counter()
     referrers = Counter()
     hours = Counter()
     event_counts = Counter()
     utm_sources = Counter()
+    utm_mediums = Counter()
+    utm_campaigns = Counter()
+    channels = Counter()
+    landings = Counter()
     langs = Counter()
+    click_platforms = Counter()
+    scroll_milestones = Counter()
 
     for row in _iter_events(start, end):
         events_total += 1
@@ -356,12 +489,40 @@ def analytics_summary(range_key: str = "7d") -> dict[str, Any]:
         if ev in {"match_submit", "api_match"}:
             matches += 1
             by_day[day]["matches"] += 1
+        if ev == "copy_code":
+            copy_codes += 1
+        if ev == "scroll_depth":
+            pct = row.get("scroll_pct")
+            if pct is None and isinstance(row.get("meta"), dict):
+                pct = row["meta"].get("pct")
+            try:
+                scroll_milestones[int(pct)] += 1
+            except (TypeError, ValueError):
+                pass
+
+        active_ms = row.get("active_ms")
+        try:
+            am = int(active_ms) if active_ms is not None else 0
+        except (TypeError, ValueError):
+            am = 0
+        if am > 0 and ev in {"engage_tick", "session_end", "page_view"}:
+            # use latest session_end / engage_tick samples for averages
+            if ev in {"engage_tick", "session_end"}:
+                active_ms_total += am
+                active_ms_samples += 1
+            if sid and am >= 15000:
+                engaged_sessions.add(sid)
+                day_engaged[day].add(sid)
+
         devices[str(row.get("device") or "unknown")] += 1
         browsers[str(row.get("ua_family") or "Other")] += 1
         referrers[str(row.get("ref_host") or "(direct)")] += 1
+        channels[str(row.get("channel") or "unknown")] += 1
+        landing = str(row.get("landing") or "").strip()
+        if landing:
+            landings[landing.split("?")[0][:80] or landing[:80]] += 1
         lang = str(row.get("lang") or "").split("-")[0] or "?"
         langs[lang] += 1
-        # hour from ISO-ish ts
         try:
             if "T" in ts:
                 hour = int(ts.split("T", 1)[1][:2])
@@ -369,8 +530,23 @@ def analytics_summary(range_key: str = "7d") -> dict[str, Any]:
         except (ValueError, IndexError):
             pass
         utm = row.get("utm") or {}
-        if isinstance(utm, dict) and utm.get("utm_source"):
-            utm_sources[str(utm["utm_source"])] += 1
+        if isinstance(utm, dict):
+            if utm.get("utm_source"):
+                utm_sources[str(utm["utm_source"])] += 1
+            if utm.get("utm_medium"):
+                utm_mediums[str(utm["utm_medium"])] += 1
+            if utm.get("utm_campaign"):
+                utm_campaigns[str(utm["utm_campaign"])] += 1
+        clicks = row.get("clicks") or {}
+        if isinstance(clicks, dict):
+            if clicks.get("gclid") or clicks.get("gbraid") or clicks.get("wbraid"):
+                click_platforms["google_ads"] += 1
+            if clicks.get("fbclid"):
+                click_platforms["meta_ads"] += 1
+            if clicks.get("ttclid"):
+                click_platforms["tiktok_ads"] += 1
+            if clicks.get("msclkid"):
+                click_platforms["microsoft_ads"] += 1
 
     series = []
     d = start
@@ -385,12 +561,16 @@ def analytics_summary(range_key: str = "7d") -> dict[str, Any]:
                 "matches": by_day[key]["matches"],
                 "visitors": len(day_visitors.get(key) or ()),
                 "sessions": len(day_sessions.get(key) or ()),
+                "engaged": len(day_engaged.get(key) or ()),
             }
         )
         d += timedelta(days=1)
 
     def top_list(counter: Counter, n: int = 12) -> list[dict[str, Any]]:
         return [{"name": k, "count": int(v)} for k, v in counter.most_common(n)]
+
+    sess_n = max(len(sessions), 1)
+    avg_active_sec = int(round((active_ms_total / active_ms_samples) / 1000)) if active_ms_samples else 0
 
     return {
         "ok": True,
@@ -405,14 +585,25 @@ def analytics_summary(range_key: str = "7d") -> dict[str, Any]:
             "events": events_total,
             "line_clicks": line_clicks,
             "matches": matches,
+            "copy_codes": copy_codes,
+            "engaged_sessions": len(engaged_sessions),
+            "avg_active_sec": avg_active_sec,
+            "line_ctr": round(line_clicks / sess_n, 4),
+            "match_rate": round(matches / sess_n, 4),
         },
         "series": series,
         "devices": top_list(devices),
         "browsers": top_list(browsers),
         "referrers": top_list(referrers),
+        "channels": top_list(channels),
+        "landings": top_list(landings),
         "hours": [{"hour": h, "count": int(hours.get(h, 0))} for h in range(24)],
         "events": top_list(event_counts),
         "utm_sources": top_list(utm_sources),
+        "utm_mediums": top_list(utm_mediums),
+        "utm_campaigns": top_list(utm_campaigns),
+        "ad_clicks": top_list(click_platforms),
+        "scroll_depth": [{"name": f"{k}%", "count": int(v)} for k, v in sorted(scroll_milestones.items())],
         "langs": top_list(langs),
         "empty": events_total == 0,
     }

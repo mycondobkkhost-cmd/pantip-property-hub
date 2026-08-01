@@ -47,6 +47,7 @@ from src.hub.group_post_store import (  # noqa: E402
     add_code as add_comment_code,
     add_link_for_code,
     add_post_link,
+    clear_comment_work,
     comments_today_count,
     comments_today_count_for_code,
     delete_code as delete_comment_code,
@@ -80,6 +81,7 @@ from src.hub.fb_agent_store import (  # noqa: E402
 )
 from src.hub.group_post_publish_store import (  # noqa: E402
     cancel_job as cancel_publish_job,
+    cancel_open_jobs as cancel_open_publish_jobs,
     create_campaign as create_publish_campaign,
     list_due as list_publish_due,
     list_jobs as list_publish_jobs,
@@ -88,7 +90,14 @@ from src.hub.group_post_publish_store import (  # noqa: E402
 )
 from src.hub.publish_caption import (  # noqa: E402
     build_no_link_captions,
+    fetch_publish_bundle,
     resolve_image_urls_for_property,
+)
+from src.hub.fetch_post_store import (  # noqa: E402
+    enqueue_fetch_post,
+    get_fetch_post,
+    list_fetch_post_due,
+    mark_fetch_post_result,
 )
 from src.hub.publish_upload_store import (  # noqa: E402
     purge_expired as purge_publish_uploads,
@@ -115,6 +124,7 @@ from src.hub.project_store import (  # noqa: E402
     update_project_transit,
     update_property,
     update_property_links,
+    set_property_page_post_text,
 )
 from src.hub.queue_store import (  # noqa: E402
     add_job,
@@ -159,6 +169,11 @@ from src.hub.focus_store import (  # noqa: E402
     remove_focus_ref,
     replace_focus_from_sheet,
     toggle_focus,
+)
+from src.hub.auto_follow_store import (  # noqa: E402
+    add_codes as add_auto_follow_codes,
+    list_auto_follow,
+    remove_ref as remove_auto_follow_ref,
 )
 from src.hub.location_master_store import (  # noqa: E402
     delete_transit,
@@ -1058,6 +1073,8 @@ _AGENT_API_PREFIXES = (
     "/api/fb-agent/chrome-profiles",
     "/api/fb-agent/publish-due",
     "/api/fb-agent/publish-result",
+    "/api/fb-agent/fetch-post-due",
+    "/api/fb-agent/fetch-post-result",
 )
 
 
@@ -1466,6 +1483,41 @@ class HubHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if path == "/api/fb-agent/fetch-post-due":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            try:
+                limit = int((qs.get("limit") or ["1"])[0] or 1)
+            except ValueError:
+                limit = 1
+            agent_id = _agent_id_from_handler(self) or "owner"
+            if fb_agent_is_work_paused(agent_id):
+                self._json(200, {"ok": True, "due": [], "work_paused": True, "agent_id": agent_id})
+                return
+            due = list_fetch_post_due(agent_id=agent_id, limit=limit)
+            self._json(200, {"ok": True, "due": due, "agent_id": agent_id})
+            return
+
+        if path == "/api/publish-fetch-post":
+            # Poll job status (session)
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            job_id = ((qs.get("id") or qs.get("job_id") or [""])[0] or "").strip()
+            if not job_id:
+                self._json(400, {"ok": False, "error": "ต้องระบุ id"})
+                return
+            job = get_fetch_post(job_id)
+            if not job:
+                self._json(404, {"ok": False, "error": "ไม่พบงาน"})
+                return
+            self._json(200, {"ok": True, "job": job})
+            return
+
         if path == "/api/publish-jobs":
             from urllib.parse import parse_qs
 
@@ -1649,6 +1701,16 @@ class HubHandler(BaseHTTPRequestHandler):
                     "stats": focus_stats(),
                 },
             )
+            return
+        if path == "/api/auto-follow":
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(urlparse(self.path).query or "")
+            kind = ((qs.get("kind") or [""])[0] or "").strip() or None
+            try:
+                self._json(200, {"ok": True, **list_auto_follow(kind)})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
             return
         if path == "/api/group-posts":
             from urllib.parse import parse_qs
@@ -2307,6 +2369,102 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"ok": False, "error": str(exc)})
             return
 
+        if path == "/api/fb-agent/fetch-post-result":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            try:
+                import base64
+
+                job_id = (body.get("id") or body.get("job_id") or "").strip()
+                if not job_id:
+                    self._json(400, {"ok": False, "error": "ต้องระบุ id"})
+                    return
+                ok = bool(body.get("ok") or body.get("success"))
+                caption = str(body.get("caption") or body.get("text") or "").strip()
+                image_urls: list[str] = []
+                for u in body.get("image_urls") or body.get("images") or []:
+                    s = str(u or "").strip()
+                    if s.startswith("http") or s.startswith("/api/publish-uploads/"):
+                        image_urls.append(s)
+                for item in body.get("images_base64") or body.get("files") or []:
+                    if not isinstance(item, dict):
+                        continue
+                    b64 = item.get("data") or item.get("image_base64") or item.get("data_base64") or ""
+                    if not isinstance(b64, str) or not b64.strip():
+                        continue
+                    if "," in b64 and b64.strip().lower().startswith("data:"):
+                        b64 = b64.split(",", 1)[1]
+                    try:
+                        raw = base64.b64decode(b64.strip())
+                    except Exception:  # noqa: BLE001
+                        continue
+                    try:
+                        saved = save_publish_upload(
+                            raw,
+                            filename=str(item.get("name") or item.get("filename") or "photo.jpg"),
+                            content_type=str(item.get("content_type") or item.get("type") or "image/jpeg"),
+                        )
+                        image_urls.append(saved["url"])
+                    except Exception:  # noqa: BLE001
+                        continue
+                seen_u: set[str] = set()
+                uniq: list[str] = []
+                for u in image_urls:
+                    if u in seen_u:
+                        continue
+                    seen_u.add(u)
+                    uniq.append(u)
+                image_urls = uniq[:12]
+
+                job = mark_fetch_post_result(
+                    job_id,
+                    ok=ok,
+                    caption=caption,
+                    image_urls=image_urls,
+                    final_url=str(body.get("final_url") or body.get("url") or ""),
+                    warnings=[str(w) for w in (body.get("warnings") or []) if w],
+                    error=str(body.get("error") or ""),
+                )
+
+                code = str(job.get("code") or body.get("code") or "").strip().upper()
+                if ok and code and caption:
+                    try:
+                        set_property_page_post_text(code, caption)
+                    except Exception as pe:  # noqa: BLE001
+                        print(f"save page_post_text failed: {pe}", flush=True)
+
+                self._json(200, {"ok": True, "job": job})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/publish-fetch-post":
+            try:
+                code = (body.get("code") or body.get("property_code") or "").strip().upper()
+                url = (body.get("url") or body.get("page_url") or body.get("post_url") or "").strip()
+                agent_id = (body.get("agent_id") or body.get("agent") or "owner").strip() or "owner"
+                if not url and code:
+                    prop = next(
+                        (
+                            p
+                            for p in load_properties()
+                            if str(p.get("code") or "").strip().upper() == code
+                        ),
+                        None,
+                    )
+                    if prop:
+                        url = str(prop.get("post_pages_url") or prop.get("source_url") or "").strip()
+                job = enqueue_fetch_post(url=url, code=code, agent_id=agent_id)
+                self._json(200, {"ok": True, "job": job})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/fb-agent/fb-accounts":
             if not self._session_user():
                 self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
@@ -2473,6 +2631,29 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"ok": False, "error": str(exc)})
             return
 
+        if path == "/api/work/clear":
+            try:
+                agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or "owner"
+                clear_publish = body.get("clear_publish", True) is not False
+                clear_comments = body.get("clear_comments", True) is not False
+                comment_mode = (body.get("comment_mode") or "pause").strip().lower()
+                also_pause = bool(body.get("pause_agent") or body.get("emergency_pause"))
+                if not clear_publish and not clear_comments and not also_pause:
+                    self._json(400, {"ok": False, "error": "เลือกอย่างน้อย 1 อย่างที่จะล้าง"})
+                    return
+                result: dict = {"ok": True, "agent_id": agent_id}
+                if clear_publish:
+                    result["publish"] = cancel_open_publish_jobs(agent_id=agent_id)
+                    result["publish_stats"] = publish_job_stats(agent_id=agent_id)
+                if clear_comments:
+                    result["comments"] = clear_comment_work(agent_id=agent_id, mode=comment_mode)
+                if also_pause:
+                    result["agent"] = fb_agent_set_work_paused(True, agent_id=agent_id)
+                self._json(200, result)
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/publish-uploads":
             try:
                 import base64
@@ -2511,6 +2692,17 @@ class HubHandler(BaseHTTPRequestHandler):
                 code = (body.get("code") or body.get("property_code") or "").strip()
                 urls = resolve_image_urls_for_property(code, extra=[])
                 self._json(200, {"ok": True, "code": code.upper(), "image_urls": urls, "count": len(urls)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/publish-from-property":
+            try:
+                code = (body.get("code") or body.get("property_code") or "").strip()
+                allow_scrape = body.get("allow_scrape", True) is not False
+                result = fetch_publish_bundle(code, allow_scrape=allow_scrape)
+                status = 200 if result.get("ok") else 400
+                self._json(status, result)
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -2611,25 +2803,30 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/groups/recommend":
             try:
-                prop = body.get("property") or body
-                code = (body.get("code") or body.get("property_code") or "").strip()
-                if code and (not isinstance(prop, dict) or not (prop.get("project_name") or prop.get("code"))):
-                    from src.hub.publish_caption import find_property_by_code
+                from src.hub.publish_caption import find_property_by_code
 
+                code = (body.get("code") or body.get("property_code") or "").strip()
+                prop = body.get("property") if isinstance(body.get("property"), dict) else None
+                # Always hydrate from Hub property master when code is given
+                if code:
                     found = find_property_by_code(code)
                     if found:
-                        prop = found
-                    else:
+                        prop = dict(found)
+                    elif not prop:
                         prop = {"code": code}
-                elif isinstance(prop, dict) and code and not prop.get("code"):
+                    else:
+                        prop = {**prop, "code": code or prop.get("code") or ""}
+                elif not prop:
+                    prop = body if isinstance(body, dict) else {}
+                if isinstance(prop, dict) and code and not prop.get("code"):
                     prop = {**prop, "code": code}
                 limit = body.get("limit")
                 if limit is None:
-                    limit = body.get("per_category") or 30
+                    limit = body.get("per_category") or 60
                 result = recommend_groups(
                     prop if isinstance(prop, dict) else {},
                     limit=int(limit),
-                    include_owner_only=bool(body.get("include_owner_only")),
+                    include_owner_only=False,  # never recommend owner-only for publish
                 )
                 self._json(200, result)
             except Exception as exc:  # noqa: BLE001
@@ -3359,6 +3556,33 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"error": str(exc)})
             return
 
+        if path == "/api/auto-follow/add":
+            try:
+                kind = (body.get("kind") or body.get("list") or "").strip()
+                raw = body.get("code") or body.get("codes") or body.get("text") or ""
+                result = add_auto_follow_codes(kind, raw, load_properties())
+                self._json(200, {"ok": True, **result})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/auto-follow/remove":
+            try:
+                kind = (body.get("kind") or body.get("list") or "").strip()
+                result = remove_auto_follow_ref(
+                    kind,
+                    property_id=str(body.get("id") or body.get("property_id") or ""),
+                    code=str(body.get("code") or ""),
+                )
+                self._json(200, {"ok": True, **result})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/focus/toggle":
             # Legacy pin toggle — prefer /api/focus/add and /api/focus/remove
             try:
@@ -3516,12 +3740,14 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/co/track":
             try:
                 raw_size = len(json.dumps(body, ensure_ascii=False).encode("utf-8"))
-                if raw_size > 8192:
+                if raw_size > 24576:
                     self._json(413, {"ok": False, "error": "payload too large"})
                     return
                 event = (body.get("event") or "").strip()
                 utm = body.get("utm") if isinstance(body.get("utm"), dict) else {}
                 meta = body.get("meta") if isinstance(body.get("meta"), dict) else {}
+                clicks = body.get("clicks") if isinstance(body.get("clicks"), dict) else {}
+                attr = body.get("attr") if isinstance(body.get("attr"), dict) else {}
                 result = record_event(
                     event=event,
                     vid=str(body.get("vid") or ""),
@@ -3535,6 +3761,14 @@ class HubHandler(BaseHTTPRequestHandler):
                     screen=str(body.get("screen") or ""),
                     lang=str(body.get("lang") or ""),
                     tz=str(body.get("tz") or ""),
+                    channel=str(body.get("channel") or ""),
+                    landing=str(body.get("landing") or ""),
+                    clicks={str(k): str(v) for k, v in clicks.items()},
+                    attr=attr,
+                    active_ms=body.get("active_ms"),
+                    visible_ms=body.get("visible_ms"),
+                    scroll_pct=body.get("scroll_pct"),
+                    viewport=str(body.get("viewport") or ""),
                 )
                 self._json(200, result)
             except ValueError as exc:

@@ -2378,8 +2378,28 @@
             </div>
             <div class="co-grid-2">
               <div class="co-table-card">
+                <h3>ช่องทาง (channel)</h3>
+                <table class="co-mini-table"><thead><tr><th>ช่องทาง</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-channel-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>แคมเปญ (utm_campaign)</h3>
+                <table class="co-mini-table"><thead><tr><th>แคมเปญ</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-campaign-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>สื่อ (utm_medium)</h3>
+                <table class="co-mini-table"><thead><tr><th>medium</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-medium-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>คลิกโฆษณา (click id)</h3>
+                <table class="co-mini-table"><thead><tr><th>แพลตฟอร์ม</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-adclick-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
                 <h3>แหล่งที่มา (referrer)</h3>
                 <table class="co-mini-table"><thead><tr><th>แหล่ง</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-ref-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>หน้าแรกที่เข้า (landing)</h3>
+                <table class="co-mini-table"><thead><tr><th>path</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-landing-rows"></tbody></table>
               </div>
               <div class="co-table-card">
                 <h3>อุปกรณ์</h3>
@@ -2392,6 +2412,10 @@
               <div class="co-table-card">
                 <h3>อีเวนต์ยอดนิยม</h3>
                 <table class="co-mini-table"><thead><tr><th>อีเวนต์</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-event-rows"></tbody></table>
+              </div>
+              <div class="co-table-card">
+                <h3>ความลึกการเลื่อน (scroll)</h3>
+                <table class="co-mini-table"><thead><tr><th>ระดับ</th><th class="num">ครั้ง</th></tr></thead><tbody id="co-scroll-rows"></tbody></table>
               </div>
               <div class="co-table-card">
                 <h3>ชั่วโมงพีค (Bangkok)</h3>
@@ -12926,22 +12950,33 @@
         var items = [
           ["ผู้เข้าชม (UV)", kpi.visitors],
           ["เซสชัน", kpi.sessions],
+          ["เซสชันมีส่วนร่วม", kpi.engaged_sessions],
+          ["เวลาใช้เฉลี่ย (วิ)", kpi.avg_active_sec],
           ["Pageviews", kpi.pageviews],
-          ["อีเวนต์ทั้งหมด", kpi.events],
+          ["Match", kpi.matches],
           ["คลิก LINE", kpi.line_clicks],
-          ["Match", kpi.matches]
+          ["คัดลอกรหัส", kpi.copy_codes],
+          ["LINE CTR", ((kpi.line_ctr || 0) * 100).toFixed(1) + "%"],
+          ["Match rate", ((kpi.match_rate || 0) * 100).toFixed(1) + "%"],
+          ["อีเวนต์ทั้งหมด", kpi.events]
         ];
         grid.innerHTML = items.map(function (it) {
           return '<div class="co-kpi"><div class="label">' + esc(it[0]) + '</div><div class="value">' +
-            coFmt(it[1]) + "</div></div>";
+            (typeof it[1] === "number" ? coFmt(it[1]) : esc(String(it[1] == null ? "—" : it[1]))) + "</div></div>";
         }).join("");
       }
       coLineChart("co-chart", data.series || [], "pageviews");
       coHourBars("co-hour-chart", data.hours || []);
+      coFillRows("co-channel-rows", data.channels || []);
+      coFillRows("co-campaign-rows", data.utm_campaigns || []);
+      coFillRows("co-medium-rows", data.utm_mediums || []);
+      coFillRows("co-adclick-rows", data.ad_clicks || []);
       coFillRows("co-ref-rows", data.referrers || []);
+      coFillRows("co-landing-rows", data.landings || []);
       coFillRows("co-device-rows", data.devices || []);
       coFillRows("co-browser-rows", data.browsers || []);
       coFillRows("co-event-rows", data.events || []);
+      coFillRows("co-scroll-rows", data.scroll_depth || []);
       coFillRows("co-utm-rows", data.utm_sources || []);
       if (meta) {
         meta.textContent = (data.start || "") + " → " + (data.end || "") + " · " + (data.timezone || "Asia/Bangkok");

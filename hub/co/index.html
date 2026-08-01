@@ -382,7 +382,7 @@
 
   <div class="toast" id="toast">คัดลอกแล้ว</div>
   <div class="cookie-bar" id="cookie-bar" role="dialog" aria-live="polite" aria-label="คุกกี้">
-    <p><strong>คุกกี้วัดการใช้งาน</strong> — ใช้เพื่อนับจำนวนผู้เข้าชม Co-Agent (ไม่เก็บชื่อ/เบอร์) เพื่อปรับปรุงสต็อกและ Match</p>
+    <p><strong>คุกกี้วัดการใช้งาน + การตลาด</strong> — เก็บช่องทางที่มา (UTM/โฆษณา), เวลาใช้งานหน้าจอ และพฤติกรรม Match เพื่อปรับปรุงสต็อก/แคมเปญ (ไม่เก็บชื่อหรือเบอร์โทร)</p>
     <div class="cookie-actions">
       <button type="button" class="deny" id="cookie-deny">ปฏิเสธ</button>
       <button type="button" class="accept" id="cookie-accept">ยอมรับ</button>
@@ -400,12 +400,23 @@
   var selectedProjectIds = [];
   var projectCount = {};
 
-  /* —— Co-Agent traffic (consent + beacon) —— */
+  /* —— Co-Agent traffic (consent + marketing attribution) —— */
   var CO_CONSENT_KEY = "ptp_co_consent";
   var VID_COOKIE = "ptp_co_vid";
   var SID_COOKIE = "ptp_co_sid";
+  var ATTR_FIRST_KEY = "ptp_co_attr_first";
+  var ATTR_LAST_KEY = "ptp_co_attr_last";
+  var LANDING_KEY = "ptp_co_landing";
   var trackingOn = false;
   var filterTrackTimer = null;
+  var engageTimer = null;
+  var activeMs = 0;
+  var visibleMs = 0;
+  var lastActiveAt = 0;
+  var lastVisibleAt = 0;
+  var maxScrollPct = 0;
+  var scrollMarks = {};
+  var pageHidden = false;
 
   function cookieGet(name) {
     var m = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)"));
@@ -423,14 +434,93 @@
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, "");
     return "v" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   }
+  function lsGet(key) {
+    try { return localStorage.getItem(key) || ""; } catch (e) { return ""; }
+  }
+  function lsSet(key, val) {
+    try { localStorage.setItem(key, val); } catch (e) {}
+  }
+  function lsDel(key) {
+    try { localStorage.removeItem(key); } catch (e) {}
+  }
+  function refHostOf(ref) {
+    try {
+      if (!ref) return "(direct)";
+      return (new URL(ref)).hostname.toLowerCase() || "(direct)";
+    } catch (e) { return "(direct)"; }
+  }
   function parseUtm() {
     var q = new URLSearchParams(location.search || "");
     var out = {};
-    ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"].forEach(function (k) {
+    ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id"].forEach(function (k) {
       var v = q.get(k);
-      if (v) out[k] = v;
+      if (v) out[k] = String(v).slice(0, 80);
     });
     return out;
+  }
+  function parseClickIds() {
+    var q = new URLSearchParams(location.search || "");
+    var out = {};
+    ["gclid", "gbraid", "wbraid", "fbclid", "ttclid", "msclkid", "li_fat_id"].forEach(function (k) {
+      var v = q.get(k);
+      if (v) out[k] = String(v).slice(0, 120);
+    });
+    return out;
+  }
+  function deriveChannel(utm, clicks, host) {
+    if (clicks.gclid || clicks.gbraid || clicks.wbraid) return "google_ads";
+    if (clicks.fbclid) return "meta_ads";
+    if (clicks.ttclid) return "tiktok_ads";
+    if (clicks.msclkid) return "microsoft_ads";
+    var medium = String(utm.utm_medium || "").toLowerCase();
+    var source = String(utm.utm_source || "").toLowerCase();
+    if (/cpc|ppc|paidsearch|paid_search/.test(medium)) return "paid_search";
+    if (/paid[_-]?social|paidsocial/.test(medium)) return "paid_social";
+    if (/email|newsletter/.test(medium) || /email|newsletter/.test(source)) return "email";
+    if (/sms|line/.test(medium)) return "messaging";
+    if (/organic|seo/.test(medium)) return "organic_search";
+    if (/social/.test(medium) || /facebook|instagram|tiktok|twitter|x\.com|line/.test(source)) return "organic_social";
+    if (host && host !== "(direct)") {
+      if (/google\.|bing\.|yahoo\.|duckduckgo\./.test(host)) return "organic_search";
+      if (/facebook|instagram|tiktok|t\.co|x\.com|twitter|line\.me/.test(host)) return "organic_social";
+      return "referral";
+    }
+    if (utm.utm_source || utm.utm_campaign) return "campaign";
+    return "direct";
+  }
+  function currentTouch() {
+    var utm = parseUtm();
+    var clicks = parseClickIds();
+    var host = refHostOf(document.referrer || "");
+    var channel = deriveChannel(utm, clicks, host);
+    var landing = lsGet(LANDING_KEY) || (location.pathname + location.search);
+    var touch = {
+      channel: channel,
+      landing: String(landing).slice(0, 180),
+      ref_host: host
+    };
+    Object.keys(utm).forEach(function (k) { touch[k] = utm[k]; });
+    Object.keys(clicks).forEach(function (k) { touch[k] = clicks[k]; });
+    return { utm: utm, clicks: clicks, channel: channel, landing: touch.landing, touch: touch };
+  }
+  function ensureAttribution() {
+    var cur = currentTouch();
+    var hasSignal = Object.keys(cur.utm).length || Object.keys(cur.clicks).length ||
+      (document.referrer && refHostOf(document.referrer) !== location.hostname);
+    if (!lsGet(LANDING_KEY)) lsSet(LANDING_KEY, location.pathname + location.search);
+    cur.landing = lsGet(LANDING_KEY) || cur.landing;
+    cur.touch.landing = cur.landing;
+    if (hasSignal || !lsGet(ATTR_LAST_KEY)) {
+      lsSet(ATTR_LAST_KEY, JSON.stringify(cur.touch));
+    }
+    if (!lsGet(ATTR_FIRST_KEY)) {
+      lsSet(ATTR_FIRST_KEY, JSON.stringify(cur.touch));
+    }
+    var first = {};
+    var last = {};
+    try { first = JSON.parse(lsGet(ATTR_FIRST_KEY) || "{}") || {}; } catch (e) {}
+    try { last = JSON.parse(lsGet(ATTR_LAST_KEY) || "{}") || {}; } catch (e) {}
+    return { utm: cur.utm, clicks: cur.clicks, channel: cur.channel || last.channel || first.channel || "direct", landing: cur.landing, first: first, last: last };
   }
   function ensureIds() {
     var vid = cookieGet(VID_COOKIE);
@@ -443,20 +533,59 @@
     cookieSet(SID_COOKIE, sid, 60 * 30);
     return { vid: vid, sid: sid };
   }
-  function track(event, meta) {
+  function flushActiveTimers() {
+    var now = Date.now();
+    if (lastVisibleAt && document.visibilityState === "visible") {
+      visibleMs += Math.max(0, now - lastVisibleAt);
+      lastVisibleAt = now;
+    }
+    if (lastActiveAt && document.visibilityState === "visible") {
+      // count as active if interacted within last 5s window continuously while visible
+      activeMs += Math.max(0, now - lastActiveAt);
+      lastActiveAt = now;
+    }
+  }
+  function markInteracted() {
     if (!trackingOn) return;
+    var now = Date.now();
+    if (document.visibilityState === "visible") {
+      if (!lastActiveAt) lastActiveAt = now;
+      else if (now - lastActiveAt < 6000) activeMs += now - lastActiveAt;
+      lastActiveAt = now;
+    }
+  }
+  function currentScrollPct() {
+    var doc = document.documentElement;
+    var body = document.body;
+    var scrollTop = window.pageYOffset || doc.scrollTop || body.scrollTop || 0;
+    var height = Math.max(doc.scrollHeight, body.scrollHeight) - (window.innerHeight || 0);
+    if (height <= 0) return 100;
+    return Math.max(0, Math.min(100, Math.round((scrollTop / height) * 100)));
+  }
+  function track(event, meta) {
+    if (!trackingOn && event !== "consent_deny") return;
+    flushActiveTimers();
     var ids = ensureIds();
+    var attr = ensureAttribution();
     var payload = {
       event: event,
       vid: ids.vid,
       sid: ids.sid,
       path: location.pathname + location.search,
+      landing: attr.landing,
+      channel: attr.channel,
       referrer: document.referrer || "",
       screen: (screen.width || 0) + "x" + (screen.height || 0),
+      viewport: (window.innerWidth || 0) + "x" + (window.innerHeight || 0),
       lang: navigator.language || "",
       tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || ""),
-      utm: parseUtm(),
+      utm: attr.utm,
+      clicks: attr.clicks,
+      attr: { first: attr.first, last: attr.last },
       meta: meta || {},
+      active_ms: activeMs,
+      visible_ms: visibleMs,
+      scroll_pct: maxScrollPct,
       ts: Date.now()
     };
     var body = JSON.stringify(payload);
@@ -479,21 +608,56 @@
     var ids = ensureIds();
     return { "X-Co-Vid": ids.vid, "X-Co-Sid": ids.sid };
   }
-  function scheduleFilterTrack() {
+  function scheduleFilterTrack(extraMeta) {
     clearTimeout(filterTrackTimer);
-    filterTrackTimer = setTimeout(function () { track("filter_change"); }, 800);
+    filterTrackTimer = setTimeout(function () {
+      track("filter_change", extraMeta || {});
+    }, 800);
   }
-  function enableTracking() {
+  function checkScrollDepth() {
+    var pct = currentScrollPct();
+    if (pct > maxScrollPct) maxScrollPct = pct;
+    [25, 50, 75, 100].forEach(function (mark) {
+      if (maxScrollPct >= mark && !scrollMarks[mark]) {
+        scrollMarks[mark] = 1;
+        track("scroll_depth", { pct: mark });
+      }
+    });
+  }
+  function startEngagementLoop() {
+    clearInterval(engageTimer);
+    lastVisibleAt = document.visibilityState === "visible" ? Date.now() : 0;
+    lastActiveAt = lastVisibleAt;
+    engageTimer = setInterval(function () {
+      if (!trackingOn) return;
+      flushActiveTimers();
+      checkScrollDepth();
+      track("engage_tick", { tick: 30 });
+    }, 30000);
+  }
+  function stopEngagementLoop() {
+    clearInterval(engageTimer);
+    engageTimer = null;
+  }
+  function enableTracking(via) {
     trackingOn = true;
     localStorage.setItem(CO_CONSENT_KEY, "1");
     ensureIds();
-    track("page_view", { via: "consent" });
+    ensureAttribution();
+    startEngagementLoop();
+    track("consent_accept", { via: via || "consent" });
+    track("page_view", { via: via || "consent" });
   }
   function disableTracking() {
+    track("consent_deny");
     trackingOn = false;
     localStorage.setItem(CO_CONSENT_KEY, "0");
+    stopEngagementLoop();
     cookieDel(VID_COOKIE);
     cookieDel(SID_COOKIE);
+    lsDel(ATTR_FIRST_KEY);
+    lsDel(ATTR_LAST_KEY);
+    lsDel(LANDING_KEY);
   }
   function initConsent() {
     var bar = document.getElementById("cookie-bar");
@@ -501,6 +665,8 @@
     if (saved === "1") {
       trackingOn = true;
       ensureIds();
+      ensureAttribution();
+      startEngagementLoop();
       track("page_view", { via: "return" });
       return;
     }
@@ -508,7 +674,7 @@
     bar.classList.add("show");
     document.getElementById("cookie-accept").addEventListener("click", function () {
       bar.classList.remove("show");
-      enableTracking();
+      enableTracking("consent");
     });
     document.getElementById("cookie-deny").addEventListener("click", function () {
       bar.classList.remove("show");
@@ -516,10 +682,35 @@
     });
   }
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "visible") track("page_view", { via: "visible" });
+    if (!trackingOn) return;
+    if (document.visibilityState === "visible") {
+      pageHidden = false;
+      lastVisibleAt = Date.now();
+      lastActiveAt = Date.now();
+      track("page_view", { via: "visible" });
+    } else {
+      flushActiveTimers();
+      pageHidden = true;
+      lastVisibleAt = 0;
+      lastActiveAt = 0;
+      track("session_end", { via: "hidden", active_sec: Math.round(activeMs / 1000) });
+    }
+  });
+  window.addEventListener("pagehide", function () {
+    if (!trackingOn) return;
+    flushActiveTimers();
+    track("session_end", { via: "pagehide", active_sec: Math.round(activeMs / 1000) });
+  });
+  ["pointerdown", "keydown", "scroll", "touchstart"].forEach(function (ev) {
+    document.addEventListener(ev, function () {
+      markInteracted();
+      if (ev === "scroll") checkScrollDepth();
+    }, { passive: true });
   });
   var lineCta = document.querySelector(".line-cta");
-  if (lineCta) lineCta.addEventListener("click", function () { track("line_click"); });
+  if (lineCta) lineCta.addEventListener("click", function () {
+    track("line_click", { href: lineCta.getAttribute("href") || "" });
+  });
 
   var BED_OPTS = [
     { id: "studio", name: "Studio" },
@@ -983,7 +1174,16 @@
     var box = document.getElementById("match-list");
     box.innerHTML = '<div class="empty"><span>กำลัง Match</span>ค้นจากสต็อก Hub…</div>';
     document.getElementById("match-count").textContent = "กำลังค้น…";
-    track("match_submit");
+    track("match_submit", {
+      deal_type: dealType,
+      zones: (body.locations || []).length,
+      transits: (body.transits || []).length,
+      projects: (body.project_ids || []).length,
+      beds: (body.bedrooms || []).length,
+      has_budget: !!(body.budget_min || body.budget_max),
+      has_size: !!(body.size_min || body.size_max),
+      ptype: ptype || ""
+    });
     try {
       var res = await fetch(API + "/api/co/match", {
         method: "POST",
@@ -994,7 +1194,7 @@
       if (!res.ok) throw new Error(data.error || "Match ไม่สำเร็จ");
       var items = sortNewest(data.items || []);
       document.getElementById("match-count").textContent = "เจอ " + items.length + " รายการ";
-      track("match_result", { results: items.length });
+      track("match_result", { results: items.length, zero: items.length === 0 ? 1 : 0 });
       if (!items.length) {
         box.innerHTML = '<div class="empty"><span>ไม่พบที่ตรงโจทย์</span>ลองขยายราคาหรือเปลี่ยนทำเล</div>';
         return;
@@ -1030,6 +1230,7 @@
       function markCopied() {
         copy.classList.add("ok"); copy.textContent = "คัดลอกแล้ว";
         toast(link ? "คัดลอกรหัส+ลิงก์แล้ว" : ("คัดลอก " + code));
+        track("copy_code", { code: code, has_link: link ? 1 : 0 });
         setTimeout(function () { copy.classList.remove("ok"); copy.textContent = "คัดลอก+ลิงก์"; }, 1200);
       }
       function fallbackCopy() {

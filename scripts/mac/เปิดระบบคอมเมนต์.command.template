@@ -2,9 +2,14 @@
 # ดาวน์โหลดจาก Hub — ใช้ได้กับ Mac ทั่วไป (ระบบเตรียมเอง)
 HUB_URL="__HUB_URL__"
 COMMENT_AGENT_TOKEN="__AGENT_TOKEN__"
+COMMENT_AGENT_ID="__AGENT_ID__"
+export COMMENT_AGENT_ID
+if [ -z "$COMMENT_AGENT_ID" ] || [ "$COMMENT_AGENT_ID" = "__AGENT_ID__" ]; then
+  COMMENT_AGENT_ID="owner"
+  export COMMENT_AGENT_ID
+fi
 BAKED_PROJECT_DIR="__PROJECT_DIR__"
-REPO_URL="https://github.com/mycondobkkhost-cmd/pantip-property-hub.git"
-REPO_ZIP="https://github.com/mycondobkkhost-cmd/pantip-property-hub/archive/refs/heads/main.zip"
+PROJECT_ZIP_URL="__PROJECT_ZIP_URL__"
 DEFAULT_PROJECT="$HOME/Projects/pantip-property-automation"
 
 xattr -d com.apple.quarantine "$0" 2>/dev/null || true
@@ -47,35 +52,26 @@ find_project() {
 }
 
 install_project() {
-  echo "ยังไม่มีโฟลเดอร์โปรเจกต์ — กำลังดาวน์โหลดให้อัตโนมัติ..."
+  echo "ยังไม่มีโฟลเดอร์โปรเจกต์ — กำลังดาวน์โหลดจาก Hub..."
   mkdir -p "$HOME/Projects"
-  if command -v git >/dev/null 2>&1; then
-    if git clone --depth 1 "$REPO_URL" "$DEFAULT_PROJECT"; then
-      PROJECT_DIR="$DEFAULT_PROJECT"
-      return 0
-    fi
-  fi
+  rm -rf "$DEFAULT_PROJECT"
+  mkdir -p "$DEFAULT_PROJECT"
   TMPZIP="$(mktemp -t ptp-hub.XXXXXX.zip)"
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL -o "$TMPZIP" "$REPO_ZIP" || { rm -f "$TMPZIP"; return 1; }
+    curl -fsSL -o "$TMPZIP" "$PROJECT_ZIP_URL" || { rm -f "$TMPZIP"; return 1; }
   elif command -v wget >/dev/null 2>&1; then
-    wget -q -O "$TMPZIP" "$REPO_ZIP" || { rm -f "$TMPZIP"; return 1; }
+    wget -q -O "$TMPZIP" "$PROJECT_ZIP_URL" || { rm -f "$TMPZIP"; return 1; }
   else
     rm -f "$TMPZIP"
     return 1
   fi
-  TMPDIR="$(mktemp -d -t ptp-hub.XXXXXX)"
-  unzip -q "$TMPZIP" -d "$TMPDIR" || { rm -rf "$TMPDIR" "$TMPZIP"; return 1; }
-  SRC="$(find "$TMPDIR" -maxdepth 1 -type d -name 'pantip-property-hub-*' | head -n 1)"
-  if [ -z "$SRC" ] || [ ! -f "$SRC/scripts/comment_agent.py" ]; then
-    rm -rf "$TMPDIR" "$TMPZIP"
-    return 1
+  unzip -q "$TMPZIP" -d "$DEFAULT_PROJECT" || { rm -f "$TMPZIP"; return 1; }
+  rm -f "$TMPZIP"
+  if [ -f "$DEFAULT_PROJECT/scripts/comment_agent.py" ]; then
+    PROJECT_DIR="$DEFAULT_PROJECT"
+    return 0
   fi
-  rm -rf "$DEFAULT_PROJECT"
-  mv "$SRC" "$DEFAULT_PROJECT"
-  rm -rf "$TMPDIR" "$TMPZIP"
-  PROJECT_DIR="$DEFAULT_PROJECT"
-  return 0
+  return 1
 }
 
 resolve_python() {
@@ -145,6 +141,10 @@ if ! ensure_python; then
 fi
 
 echo "ใช้ Python: $PY"
+export FB_BROWSER_MODE="${FB_BROWSER_MODE:-auto}"
+export FB_CDP_URL="${FB_CDP_URL:-http://127.0.0.1:9222}"
+echo "โหมดเบราว์เซอร์: $FB_BROWSER_MODE (แนะนำเปิด scripts/mac/เปิดChromeจริงสำหรับAgent.command ก่อน เพื่อใช้บัญชีที่เคยล็อกอิน)"
+echo ""
 
 # ดึงโค้ดล่าสุดถ้ามี git (เงียบๆ)
 if command -v git >/dev/null 2>&1 && [ -d .git ]; then
@@ -163,7 +163,7 @@ echo "กำลังติดตั้งไลบรารีที่จำ�
     exit 1
   }
 
-"$PY" scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN"
+"$PY" scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN" --agent "$COMMENT_AGENT_ID"
 echo ""
 echo "ระบบหยุดแล้ว — เปิดไฟล์นี้อีกครั้งเพื่อทำงานต่อ"
 read -r -p "กด Enter เพื่อปิดหน้าต่าง..."

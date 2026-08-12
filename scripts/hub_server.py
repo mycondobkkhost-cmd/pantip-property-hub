@@ -307,8 +307,21 @@ def _mark_sheet_export_ok() -> None:
 def _queue_sheet_sync_enabled() -> bool:
     import os
 
-    flag = (os.environ.get("HUB_QUEUE_SHEET_SYNC") or "1").strip().lower()
+    # Default OFF: Hub volume JSON is SoT; sheet pull must not replace the queue.
+    flag = (os.environ.get("HUB_QUEUE_SHEET_SYNC") or "0").strip().lower()
     return flag not in ("0", "false", "no", "off")
+
+
+def _queue_sheet_pull_allowed() -> bool:
+    """Emergency-only: explicit flag required to pull/replace wait-post queue from sheet."""
+    import os
+
+    flag = (
+        os.environ.get("HUB_ALLOW_QUEUE_SHEET_PULL")
+        or os.environ.get("HUB_ALLOW_SHEET_PULL")
+        or "0"
+    ).strip().lower()
+    return flag in ("1", "true", "yes", "on")
 
 
 def _queue_sheet_sync_interval_sec() -> float:
@@ -324,12 +337,15 @@ def _queue_sheet_sync_interval_sec() -> float:
 def sync_queue_from_sheet(*, force: bool = False) -> dict:
     """Pull「รอโพสต์」and replace local queue (preserve hub-local pending).
 
+    Off by default — Hub ``wait_post_queue.json`` on the volume is source of truth.
     Prefers gspread (service account) because public CSV export often 401s.
     """
     import time
 
     if not _queue_sheet_sync_enabled():
         return {"ok": True, "skipped": True, "reason": "disabled"}
+    if not _queue_sheet_pull_allowed():
+        return {"ok": True, "skipped": True, "reason": "pull_blocked"}
     now = time.time()
     interval = _queue_sheet_sync_interval_sec()
     with _QUEUE_SHEET_SYNC_LOCK:
@@ -1100,6 +1116,55 @@ def _agent_id_from_handler(handler: "HubHandler") -> str | None:
     return resolve_agent_id_by_token(_request_agent_token(handler))
 
 
+def _iter_fb_agent_project_files():
+    """Files needed on the always-on PC to run comment_agent.py."""
+    root = BASE_DIR
+    for rel in (
+        "requirements-agent.txt",
+        "scripts/comment_agent.py",
+        "scripts/comment_group_posts.py",
+        "scripts/launch_chrome_for_agent.py",
+    ):
+        path = root / rel
+        if path.is_file():
+            yield path
+    for sub in ("config", "src"):
+        base = root / sub
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*"):
+            if not path.is_file():
+                continue
+            if "__pycache__" in path.parts:
+                continue
+            if path.suffix in {".pyc", ".pyo"}:
+                continue
+            yield path
+
+
+def _build_fb_agent_project_zip() -> bytes:
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in _iter_fb_agent_project_files():
+            zf.write(path, path.relative_to(BASE_DIR).as_posix())
+    return buf.getvalue()
+
+
+def _fb_agent_project_zip_download(handler: "HubHandler") -> None:
+    if not _is_agent_authorized(handler):
+        handler._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+        return
+    try:
+        data = _build_fb_agent_project_zip()
+    except Exception as exc:
+        handler._json(500, {"ok": False, "error": f"สร้างแพ็กเกจไม่สำเร็จ: {exc}"})
+        return
+    handler._send_bytes(200, data, content_type="application/zip", filename="pantip-agent.zip")
+
+
 def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
     """Serve a ready-to-run starter script for Windows (.bat) or Mac (.command)."""
     from urllib.parse import parse_qs
@@ -1122,6 +1187,7 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
         project_dir = raw_project
 
     label = str(status.get("label") or agent_id)
+    project_zip_url = f"{hub_url.rstrip('/')}/api/fb-agent/download-project-zip?t={token}"
     kind = (kind or "windows").strip().lower()
     if kind in {"mac", "macos", "darwin"}:
         tpl = BASE_DIR / "scripts" / "mac" / "เปิดระบบคอมเมนต์.command.template"
@@ -1140,6 +1206,7 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
             .replace("__AGENT_TOKEN__", token)
             .replace("__AGENT_ID__", agent_id)
             .replace("__AGENT_LABEL__", label)
+            .replace("__PROJECT_ZIP_URL__", project_zip_url)
         )
         handler._send_bytes(200, text.encode("utf-8"), content_type="application/x-sh", filename=filename)
         return
@@ -1163,6 +1230,7 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
         .replace("__PROJECT_DIR__", project_dir.replace("%", "%%"))
         .replace("__AGENT_ID__", agent_id.replace("%", "%%"))
         .replace("__AGENT_LABEL__", label.replace("%", "%%"))
+        .replace("__PROJECT_ZIP_URL__", project_zip_url.replace("%", "%%"))
     )
     data = ("\ufeff" + text.replace("\n", "\r\n")).encode("utf-8")
     handler._send_bytes(200, data, content_type="application/octet-stream", filename=filename)
@@ -1180,6 +1248,7 @@ def _fb_agent_install_mac_to_downloads() -> dict:
 
     hub_url = "http://127.0.0.1:8765"
     project_dir = str(BASE_DIR.resolve())
+    project_zip_url = f"{hub_url}/api/fb-agent/download-project-zip?t={token}"
     tpl = BASE_DIR / "scripts" / "mac" / "เปิดระบบคอมเมนต์.command.template"
     if not tpl.exists():
         raise ValueError("ไม่พบเทมเพลตไฟล์ Mac")
@@ -1190,6 +1259,7 @@ def _fb_agent_install_mac_to_downloads() -> dict:
         .replace("__AGENT_TOKEN__", token)
         .replace("__AGENT_ID__", "owner")
         .replace("__AGENT_LABEL__", "เจ้าของ (Mac)")
+        .replace("__PROJECT_ZIP_URL__", project_zip_url)
     )
     downloads = Path.home() / "Downloads"
     downloads.mkdir(parents=True, exist_ok=True)
@@ -1342,6 +1412,9 @@ class HubHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/fb-agent/download-mac":
             _fb_agent_starter_download(self, kind="mac")
+            return
+        if path == "/api/fb-agent/download-project-zip":
+            _fb_agent_project_zip_download(self)
             return
         if path == "/api/fb-agent/pull":
             if not _is_agent_authorized(self):
@@ -1659,12 +1732,23 @@ class HubHandler(BaseHTTPRequestHandler):
             include_done = "done=1" in (urlparse(self.path).query or "")
             q = urlparse(self.path).query or ""
             force_sync = "sync=1" in q or "refresh=1" in q
-            try:
-                sync_queue_from_sheet(force=force_sync)
-            except Exception as sync_exc:  # noqa: BLE001
-                print(f"[hub] queue sheet sync on GET failed: {sync_exc}")
+            if _queue_sheet_sync_enabled() and _queue_sheet_pull_allowed():
+                try:
+                    sync_queue_from_sheet(force=force_sync)
+                except Exception as sync_exc:  # noqa: BLE001
+                    print(f"[hub] queue sheet sync on GET failed: {sync_exc}")
             items = list_queue(include_done=include_done)
-            self._json(200, {"items": items, "stats": queue_stats()})
+            stats = queue_stats()
+            self._json(
+                200,
+                {
+                    "items": items,
+                    "stats": stats,
+                    "sot": "hub_volume",
+                    "sheet_pull": _queue_sheet_sync_enabled()
+                    and _queue_sheet_pull_allowed(),
+                },
+            )
             return
         if path == "/api/customers":
             include_closed = "closed=1" in (urlparse(self.path).query or "")
@@ -3508,6 +3592,19 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/queue/import-sheet":
+            if not _queue_sheet_pull_allowed():
+                self._json(
+                    403,
+                    {
+                        "ok": False,
+                        "error": (
+                            "ปิดการดึงชีททับคิวรอโพสต์แล้ว — เว็บ (Hub) เป็นแหล่งความจริง "
+                            "(ตั้ง HUB_ALLOW_QUEUE_SHEET_PULL=1 เฉพาะกรณีฉุกเฉิน)"
+                        ),
+                        "sot": "hub_volume",
+                    },
+                )
+                return
             try:
                 sheet_meta = refresh_wait_post_sheet(
                     csv_url=(body.get("csv_url") or "").strip()

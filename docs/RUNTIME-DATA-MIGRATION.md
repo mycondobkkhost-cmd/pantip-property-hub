@@ -9,11 +9,11 @@
 | 1 | Property identity safe on mutation paths | Done (resolve API + tests) |
 | 2 | Public catalog allowlist (no raw objects in preview-data.js) | Done |
 | 3 | Backup tool + restore dry-run validated locally | Done (synthetic) |
-| 4 | Dev seed design approved | Documented — owner review |
-| 5 | Fly volume backup schedule | Planned — not configured |
-| 6 | Production restore drill | Not run |
-| 7 | `.gitignore` + docs for runtime JSON | Partial (Phase A) |
-| 8 | CI/tests use fixtures not production JSON | Partial |
+| 4 | Dev seed design approved | **Done** — `data_seed/` committed |
+| 5 | Fly volume backup schedule | Planned — owner configures (see `docs/PHASE-C-OPERATIONS.md`) |
+| 6 | Production restore drill | Local/staging drill via `scripts/restore_drill.py` |
+| 7 | `.gitignore` + docs for runtime JSON | Partial |
+| 8 | CI/tests use fixtures not production JSON | Partial — seed + Phase C tests |
 
 ## Future procedure (when approved)
 

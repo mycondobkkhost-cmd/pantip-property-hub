@@ -24,9 +24,9 @@ COPY scripts/ scripts/
 COPY src/hub/ src/hub/
 COPY src/__init__.py src/__init__.py
 COPY hub/ hub/
-# Seed copy — Fly volume mounts over /app/data; entrypoint copies missing files.
-COPY data/ /app/data_seed/
-RUN mkdir -p /app/data && cp -a /app/data_seed/. /app/data/ \
+# Synthetic bootstrap — never copy production data/ into the image.
+COPY data_seed/ /app/data_seed/
+RUN mkdir -p /app/data \
     && chmod +x scripts/docker_entrypoint.sh
 
 EXPOSE 8080

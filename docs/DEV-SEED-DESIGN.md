@@ -1,4 +1,8 @@
-# Developer Seed Data Design (not implemented)
+# Developer Seed Data
+
+**Status: implemented** (`data_seed/` + `scripts/build_data_seed.py`)
+
+Minimal synthetic dataset for local Hub/Co-Agent/tests after runtime JSON leaves Git.
 
 ## Goals
 

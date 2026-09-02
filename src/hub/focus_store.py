@@ -197,13 +197,10 @@ def is_focused(property_id: str) -> bool:
 
 
 def find_property_by_code(properties: list[dict], code: str) -> dict | None:
-    want = _normalize_code(code)
-    if not want:
-        return None
-    for prop in properties or []:
-        if _normalize_code(prop.get("code") or "") == want:
-            return prop
-    return None
+    """Return a row only when code is unique — never first-of-many."""
+    from src.hub.property_resolve import find_property_by_code as _resolve_unique
+
+    return _resolve_unique(properties, code)
 
 
 def find_focus_item(ref: str) -> dict | None:
@@ -262,9 +259,22 @@ def add_focus_codes(raw_codes: str | list, properties: list[dict]) -> dict:
     added: list[dict] = []
     skipped: list[str] = []
     errors: list[dict] = []
+    from src.hub.property_resolve import resolve_by_code
+
     for code in codes:
         try:
-            prop = find_property_by_code(properties, code)
+            res = resolve_by_code(properties, code)
+            if res.status == "ambiguous":
+                errors.append(
+                    {
+                        "code": code,
+                        "error": f"รหัส {code} ซ้ำหลายรายการ — ระบุ property_id",
+                        "error_code": "PROPERTY_CODE_AMBIGUOUS",
+                        "candidates": res.candidates or [],
+                    }
+                )
+                continue
+            prop = res.record
             if not prop:
                 errors.append({"code": code, "error": f"ไม่พบรหัส {code}"})
                 continue

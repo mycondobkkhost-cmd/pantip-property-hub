@@ -77,20 +77,65 @@ def soft_scroll(page: Any, *, times: int | None = None) -> None:
 
 
 def type_human(locator: Any, text: str, *, page: Any | None = None) -> bool:
-    """Type in uneven bursts with variable key delay."""
+    """Type in uneven bursts with variable key delay; preserve newlines as Enter."""
     try:
         locator.click(timeout=3000)
         pause(0.2, 0.5)
+        # Prefer insert via JS for long captions with blank lines (FB contenteditable)
+        normalized = (text or "").replace("\r\n", "\n").replace("\r", "\n")
+        if page is not None and ("\n" in normalized or len(normalized) > 280):
+            try:
+                locator.evaluate(
+                    """(el, value) => {
+                      el.focus();
+                      // contenteditable
+                      if (el.isContentEditable) {
+                        el.innerHTML = '';
+                        const lines = String(value || '').split('\\n');
+                        lines.forEach((line, idx) => {
+                          const div = document.createElement('div');
+                          if (line) div.textContent = line;
+                          else div.appendChild(document.createElement('br'));
+                          el.appendChild(div);
+                        });
+                        el.dispatchEvent(new InputEvent('input', { bubbles: true }));
+                        return true;
+                      }
+                      el.value = value;
+                      el.dispatchEvent(new Event('input', { bubbles: true }));
+                      return true;
+                    }""",
+                    normalized,
+                )
+                pause(0.2, 0.5)
+                return True
+            except Exception as js_exc:  # noqa: BLE001
+                logger.debug("caption JS insert failed, fallback type: {}", js_exc)
+
         i = 0
-        while i < len(text):
+        while i < len(normalized):
+            ch = normalized[i]
+            if ch == "\n":
+                locator.press("Enter")
+                i += 1
+                if random.random() < 0.25:
+                    pause(0.08, 0.25)
+                continue
             chunk = random.randint(2, 9)
-            piece = text[i : i + chunk]
-            locator.type(piece, delay=random.randint(18, 55))
-            i += chunk
+            piece = normalized[i : i + chunk]
+            # Don't cross newline mid-chunk
+            nl = piece.find("\n")
+            if nl >= 0:
+                piece = piece[:nl] or "\n"
+            if piece == "\n":
+                locator.press("Enter")
+                i += 1
+            else:
+                locator.type(piece, delay=random.randint(18, 55))
+                i += len(piece)
             if random.random() < 0.18:
                 pause(0.12, 0.4)
             if random.random() < 0.04 and page is not None:
-                # rare tiny mouse wiggle
                 try:
                     page.mouse.move(
                         random.uniform(200, 600),

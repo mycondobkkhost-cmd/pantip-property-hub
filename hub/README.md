@@ -1,41 +1,99 @@
-# Property Hub (Phase 1)
+# Property Hub
 
-เว็บแอปจัดการทรัพย์ — แทนที่ Google Sheet (Phase 1 = หน้าตารางเปล่า + login)
+Python-based admin platform for property catalog, Facebook group workflows, Co-Agent, and Google Sheets export.
 
-## เริ่มใช้งาน
+**Production:** https://hub.realxtateth.com/ (Fly.io, volume-backed)
+
+> This replaces the obsolete “Next.js Phase 1 empty table” description. The live system is `scripts/hub_server.py` + `hub/preview.html`.
+
+## What it does
+
+- Property & project CRUD (JSON on disk)
+- Hub UI: focus, wait-post queue, CRM, group publish, comments
+- Co-Agent public catalog (`/co/`)
+- One-way export to Google Sheets (Hub → Sheet)
+- Facebook automation via **local agent** (Playwright on Mac/Windows)
+
+## Source of Truth
+
+| Data | Authoritative location |
+|------|------------------------|
+| Properties | `data/properties.json` (Fly: `/app/data/`) |
+| Projects | `data/projects.json` |
+| Google Sheet | **Export copy only** — not SoT |
+
+See `docs/DATA-FILE-POLICY.md` and `docs/ARCHITECTURE.md`.
+
+## Run locally (safe)
 
 ```bash
-cd hub
-npm install
-npm run dev
+cd /path/to/pantip-property-automation
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-hub.txt
+
+# Required: set login accounts in .env (never commit .env)
+# HUB_USERS_JSON={"username":{"password":"[REDACTED]","name":"Display"}}
+
+# Optional: weak demo accounts for local dev ONLY
+# HUB_LOCAL_DEV=1
+
+python3 scripts/hub_server.py
 ```
 
-เปิด [http://localhost:3000](http://localhost:3000)
+Open http://127.0.0.1:8765/
 
-## บัญชีทดสอบ (5 ชุด)
+Accounts are configured through **`HUB_USERS_JSON`** in environment (or `.env` locally).  
+**Never store production or test passwords in repository documentation.**
 
-| ผู้ใช้ | รหัสผ่าน | ชื่อแสดง |
-|--------|----------|----------|
-| angkarn1996 | angkarn2539 | เจ้าของ |
-| ptp2 | ptp2026b | แอดมิน 1 |
-| ptp3 | ptp2026c | แอดมิน 2 |
-| ptp4 | ptp2026d | ทีม 4 |
-| ptp5 | ptp2026e | ทีม 5 |
+## Login configuration
 
-> เปลี่ยนรหัสใน `lib/users.ts` ก่อน deploy จริง
+| Variable | Purpose |
+|----------|---------|
+| `HUB_USERS_JSON` | JSON object of `{username: {password, name}}` |
+| `HUB_SESSION_SECRET` | Cookie signing secret (**required on Fly**) |
+| `HUB_LOCAL_DEV=1` | Enables weak local demo users when `HUB_USERS_JSON` unset (**local only**) |
 
-## Phase 1 มีอะไรบ้าง
+Cloud hosts **fail closed** if `HUB_USERS_JSON` or `HUB_SESSION_SECRET` is missing.
 
-- Login 5 บัญชี
-- ตารางทรัพย์ (ว่าง) — คอลัมน์ตาม spec
-- แท็บ: ทั้งหมด / ว่าง / Focus / รอโพสต์ / โคเอเจนต์
-- Legend Reminder (11 เดือน, เตือนล่วงหน้า 30 วัน, ในแอป)
-- รองรับมือถือ (เลื่อนตารางแนวนอน)
-- ปุ่ม/ค้นหา AI — disabled รอ Phase ถัดไป
+## Tests (offline, safe)
 
-## Phase ถัดไป
+```bash
+python3 scripts/test_hub_persist_survive.py
+python3 scripts/test_hub_codes.py
+python3 scripts/test_caption_variant.py
+python3 scripts/test_phase_a_safety.py
+```
 
-- วางลิงก์ FB / Living → scrape + วิเคราะห์
-- Import จาก Google Sheet
-- Generate ข้อความ TH/EN
-- Reminder จริง + โมดูลผู้เช่า
+## Facebook agent (local PC only)
+
+Not run on Fly. See `scripts/comment_agent.py` and Hub → FB Agent panel for token.
+
+**Side effects:** real Facebook posts/comments. Use dry-run for comment script tests.
+
+## Dangerous commands (avoid without review)
+
+- `git add -A` (may commit entire catalog)
+- Enabling `HUB_ALLOW_SHEET_PULL=1` (Sheet overwrites Hub)
+- `fly deploy` from unreviewed mixed data/code tree
+- Running agent against production Hub without intent
+
+See `docs/OPERATIONS-SAFETY.md`.
+
+## Documentation index
+
+| Doc | Topic |
+|-----|--------|
+| `docs/ARCHITECTURE.md` | System design |
+| `docs/DATA-FILE-POLICY.md` | Data file classes |
+| `docs/REPOSITORY-DATA-SEPARATION.md` | Git vs runtime data |
+| `docs/DUPLICATE-CODE-TRIAGE.md` | Duplicate property codes |
+| `docs/OPERATIONS-SAFETY.md` | Production safety rules |
+| `DEPLOY_FLY.md` | Fly deployment |
+
+## UI assets
+
+- `hub/preview.html` — main Hub SPA
+- `hub/co/index.html` — Co-Agent
+- `data/preview-data.js` — generated catalog (served from data volume)
+
+Legacy `npm run dev` Next.js flow is **not** the current stack.

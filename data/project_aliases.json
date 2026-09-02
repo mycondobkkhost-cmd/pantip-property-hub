@@ -24,8 +24,8 @@
     "Rhythm Asoke 2 (ริทึ่ม อโศก 2)": "rhythmasokell",
     "Rhythm Asoke 2 (ริทึ่ม อโศก 2": "rhythmasokell",
     "rhythmasoke2ริทึ่มอโศก2": "rhythmasokell",
-    "thenichepridethonglorphetchaburi": "thenichepridethonglorphetchaburi",
-    "The Niche Pride Thonglor–Petchburi (เดอะ นิช ไพรด์ ทองหล่อ–เพชรบุรี)": "thenichepridethonglorphetchaburi",
+    "thenichepridethonglorphetchaburi": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor–Petchburi (เดอะ นิช ไพรด์ ทองหล่อ–เพชรบุรี)": "nichepridethonglorphetchaburi",
     "thenichepridethonglorpetchburi": "thenichepridethonglorphetchaburi",
     "atmozratchadahuaikhwang": "atmozratchadahuaikwang",
     "Atmoz Ratchada–Huai Khwang (แอทโมซ รัชดา–ห้วยขวาง)": "atmozratchadahuaikwang",
@@ -60,8 +60,8 @@
     "livingnestramkhamhaeng": "livingnestramkhamhaeng",
     "Living Nest Ramkhamhaeng : ลิฟวิ่ง เนสท์ รามคำแหง": "livingnestramkhamhaeng",
     "livingnestramkhamhaengลิฟวิ่งเนสท์รามคำแหง": "livingnestramkhamhaeng",
-    "ideoratchadahuaikhwang": "ideoratchadahuaikhwang",
-    "IDEO Ratchada-Huaikwang (ไอดีโอ รัชดา-ห้วยขวาง)": "ideoratchadahuaikhwang",
+    "ideoratchadahuaikhwang": "ideoratchadahuaykhwang",
+    "IDEO Ratchada-Huaikwang (ไอดีโอ รัชดา-ห้วยขวาง)": "ideoratchadahuaykhwang",
     "ideoratchadahuaikwang": "ideoratchadahuaikhwang",
     "theconnect15onnut": "theconnect15onnutเดอะคอนเนค15อ่อนนุช",
     "The Connect 15 Onnut (เดอะ คอนเนค 15 อ่อนนุช)": "theconnect15onnutเดอะคอนเนค15อ่อนนุช",
@@ -79,7 +79,391 @@
     "U Sabai Rama 4 - Kluaynamthai (ยู สบาย พระราม 4 - กล้วยน้ำไท)": "usabairama4kluaynamthaiยูสบายพระราม4",
     "Noble Revolve Ratchada 2 (โนเบิล รีวอลฟ์ รัชดา 2)": "noblerevolveratchada2",
     "Rhythm Asoke ll (ริทึ่ม อโศก 2)": "rhythmasoke2",
-    "rhythmasokell": "rhythmasoke2"
+    "rhythmasokell": "rhythmasoke2",
+    "Niche Pride Thonglor-Phetchaburi (นิช ไพรด์ ทองหล่อ - เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "Niche Pride Thonglor - Phetchaburi (นิช ไพรด์ ทองหล่อ - เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor-Phetchaburi ( เดอะ นิช ไพรด์ ทองหล่อ-เพชรบุรี )": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor - Phetchaburi (นิช ไพรด์ ทองหล่อ - เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor - Phetchaburi": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor - Phetchaburi (ดิ นิช ไพรด์ ทองหล่อ - เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor – Phetchaburi (เดอะนิชไพร์ด- ทองหล่อ-เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor-Phetchaburi (เดอะ นิช ไพรด์ ทองหล่อ-เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor-Phetchaburi (เดอะ นิช ไพร์ด ทองหล่อ - เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor-Phetchaburi (เดอะนิช ไพร์ด ทองหล่อ-เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The niche pride Thonglor-Phetchaburi (นิช ไพรด์ ทองหล่อ-เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "The Niche Pride Thonglor-pretchaburi (เดอะ นิช ไพร์ด ทองหล่อ-เพชรบุรี)": "nichepridethonglorphetchaburi",
+    "thenichepridethonglorpretchaburi": "nichepridethonglorphetchaburi",
+    "The Base Sukhumvit 77 (เดอะ เบส สุขุมวิท 77)": "thebasesukhumvit77",
+    "thebasesukhumvit77": "thebasesukhumvit77",
+    "The Base Sukhumvit 77 ( เดอะ เบส สุขุมวิท 77 )": "thebasesukhumvit77",
+    "Base Sukhumvit 77 (เดอะ เบส สุขุมวิท 77)": "thebasesukhumvit77",
+    "basesukhumvit77": "thebasesukhumvit77",
+    "The Waterford Sukhumvit 50 (เดอะ วอเตอร์ฟอร์ด สุขุมวิท 50)": "thewaterfordsukhumvit50",
+    "thewaterfordsukhumvit50": "thewaterfordsukhumvit50",
+    "The Waterford sukhumvit 50  (เดอะ วอเตอร์ฟอร์ด สุขุมวิท 50)": "thewaterfordsukhumvit50",
+    "The Waterford Sukhumvit 50 : (เดอะ วอเตอร์ฟอร์ด สุขุมวิท 50)": "thewaterfordsukhumvit50",
+    "Waterford sukhumvit 50 (เดอะ วอเตอร์ฟอร์ด สุขุมวิท 50)": "thewaterfordsukhumvit50",
+    "waterfordsukhumvit50": "thewaterfordsukhumvit50",
+    "Waterford Sukhumvit 50 (วอเตอร์ฟอร์ด สุขุมวิท 50)": "thewaterfordsukhumvit50",
+    "Waterford sukhumvit 50 (วอเตอร์ฟอร์ด สุขุมวิท 50)": "thewaterfordsukhumvit50",
+    "XT EKKAMAI (เอ็กซ์ที เอกมัย)": "xtekkamai",
+    "xtekkamai": "xtekkamai",
+    "XT Ekkamai (เอ็กซ์ที เอกมัย)": "xtekkamai",
+    "XT Ekamai (เอ็กซ์ที เอกมัย)": "xtekkamai",
+    "xtekamai": "xtekkamai",
+    "XT Ekamai  (เอ็กซ์ที เอกมัย)": "xtekkamai",
+    "The Base Rama 9 - Ramkhamhaeng (เดอะ เบส พระราม 9 - รามคำแหง)": "thebaserama9ramkhamhaeng",
+    "thebaserama9ramkhamhaeng": "thebaserama9ramkhamhaeng",
+    "The Base Rama 9 - Ramkhamhaeng (เดอะ เบส พระราม 9-รามคำแหง)": "thebaserama9ramkhamhaeng",
+    "The Base Rama 9–Ramkhamhaeng (เดอะ เบส พระราม 9 – รามคำแหง)": "thebaserama9ramkhamhaeng",
+    "The Base Rama 9–Ramkhamhaeng (เดอะ เบส พระราม 9–รามคำแหง)": "thebaserama9ramkhamhaeng",
+    "The Base Rama9- Ramkhamhaeeng (เดอะเบส พระราม9-รามคำแหง)": "thebaserama9ramkhamhaeng",
+    "thebaserama9ramkhamhaeeng": "thebaserama9ramkhamhaeng",
+    "The Capital Ekamai - Thonglor (เดอะ แคปิตอล เอกมัย - ทองหล่อ)": "thecapitalekamaithonglor",
+    "thecapitalekamaithonglor": "thecapitalekamaithonglor",
+    "The Capital Ekamai-Thonglor (เดอะ แคปปิตอล เอกมัย-ทองหล่อ)": "thecapitalekamaithonglor",
+    "The Capital Ekamai-Thonglor (เดอะ แคปปิตอล เอกมัย-ทอหล่อ )": "thecapitalekamaithonglor",
+    "The Capital Eakamai – Thonglor (เดอะ แคปิตอล เอกมัย–ทองหล่อ)": "thecapitalekamaithonglor",
+    "thecapitaleakamaithonglor": "thecapitalekamaithonglor",
+    "Noble Revolve Ratchada (โนเบิล รีวอลฟ์ รัชดา)": "noblerevolveratchada",
+    "noblerevolveratchada": "noblerevolveratchada",
+    "Noble Revolve 1 Ratchada (โนเบิล รีวอลฟ์ 1 รัชดา)": "noblerevolveratchada",
+    "noblerevolve1ratchada": "noblerevolveratchada",
+    "Rhythm Sukhumvit 44/1 (ริทึ่ม สุขุมวิท 44/1)": "rhythmsukhumvit441",
+    "rhythmsukhumvit441": "rhythmsukhumvit441",
+    "RHYTHM Sukhumvit 44/1 (ริทึ่ม สุขุมวิท 44/1)": "rhythmsukhumvit441",
+    "Rhythm Sukhumvit 44/1 ( ริธึ่ม สุขุมวิท 44/1)": "rhythmsukhumvit441",
+    "Rhythm Sukhumvit 44/1 (ริธึ่ม สุขุมวิท 44/1)": "rhythmsukhumvit441",
+    "Rhythm Sukumvit 44/1 (ริทึ่ม สุขุมวิท 44/1)": "rhythmsukhumvit441",
+    "rhythmsukumvit441": "rhythmsukhumvit441",
+    "MARU EKKAMAI 2 (มารุ เอกมัย 2)": "maruekkamai2",
+    "MARU Ekkamai 2 (มารุ เอกมัย 2)": "maruekkamai2",
+    "maruekkamai2": "maruekkamai2",
+    "maru ekkamai 2 (มารุ เอกมัย 2)": "maruekkamai2",
+    "MARU Ekamai 2 (มารุ เอกมัย 2)": "maruekkamai2",
+    "maruekamai2": "maruekkamai2",
+    "The Saint Residences (เดอะ เซนต์ เรสซิเดนซ์)": "thesaintresidences",
+    "thesaintresidences": "thesaintresidences",
+    "The Saint Residences (เดอะ เซนต์ เรสซิเดนส์)": "thesaintresidences",
+    "The Saint Residences (เดอะ เซนท์ เรสซิเดนเซส)": "thesaintresidences",
+    "The Saint Residences (เดอะเซนต์ เรสซิเดนเซส)": "thesaintresidences",
+    "The Saint Residence (เดอะ เซนต์ เรสซิเดนซ์)": "thesaintresidences",
+    "thesaintresidence": "thesaintresidences",
+    "Knightsbridge Prime Sathorn (ไนท์บริดจ์ ไพร์ม สาทร)": "knightsbridgeprimesathorn",
+    "knightsbridgeprimesathorn": "knightsbridgeprimesathorn",
+    "KnightsBridge Prime Sathorn (ไนท์บริดจ์ ไพร์ม สาทร)": "knightsbridgeprimesathorn",
+    "Knightsbridge Prime Sathorn (ไนท์บริดจ์ ไพรม์ สาทร )": "knightsbridgeprimesathorn",
+    "Knightbridge Prime Sathorn (ไนท์บริดจ์ ไพร์ม สาทร)": "knightsbridgeprimesathorn",
+    "knightbridgeprimesathorn": "knightsbridgeprimesathorn",
+    "KnightBridge Prime Sathorn (ไนท์บริดจ์ ไพร์ม สาทร)": "knightsbridgeprimesathorn",
+    "The Tree Sukhumvit 71 - Ekamai (เดอะ ทรี สุขุมวิท 71 - เอกมัย)": "thetreesukhumvit71ekamai",
+    "The Tree Sukhumvit 71 - Ekkamai (เดอะ ทรี สุขุมวิท 71 - เอกมัย)": "thetreesukhumvit71ekamai",
+    "thetreesukhumvit71ekamai": "thetreesukhumvit71ekamai",
+    "thetreesukhumvit71ekkamai": "thetreesukhumvit71ekamai",
+    "The Tree Sukhumvit 71-Ekkamai (เดอะทรี สุขุมวิท 71-เอกมัย)": "thetreesukhumvit71ekamai",
+    "The Base Garden Rama 9 (เดอะ เบส การ์เดน พระราม 9)": "thebasegardenrama9",
+    "thebasegardenrama9": "thebasegardenrama9",
+    "The Base Garden Rama 9 (เดอะ เบส การ์เด้น พระราม 9)": "thebasegardenrama9",
+    "THE BASE GARDEN RAMA 9 (เดอะ เบส การ์เดน พระราม 9)": "thebasegardenrama9",
+    "THE BASE Garden Rama 9 (เดอะ เบส การ์เดน พระราม 9)": "thebasegardenrama9",
+    "THE BASE Garden Rama 9 (เดอะ เบส การ์เดนท์ พระราม 9)": "thebasegardenrama9",
+    "The Base Garden Rama 9 ( เดอะ เบส การ์เด้น พระราม 9 )": "thebasegardenrama9",
+    "The Base Garden Rama9 (เดอะ เบส การ์เด้น พระราม 9)": "thebasegardenrama9",
+    "Base Garden Rama 9 (เดอะ เบส การ์เดน พระราม 9)": "thebasegardenrama9",
+    "basegardenrama9": "thebasegardenrama9",
+    "Chapter One Midtown Ladprao 24 (แชปเตอร์ วัน มิดทาวน์ ลาดพร้าว 24)": "chapteronemidtownladprao24",
+    "chapteronemidtownladprao24": "chapteronemidtownladprao24",
+    "Chapter One Midtown Ladprao 24 (แชปเตอร์วัน มิดทาวน์ ลาดพร้าว 24)": "chapteronemidtownladprao24",
+    "Chapter One Midtown Lat Phrao 24 (แชปเตอร์ วัน มิดทาวน์ ลาดพร้าว 24)": "chapteronemidtownladprao24",
+    "chapteronemidtownlatphrao24": "chapteronemidtownladprao24",
+    "Niche Mono Sukhumvit 50 (นิช โมโน สุขุมวิท 50)": "nichemonosukhumvit50",
+    "nichemonosukhumvit50": "nichemonosukhumvit50",
+    "The Niche Mono Sukhumvit 50 (เดอะ นิช โมโน สุขุมวิท 50)": "nichemonosukhumvit50",
+    "thenichemonosukhumvit50": "nichemonosukhumvit50",
+    "The Niche Mono Sukhumvit 50 (เดอะนิช โมโน สุขุมวิท 50)": "nichemonosukhumvit50",
+    "The Niche Mono Sukhumvit 50 (เดอะ นิช โมโน สุขุมวิท 50 )": "nichemonosukhumvit50",
+    "Supalai Park Ekkamai - Thonglor (ศุภาลัย ปาร์ค เอกมัย - ทองหล่อ)": "supalaiparkekkamaithonglor",
+    "supalaiparkekkamaithonglor": "supalaiparkekkamaithonglor",
+    "Supalai Park Ekamai-Thonglor (ศุภาลัย ปาร์ค เอกมัย-ทองหล่อ)": "supalaiparkekkamaithonglor",
+    "supalaiparkekamaithonglor": "supalaiparkekkamaithonglor",
+    "Chapter Charoennakhon - Riverside (แชปเตอร์ เจริญนคร - ริเวอร์ไซต์)": "chaptercharoennakhonriverside",
+    "chaptercharoennakhonriverside": "chaptercharoennakhonriverside",
+    "Chapter Charoennakhon - Riverside (ชาเทอร์ เจริญนคร ริเวอร์ไซด์)": "chaptercharoennakhonriverside",
+    "Chapter Charoennakorn – Riverside (แชปเตอร์ เจริญนคร – ริเวอร์ไซด์)": "chaptercharoennakhonriverside",
+    "chaptercharoennakornriverside": "chaptercharoennakhonriverside",
+    "Villa Rachatewi (วิลล่า ราชเทวี)": "villarachatewi",
+    "villarachatewi": "villarachatewi",
+    "Villa Ratchathewi (วิลล่า ราชเทวี)": "villarachatewi",
+    "villaratchathewi": "villarachatewi",
+    "Chambers On Nut Station (แชมเบอร์ส อ่อนนุช สเตชั่น)": "chambersonnutstation",
+    "chambersonnutstation": "chambersonnutstation",
+    "Chambers On-Nut Station (แชมเบอร์ส อ่อนนุช สเตชั่น)": "chambersonnutstation",
+    "Chamber Onnut Station (แชมเบอร์ อ่อนนุช สเตชั่น)": "chambersonnutstation",
+    "chamberonnutstation": "chambersonnutstation",
+    "Inter Lux Premier Sukhumvit 13 (อินเตอร์ ลักส์ พรีเมียร์ สุขุมวิท 13)": "interluxpremiersukhumvit13",
+    "interluxpremiersukhumvit13": "interluxpremiersukhumvit13",
+    "Interlux Premier Sukhumvit 13 (อินเตอร์ลักซ์ พรีเมียร์ สุขุมวิท 13)": "interluxpremiersukhumvit13",
+    "Interlux premiere sukumvit13 (อินเตอร์ ลักส์ พรีเมียร์ สุขุมวิท 13)": "interluxpremiersukhumvit13",
+    "interluxpremieresukumvit13": "interluxpremiersukhumvit13",
+    "Grand Park View Asoke (แกรนด์ พาร์ค วิว อโศก)": "grandparkviewasoke",
+    "grandparkviewasoke": "grandparkviewasoke",
+    "Grand Park View Asoke ( แกรนด์ พาร์ค วิว อโศก )": "grandparkviewasoke",
+    "Grand Park View Asok (แกรนด์ พาร์ค วิว อโศก)": "grandparkviewasoke",
+    "grandparkviewasok": "grandparkviewasoke",
+    "IDEO Ratchada - Huaykwang (ไอดีโอ รัชดา - ห้วยขวาง)": "ideoratchadahuaykhwang",
+    "IDEO Ratchada - Huaikhwang (ไอดีโอ รัชดา - ห้วยขวาง)": "ideoratchadahuaykhwang",
+    "ideoratchadahuaykhwang": "ideoratchadahuaykhwang",
+    "IDEO Ratchada-Huai Khwang (ไอดีโอ รัชดา-ห้วยขวาง)": "ideoratchadahuaykhwang",
+    "Ideo Ratchada–Huai Khwang (ไอดีโอ รัชดา–ห้วยขวาง)": "ideoratchadahuaykhwang",
+    "Waterford Park Thonglor 5 (วอเตอร์ฟอร์ด พาร์ค ทองหล่อ 5)": "waterfordparkthonglor5",
+    "waterfordparkthonglor5": "waterfordparkthonglor5",
+    "Waterford Park Thonglor 5 (วอเตอร์ฟอร์ด ปาร์ค ทองหล่อ 5)": "waterfordparkthonglor5",
+    "The Waterford Park Thonglor 5  (เดอะ วอเตอร์ฟอร์ด พาร์ค)": "waterfordparkthonglor5",
+    "thewaterfordparkthonglor5": "waterfordparkthonglor5",
+    "Lumpini Place Rama IX - Ratchada (ลุมพินี เพลส พระราม 9 - รัชดา)": "lumpiniplaceramaixratchada",
+    "lumpiniplaceramaixratchada": "lumpiniplaceramaixratchada",
+    "Lumpini Place Rama 9 - Ratchada (ลุมพินี เพลส พระราม 9 - รัชดา)": "lumpiniplaceramaixratchada",
+    "lumpiniplacerama9ratchada": "lumpiniplaceramaixratchada",
+    "Lumpini Place Rama 9–Ratchada (ลุมพินี เพลส พระราม 9–รัชดา)": "lumpiniplaceramaixratchada",
+    "Nue Noble Ratchada - Lat Phrao (นิว โนเบิล รัชดา - ลาดพร้าว)": "nuenobleratchadalatphrao",
+    "nuenobleratchadalatphrao": "nuenobleratchadalatphrao",
+    "NUE Noble Ratchada - Lat Phrao (นิว โนเบิล รัชดา - ลาดพร้าว)": "nuenobleratchadalatphrao",
+    "nue noble ratchada lat phrao (นิว โนเบิล รัชดา ลาดพร้าว)": "nuenobleratchadalatphrao",
+    "Nue Noble Ratchada-Ladprao (นิว โนเบิล รัชดา – ลาดพร้าว)": "nuenobleratchadalatphrao",
+    "nuenobleratchadaladprao": "nuenobleratchadalatphrao",
+    "NUE NOBLE Ratchada - Ladprao (นิว โนเบิล รัชดา - ลาดพร้าว)": "nuenobleratchadalatphrao",
+    "NUE Noble Ratchada – Ladprao (นิว โนเบิล รัชดา – ลาดพร้าว)": "nuenobleratchadalatphrao",
+    "Nue Noble Ratchada–Ladprao (นิว โนเบิล รัชดา - ลาดพร้าว)": "nuenobleratchadalatphrao",
+    "U Delight Residence Pattanakarn - Thonglor (ยู ดีไลท์ เรสซิเดนซ์ พัฒนาการ - ทองหล่อ)": "udelightresidencepattanakarnthonglor",
+    "udelightresidencepattanakarnthonglor": "udelightresidencepattanakarnthonglor",
+    "U DELIGHT RESIDENCE Pattanakran - Thonglor (ยู ดีไลท์ เรสซิเดนซ์ พัฒนาการ - ทองหล่อ)": "udelightresidencepattanakarnthonglor",
+    "udelightresidencepattanakranthonglor": "udelightresidencepattanakarnthonglor",
+    "Waterford Diamond Sukhumvit 30/1 (วอเตอร์ฟอร์ด ไดมอนด์ สุขุมวิท 30/1)": "waterforddiamondsukhumvit301",
+    "waterforddiamondsukhumvit301": "waterforddiamondsukhumvit301",
+    "Waterford Diamond Sukhumvit 30/1 (วอเตอร์ฟอร์ด ไดมอน สุขุมวิท 30/1)": "waterforddiamondsukhumvit301",
+    "Waterford Diamond Sukhumvit 30/1 (เดอะ วอเตอร์ฟอร์ด ไดมอนด์ สุขุมวิท 30/1)": "waterforddiamondsukhumvit301",
+    "The Waterford Diamond Sukhumvit 30/1 (เดอะ วอเตอร์ฟอร์ด ไดมอนด์ สุขุมวิท 30/1)": "waterforddiamondsukhumvit301",
+    "thewaterforddiamondsukhumvit301": "waterforddiamondsukhumvit301",
+    "The Waterford Diamond Sukhumvit 30/1 (เดอะ วอเตอร์ฟอร์ด ไดมอน สุขุมวิท 30/1)": "waterforddiamondsukhumvit301",
+    "Waterford Park Rama 4 (วอเตอร์ฟอร์ด พาร์ค พระราม 4)": "waterfordparkrama4",
+    "waterfordparkrama4": "waterfordparkrama4",
+    "The Waterford Park Rama 4 (เดอะ วอเตอร์ฟอร์ด พาร์ค พระราม 4)": "waterfordparkrama4",
+    "thewaterfordparkrama4": "waterfordparkrama4",
+    "IDEO Ramkhamhaeng–Lamsalee Station (ไอดีโอ รามคำแหง–ลำสาลี สเตชั่น)": "ideoramkhamhaenglamsaleestation",
+    "ideoramkhamhaenglamsaleestation": "ideoramkhamhaenglamsaleestation",
+    "Ideo Ramkhamhaeng–Lamsalee Station (ไอดีโอ รามคำแหง-ลำสาลี สเตชั่น)": "ideoramkhamhaenglamsaleestation",
+    "Ideo Ramkhamhaeng–Lamsalee Station (ไอดีโอ รามคำแหง–ลำสาลี สเตชั่น)": "ideoramkhamhaenglamsaleestation",
+    "Ideo Ramkhamhaeng - Lam Sali Station (ไอดีโอ รามคำแหง - ลำสาลี สเตชั่น)": "ideoramkhamhaenglamsaleestation",
+    "ideoramkhamhaenglamsalistation": "ideoramkhamhaenglamsaleestation",
+    "Ideo Ramkhamhaeng Lamsali Station (ไอดีโอ รามคำแหง ลำสาลี สเตชั่น)": "ideoramkhamhaenglamsaleestation",
+    "Rhythm Phahol - Ari (ริทึ่ม พหล - อารีย์)": "rhythmphaholari",
+    "rhythmphaholari": "rhythmphaholari",
+    "Rhythm Phahol–Ari (ริทึ่ม พหล–อารีย์)": "rhythmphaholari",
+    "Rhythm Phahon-Ari (ริทึ่ม พหล–อารีย์)": "rhythmphaholari",
+    "rhythmphahonari": "rhythmphaholari",
+    "Rhythm Phahon–Ari (ริทึ่ม พหล–อารีย์)": "rhythmphaholari",
+    "U Delight @ Huay Kwang Station (ยู ดีไลท์ แอท ห้วยขวาง สเตชั่น)": "udelighthuaykhwangstation",
+    "udelighthuaykhwangstation": "udelighthuaykhwangstation",
+    "U Delight @ Huai Khwang Station (ยู ดีไลท์ @ ห้วยขวาง สเตชั่น)": "udelighthuaykhwangstation",
+    "udelighthuaikhwangstation": "udelighthuaykhwangstation",
+    "Metris Rama 9 - Ramkhamhaeng (เมทริส พระราม 9 - รามคำแหง)": "metrisrama9ramkhamhaeng",
+    "metrisrama9ramkhamhaeng": "metrisrama9ramkhamhaeng",
+    "Metris Rama 9–Ramkhamhaeng (เมทริส พระราม 9–รามคำแหง)": "metrisrama9ramkhamhaeng",
+    "Metris Rama 9-Ramkhamheang : เมทริส พระราม 9-รามคำแหง": "metrisrama9ramkhamhaeng",
+    "metrisrama9ramkhamheang": "metrisrama9ramkhamhaeng",
+    "Silom Suite (สีลม สวีท)": "silomsuite",
+    "silomsuite": "silomsuite",
+    "Silom Suite ( สีลม สวีท )": "silomsuite",
+    "Silom Suite (สีลมสวีท)": "silomsuite",
+    "Silom Suites (สีลม สวีทส์)": "silomsuite",
+    "silomsuites": "silomsuite",
+    "Supalai Premier Charoen Nakhon (ศุภาลัย พรีเมียร์ เจริญนคร)": "supalaipremiercharoennakhon",
+    "supalaipremiercharoennakhon": "supalaipremiercharoennakhon",
+    "SUPALAI Premier Charoen-Nakorn (ศุภาลัย พรีเมียร์ เจริญนคร)": "supalaipremiercharoennakhon",
+    "supalaipremiercharoennakorn": "supalaipremiercharoennakhon",
+    "THE LINE Phahonyothin Park (เดอะ ไลน์ พหลโยธิน พาร์ค)": "thelinephahonyothinpark",
+    "thelinephahonyothinpark": "thelinephahonyothinpark",
+    "The Line Phahonyothin Park (เดอะ ไลน์ พหลโยธิน พาร์ค)": "thelinephahonyothinpark",
+    "The Line Phaholyothin Park (เดอะ ไลน์ พหลโยธิน พาร์ค)": "thelinephahonyothinpark",
+    "thelinephaholyothinpark": "thelinephahonyothinpark",
+    "The Tree Hua Mak Interchange (เดอะ ทรี หัวหมาก อินเตอร์เชนจ์)": "thetreehuamakinterchange",
+    "thetreehuamakinterchange": "thetreehuamakinterchange",
+    "The Tree Huamak Interchange (เดอะ ทรี หัวหมาก อินเตอร์เชนจ์)": "thetreehuamakinterchange",
+    "The Tree Huamark Interchange (เดอะทรี หัวหมาก อินเตอร์เชนจ์)": "thetreehuamakinterchange",
+    "thetreehuamarkinterchange": "thetreehuamakinterchange",
+    "Nantawan Rama 9 - New Krungthepkreetha (นันทวัน พระราม 9 - กรุงเทพกรีฑาตัดใหม่)": "nantawanrama9newkrungthepkreetha",
+    "nantawanrama9newkrungthepkreetha": "nantawanrama9newkrungthepkreetha",
+    "NANTAWAN RAMA 9 New Krungthepkreetha (นัทวัน พระราม9 กรุงเทพกรีฑา)": "nantawanrama9newkrungthepkreetha",
+    "Nantawan Rama 9 New Krungthepkreetha : นันทวัน พระราม 9 กรุงเทพกรีฑาตัดใหม่": "nantawanrama9newkrungthepkreetha",
+    "Nantawan Rama9- New Krungthepkreeta (นันทวัน พระราม 9- กรุงเทพกรีฑา ตัดใหม่)": "nantawanrama9newkrungthepkreetha",
+    "nantawanrama9newkrungthepkreeta": "nantawanrama9newkrungthepkreetha",
+    "Sense Sukhumvit 68 (เซนส์ สุขุมวิท 68)": "sensesukhumvit68",
+    "sensesukhumvit68": "sensesukhumvit68",
+    "The Sense Sukhumvit 68 (เดอะเซนส์ สุขุมวิท 68)": "sensesukhumvit68",
+    "thesensesukhumvit68": "sensesukhumvit68",
+    "The Sense Sukhumvit 68 (เดอะ เซนส์ สุขุมวิท 68)": "sensesukhumvit68",
+    "Chewathai Ramkamhaeng (ชีวาทัย รามคำแหง)": "chewathairamkamhaeng",
+    "chewathairamkamhaeng": "chewathairamkamhaeng",
+    "Chewatahi Ramkhamhaeng (ชีวาทัย รามคำแหง)": "chewathairamkamhaeng",
+    "chewatahiramkhamhaeng": "chewathairamkamhaeng",
+    "Chewathai Ramkhamhaeng (ชีวาทัย รามคำแหง)": "chewathairamkamhaeng",
+    "chewathairamkhamhaeng": "chewathairamkamhaeng",
+    "Centric Ratchada - Huai Khwang (เซ็นทริค รัชดา - ห้วยขวาง)": "centricratchadahuaikhwang",
+    "centricratchadahuaikhwang": "centricratchadahuaikhwang",
+    "Centric Ratchada - Huai Khwang (เซนทริค รัชดา - ห้วยขวาง)": "centricratchadahuaikhwang",
+    "Centric Ratchada–Huai Khwang (เซ็นทริค รัชดา–ห้วยขวาง)": "centricratchadahuaikhwang",
+    "Centric Ratchada Huai Khang (เซ็นทริค รัชดา ห้วยขวาง": "centricratchadahuaikhwang",
+    "centricratchadahuaikhang": "centricratchadahuaikhwang",
+    "Indy 2 Bangna–Ramkhamhaeng 2 (อินดี้ 2 บางนา–รามคำแหง 2)": "indy2bangnaramkhamhaeng2",
+    "Indy 2 Bangna - Ramkhamhaeng 2 (อินดี้ 2 บางนา - รามคําแหง 2)": "indy2bangnaramkhamhaeng2",
+    "Indy 2 Bangna – Ramkhamhaeng 2 (อินดี้ 2 บางนา – รามคำแหง 2)": "indy2bangnaramkhamhaeng2",
+    "Indy 2 Bangna–Ramkamhaeng  2 (อินดี้ 2 บางนา-รามคำแหง 2)": "indy2bangnaramkhamhaeng2",
+    "indy2bangnaramkamhaeng2": "indy2bangnaramkhamhaeng2",
+    "Life @ Ratchada - Huay Kwang (ไลฟ์ แอท รัชดา - ห้วยขวาง)": "liferatchadahuaykhwang",
+    "liferatchadahuaykhwang": "liferatchadahuaykhwang",
+    "Life @ Ratchada – Huai Khwang (ไลฟ์ แอท รัชดา-ห้วยขวาง)": "liferatchadahuaykhwang",
+    "liferatchadahuaikhwang": "liferatchadahuaykhwang",
+    "Urbano Absolute Sathorn Taksin (เออร์บาโน่ แอ็บโซลูท สาทร-ตากสิน)": "urbanoabsolutesathorntaksin",
+    "urbanoabsolutesathorntaksin": "urbanoabsolutesathorntaksin",
+    "Urbano Absolute Sathorn - Taksin (เออร์บาโน่ แอบโซลูท สาทร - ตากสิน)": "urbanoabsolutesathorntaksin",
+    "Urbano Absolute Sathorn–Taksin (เออร์บาโน แอบโซลูท สาทร–ตากสิน)": "urbanoabsolutesathorntaksin",
+    "Urbano Absolute Sathorn–Taksin (เออร์บาโน่ แอปโซลูท สาทร–ตากสิน)": "urbanoabsolutesathorntaksin",
+    "Urbano Absolute Sathon - Taksin (เออบาโน่ แอบโซลูท สาทร-ตากสิน)": "urbanoabsolutesathorntaksin",
+    "urbanoabsolutesathontaksin": "urbanoabsolutesathorntaksin",
+    "Niche Mono Charoen Nakhon (นิช โมโน เจริญนคร)": "nichemonocharoennakhon",
+    "nichemonocharoennakhon": "nichemonocharoennakhon",
+    "Niche Mono Charoennakorn (นิช โมโน เจริญนคร)": "nichemonocharoennakhon",
+    "nichemonocharoennakorn": "nichemonocharoennakhon",
+    "THE CITY Bangna (เดอะ ซิตี้ บางนา)": "thecitybangna",
+    "thecitybangna": "thecitybangna",
+    "The City Bangna (เดอะ ซิตี้ บางนา)": "thecitybangna",
+    "The City Bangna (โครงการใหม่)": "thecitybangna",
+    "City Bangna  (เดอะ ซิตี้ บางนา)": "thecitybangna",
+    "citybangna": "thecitybangna",
+    "Up Ekamai (อัพ เอกมัย)": "upekamai",
+    "upekamai": "upekamai",
+    "Up Ekkamai (อัพ เอกมัย)": "upekamai",
+    "upekkamai": "upekamai",
+    "The Landmark Ekamai - Ramindra (เดอะ แลนด์มาร์ค เอกมัย - รามอินทรา)": "thelandmarkekamairamindra",
+    "thelandmarkekamairamindra": "thelandmarkekamairamindra",
+    "The Landmark Ekkamai - Ramintra (เดอะ แลนด์มาร์ค เอกมัย-รามอินทรา)": "thelandmarkekamairamindra",
+    "thelandmarkekkamairamintra": "thelandmarkekamairamindra",
+    "The Landmark Ekkamai–Ramindra (เดอะ แลนด์มาร์ค เอกมัย–รามอินทรา)": "thelandmarkekamairamindra",
+    "thelandmarkekkamairamindra": "thelandmarkekamairamindra",
+    "All Seasons Mansion ( ออลซีซั่น แมนชั่น )": "a2seasonsmansion",
+    "a2seasonsmansion": "a2seasonsmansion",
+    "All Seasons Mansion (ออลซีซั่น แมนชั่น)": "a2seasonsmansion",
+    "All Season Mansion (ออล ซีซั่น แมนชั่น)": "a2seasonsmansion",
+    "a2seasonmansion": "a2seasonsmansion",
+    "Lumpini Place Phahol - Saphankhwai (ลุมพินี เพลส พหล - สะพานควาย)": "lumpiniplacephaholsaphankhwai",
+    "lumpiniplacephaholsaphankhwai": "lumpiniplacephaholsaphankhwai",
+    "Lumpini Place Phahol–Saphan Khwai (ลุมพินี เพลส พหล–สะพานควาย)": "lumpiniplacephaholsaphankhwai",
+    "Lumpini Place Phahon-Saphan Khwai (ลุมพินี เพลส พหล - สะพานควาย)": "lumpiniplacephaholsaphankhwai",
+    "lumpiniplacephahonsaphankhwai": "lumpiniplacephaholsaphankhwai",
+    "Nue District R9 Rama 9 (นิว ดิสทริค อาร์ไนน์ พระราม 9)": "nuedistrictr9rama9",
+    "nuedistrictr9rama9": "nuedistrictr9rama9",
+    "Nue District Rama 9 (นิว ดิสทริคท์ พระราม 9)": "nuedistrictr9rama9",
+    "nuedistrictrama9": "nuedistrictr9rama9",
+    "Regal Sathon - Naradhiwas (รีเกิล สาทร - นราธิวาส)": "regalsathonnaradhiwas",
+    "regalsathonnaradhiwas": "regalsathonnaradhiwas",
+    "Regal Sathorn–Narathiwas (รีเกิล สาทร–นราธิวาส)": "regalsathonnaradhiwas",
+    "regalsathornnarathiwas": "regalsathonnaradhiwas",
+    "SYM Vibha - Ladprao (ซิม วิภา - ลาดพร้าว)": "symvibhaladprao",
+    "symvibhaladprao": "symvibhaladprao",
+    "SYM Vipa–Ladprao (ซิม วิภา–ลาดพร้าว)": "symvibhaladprao",
+    "symvipaladprao": "symvibhaladprao",
+    "The Next Garden Suite (เดอะ เน็กซ์ การ์เด้น สวีท)": "thenextgardensuite",
+    "thenextgardensuite": "thenextgardensuite",
+    "The Next Garden Suites(เดอะ เน็กซ์ การ์เด้น สวีท)": "thenextgardensuite",
+    "thenextgardensuites": "thenextgardensuite",
+    "The Shade Sathorn (เดอะ เชด สาทร)": "theshadesathorn",
+    "theshadesathorn": "theshadesathorn",
+    "The Shade Sathon (เดอะ เชด สาทร)": "theshadesathorn",
+    "theshadesathon": "theshadesathorn",
+    "The Waterford Park (เดอะ วอเตอร์ฟอร์ด พาร์ค)": "thewaterfordpark",
+    "thewaterfordpark": "thewaterfordpark",
+    "Waterford Park (วอเตอร์ฟอร์ด พาร์ค)": "thewaterfordpark",
+    "waterfordpark": "thewaterfordpark",
+    "Urbano Rajavithi (เออร์บาโน ราชวิถี)": "urbanorajavithi",
+    "urbanorajavithi": "urbanorajavithi",
+    "Urbano Rajvithi (เออร์บาโน ราชวิถี)": "urbanorajavithi",
+    "urbanorajvithi": "urbanorajavithi",
+    "Art Thonglor (อาร์ท ทองหล่อ)": "artthonglor",
+    "artthonglor": "artthonglor",
+    "The Art @ Thonglor (ดิ อาร์ต แอท ทองหล่อ)": "artthonglor",
+    "theartthonglor": "artthonglor",
+    "Baan Klang Muang Rattanathibet (บ้านกลางเมือง รัตนาธิเบศร์)": "baanklangmuangrattanathibet",
+    "baanklangmuangrattanathibet": "baanklangmuangrattanathibet",
+    "Baan Klang Mueng Rattanatibet (บ้านกลางเมือง รัตนาธิเบศร์)": "baanklangmuangrattanathibet",
+    "baanklangmuengrattanatibet": "baanklangmuangrattanathibet",
+    "Bangkok Feliz Sukhumvit 69-2 (แบงค็อก เฟลิซ สุขุมวิท 69-2)": "bangkokfelizsukhumvit692",
+    "bangkokfelizsukhumvit692": "bangkokfelizsukhumvit692",
+    "Bangkok Feriz sukhumvit 69/2 (แบงค์คอก เฟ’ลิซ สุขุมวิท 69)": "bangkokfelizsukhumvit692",
+    "bangkokferizsukhumvit692": "bangkokfelizsukhumvit692",
+    "Bangkok Horizon Sathon (แบงค็อก ฮอไรซอน สาทร)": "bangkokhorizonsathon",
+    "bangkokhorizonsathon": "bangkokhorizonsathon",
+    "Bangkok Horizon Sathorn (แบงค์คอก ฮอไรซอน สาทร )": "bangkokhorizonsathon",
+    "bangkokhorizonsathorn": "bangkokhorizonsathon",
+    "CHAMBERS CHAAN Ladprao–Wanghin (แชมเบอร์ ชาน ลาดพร้าว–วังหิน)": "chamberschaanladpraowanghin",
+    "chamberschaanladpraowanghin": "chamberschaanladpraowanghin",
+    "Chamber Chaan Ladprao–Wanghin (แชมเบอร์ชาน ลาดพร้าว–วังหิน)": "chamberschaanladpraowanghin",
+    "chamberchaanladpraowanghin": "chamberschaanladpraowanghin",
+    "Centro Bangna-Wongwaen (เซนโทร บางนา-วงแหวน)": "centrobangnawongwaen",
+    "centrobangnawongwaen": "centrobangnawongwaen",
+    "Centro Bangna-Wongwean (เซ็นโทร บางนา-วงแหวน)": "centrobangnawongwaen",
+    "centrobangnawongwean": "centrobangnawongwaen",
+    "Happy Condo Ladprao 101 (แฮปปี้ คอนโด ลาดพร้าว 101)": "happycondoladprao101",
+    "happycondoladprao101": "happycondoladprao101",
+    "Happy Condo Lat Phrao 101 (แฮปปี้ คอนโด ลาดพร้าว 101)": "happycondoladprao101",
+    "happycondolatphrao101": "happycondoladprao101",
+    "Le Rich Ratchada - Sutthisarn (เลอริช รัชดา - สุทธิสาร)": "lerichratchadasutthisarn",
+    "lerichratchadasutthisarn": "lerichratchadasutthisarn",
+    "Le Rich Ratchada Suthisan (เลอริช รัชดา‑สุทธิสาร)": "lerichratchadasutthisarn",
+    "lerichratchadasuthisan": "lerichratchadasutthisarn",
+    "Lumpini Place Rama 4 – Ratchadaphisek (ลุมพินี เพลส พระราม 4 – รัชดาภิเษก)": "lumpiniplacerama4ratchadaphisek",
+    "lumpiniplacerama4ratchadaphisek": "lumpiniplacerama4ratchadaphisek",
+    "Lumpini Place Rama IV–Ratchadaphisek (ลุมพินี เพลส พระราม 4–รัชดาภิเษก)": "lumpiniplacerama4ratchadaphisek",
+    "lumpiniplaceramaivratchadaphisek": "lumpiniplacerama4ratchadaphisek",
+    "Mantana 2 Motorway - New Krungthepkreetha (มัณฑนา 2 มอเตอร์เวย์ - กรุงเทพกรีฑาตัดใหม่)": "mantana2motorwaynewkrungthepkreetha",
+    "mantana2motorwaynewkrungthepkreetha": "mantana2motorwaynewkrungthepkreetha",
+    "Mantana Motorway - New Krungthepkretha (มัณฑนา มอเตอร์เวย์ - กรุงเทพกรีฑาตัดใหม่": "mantana2motorwaynewkrungthepkreetha",
+    "mantanamotorwaynewkrungthepkretha": "mantana2motorwaynewkrungthepkreetha",
+    "Nantawan Ramintra – Phaholyothin 50 (นันทวัน รามอินทรา – พหลโยธิน 50)": "nantawanramintraphaholyothin50",
+    "nantawanramintraphaholyothin50": "nantawanramintraphaholyothin50",
+    "Nantawan Ramintra-Paholyothin 50 (นันทวัน รามอินทรา พหลโยธิน 50)": "nantawanramintraphaholyothin50",
+    "nantawanramintrapaholyothin50": "nantawanramintraphaholyothin50",
+    "Origin Ladprao–Bangkapi (ออริจิ้น ลาดพร้าว–บางกะปิ)": "originladpraobangkapi",
+    "originladpraobangkapi": "originladpraobangkapi",
+    "THE ORIGIN LADPRAO - BANGKAPI (ดิ ออริจิ้น ลาดพร้าว - บางกะปิ)": "originladpraobangkapi",
+    "theoriginladpraobangkapi": "originladpraobangkapi",
+    "Premiere Place Rama 9 (พรีเมียร์ เพลส พระราม 9)": "premiereplacerama9",
+    "premiereplacerama9": "premiereplacerama9",
+    "Premire Place Rama 9 (พรีเมียร์ เพลส พระราม 9)": "premiereplacerama9",
+    "premireplacerama9": "premiereplacerama9",
+    "Premium Place Sukhonthasawat 38 (พรีเมียม เพลส สุคนธสวัสดิ์ 38)": "premiumplacesukhonthasawat38",
+    "premiumplacesukhonthasawat38": "premiumplacesukhonthasawat38",
+    "Premium Place Sukontasawat 38 (พรีเมียม เพลส สุคนธสวัสดิ์ 38)": "premiumplacesukhonthasawat38",
+    "premiumplacesukontasawat38": "premiumplacesukhonthasawat38",
+    "QUINTARA MHy’GEN RATCHADA - HUAI KHWANG (ควินทารา มาย'เจน รัชดา - ห้วยขวาง)": "quintaramhygenratchadahuaikhwang",
+    "quintaramhygenratchadahuaikhwang": "quintaramhygenratchadahuaikhwang",
+    "Quintara My’Gen Ratchada–Huai Khwang (ควินทารา มาย’เจน รัชดา-ห้วยขวาง)": "quintaramhygenratchadahuaikhwang",
+    "quintaramygenratchadahuaikhwang": "quintaramhygenratchadahuaikhwang",
+    "Rich Parck@Triple Station (ริชพาร์ค แอท ทริปเปิ้ล สเตชั่น)": "richparcktriplestation",
+    "richparcktriplestation": "richparcktriplestation",
+    "Rich Park @ Triple Station (ริชพาร์ค @ ทริปเปิ้ล สเตชั่น)": "richparcktriplestation",
+    "richparktriplestation": "richparcktriplestation",
+    "Supalai Garden Ville Krung Thep Kritha - Motorway (ศุภาลัย การ์เด้นวิลล์ กรุงเทพกรีฑาตัดใหม่ - มอเตอร์เวย์)": "supalaigardenvillekrungthepkrithamotorway",
+    "supalaigardenvillekrungthepkrithamotorway": "supalaigardenvillekrungthepkrithamotorway",
+    "Supalai Garden Ville Krungthep Kreetha – Motorway (ศุภาลัย การ์เดนวิลล์ กรุงเทพกรีฑา – มอเตอร์เวย์)": "supalaigardenvillekrungthepkrithamotorway",
+    "supalaigardenvillekrungthepkreethamotorway": "supalaigardenvillekrungthepkrithamotorway",
+    "Townhome  Rama 9 Soi 11 (ทาวน์โฮม พระราม 9 ซอย11)": "townhomerama9soi11",
+    "townhomerama9soi11": "townhomerama9soi11",
+    "Townhouse Rama 9 Soi 11 (ทาวน์เฮ้าส์ พระราม 9 ซอย 11)": "townhomerama9soi11",
+    "townhouserama9soi11": "townhomerama9soi11",
+    "U Delight Ratchavibha (ยู ดีไลท์ รัชวิภา)": "udelightratchavibha",
+    "udelightratchavibha": "udelightratchavibha",
+    "U Delight Ratchavipha (ยูดีไลท์ รัชวิภา)": "udelightratchavibha",
+    "udelightratchavipha": "udelightratchavibha"
   },
   "decisions": [
     {
@@ -155,6 +539,1059 @@
       "keep": "Rhythm Sukhumvit 44/1 (ริทึ่ม สุขุมวิท 44/1)",
       "other": "Rhythm Sukhumvit 50 (ริทึ่ม สุขุมวิท 50)",
       "reason": "different_soi_or_phase"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nichepridethonglorphetchaburi",
+      "confidence": "high",
+      "keep_id": "b968c6dd-823f-50df-8012-e35f3b71d0f5",
+      "keep_bucket": "nichepridethonglorphetchaburi",
+      "canonical_name": "Niche Pride Thonglor - Phetchaburi (นิช ไพรด์ ทองหล่อ - เพชรบุรี)",
+      "removed_ids": [
+        "1f35e5d3-e289-54d7-960b-e721950fa2ca",
+        "d928ff48-89ee-57d4-991d-b2a63647d14f"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "Niche Pride Thonglor - Phetchaburi"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "basesukhumvit77",
+      "confidence": "high",
+      "keep_id": "23e5b454-78e7-5693-9e8d-f24eb31e2e8d",
+      "keep_bucket": "thebasesukhumvit77",
+      "canonical_name": "The Base Sukhumvit 77 (เดอะ เบส สุขุมวิท 77)",
+      "removed_ids": [
+        "389c9720-694b-535a-91d3-191c2ebe2d58"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "The Base Sukhumvit 77"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "waterfordsukhumvit50",
+      "confidence": "high",
+      "keep_id": "540a1611-0fb2-5bf4-aa32-5660d60b1869",
+      "keep_bucket": "thewaterfordsukhumvit50",
+      "canonical_name": "The Waterford Sukhumvit 50 (เดอะ วอเตอร์ฟอร์ด สุขุมวิท 50)",
+      "removed_ids": [
+        "1055921e-cc75-52a0-a1d7-99c4aa5f6b15"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "The Waterford Sukhumvit 50"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "xtekamai",
+      "confidence": "high",
+      "keep_id": "c85e1c6a-55e0-566f-8d59-2a1d3a4d0c8f",
+      "keep_bucket": "xtekkamai",
+      "canonical_name": "XT EKKAMAI (เอ็กซ์ที เอกมัย)",
+      "removed_ids": [
+        "2e30089e-0088-56cf-a8b6-71992e081062"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "XT EKKAMAI"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "baserama9ramkhamhaeng",
+      "confidence": "high",
+      "keep_id": "bbcf7724-0c27-5345-bbec-d49976ace335",
+      "keep_bucket": "thebaserama9ramkhamhaeng",
+      "canonical_name": "The Base Rama 9 - Ramkhamhaeng (เดอะ เบส พระราม 9 - รามคำแหง)",
+      "removed_ids": [
+        "db8a55fb-5294-51cd-a0f4-a53a736f619a"
+      ],
+      "propertyhub_status": "คาดว่าตรง Propertyhub (ยังไม่ยืนยันหน้าเพจ)",
+      "propertyhub_name": "The Base Rama 9 - Ramkhamhaeng"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "capitalekamaithonglor",
+      "confidence": "high",
+      "keep_id": "f514f653-7cb9-511d-a6fe-f7833962ba67",
+      "keep_bucket": "thecapitalekamaithonglor",
+      "canonical_name": "The Capital Ekamai - Thonglor (เดอะ แคปิตอล เอกมัย - ทองหล่อ)",
+      "removed_ids": [
+        "02bc0704-cd30-5370-80c8-73b409554d84"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "The Capital Ekamai - Thonglor"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "noblerevolve1ratchada",
+      "confidence": "medium",
+      "keep_id": "d31aaa50-9188-5146-b792-70c5fa9465f5",
+      "keep_bucket": "noblerevolveratchada",
+      "canonical_name": "Noble Revolve Ratchada (โนเบิล รีวอลฟ์ รัชดา)",
+      "removed_ids": [
+        "a0643bd7-e5f1-5c60-bcef-1088133444ed"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "rhythmsukhumvit441",
+      "confidence": "high",
+      "keep_id": "15b26cdb-43a2-5f3b-b1b5-1a5e77d39e7c",
+      "keep_bucket": "rhythmsukhumvit441",
+      "canonical_name": "Rhythm Sukhumvit 44/1 (ริทึ่ม สุขุมวิท 44/1)",
+      "removed_ids": [
+        "a44321b1-45a9-5b4f-a285-ad14fad99e5f"
+      ],
+      "propertyhub_status": "คาดว่าตรง Propertyhub (ยังไม่ยืนยันหน้าเพจ)",
+      "propertyhub_name": "Rhythm Sukhumvit 44/1"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "maruekamai2",
+      "confidence": "high",
+      "keep_id": "bea19f5f-eee8-5031-9721-24e808b98426",
+      "keep_bucket": "maruekkamai2",
+      "canonical_name": "MARU Ekkamai 2 (มารุ เอกมัย 2)",
+      "removed_ids": [
+        "89bca9eb-132e-5654-b197-d3e5c9fc5cfc"
+      ],
+      "propertyhub_status": "คาดว่าตรง Propertyhub (ยังไม่ยืนยันหน้าเพจ)",
+      "propertyhub_name": "MARU Ekkamai 2"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "saintresidence",
+      "confidence": "medium",
+      "keep_id": "4f0b7adb-e863-5b25-8ee2-b943b144ffaf",
+      "keep_bucket": "thesaintresidences",
+      "canonical_name": "The Saint Residences (เดอะ เซนต์ เรสซิเดนซ์)",
+      "removed_ids": [
+        "1f8028cf-235f-5cb8-a007-805912f6034e"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "knightsbridgeprimesathorn",
+      "confidence": "high",
+      "keep_id": "51db3238-6b76-5b11-a0ee-f0b7c8245ece",
+      "keep_bucket": "knightsbridgeprimesathorn",
+      "canonical_name": "Knightsbridge Prime Sathorn (ไนท์บริดจ์ ไพร์ม สาทร)",
+      "removed_ids": [
+        "e7832c0e-6a8a-53c1-8ea4-a8014ebf20b3"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "Knightsbridge Prime Sathorn"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "treesukhumvit71ekamai",
+      "confidence": "high",
+      "keep_id": "8415f125-43aa-5f72-80bf-befa7dde4304",
+      "keep_bucket": "thetreesukhumvit71ekamai",
+      "canonical_name": "The Tree Sukhumvit 71 - Ekkamai (เดอะ ทรี สุขุมวิท 71 - เอกมัย)",
+      "removed_ids": [
+        "411b5d3d-2c5b-55dd-a635-7a58a63634c9"
+      ],
+      "propertyhub_status": "คาดว่าตรง Propertyhub (ยังไม่ยืนยันหน้าเพจ)",
+      "propertyhub_name": "The Tree Sukhumvit 71 - Ekkamai"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "basegardenrama9",
+      "confidence": "high",
+      "keep_id": "ef0f2b1a-c6f5-59f7-b661-52528aca66bf",
+      "keep_bucket": "thebasegardenrama9",
+      "canonical_name": "The Base Garden Rama 9 (เดอะ เบส การ์เดน พระราม 9)",
+      "removed_ids": [
+        "4162be41-84cc-534e-85af-c145a3ecf7bf"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "The Base Garden Rama 9"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "chapteronemidtownladprao24",
+      "confidence": "high",
+      "keep_id": "d1af187a-a6fc-5ac6-a94e-4dd97008244f",
+      "keep_bucket": "chapteronemidtownladprao24",
+      "canonical_name": "Chapter One Midtown Ladprao 24 (แชปเตอร์ วัน มิดทาวน์ ลาดพร้าว 24)",
+      "removed_ids": [
+        "dfa7b5e5-0fa2-5be1-ace1-df3fe8f93bca"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nichemonosukhumvit50",
+      "confidence": "high",
+      "keep_id": "29036606-2f9d-5239-98d8-ef92c6c5794f",
+      "keep_bucket": "nichemonosukhumvit50",
+      "canonical_name": "Niche Mono Sukhumvit 50 (นิช โมโน สุขุมวิท 50)",
+      "removed_ids": [
+        "39cd4814-5926-5127-a503-a1da7c3a7360"
+      ],
+      "propertyhub_status": "ยืนยัน Propertyhub",
+      "propertyhub_name": "Niche Mono Sukhumvit 50"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "supalaiparkekamaithonglor",
+      "confidence": "high",
+      "keep_id": "a7f0c7f5-823a-5966-8302-bb7b67d2cdeb",
+      "keep_bucket": "supalaiparkekkamaithonglor",
+      "canonical_name": "Supalai Park Ekkamai - Thonglor (ศุภาลัย ปาร์ค เอกมัย - ทองหล่อ)",
+      "removed_ids": [
+        "ac3c212e-7eb5-568e-8487-3e520c324017"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "chaptercharoennakhonriverside",
+      "confidence": "high",
+      "keep_id": "412c2343-faae-5b37-97c0-8d8f10a134cd",
+      "keep_bucket": "chaptercharoennakhonriverside",
+      "canonical_name": "Chapter Charoennakhon - Riverside (แชปเตอร์ เจริญนคร - ริเวอร์ไซต์)",
+      "removed_ids": [
+        "027ef09f-99e5-5de4-a822-c877d88c43ed"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "villaratchathewi",
+      "confidence": "high",
+      "keep_id": "cfefc68c-71ac-5cb4-bdc5-a0fac5fa22b3",
+      "keep_bucket": "villarachatewi",
+      "canonical_name": "Villa Rachatewi (วิลล่า ราชเทวี)",
+      "removed_ids": [
+        "4db351dd-51bd-578c-95d5-792ad81e8014"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "chambersonnutstation",
+      "confidence": "high",
+      "keep_id": "bfd87e15-dd1c-5c1e-bc53-c01c441f4713",
+      "keep_bucket": "chambersonnutstation",
+      "canonical_name": "Chambers On Nut Station (แชมเบอร์ส อ่อนนุช สเตชั่น)",
+      "removed_ids": [
+        "6ac57912-be2f-52ac-b551-42e0609c749f"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "interluxpremiersukhumvit13",
+      "confidence": "high",
+      "keep_id": "70b979e1-ea5c-5ea9-989c-b6db889a47ab",
+      "keep_bucket": "interluxpremiersukhumvit13",
+      "canonical_name": "Inter Lux Premier Sukhumvit 13 (อินเตอร์ ลักส์ พรีเมียร์ สุขุมวิท 13)",
+      "removed_ids": [
+        "358ddaea-997b-59b9-9365-4221839c9536"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "grandparkviewasoke",
+      "confidence": "high",
+      "keep_id": "86600be7-36cf-53f3-9317-c1bb26001b29",
+      "keep_bucket": "grandparkviewasoke",
+      "canonical_name": "Grand Park View Asoke (แกรนด์ พาร์ค วิว อโศก)",
+      "removed_ids": [
+        "32d6aa47-d34f-5ae0-a93f-69fe4b18a94d"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "ideoratchadahuaikhwang",
+      "confidence": "high",
+      "keep_id": "2de94b48-7054-538d-903b-ea201f555942",
+      "keep_bucket": "ideoratchadahuaykhwang",
+      "canonical_name": "IDEO Ratchada - Huaikhwang (ไอดีโอ รัชดา - ห้วยขวาง)",
+      "removed_ids": [
+        "215bc82b-dade-5e7d-a5f8-fed0a0c0cb65"
+      ],
+      "propertyhub_status": "คาดว่าตรง Propertyhub (ยังไม่ยืนยันหน้าเพจ)",
+      "propertyhub_name": "IDEO Ratchada - Huaikhwang"
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "waterfordparkthonglor5",
+      "confidence": "high",
+      "keep_id": "7b5c42ec-4cab-53bc-bb8b-7d1c717069b6",
+      "keep_bucket": "waterfordparkthonglor5",
+      "canonical_name": "Waterford Park Thonglor 5 (วอเตอร์ฟอร์ด พาร์ค ทองหล่อ 5)",
+      "removed_ids": [
+        "ceb3dacf-ec9e-5b44-a729-4b92bc6cb85a"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "lumpiniplacerama9ratchada",
+      "confidence": "medium",
+      "keep_id": "7afee550-116e-508c-94a7-86502558b83e",
+      "keep_bucket": "lumpiniplaceramaixratchada",
+      "canonical_name": "Lumpini Place Rama IX - Ratchada (ลุมพินี เพลส พระราม 9 - รัชดา)",
+      "removed_ids": [
+        "3e877700-d429-5f96-a448-5245276d40d0"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nuenobleratchadaladprao",
+      "confidence": "high",
+      "keep_id": "32e2fb84-5757-5db6-b956-fd7db8a65b07",
+      "keep_bucket": "nuenobleratchadalatphrao",
+      "canonical_name": "Nue Noble Ratchada - Lat Phrao (นิว โนเบิล รัชดา - ลาดพร้าว)",
+      "removed_ids": [
+        "48b4313c-2cf6-55e3-9cdb-e6d8663a9eea"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "udelightresidencepattanakarnthonglor",
+      "confidence": "high",
+      "keep_id": "087f8760-972d-5a85-86d9-1f86bedb3178",
+      "keep_bucket": "udelightresidencepattanakarnthonglor",
+      "canonical_name": "U Delight Residence Pattanakarn - Thonglor (ยู ดีไลท์ เรสซิเดนซ์ พัฒนาการ - ทองหล่อ)",
+      "removed_ids": [
+        "ec7ce3d6-6799-516b-8151-a060ef7eac47"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "waterforddiamondsukhumvit301",
+      "confidence": "high",
+      "keep_id": "62f2c0fb-2bd5-51d2-b6b8-8dd0a53a7759",
+      "keep_bucket": "waterforddiamondsukhumvit301",
+      "canonical_name": "Waterford Diamond Sukhumvit 30/1 (วอเตอร์ฟอร์ด ไดมอนด์ สุขุมวิท 30/1)",
+      "removed_ids": [
+        "b1bdf0fc-d252-5220-8d68-c3bbeeaf2887"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "waterfordparkrama4",
+      "confidence": "high",
+      "keep_id": "05f5dd14-5474-52a1-92b9-78334581e4cf",
+      "keep_bucket": "waterfordparkrama4",
+      "canonical_name": "Waterford Park Rama 4 (วอเตอร์ฟอร์ด พาร์ค พระราม 4)",
+      "removed_ids": [
+        "3013f483-7ab4-5528-bd1c-ed3b533c7de7"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "ideoramkhamhaenglamsaleestation",
+      "confidence": "medium",
+      "keep_id": "ab2e5140-cc71-5857-8284-27b5b9a748d0",
+      "keep_bucket": "ideoramkhamhaenglamsaleestation",
+      "canonical_name": "IDEO Ramkhamhaeng–Lamsalee Station (ไอดีโอ รามคำแหง–ลำสาลี สเตชั่น)",
+      "removed_ids": [
+        "ff1057fb-d658-5d44-b038-80edbaf4782b"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "rhythmphaholari",
+      "confidence": "medium",
+      "keep_id": "e6320350-58eb-58b2-9c38-6cbc304a9bbe",
+      "keep_bucket": "rhythmphaholari",
+      "canonical_name": "Rhythm Phahol - Ari (ริทึ่ม พหล - อารีย์)",
+      "removed_ids": [
+        "02550edd-8228-5be3-ac86-e6ce78d27227"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "udelighthuaikhwangstation",
+      "confidence": "high",
+      "keep_id": "86df987d-03ee-581d-b5b5-11b5ff3185ff",
+      "keep_bucket": "udelighthuaykhwangstation",
+      "canonical_name": "U Delight @ Huay Kwang Station (ยู ดีไลท์ แอท ห้วยขวาง สเตชั่น)",
+      "removed_ids": [
+        "bde5af5c-9bbb-5005-9914-e7b1ee2843e0"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "metrisrama9ramkhamhaeng",
+      "confidence": "medium",
+      "keep_id": "366e6dc3-fdae-5035-b68e-6470e44acddf",
+      "keep_bucket": "metrisrama9ramkhamhaeng",
+      "canonical_name": "Metris Rama 9 - Ramkhamhaeng (เมทริส พระราม 9 - รามคำแหง)",
+      "removed_ids": [
+        "9361d000-461f-5564-8f42-c095fa6da9a7"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "silomsuite",
+      "confidence": "medium",
+      "keep_id": "fa123b23-4180-5050-9dca-91ce85738cfa",
+      "keep_bucket": "silomsuite",
+      "canonical_name": "Silom Suite (สีลม สวีท)",
+      "removed_ids": [
+        "0f23356a-7c29-5b23-b544-2a4cea2868b7"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "supalaipremiercharoennakhon",
+      "confidence": "high",
+      "keep_id": "d6208bbf-b395-5c92-ba5d-afc3ab7e49b8",
+      "keep_bucket": "supalaipremiercharoennakhon",
+      "canonical_name": "Supalai Premier Charoen Nakhon (ศุภาลัย พรีเมียร์ เจริญนคร)",
+      "removed_ids": [
+        "14a4adb0-8ab5-5d8d-8d5d-e0878dc00382"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "linephaholyothinpark",
+      "confidence": "medium",
+      "keep_id": "f18dd1a9-4ef6-566c-a154-07fab16599f3",
+      "keep_bucket": "thelinephahonyothinpark",
+      "canonical_name": "THE LINE Phahonyothin Park (เดอะ ไลน์ พหลโยธิน พาร์ค)",
+      "removed_ids": [
+        "0a9e3334-4a34-55d8-97cc-054918abe8f6"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "treehuamakinterchange",
+      "confidence": "medium",
+      "keep_id": "5dc21c8a-a514-588e-a8a1-42a203144060",
+      "keep_bucket": "thetreehuamakinterchange",
+      "canonical_name": "The Tree Hua Mak Interchange (เดอะ ทรี หัวหมาก อินเตอร์เชนจ์)",
+      "removed_ids": [
+        "e05cee7a-9e43-5937-8aae-9eea4985bfdb"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nantawanrama9newkrungthepkreeta",
+      "confidence": "medium",
+      "keep_id": "7a6f0951-f816-5e0b-9cbf-27c1a43b14d6",
+      "keep_bucket": "nantawanrama9newkrungthepkreetha",
+      "canonical_name": "Nantawan Rama 9 - New Krungthepkreetha (นันทวัน พระราม 9 - กรุงเทพกรีฑาตัดใหม่)",
+      "removed_ids": [
+        "aac1f04e-9fbb-5e63-ac3b-48ac17cd4c3f"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "sensesukhumvit68",
+      "confidence": "high",
+      "keep_id": "46555480-e4f9-5134-aa7e-33c066b7bceb",
+      "keep_bucket": "sensesukhumvit68",
+      "canonical_name": "Sense Sukhumvit 68 (เซนส์ สุขุมวิท 68)",
+      "removed_ids": [
+        "c16882c8-ae00-57a7-b2fc-f9cba3fb740b"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "chewathairamkamhaeng",
+      "confidence": "medium",
+      "keep_id": "9e187346-a401-5605-ab10-6feb6d694197",
+      "keep_bucket": "chewathairamkamhaeng",
+      "canonical_name": "Chewathai Ramkamhaeng (ชีวาทัย รามคำแหง)",
+      "removed_ids": [
+        "aec096ce-1f98-54e6-91a0-d1a56f140d7d",
+        "5ac280eb-dc7a-563c-8ef6-3d341729c9b3"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "centricratchadahuaikhang",
+      "confidence": "medium",
+      "keep_id": "4fbe2aa1-80a0-58e1-a9b2-2cd23ad26a21",
+      "keep_bucket": "centricratchadahuaikhwang",
+      "canonical_name": "Centric Ratchada - Huai Khwang (เซ็นทริค รัชดา - ห้วยขวาง)",
+      "removed_ids": [
+        "d0278717-a7eb-5cee-baa3-ac781ee817df"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "indy2bangnaramkamhaeng2",
+      "confidence": "medium",
+      "keep_id": "e088c695-dbd6-501b-8bf7-ed3d03c77e8a",
+      "keep_bucket": "indy2bangnaramkhamhaeng2",
+      "canonical_name": "Indy 2 Bangna–Ramkhamhaeng 2 (อินดี้ 2 บางนา–รามคำแหง 2)",
+      "removed_ids": [
+        "090339d5-58d0-5ce8-aa85-b318fc6755f2"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "liferatchadahuaikhwang",
+      "confidence": "high",
+      "keep_id": "11c2d7c6-d9f7-53a1-8e17-eedacc624cb8",
+      "keep_bucket": "liferatchadahuaykhwang",
+      "canonical_name": "Life @ Ratchada - Huay Kwang (ไลฟ์ แอท รัชดา - ห้วยขวาง)",
+      "removed_ids": [
+        "f9df2ff3-f913-567b-9217-df8674c19668"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "urbanoabsolutesathontaksin",
+      "confidence": "medium",
+      "keep_id": "5d9d22bc-0873-5907-b245-3206e293d68c",
+      "keep_bucket": "urbanoabsolutesathorntaksin",
+      "canonical_name": "Urbano Absolute Sathorn Taksin (เออร์บาโน่ แอ็บโซลูท สาทร-ตากสิน)",
+      "removed_ids": [
+        "8cc3332b-598b-5119-94a7-66715b1b118f"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nichemonocharoennakhon",
+      "confidence": "high",
+      "keep_id": "f33c41fa-2513-5d80-85db-d800312c60db",
+      "keep_bucket": "nichemonocharoennakhon",
+      "canonical_name": "Niche Mono Charoen Nakhon (นิช โมโน เจริญนคร)",
+      "removed_ids": [
+        "5688121c-fd2f-575d-bfbf-6610d6073cca"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "citybangna",
+      "confidence": "high",
+      "keep_id": "3f762492-34ac-5a30-a731-ef23f6ec9626",
+      "keep_bucket": "thecitybangna",
+      "canonical_name": "THE CITY Bangna (เดอะ ซิตี้ บางนา)",
+      "removed_ids": [
+        "703f5f96-d75e-5c8a-8dd4-e6ea21e81035"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "upekamai",
+      "confidence": "high",
+      "keep_id": "5bdf2947-efd1-555b-a9d7-fdeadd3983e9",
+      "keep_bucket": "upekamai",
+      "canonical_name": "Up Ekamai (อัพ เอกมัย)",
+      "removed_ids": [
+        "c7e94eac-8f40-51aa-a895-84a72be633ae"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "landmarkekamairamindra",
+      "confidence": "medium",
+      "keep_id": "e9921d2b-b4dd-5937-8ac7-0c7f30420a35",
+      "keep_bucket": "thelandmarkekamairamindra",
+      "canonical_name": "The Landmark Ekamai - Ramindra (เดอะ แลนด์มาร์ค เอกมัย - รามอินทรา)",
+      "removed_ids": [
+        "5691bb34-1332-538b-9871-6a57ed9030cf",
+        "1cb96343-5740-5589-bf9d-f16181314ef2"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "2seasonmansion",
+      "confidence": "medium",
+      "keep_id": "b328b1e7-41f8-5438-bab5-8b31d3179e7d",
+      "keep_bucket": "a2seasonsmansion",
+      "canonical_name": "All Seasons Mansion ( ออลซีซั่น แมนชั่น )",
+      "removed_ids": [
+        "cb0b6cdf-4c12-5580-ad9c-898ca12595f9"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "lumpiniplacephaholsaphankhwai",
+      "confidence": "medium",
+      "keep_id": "24616187-fddc-5e8f-902f-54c64d1065a6",
+      "keep_bucket": "lumpiniplacephaholsaphankhwai",
+      "canonical_name": "Lumpini Place Phahol - Saphankhwai (ลุมพินี เพลส พหล - สะพานควาย)",
+      "removed_ids": [
+        "25f29b19-8462-5de9-b84e-b0f1ab14f27f"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nuedistrictr9rama9",
+      "confidence": "medium",
+      "keep_id": "f037ab59-98e7-5203-8674-a2aa1d8876a1",
+      "keep_bucket": "nuedistrictr9rama9",
+      "canonical_name": "Nue District R9 Rama 9 (นิว ดิสทริค อาร์ไนน์ พระราม 9)",
+      "removed_ids": [
+        "188bed61-7fa4-5a37-9065-e1f18f502975"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "regalsathonnaradhiwas",
+      "confidence": "medium",
+      "keep_id": "a49ffc1d-d54d-5b2a-869a-e234f8827907",
+      "keep_bucket": "regalsathonnaradhiwas",
+      "canonical_name": "Regal Sathon - Naradhiwas (รีเกิล สาทร - นราธิวาส)",
+      "removed_ids": [
+        "35188477-6be9-5f64-97b3-8486299cbe66"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "symvibhaladprao",
+      "confidence": "medium",
+      "keep_id": "0984bbe6-eb5e-593d-9695-5873cdd9d05d",
+      "keep_bucket": "symvibhaladprao",
+      "canonical_name": "SYM Vibha - Ladprao (ซิม วิภา - ลาดพร้าว)",
+      "removed_ids": [
+        "a006916c-9efe-5963-915b-4c5da2c3fd02"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nextgardensuite",
+      "confidence": "medium",
+      "keep_id": "8ce3e140-e29d-560b-96aa-e98d5b2dd0b3",
+      "keep_bucket": "thenextgardensuite",
+      "canonical_name": "The Next Garden Suite (เดอะ เน็กซ์ การ์เด้น สวีท)",
+      "removed_ids": [
+        "27b169f7-3092-5c3e-989e-d175e5c3294a"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "shadesathon",
+      "confidence": "medium",
+      "keep_id": "11c29e1f-21ac-5322-a24b-8a8e61060b99",
+      "keep_bucket": "theshadesathorn",
+      "canonical_name": "The Shade Sathorn (เดอะ เชด สาทร)",
+      "removed_ids": [
+        "77780fb6-93cd-53eb-acb9-e3afc6d7897a"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "waterfordpark",
+      "confidence": "high",
+      "keep_id": "5db60bc9-f1c0-5068-b51f-aa4f7b7c5598",
+      "keep_bucket": "thewaterfordpark",
+      "canonical_name": "The Waterford Park (เดอะ วอเตอร์ฟอร์ด พาร์ค)",
+      "removed_ids": [
+        "d7740ae0-58a0-5605-846f-036216fb188c"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "urbanorajavithi",
+      "confidence": "medium",
+      "keep_id": "a9f5d8bc-3340-5f3a-970f-e45507f9bacf",
+      "keep_bucket": "urbanorajavithi",
+      "canonical_name": "Urbano Rajavithi (เออร์บาโน ราชวิถี)",
+      "removed_ids": [
+        "56a9386f-efad-5a14-885b-f0b69918419c"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "rtthonglor",
+      "confidence": "high",
+      "keep_id": "e9974c31-5d4b-57d0-8c5d-719f4af4cf7e",
+      "keep_bucket": "artthonglor",
+      "canonical_name": "Art Thonglor (อาร์ท ทองหล่อ)",
+      "removed_ids": [
+        "af58b617-0153-5dfb-aff9-7ecb8a8c87d1"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "baanklangmuangrattanathibet",
+      "confidence": "medium",
+      "keep_id": "e4e422dc-2bb1-5d0d-8884-e12876f0bf58",
+      "keep_bucket": "baanklangmuangrattanathibet",
+      "canonical_name": "Baan Klang Muang Rattanathibet (บ้านกลางเมือง รัตนาธิเบศร์)",
+      "removed_ids": [
+        "761e5d1d-9e4e-5235-b142-f54511d71e36"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "bangkokfelizsukhumvit692",
+      "confidence": "medium",
+      "keep_id": "a4fd0305-0e5f-57af-b15d-db66923909e3",
+      "keep_bucket": "bangkokfelizsukhumvit692",
+      "canonical_name": "Bangkok Feliz Sukhumvit 69-2 (แบงค็อก เฟลิซ สุขุมวิท 69-2)",
+      "removed_ids": [
+        "3425abfb-3bee-5e4b-88d5-48abce937b19"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "bangkokhorizonsathon",
+      "confidence": "medium",
+      "keep_id": "845d1188-e8ff-5e8d-8ffe-0118ab6e57cc",
+      "keep_bucket": "bangkokhorizonsathon",
+      "canonical_name": "Bangkok Horizon Sathon (แบงค็อก ฮอไรซอน สาทร)",
+      "removed_ids": [
+        "dd6c8d92-2ed7-5675-bab7-45ae5f6b20ea"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "chamberchaanladpraowanghin",
+      "confidence": "medium",
+      "keep_id": "0e04c510-0fab-589e-8d00-bcf5f4fc2bf2",
+      "keep_bucket": "chamberschaanladpraowanghin",
+      "canonical_name": "CHAMBERS CHAAN Ladprao–Wanghin (แชมเบอร์ ชาน ลาดพร้าว–วังหิน)",
+      "removed_ids": [
+        "f0a3dcd9-13cd-5761-829c-3d28adce375e"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "centrobangnawongwaen",
+      "confidence": "medium",
+      "keep_id": "581f990e-a6c8-56b3-b55e-815ae06b0475",
+      "keep_bucket": "centrobangnawongwaen",
+      "canonical_name": "Centro Bangna-Wongwaen (เซนโทร บางนา-วงแหวน)",
+      "removed_ids": [
+        "a7605f0d-6da2-5424-9b54-150b37cbb135"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "happycondoladprao101",
+      "confidence": "high",
+      "keep_id": "a246fcc8-aa88-5eff-99f3-08041c40301f",
+      "keep_bucket": "happycondoladprao101",
+      "canonical_name": "Happy Condo Ladprao 101 (แฮปปี้ คอนโด ลาดพร้าว 101)",
+      "removed_ids": [
+        "66c7c52d-b5e9-5b52-834b-69b0fca0423c"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "lerichratchadasuthisan",
+      "confidence": "medium",
+      "keep_id": "e4ae8359-1018-5fb3-93de-05d909ee1c2e",
+      "keep_bucket": "lerichratchadasutthisarn",
+      "canonical_name": "Le Rich Ratchada - Sutthisarn (เลอริช รัชดา - สุทธิสาร)",
+      "removed_ids": [
+        "8b10825e-5f1e-517f-8c5c-a811cafd17f8"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "lumpiniplacerama4ratchadaphisek",
+      "confidence": "medium",
+      "keep_id": "b8c55d13-93a5-5951-ab9f-011995ad36c7",
+      "keep_bucket": "lumpiniplacerama4ratchadaphisek",
+      "canonical_name": "Lumpini Place Rama 4 – Ratchadaphisek (ลุมพินี เพลส พระราม 4 – รัชดาภิเษก)",
+      "removed_ids": [
+        "52fd8246-c696-55b7-81b4-87b00bf62e94"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "mantana2motorwaynewkrungthepkreetha",
+      "confidence": "medium",
+      "keep_id": "7199e6c7-4540-53f9-9adc-3e3b10dcae24",
+      "keep_bucket": "mantana2motorwaynewkrungthepkreetha",
+      "canonical_name": "Mantana 2 Motorway - New Krungthepkreetha (มัณฑนา 2 มอเตอร์เวย์ - กรุงเทพกรีฑาตัดใหม่)",
+      "removed_ids": [
+        "4ad201fc-f1f0-5236-aecb-da9f18a04e7d"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "nantawanramintrapaholyothin50",
+      "confidence": "medium",
+      "keep_id": "cc1d0841-40ea-5e9c-bcf2-a1294ce1a685",
+      "keep_bucket": "nantawanramintraphaholyothin50",
+      "canonical_name": "Nantawan Ramintra – Phaholyothin 50 (นันทวัน รามอินทรา – พหลโยธิน 50)",
+      "removed_ids": [
+        "5651c318-38ee-5453-89fd-4ce1682adde6"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "originladpraobangkapi",
+      "confidence": "high",
+      "keep_id": "cebbf2eb-a08a-537c-9581-e3832d84cddb",
+      "keep_bucket": "originladpraobangkapi",
+      "canonical_name": "Origin Ladprao–Bangkapi (ออริจิ้น ลาดพร้าว–บางกะปิ)",
+      "removed_ids": [
+        "ac259aea-35bf-5ef1-973c-4ffbd04796a7"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "premiereplacerama9",
+      "confidence": "medium",
+      "keep_id": "f1f1f11f-c61b-538b-8cf4-044c9f18fb20",
+      "keep_bucket": "premiereplacerama9",
+      "canonical_name": "Premiere Place Rama 9 (พรีเมียร์ เพลส พระราม 9)",
+      "removed_ids": [
+        "d5c5e293-de7d-575d-9e1a-447711353ac4"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "premiumplacesukhonthasawat38",
+      "confidence": "medium",
+      "keep_id": "991c0dca-df90-5cb4-8909-fee30e41bfef",
+      "keep_bucket": "premiumplacesukhonthasawat38",
+      "canonical_name": "Premium Place Sukhonthasawat 38 (พรีเมียม เพลส สุคนธสวัสดิ์ 38)",
+      "removed_ids": [
+        "8a333fd4-835b-5f59-a9e2-cf8e501f6e09"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "quintaramhygenratchadahuaikhwang",
+      "confidence": "medium",
+      "keep_id": "907c2672-2a94-5133-b182-bfeb422f058b",
+      "keep_bucket": "quintaramhygenratchadahuaikhwang",
+      "canonical_name": "QUINTARA MHy’GEN RATCHADA - HUAI KHWANG (ควินทารา มาย'เจน รัชดา - ห้วยขวาง)",
+      "removed_ids": [
+        "13c63155-43c1-5650-a3e0-3e600c66e181"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "richparcktriplestation",
+      "confidence": "medium",
+      "keep_id": "ca800bb3-bb28-5d7f-a13e-53232dcdfa43",
+      "keep_bucket": "richparcktriplestation",
+      "canonical_name": "Rich Parck@Triple Station (ริชพาร์ค แอท ทริปเปิ้ล สเตชั่น)",
+      "removed_ids": [
+        "21c0afa1-7a88-5aef-8cda-38ce20232976"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "supalaigardenvillekrungthepkreethamotorway",
+      "confidence": "medium",
+      "keep_id": "6e8e9567-1703-59a0-bf05-dc6507c81330",
+      "keep_bucket": "supalaigardenvillekrungthepkrithamotorway",
+      "canonical_name": "Supalai Garden Ville Krung Thep Kritha - Motorway (ศุภาลัย การ์เด้นวิลล์ กรุงเทพกรีฑาตัดใหม่ - มอเตอร์เวย์)",
+      "removed_ids": [
+        "6ef106c4-45cc-5b64-adb5-a9392af41e19"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "townhomerama9soi11",
+      "confidence": "medium",
+      "keep_id": "082e25eb-c6ed-54cd-bdfa-42e80a50a283",
+      "keep_bucket": "townhomerama9soi11",
+      "canonical_name": "Townhome  Rama 9 Soi 11 (ทาวน์โฮม พระราม 9 ซอย11)",
+      "removed_ids": [
+        "1528dcde-d062-5ab6-b47e-ce4e640257ad"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
+    },
+    {
+      "at": "2026-07-27T00:34:30+07:00",
+      "action": "merge_duplicates_20260727",
+      "cluster_key": "udelightratchavibha",
+      "confidence": "medium",
+      "keep_id": "2e6a1820-a92d-5fdc-b6c7-be8a0c0effbc",
+      "keep_bucket": "udelightratchavibha",
+      "canonical_name": "U Delight Ratchavibha (ยู ดีไลท์ รัชวิภา)",
+      "removed_ids": [
+        "adbb1ef4-7163-5209-822b-0f5225890002"
+      ],
+      "propertyhub_status": "ยังไม่ยืนยัน Propertyhub",
+      "propertyhub_name": null
     }
   ]
 }

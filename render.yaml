@@ -25,7 +25,9 @@ services:
       - key: WAIT_POST_SHEET_CSV_URL
         sync: false
       - key: HUB_STARTUP_SHEET_SYNC
-        value: "1"
+        value: "0"
+      - key: HUB_ALLOW_SHEET_PULL
+        value: "0"
       # หลัง add/edit บน Hub → ซิงค์ไปชีทอัตโนมัติ (background)
       - key: HUB_AUTO_SYNC_TO_SHEET
         value: "1"

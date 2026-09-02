@@ -1,0 +1,53 @@
+วิธีเปิด LINE Bot (ตอบแชทอัตโนมัติด้วย OpenAI)
+==============================================
+
+ขั้นตอนเร็ว (แนะนำ)
+--------------------
+1) ไปที่ https://developers.line.biz/console/
+   Login → เลือก Provider → Messaging API channel ของ OA
+
+2) คัดลอก 2 ค่านี้:
+   - Channel secret
+   - Channel access token (กด Issue ถ้ายังไม่มี)
+
+3) วางค่าลง .env แล้วรันคำสั่งเดียว:
+   bash scripts/set_line_credentials.sh 'CHANNEL_SECRET' 'CHANNEL_ACCESS_TOKEN'
+
+   สคริปต์จะ:
+   - บันทึกค่าลง .env
+   - เปิดบอท
+   - เปิด Cloudflare Tunnel
+   - โชว์ Webhook URL ให้คัดลอก
+
+4) สำคัญมาก — LINE OA Manager:
+   https://manager.line.biz/
+   Settings → Response settings → Response mode = Bot
+   (ถ้าเป็น Chat บอท Messaging API จะตอบไม่ขึ้นในแชทลูกค้า)
+   เปิด Use webhook = ON
+
+5) ตรวจ webhook:
+   bash scripts/run_line_bot_tunnel.sh
+   Webhook ควรเป็น https://line.realxtateth.com/webhook
+
+6) ลองกด Rich Menu เช่น "รับคูปองล้างแอร์"
+
+หยุดบอท
+--------
+bash scripts/stop_line_bot.sh
+
+ไฟล์สำคัญ
+---------
+- ประวัติแชท: data/line_chats.jsonl
+- Webhook ล่าสุด: logs/line_webhook_url.txt
+- Log บอท: logs/line_bot.launchd.err.log
+- สถานะ: GET https://line.realxtateth.com/  (ดู chat_mode)
+
+หมายเหตุ
+--------
+- chat_mode ต้องเป็น "bot" ไม่ใช่ "chat"
+- พิมพ์ "คุยแอดมิน" หรือ "คุยคน" = ส่งต่อให้คนตอบ
+- OPENAI_API_KEY ดึงจาก LivingBKK ให้แล้ว
+- ต้องมี Channel Secret/Token จากบัญชี LINE ของคุณเอง (ระบบดึงแทนไม่ได้)
+- ตอนนี้โหมดหลักคือ Ops (แจ้งเคสค้าง/สั่งฟอโล่ว) — อ่าน line_bot/OPS_วิธีใช้.txt
+- LINE_AUTO_REPLY=0 เป็นค่าเริ่มต้น (ยังไม่ตอบแชทอิสระ) แต่คำจาก Rich Menu ตอบเสมอ
+- สตาร์ทเร็ว: bash scripts/run_line_bot_tunnel.sh

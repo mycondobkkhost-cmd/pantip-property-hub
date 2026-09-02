@@ -384,12 +384,17 @@ def retag_all() -> dict:
 
 
 def infer_property_zones(prop: dict) -> list[str]:
+    transit = prop.get("transit_tags") or prop.get("transit_from_sheet") or []
+    if isinstance(transit, str):
+        transit = [transit]
     parts = [
         prop.get("project_name") or "",
         prop.get("location_ref") or "",
-        " ".join(prop.get("transit_tags") or []),
+        " ".join(str(x) for x in transit if x),
         prop.get("notes") or "",
         prop.get("raw_text") or "",
+        prop.get("page_post_text") or "",
+        prop.get("text_th") or "",
     ]
     blob = " ".join(parts).lower()
     zones, _ = infer_tags_from_blob(blob)
@@ -417,6 +422,43 @@ def infer_property_zones(prop: dict) -> list[str]:
     if not zones:
         zones = ["bangkok"]
     return zones
+
+
+def _transit_match_keys(prop: dict) -> list[str]:
+    """Station / transit phrases for ranking (BTS ทองหล่อ, MRT เพชรบุรี, …)."""
+    raw = prop.get("transit_tags") or prop.get("transit_from_sheet") or []
+    if isinstance(raw, str):
+        raw = [raw]
+    keys: list[str] = []
+    for item in raw:
+        n = _norm_match_text(str(item or ""))
+        if not n:
+            continue
+        if n not in keys:
+            keys.append(n)
+        # drop carrier prefix → station name
+        bare = re.sub(r"^(bts|mrt|arl|apl|srt)\s*", "", n).strip()
+        if len(bare) >= 3 and bare not in keys:
+            keys.append(bare)
+    return keys[:12]
+
+
+_OWNER_ONLY_NAME_RE = re.compile(
+    r"เจ้าของห้อง|เจ้าของโพส|owner\s*only|owners?\s*only|by\s*owner|"
+    r"condo\s*owner|ห้ามเอเจน|ห้ามนายหน้า|ห้ามเอเจนต์|业主|only\s*owner",
+    re.I,
+)
+
+
+def _is_blocked_owner_group(g: dict) -> bool:
+    """Never recommend owner-only groups for agent publish (ban risk)."""
+    go = g.get("offer_tags") or []
+    if "owner_only" in go:
+        return True
+    blob = _blob(g)
+    if _OWNER_ONLY_NAME_RE.search(blob):
+        return True
+    return False
 
 
 def infer_property_offers(prop: dict) -> list[str]:
@@ -456,6 +498,25 @@ def _norm_match_text(s: str) -> str:
     return s
 
 
+def _zone_location_tokens() -> set[str]:
+    """Zone/area words that must NOT count as project-name matches."""
+    out: set[str] = {"bangkok", "กรุงเทพ", "กทม"}
+    for zid, pats in ZONE_PATTERNS:
+        out.add(_norm_match_text(zid))
+        for p in pats:
+            lit = re.sub(r"\\[sb]|[\\^$.*+?{}\[\]|()]", " ", p)
+            lit = _norm_match_text(lit)
+            if len(lit) >= 3:
+                out.add(lit)
+            for w in lit.split():
+                if len(w) >= 3:
+                    out.add(w)
+    return out
+
+
+_ZONE_LOCATION_TOKENS = _zone_location_tokens()
+
+
 def _project_match_keys(prop: dict) -> list[str]:
     """Tokens/phrases from project name for matching group titles."""
     name = (prop.get("project_name") or "").strip()
@@ -469,20 +530,22 @@ def _project_match_keys(prop: dict) -> list[str]:
     }
     keys: list[str] = []
     raw = _norm_match_text(name)
-    if len(raw) >= 4:
+    if len(raw) >= 4 and raw not in _ZONE_LOCATION_TOKENS:
         keys.append(raw)
     m = re.match(r"^([A-Za-z0-9][A-Za-z0-9\s\-']{2,})", name)
     if m:
         en = _norm_match_text(m.group(1))
-        if len(en) >= 4 and en not in keys:
+        if len(en) >= 4 and en not in keys and en not in _ZONE_LOCATION_TOKENS:
             keys.append(en)
     for w in re.split(r"[\s/\-]+", raw):
         if len(w) < 5:
             continue
-        if w in generic:
+        if w in generic or w in _ZONE_LOCATION_TOKENS:
             continue
         if w not in keys:
             keys.append(w)
+    # Drop keys that are only zone/area names (e.g. "ทองหล่อ", "thonglor")
+    keys = [k for k in keys if k not in _ZONE_LOCATION_TOKENS]
     keys.sort(key=len, reverse=True)
     return keys[:8]
 
@@ -562,12 +625,13 @@ def _score_group_flat(
     offers: list[str],
     project_keys: list[str],
     project_name: str = "",
+    transit_keys: list[str] | None = None,
     is_luxury_prop: bool,
     history: list[dict],
 ) -> tuple[int, list[str], str]:
     """
-    Single score for flat ranking.
-    tier: project | zone | large | fit | other
+    Score for relevance ranking.
+    tier: project | transit | zone | large | fit | other
     """
     gz = g.get("zone_tags") or []
     go = g.get("offer_tags") or []
@@ -577,8 +641,9 @@ def _score_group_flat(
     score = 0
     reasons: list[str] = []
     tier = "other"
+    transit_keys = transit_keys or []
 
-    # 1) Project name in group title — strongest (prefer longest / specific keys)
+    # 1) Project name in group title — strongest
     project_hit = ""
     for key in project_keys:
         if not key:
@@ -587,24 +652,34 @@ def _score_group_flat(
             project_hit = key
             break
     if project_hit:
-        # Full/long phrase >> single token
         full = _norm_match_text(project_name)
         if (full and project_hit == full) or len(project_hit) >= 10:
-            score += 120
+            score += 200
         elif len(project_hit) >= 6:
-            score += 100
+            score += 160
         else:
-            score += 55
+            score += 90
         reasons.append("ชื่อกลุ่มตรงโครงการ")
         tier = "project"
 
-    zone_hits = [z for z in zones if z in gz and z != "bangkok"]
-    # soft zone from name text
+    # 2) Transit / station match
+    transit_hits = []
+    for key in transit_keys:
+        if not key or len(key) < 3:
+            continue
+        if key in name_norm or key in blob:
+            transit_hits.append(key)
+    if transit_hits:
+        score += 55 + 12 * (len(transit_hits) - 1)
+        reasons.append("สถานี: " + ", ".join(transit_hits[:3]))
+        if tier not in {"project"}:
+            tier = "transit"
+
+    prop_zones = [z for z in zones if z != "bangkok"]
+    zone_hits = [z for z in prop_zones if z in gz]
     soft_zone = False
     if not zone_hits:
-        for z in zones:
-            if z == "bangkok":
-                continue
+        for z in prop_zones:
             for _zid, pats in ZONE_PATTERNS:
                 if _zid != z:
                     continue
@@ -612,42 +687,62 @@ def _score_group_flat(
                     soft_zone = True
                     zone_hits = [z]
                     break
+            if soft_zone:
+                break
 
-    # 2) Zone / location
+    # 3) Zone / location
     if zone_hits:
-        score += 40 + 8 * (len(zone_hits) - 1)
+        # Prefer primary zone (first) over parent-only (e.g. sukhumvit)
+        primary = prop_zones[0] if prop_zones else ""
+        if primary and primary in zone_hits:
+            score += 70
+        else:
+            score += 42
+        score += 8 * max(0, len(zone_hits) - 1)
         reasons.append("โซน: " + ", ".join(zone_hits))
-        if tier != "project":
+        if tier not in {"project", "transit"}:
             tier = "zone"
     elif soft_zone:
-        score += 28
+        score += 32
         reasons.append("ชื่อกลุ่มมีทำเลทรัพย์")
-        if tier != "project":
+        if tier not in {"project", "transit"}:
             tier = "zone"
 
-    # 3) Large / citywide reach
+    # Penalize clearly unrelated local zones (not citywide / not project)
+    other_local = [z for z in gz if z not in {"bangkok"} and z not in prop_zones and z not in zone_hits]
+    if other_local and not project_hit and not transit_hits and tier not in {"project", "transit"}:
+        # e.g. Tao Poon / Bang Pho when listing is Thonglor
+        if not zone_hits and "citywide" not in roles:
+            score -= 50
+            reasons.append("โซนไม่ตรงทรัพย์")
+
+    # 4) Large / citywide — only as lower-priority filler
     mw = _member_weight(g)
     if mw:
-        score += mw * 3
+        score += mw * 2
         band = (g.get("member_band") or "").upper() or "core"
         reasons.append(f"กลุ่มใหญ่ ({band})")
         if tier in {"other", "fit"}:
             tier = "large"
     if g.get("core_reach"):
-        score += 18
+        score += 10
         reasons.append("Core Reach")
         if tier in {"other", "fit"}:
             tier = "large"
     if "citywide" in roles or "bangkok" in gz:
-        score += 16
+        score += 8
         if "citywide" in roles:
             reasons.append("กลุ่มกว้าง กทม.")
         if tier in {"other", "fit"}:
             tier = "large"
     if "mass" in roles:
-        score += 10
+        score += 4
 
-    # 4) Offer / price-audience fit
+    # Without project/zone/transit, citywide gets weaker priority
+    if not project_hit and not zone_hits and not transit_hits and tier == "large":
+        score -= 15
+
+    # 5) Offer fit
     offer_hits = [o for o in offers if o in go and o not in {"owner_only", "agent_ok"}]
     if offer_hits:
         score += 6 * len(offer_hits)
@@ -657,27 +752,19 @@ def _score_group_flat(
 
     if is_luxury_prop:
         if "luxury" in roles or re.search(r"luxury|หรู|พรีเมียม|premium", blob, re.I):
-            score += 22
+            score += 18
             reasons.append("Luxury ตรงทรัพย์")
-        if "expat" in roles:
-            score += 10
-            reasons.append("Expat")
     else:
         if "luxury" in roles and not zone_hits and not project_hit:
-            score -= 8  # de-prioritize pure luxury for mass listings
-        if "mass" in roles or "citywide" in roles:
-            score += 6
+            score -= 8
 
-    if "expat" in roles and not is_luxury_prop:
-        score += 4
-
-    # Fatigue / rotation
+    # Fatigue / rotation (light)
     pen, pen_reason = _fatigue_penalty(g.get("url") or "", history)
     if pen:
-        score -= pen
+        score -= min(pen, 20)
         reasons.append(pen_reason)
 
-    if score <= 0 and not project_hit and not zone_hits:
+    if score <= 0 and not project_hit and not zone_hits and not transit_hits:
         return 0, [], tier
 
     if tier == "other" and score > 0:
@@ -689,25 +776,20 @@ def _score_group_flat(
 def recommend_groups(
     prop: dict,
     *,
-    limit: int = 30,
+    limit: int = 60,
     per_category: int | None = None,
     include_owner_only: bool = False,
 ) -> dict:
     """
-    Flat ranked list (default 30).
-    Priority: project-name match → zone → large/citywide → fit,
-    with diversification + light exploration + rotation.
+    Ranked list: project → transit → zone → large/fit.
+    Owner-only groups are always excluded for publish safety.
     """
-    import random
     import time
 
-    # per_category kept for API compat but ignored for flat list size
-    n = int(limit or 30)
-    if per_category is not None and limit == 30:
-        # old clients sent per_category=15 — treat as total if they only pass that
-        pass
+    n = int(limit or 60)
     if n <= 0:
-        n = 30
+        n = 60
+    n = min(max(n, 10), 120)
 
     groups = load_groups()
     groups = [auto_tag_group(g, force=False) for g in groups]
@@ -718,15 +800,17 @@ def recommend_groups(
     zones = infer_property_zones(prop)
     offers = infer_property_offers(prop)
     project_keys = _project_match_keys(prop)
+    transit_keys = _transit_match_keys(prop)
     rent_n = _parse_price_num(prop.get("rent_price"))
     sale_n = _parse_price_num(prop.get("sale_price"))
     is_luxury_prop = rent_n >= 35000 or sale_n >= 8000000
     history = _load_recommend_history()
 
     scored: list[dict] = []
+    skipped_owner = 0
     for g in groups:
-        go = g.get("offer_tags") or []
-        if "owner_only" in go and "agent_ok" not in go and not include_owner_only:
+        if not include_owner_only and _is_blocked_owner_group(g):
+            skipped_owner += 1
             continue
         score, reasons, tier = _score_group_flat(
             g,
@@ -734,6 +818,7 @@ def recommend_groups(
             offers=offers,
             project_keys=project_keys,
             project_name=prop.get("project_name") or "",
+            transit_keys=transit_keys,
             is_luxury_prop=is_luxury_prop,
             history=history,
         )
@@ -744,7 +829,7 @@ def recommend_groups(
                 "name": g.get("name") or "",
                 "url": g.get("url") or "",
                 "zone_tags": g.get("zone_tags") or [],
-                "offer_tags": go,
+                "offer_tags": g.get("offer_tags") or [],
                 "role_tags": g.get("role_tags") or [],
                 "member_band": g.get("member_band") or "",
                 "core_reach": bool(g.get("core_reach")),
@@ -755,67 +840,17 @@ def recommend_groups(
             }
         )
 
-    scored.sort(key=lambda x: (-x["score"], x["name"].lower()))
+    # Strict relevance order — no random exploration that buries project matches
+    tier_rank = {"project": 0, "transit": 1, "zone": 2, "large": 3, "fit": 4, "other": 5}
+    scored.sort(
+        key=lambda x: (
+            tier_rank.get(x.get("tier") or "other", 9),
+            -int(x.get("score") or 0),
+            (x.get("name") or "").lower(),
+        )
+    )
+    picked = scored[:n]
 
-    # Diversified pick into flat 30, then re-sort by score for display
-    quotas = {
-        "project": max(6, n // 4),
-        "zone": max(8, n // 3),
-        "large": max(6, n // 4),
-        "fit": max(4, n // 6),
-        "other": 2,
-    }
-    explore_slots = max(3, n // 10)  # ~10% exploration
-    picked: list[dict] = []
-    seen: set[str] = set()
-    counts = {k: 0 for k in quotas}
-
-    def _take(item: dict, *, relax: bool = False) -> bool:
-        u = item["url"] or item["name"]
-        if u in seen:
-            return False
-        t = item.get("tier") or "other"
-        if not relax and counts.get(t, 0) >= quotas.get(t, 99):
-            return False
-        seen.add(u)
-        counts[t] = counts.get(t, 0) + 1
-        picked.append(item)
-        return True
-
-    # Pass 1: fill by tier priority (respect quotas for diversity)
-    for tier_name in ("project", "zone", "large", "fit", "other"):
-        for item in scored:
-            if len(picked) >= n - explore_slots:
-                break
-            if item.get("tier") != tier_name:
-                continue
-            _take(item, relax=False)
-        if len(picked) >= n - explore_slots:
-            break
-
-    # Pass 2: fill remaining with next best (ignore quotas)
-    for item in scored:
-        if len(picked) >= n - explore_slots:
-            break
-        _take(item, relax=True)
-
-    # Pass 3: exploration — sample from mid-tier candidates not yet picked
-    pool = [x for x in scored[10:120] if (x["url"] or x["name"]) not in seen]
-    if pool and len(picked) < n:
-        random.shuffle(pool)
-        for item in pool:
-            if len(picked) >= n:
-                break
-            item = dict(item)
-            item["reasons"] = list(item.get("reasons") or []) + ["สำรวจกลุ่มใหม่"]
-            item["score"] = max(1, int(item["score"]) - 5)
-            _take(item, relax=True)
-
-    # Final display order: score high → low
-    picked.sort(key=lambda x: (-x["score"], x["name"].lower()))
-    picked = picked[:n]
-
-    # Record recommendation history for rotation
     now = time.time()
     code = (prop.get("code") or "").strip()
     for item in picked:
@@ -827,15 +862,18 @@ def recommend_groups(
         "zones": zones,
         "offers": offers,
         "project_keys": project_keys,
+        "transit_keys": transit_keys,
+        "project_name": prop.get("project_name") or "",
+        "code": code,
         "is_luxury_property": is_luxury_prop,
         "limit": n,
         "total_groups": len(groups),
         "matched": len(picked),
+        "skipped_owner": skipped_owner,
         "groups": picked,
-        # empty categories for old UI safety
         "categories": [],
-        "mode": "flat_v2",
-        "strategy": "project→zone→large + diversify/explore/rotate",
+        "mode": "relevance_v3",
+        "strategy": "project→transit→zone→large (no owner-only)",
     }
 
 

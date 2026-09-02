@@ -128,10 +128,85 @@ def _is_generic_fb_icon(image_url: str) -> bool:
         return True
     if "emoji.php" in low or "/images/icons/" in low:
         return True
+    # Incomplete host-only / truncated CDN URLs
+    try:
+        from urllib.parse import urlparse
+
+        path = urlparse(image_url).path or ""
+    except Exception:  # noqa: BLE001
+        path = ""
+    if len(path) < 8 or "." not in path.rsplit("/", 1)[-1]:
+        if "scontent" in low or "fbcdn" in low:
+            return True
     # Tiny profile placeholders
     if "scontent" in low and ("_s.jpg" in low or "p32x32" in low or "p50x50" in low):
         return True
     return False
+
+
+def _image_dedupe_key(image_url: str) -> str:
+    """Stable key so same FB photo with different size/query params counts once."""
+    raw = (image_url or "").strip()
+    if not raw:
+        return ""
+    try:
+        from urllib.parse import urlparse, unquote
+
+        parsed = urlparse(raw)
+        path = unquote(parsed.path or "")
+    except Exception:  # noqa: BLE001
+        path = raw.split("?", 1)[0]
+    # Prefer long numeric asset id in filename (common on scontent)
+    nums = re.findall(r"(\d{10,})", path)
+    if nums:
+        # longest id is usually the photo/asset id
+        return max(nums, key=len)
+    base = path.rsplit("/", 1)[-1].lower()
+    base = re.sub(r"_(?:n|s|o|q|p)\.(?:jpe?g|png|webp)$", "", base)
+    base = re.sub(r"\.(?:jpe?g|png|webp)$", "", base)
+    return base or path.lower()
+
+
+def _image_quality_score(image_url: str) -> int:
+    low = (image_url or "").lower()
+    score = 0
+    if "_n.jpg" in low or "_n.png" in low:
+        score += 5
+    if "t39.30808" in low or "/v/t39." in low:
+        score += 3
+    if "scontent" in low:
+        score += 2
+    # Prefer larger stp sizes when present
+    m = re.search(r"s(\d{3,4})x(\d{3,4})", low)
+    if m:
+        score += min(int(m.group(1)), int(m.group(2))) // 100
+    if "stp=" in low and "s960" in low:
+        score += 2
+    if "p32x32" in low or "p50x50" in low or "s130x130" in low:
+        score -= 10
+    return score
+
+
+def _dedupe_image_urls(urls: list[str], *, limit: int = 12) -> list[str]:
+    """Keep best-quality URL per photo identity."""
+    best: dict[str, tuple[int, str]] = {}
+    order: list[str] = []
+    for u in urls:
+        s = str(u or "").strip()
+        if not s.startswith("http") or _is_generic_fb_icon(s):
+            continue
+        key = _image_dedupe_key(s)
+        if not key:
+            key = s
+        score = _image_quality_score(s)
+        prev = best.get(key)
+        if prev is None:
+            best[key] = (score, s)
+            order.append(key)
+        elif score > prev[0]:
+            best[key] = (score, s)
+    out = [best[k][1] for k in order if k in best]
+    return out[: max(1, min(int(limit or 12), 12))]
 
 
 def _extract_image_candidates_from_html(html: str) -> list[str]:
@@ -160,15 +235,8 @@ def _extract_image_candidates_from_html(html: str) -> list[str]:
         if _is_generic_fb_icon(img):
             continue
         # Prefer full post photos over tiny thumbs
-        score = 0
-        low = img.lower()
-        if "scontent" in low:
-            score += 2
-        if "t39.30808" in low or "/v/t39." in low:
-            score += 3
-        if "stp=" in low or "_n.jpg" in low or "_n.png" in low:
-            score += 2
-        if score <= 0 and "fbcdn" not in low:
+        score = _image_quality_score(img)
+        if score <= 0 and "fbcdn" not in img.lower():
             continue
         if img in seen:
             continue
@@ -179,10 +247,11 @@ def _extract_image_candidates_from_html(html: str) -> list[str]:
         key=lambda u: (
             0 if "t39.30808" in u.lower() else 1,
             0 if "_n.jpg" in u.lower() or "_n.png" in u.lower() else 1,
+            -_image_quality_score(u),
             len(u),
         )
     )
-    return ranked
+    return _dedupe_image_urls(ranked, limit=12)
 
 
 def _http_get(url: str, user_agent: str) -> str:
@@ -378,10 +447,16 @@ def fetch_preview_images(url: str, *, limit: int = 12) -> tuple[list[str], list[
             for img in _extract_image_candidates_from_html(html):
                 if img in seen:
                     continue
+                # Also skip same photo identity (different CDN size/query)
+                key = _image_dedupe_key(img)
+                if key and key in seen:
+                    continue
+                if key:
+                    seen.add(key)
                 seen.add(img)
                 collected.append(img)
                 if len(collected) >= limit:
-                    return collected, _unique_warnings(warnings)
+                    return _dedupe_image_urls(collected, limit=limit), _unique_warnings(warnings)
 
     if not collected:
         if last_error:
@@ -396,7 +471,7 @@ def fetch_preview_images(url: str, *, limit: int = 12) -> tuple[list[str], list[
                 warnings.append("Facebook มักไม่ให้ดึงรูปครบ — อัปเองชัวร์กว่า")
         else:
             warnings.append("ไม่พบรูปในหน้า")
-    return collected, _unique_warnings(warnings)
+    return _dedupe_image_urls(collected, limit=limit), _unique_warnings(warnings)
 
 
 def fetch_image_bytes(image_url: str) -> tuple[bytes, str]:

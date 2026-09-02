@@ -20,7 +20,10 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
+import tempfile
+import threading
 import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -29,6 +32,8 @@ from urllib.parse import urlparse
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 QUEUE_PATH = BASE_DIR / "data" / "wait_post_queue.json"
 SHEET_CSV = BASE_DIR / "data" / "wait_post_sheet.csv"
+
+_STORE_LOCK = threading.RLock()
 
 URL_RE = re.compile(r"https?://[^\s,，]+", re.I)
 
@@ -129,13 +134,29 @@ def _normalize_item(item: dict) -> dict:
     return item
 
 
-def load_queue() -> list[dict]:
+def _atomic_write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def _read_queue_file() -> list[dict]:
     if not QUEUE_PATH.exists():
         return []
     try:
         data = json.loads(QUEUE_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return []
+    except json.JSONDecodeError as exc:
+        print(f"[hub] wait_post_queue.json corrupt — refusing empty overwrite: {exc}")
+        raise ValueError("ไฟล์คิวรอโพสต์เสียหาย — รีเฟรชแล้วลองใหม่ หรือแจ้งทีมเทค") from exc
     if isinstance(data, dict):
         items = data.get("items") or []
     elif isinstance(data, list):
@@ -145,17 +166,24 @@ def load_queue() -> list[dict]:
     return [_normalize_item(x) for x in items]
 
 
-def save_queue(items: list[dict]) -> None:
-    QUEUE_PATH.parent.mkdir(parents=True, exist_ok=True)
+def load_queue() -> list[dict]:
+    with _STORE_LOCK:
+        return _read_queue_file()
+
+
+def _write_queue_file(items: list[dict]) -> None:
     normalized = [_normalize_item(dict(x)) for x in items]
-    QUEUE_PATH.write_text(
-        json.dumps(
-            {"items": normalized, "updated_at": _now()},
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
+    payload = json.dumps(
+        {"items": normalized, "updated_at": _now()},
+        ensure_ascii=False,
+        indent=2,
     )
+    _atomic_write_text(QUEUE_PATH, payload)
+
+
+def save_queue(items: list[dict]) -> None:
+    with _STORE_LOCK:
+        _write_queue_file(items)
 
 
 def list_queue(include_done: bool = True) -> list[dict]:
@@ -233,30 +261,31 @@ def add_job(
     if not _is_url(source_url):
         raise ValueError("ลิงก์ต้นทางไม่ถูกต้อง (ต้องเป็น URL)")
 
-    items = load_queue()
-    if source_url in _source_keys(items):
-        raise ValueError("ลิงก์ต้นทางนี้มีในคิวรอโพสต์แล้ว")
+    with _STORE_LOCK:
+        items = _read_queue_file()
+        if source_url in _source_keys(items):
+            raise ValueError("ลิงก์ต้นทางนี้มีในคิวรอโพสต์แล้ว")
 
-    ts = int(datetime.now().timestamp())
-    item = {
-        "id": str(uuid.uuid4()),
-        "source_url": source_url,
-        "owner_contact": owner_contact,
-        "source_url_2": owner_contact,
-        "post_url": owner_contact,
-        "url": source_url,
-        "note": note,
-        "project": project,
-        "price": price,
-        "queued_at": queued_at,
-        "status": "pending",
-        "created_at": _now(),
-        "created_ts": ts,
-        "done_at": "",
-        "source": "hub",
-    }
-    items.insert(0, item)
-    save_queue(items)
+        ts = int(datetime.now().timestamp())
+        item = {
+            "id": str(uuid.uuid4()),
+            "source_url": source_url,
+            "owner_contact": owner_contact,
+            "source_url_2": owner_contact,
+            "post_url": owner_contact,
+            "url": source_url,
+            "note": note,
+            "project": project,
+            "price": price,
+            "queued_at": queued_at,
+            "status": "pending",
+            "created_at": _now(),
+            "created_ts": ts,
+            "done_at": "",
+            "source": "hub",
+        }
+        items.insert(0, item)
+        _write_queue_file(items)
     return item
 
 
@@ -278,49 +307,53 @@ def update_item(
     price: str | None = None,
     queued_at: str | None = None,
 ) -> dict:
-    items = load_queue()
-    item = next((x for x in items if x.get("id") == item_id), None)
-    if not item:
-        raise ValueError("ไม่พบรายการในคิว")
-    if status is not None:
-        if status not in ("pending", "working", "done"):
-            raise ValueError("สถานะไม่ถูกต้อง")
-        item["status"] = status
-        item["done_at"] = _now() if status == "done" else ""
-    if note is not None:
-        item["note"] = note.strip()
-    if project is not None:
-        item["project"] = project.strip()
-    if price is not None:
-        item["price"] = price.strip()
-    if queued_at is not None:
-        item["queued_at"] = _normalize_queued_at(queued_at, fallback=item.get("queued_at") or "")
-    if source_url is not None:
-        source_url = source_url.strip()
-        if not source_url:
-            raise ValueError("ลิงก์ต้นทางว่างไม่ได้")
-        if not _is_url(source_url):
-            raise ValueError("ลิงก์ต้นทางไม่ถูกต้อง")
-        item["source_url"] = source_url
-        item["url"] = source_url
-    contact = owner_contact
-    if contact is None:
-        contact = source_url_2 if source_url_2 is not None else post_url
-    if contact is not None:
-        contact = contact.strip()
-        item["owner_contact"] = contact
-        item["source_url_2"] = contact
-        item["post_url"] = contact
-    save_queue(items)
-    return _normalize_item(item)
+    with _STORE_LOCK:
+        items = _read_queue_file()
+        item = next((x for x in items if x.get("id") == item_id), None)
+        if not item:
+            raise ValueError("ไม่พบรายการในคิว")
+        if status is not None:
+            if status not in ("pending", "working", "done"):
+                raise ValueError("สถานะไม่ถูกต้อง")
+            item["status"] = status
+            item["done_at"] = _now() if status == "done" else ""
+        if note is not None:
+            item["note"] = note.strip()
+        if project is not None:
+            item["project"] = project.strip()
+        if price is not None:
+            item["price"] = price.strip()
+        if queued_at is not None:
+            item["queued_at"] = _normalize_queued_at(
+                queued_at, fallback=item.get("queued_at") or ""
+            )
+        if source_url is not None:
+            source_url = source_url.strip()
+            if not source_url:
+                raise ValueError("ลิงก์ต้นทางว่างไม่ได้")
+            if not _is_url(source_url):
+                raise ValueError("ลิงก์ต้นทางไม่ถูกต้อง")
+            item["source_url"] = source_url
+            item["url"] = source_url
+        contact = owner_contact
+        if contact is None:
+            contact = source_url_2 if source_url_2 is not None else post_url
+        if contact is not None:
+            contact = contact.strip()
+            item["owner_contact"] = contact
+            item["source_url_2"] = contact
+            item["post_url"] = contact
+        _write_queue_file(items)
+        return _normalize_item(item)
 
 
 def delete_item(item_id: str) -> None:
-    items = load_queue()
-    new_items = [x for x in items if x.get("id") != item_id]
-    if len(new_items) == len(items):
-        raise ValueError("ไม่พบรายการในคิว")
-    save_queue(new_items)
+    with _STORE_LOCK:
+        items = _read_queue_file()
+        new_items = [x for x in items if x.get("id") != item_id]
+        if len(new_items) == len(items):
+            raise ValueError("ไม่พบรายการในคิว")
+        _write_queue_file(new_items)
 
 
 def _looks_like_price(s: str) -> bool:
@@ -548,13 +581,6 @@ def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> di
     if not csv_path.exists():
         raise ValueError(f"ไม่พบไฟล์ {csv_path.name} — ดาวน์โหลดชีทก่อน")
 
-    old_items = load_queue()
-    old_by_url = {
-        (x.get("source_url") or "").strip(): x
-        for x in old_items
-        if (x.get("source_url") or "").strip()
-    }
-
     sheet_rows: list[dict] = []
     with csv_path.open(encoding="utf-8") as f:
         reader = list(csv.reader(f))
@@ -575,7 +601,6 @@ def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> di
         if parsed is None:
             parsed = _parse_sheet_row_positional(cells)
         if parsed is None:
-            # strip empties for scan
             parsed = _parse_sheet_row_scan([c for c in cells if c])
         if not parsed:
             continue
@@ -586,125 +611,134 @@ def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> di
     skipped = 0
     preserved_working = 0
 
-    if replace:
-        items: list[dict] = []
-        seen: set[str] = set()
-        # แถวบนชีท = เก่าสุด → sheet_order 0,1,2…
-        base_ts = ts - max(len(sheet_rows), 1)
-        for idx, row in enumerate(sheet_rows):
-            source_url = row["source_url"]
-            if source_url in seen:
-                skipped += 1
-                continue
-            seen.add(source_url)
-            prev = old_by_url.get(source_url)
-            status = "pending"
-            item_id = str(uuid.uuid4())
-            created_at = _now()
-            created_ts = base_ts + idx
-            if prev and prev.get("status") == "working":
-                status = "working"
-                item_id = prev.get("id") or item_id
-                created_at = prev.get("created_at") or created_at
-                preserved_working += 1
-            elif prev and prev.get("status") == "pending":
-                item_id = prev.get("id") or item_id
-                created_at = prev.get("created_at") or created_at
-            else:
+    with _STORE_LOCK:
+        old_items = _read_queue_file()
+        old_by_url = {
+            (x.get("source_url") or "").strip(): x
+            for x in old_items
+            if (x.get("source_url") or "").strip()
+        }
+
+        if replace:
+            items: list[dict] = []
+            seen: set[str] = set()
+            base_ts = ts - max(len(sheet_rows), 1)
+            for idx, row in enumerate(sheet_rows):
+                source_url = row["source_url"]
+                if source_url in seen:
+                    skipped += 1
+                    continue
+                seen.add(source_url)
+                prev = old_by_url.get(source_url)
+                status = "pending"
+                item_id = str(uuid.uuid4())
+                created_at = _now()
+                created_ts = base_ts + idx
+                if prev and prev.get("status") == "working":
+                    status = "working"
+                    item_id = prev.get("id") or item_id
+                    created_at = prev.get("created_at") or created_at
+                    preserved_working += 1
+                elif prev and prev.get("status") == "pending":
+                    item_id = prev.get("id") or item_id
+                    created_at = prev.get("created_at") or created_at
+                else:
+                    added += 1
+                project = row.get("project") or ((prev or {}).get("project") or "")
+                price = row.get("price") or ((prev or {}).get("price") or "")
+                queued_at = row.get("queued_at") or (
+                    (prev or {}).get("queued_at") or (prev or {}).get("created_at") or ""
+                )
+                items.append(
+                    {
+                        "id": item_id,
+                        "source_url": source_url,
+                        "owner_contact": row["owner_contact"],
+                        "source_url_2": row["owner_contact"],
+                        "post_url": row["owner_contact"],
+                        "url": source_url,
+                        "note": row["note"],
+                        "project": project,
+                        "price": price,
+                        "queued_at": _normalize_queued_at(queued_at, fallback=created_at),
+                        "status": status,
+                        "created_at": created_at,
+                        "created_ts": created_ts,
+                        "sheet_order": idx,
+                        "done_at": "",
+                        "source": "sheet",
+                    }
+                )
+            local_only = 0
+            preserved_pending = 0
+            for prev in old_items:
+                url = (prev.get("source_url") or "").strip()
+                if not url or url in seen:
+                    continue
+                status = prev.get("status") or "pending"
+                src = (prev.get("source") or "").strip()
+                keep = status == "working" or (
+                    status == "pending" and src in ("hub", "local", "")
+                )
+                if not keep:
+                    continue
+                prev = dict(prev)
+                prev["sheet_order"] = 10**9 + local_only
+                items.append(prev)
+                local_only += 1
+                if status == "working":
+                    preserved_working += 1
+                else:
+                    preserved_pending += 1
+            repair_misaligned_queue_items(items)
+            _write_queue_file(items)
+            total = len(items)
+            replaced = True
+        else:
+            items = old_items
+            existing = _source_keys(items)
+            for row in sheet_rows:
+                source_url = row["source_url"]
+                if source_url in existing:
+                    skipped += 1
+                    continue
+                items.insert(
+                    0,
+                    {
+                        "id": str(uuid.uuid4()),
+                        "source_url": source_url,
+                        "owner_contact": row["owner_contact"],
+                        "source_url_2": row["owner_contact"],
+                        "post_url": row["owner_contact"],
+                        "url": source_url,
+                        "note": row["note"],
+                        "project": row.get("project") or "",
+                        "price": row.get("price") or "",
+                        "queued_at": _normalize_queued_at(row.get("queued_at") or ""),
+                        "status": "pending",
+                        "created_at": _now(),
+                        "created_ts": ts,
+                        "done_at": "",
+                        "source": "sheet",
+                    },
+                )
+                existing.add(source_url)
                 added += 1
-            # Prefer sheet values; fall back to local extras if sheet blank
-            project = row.get("project") or ((prev or {}).get("project") or "")
-            price = row.get("price") or ((prev or {}).get("price") or "")
-            queued_at = row.get("queued_at") or (
-                (prev or {}).get("queued_at") or (prev or {}).get("created_at") or ""
-            )
-            items.append(
-                {
-                    "id": item_id,
-                    "source_url": source_url,
-                    "owner_contact": row["owner_contact"],
-                    "source_url_2": row["owner_contact"],
-                    "post_url": row["owner_contact"],
-                    "url": source_url,
-                    "note": row["note"],
-                    "project": project,
-                    "price": price,
-                    "queued_at": _normalize_queued_at(queued_at, fallback=created_at),
-                    "status": status,
-                    "created_at": created_at,
-                    "created_ts": created_ts,
-                    "sheet_order": idx,
-                    "done_at": "",
-                    "source": "sheet",
-                }
-            )
-        # Keep local-only jobs not yet on the sheet (Hub UI adds / in-progress).
-        # Without this, Fly multi-machine + sheet refresh wipe「ใส่คิว」rows.
-        local_only = 0
-        preserved_pending = 0
-        for prev in old_items:
-            url = (prev.get("source_url") or "").strip()
-            if not url or url in seen:
-                continue
-            status = prev.get("status") or "pending"
-            src = (prev.get("source") or "").strip()
-            keep = status == "working" or (
-                status == "pending" and src in ("hub", "local", "")
-            )
-            if not keep:
-                continue
-            prev = dict(prev)
-            prev["sheet_order"] = 10**9 + local_only
-            items.append(prev)
-            local_only += 1
-            if status == "working":
-                preserved_working += 1
-            else:
-                preserved_pending += 1
-        repair_misaligned_queue_items(items)
-        save_queue(items)
+            repair_misaligned_queue_items(items)
+            _write_queue_file(items)
+            total = len(items)
+            replaced = False
+
+    if replace:
         return {
             "added": added,
             "skipped": skipped,
             "preserved_working": preserved_working,
             "preserved_pending": preserved_pending,
-            "total": len(items),
+            "total": total,
             "replaced": True,
         }
-
-    items = old_items
-    existing = _source_keys(items)
-    for row in sheet_rows:
-        source_url = row["source_url"]
-        if source_url in existing:
-            skipped += 1
-            continue
-        items.insert(
-            0,
-            {
-                "id": str(uuid.uuid4()),
-                "source_url": source_url,
-                "owner_contact": row["owner_contact"],
-                "source_url_2": row["owner_contact"],
-                "post_url": row["owner_contact"],
-                "url": source_url,
-                "note": row["note"],
-                "project": row.get("project") or "",
-                "price": row.get("price") or "",
-                "queued_at": _normalize_queued_at(row.get("queued_at") or ""),
-                "status": "pending",
-                "created_at": _now(),
-                "created_ts": ts,
-                "done_at": "",
-                "source": "sheet",
-            },
-        )
-        existing.add(source_url)
-        added += 1
-
-    repair_misaligned_queue_items(items)
-    save_queue(items)
-    return {"added": added, "skipped": skipped, "total": len(items), "replaced": False}
+    return {"added": added, "skipped": skipped, "total": total, "replaced": False}
 
 
 def queue_stats() -> dict:

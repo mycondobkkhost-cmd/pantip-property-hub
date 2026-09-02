@@ -111,6 +111,7 @@ def _normalize_job(raw: dict[str, Any]) -> dict[str, Any] | None:
     status = str(raw.get("status") or STATUS_PENDING).strip() or STATUS_PENDING
     return {
         "id": jid,
+        "property_id": str(raw.get("property_id") or "").strip(),
         "property_code": code,
         "group_url": group_url,
         "group_name": str(raw.get("group_name") or "").strip(),
@@ -181,6 +182,7 @@ def _posts_today_for_account(jobs: list[dict], account_id: str, *, today: str) -
 def create_campaign(
     *,
     property_code: str,
+    property_id: str = "",
     groups: list[dict[str, Any]],
     caption: str,
     image_urls: list[str],
@@ -192,7 +194,24 @@ def create_campaign(
     vary_captions: bool = True,
 ) -> dict[str, Any]:
     """Create one job per group, assign accounts round-robin, schedule next_post_at."""
-    code = (property_code or "").strip().upper()
+    from src.hub.project_store import load_properties
+    from src.hub.property_resolve import resolve_for_action
+
+    props = load_properties()
+    resolved = resolve_for_action(
+        props,
+        property_id=property_id,
+        property_code=property_code,
+    )
+    if not resolved.ok or not resolved.record:
+        if resolved.error_code == "PROPERTY_CODE_AMBIGUOUS":
+            raise ValueError(
+                "รหัสทรัพย์ซ้ำหลายรายการ — ระบุ property_id หรือเลือกทรัพย์จากรายการ"
+            )
+        raise ValueError("ไม่พบทรัพย์")
+    prop = resolved.record
+    code = str(prop.get("code") or property_code or "").strip().upper()
+    pid = str(prop.get("id") or "").strip()
     if not code:
         raise ValueError("ต้องระบุรหัสทรัพย์")
     caption_clean = sanitize_caption_no_links(caption)
@@ -298,6 +317,7 @@ def create_campaign(
 
             job = {
                 "id": _new_id(),
+                "property_id": pid,
                 "property_code": code,
                 "group_url": g["url"],
                 "group_name": g["name"],
@@ -350,6 +370,32 @@ def list_due(
         due.append(job)
     due.sort(key=lambda j: (j.get("next_post_at") or "", j.get("created_at") or ""))
     return due[: max(1, min(int(limit or 5), 20))]
+
+
+def list_due_for_publish(
+    *,
+    agent_id: str | None = None,
+    limit: int = 5,
+    now: datetime | None = None,
+) -> tuple[list[dict[str, Any]], int]:
+    """Return publish jobs safe to execute (unique property identity)."""
+    from src.hub.project_store import load_properties
+    from src.hub.property_resolve import resolve_job_property
+
+    props = load_properties()
+    blocked = 0
+    safe: list[dict[str, Any]] = []
+    for job in list_due(agent_id=agent_id, limit=limit, now=now):
+        res = resolve_job_property(props, job)
+        row = dict(job)
+        if res.ok and res.record:
+            row["property_id"] = str(res.record.get("id") or "")
+            row["property_code"] = str(res.record.get("code") or row.get("property_code") or "")
+            row["identity_status"] = "ok"
+            safe.append(row)
+        else:
+            blocked += 1
+    return safe, blocked
 
 
 def mark_result(
@@ -447,6 +493,35 @@ def cancel_job(job_id: str) -> bool:
     return False
 
 
+_OPEN_STATUSES = {STATUS_PENDING, STATUS_DUE, STATUS_FAILED, STATUS_AWAITING_JOIN}
+
+
+def cancel_open_jobs(*, agent_id: str | None = None) -> dict[str, Any]:
+    """Cancel all unfinished publish jobs for an agent (or all agents)."""
+    want_agent = str(agent_id).strip() if agent_id else None
+    cancelled = 0
+    with _LOCK:
+        data = _load_raw()
+        jobs = data.get("jobs") or []
+        now = _now_iso()
+        for i, raw in enumerate(jobs):
+            if not isinstance(raw, dict):
+                continue
+            if want_agent is not None and str(raw.get("agent_id") or "owner") != want_agent:
+                continue
+            st = str(raw.get("status") or "").strip().lower()
+            if st not in _OPEN_STATUSES:
+                continue
+            raw["status"] = STATUS_CANCELLED
+            raw["updated_at"] = now
+            raw["detail"] = str(raw.get("detail") or "") or "ล้างคิวจาก Hub"
+            jobs[i] = raw
+            cancelled += 1
+        data["jobs"] = jobs
+        _save_raw(data)
+    return {"cancelled": cancelled, "agent_id": want_agent or ""}
+
+
 def stats(*, agent_id: str | None = None) -> dict[str, Any]:
     jobs = list_jobs(agent_id=agent_id, limit=5000)
     today = _now().strftime("%Y-%m-%d")
@@ -466,6 +541,30 @@ def stats(*, agent_id: str | None = None) -> dict[str, Any]:
     )
     awaiting_join = by_status.get(STATUS_AWAITING_JOIN, 0)
     needs_manual = sum(1 for j in jobs if j.get("needs_manual_join") and j.get("status") == STATUS_AWAITING_JOIN)
+    next_job = None
+    next_at = ""
+    for j in jobs:
+        st = j.get("status") or ""
+        if st not in (STATUS_PENDING, STATUS_DUE, STATUS_FAILED, STATUS_AWAITING_JOIN):
+            continue
+        at = str(j.get("next_post_at") or "").strip()
+        if not at:
+            continue
+        if not next_at or at < next_at:
+            next_at = at
+            next_job = {
+                "id": j.get("id"),
+                "property_code": j.get("property_code"),
+                "group_name": j.get("group_name") or j.get("group_url"),
+                "status": st,
+                "next_post_at": at,
+                "needs_manual_join": bool(j.get("needs_manual_join")),
+            }
+    recent = [
+        j
+        for j in jobs
+        if (j.get("status") or "") in (STATUS_POSTED, STATUS_FAILED, STATUS_RESTRICTED, STATUS_AWAITING_JOIN)
+    ][:40]
     return {
         "total": len(jobs),
         "pending": pending,
@@ -474,4 +573,7 @@ def stats(*, agent_id: str | None = None) -> dict[str, Any]:
         "posted_today": posted_today,
         "by_status": by_status,
         "by_account_today": by_account,
+        "next_post_at": next_at or None,
+        "next_job": next_job,
+        "recent": recent,
     }

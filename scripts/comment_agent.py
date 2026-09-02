@@ -504,6 +504,123 @@ def sync_joined_groups(hub: str, token: str, email: str, password: str, *, accou
         return {"ok": False, "error": str(exc), "scraped": len(items)}
 
 
+def run_fetch_posts(hub: str, token: str, email: str, password: str, *, max_jobs: int = 1) -> dict:
+    """Pull due fetch-post jobs → open FB post logged-in → extract caption+images → report."""
+    global _alive_auth
+    import base64
+
+    from src.facebook.post_fetcher import FacebookPostFetcher
+
+    if email:
+        os.environ["FACEBOOK_EMAIL"] = email
+    if password:
+        os.environ["FACEBOOK_PASSWORD"] = password
+
+    def progress(msg: str) -> None:
+        print(msg, flush=True)
+        try:
+            heartbeat(hub, token, status="working", message=msg, fb_logged_in=True)
+        except Exception:  # noqa: BLE001
+            pass
+
+    try:
+        data = _request(
+            "GET",
+            _hub_url(hub, f"/api/fb-agent/fetch-post-due?limit={max(1, int(max_jobs))}"),
+            token=token,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("fetch-post-due failed: {}", exc)
+        return {"ok": False, "done": 0, "failed": 0, "error": str(exc)}
+
+    if data.get("work_paused"):
+        return {"ok": True, "done": 0, "failed": 0, "paused": True}
+
+    due = data.get("due") or []
+    if not due:
+        return {"ok": True, "done": 0, "failed": 0, "due": 0}
+
+    auth = _alive_auth
+    if auth is None:
+        auth = _make_auth(email, password, headless=False)
+        try:
+            auth.login(wait_manual_sec=120, force_manual=False)
+            _alive_auth = auth
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "done": 0, "failed": 1, "error": str(exc)}
+
+    page = getattr(auth, "_page", None)
+    if page is None:
+        try:
+            page = auth.login(wait_manual_sec=60, force_manual=False)
+            _alive_auth = auth
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "done": 0, "failed": 1, "error": str(exc)}
+    if page is None:
+        return {"ok": False, "done": 0, "failed": 1, "error": "no browser page"}
+
+    fetcher = FacebookPostFetcher(page)
+    done = 0
+    failed = 0
+
+    for job in due[: max(1, int(max_jobs))]:
+        job_id = str(job.get("id") or "")
+        code = str(job.get("code") or "")
+        url = str(job.get("url") or "")
+        progress(f"ดึงต้นฉบับโพส {code or ''} · {url[:60]}")
+        try:
+            result = fetcher.fetch(url, limit_images=12)
+            files_b64 = []
+            if result.get("ok") and result.get("image_urls"):
+                blobs = fetcher.download_images_as_bytes(result.get("image_urls") or [], limit=12)
+                for blob in blobs:
+                    raw = blob.get("data") or b""
+                    if not raw:
+                        continue
+                    files_b64.append(
+                        {
+                            "name": blob.get("name") or "photo.jpg",
+                            "content_type": blob.get("content_type") or "image/jpeg",
+                            "data": base64.b64encode(raw).decode("ascii"),
+                        }
+                    )
+            body = {
+                "id": job_id,
+                "ok": bool(result.get("ok")),
+                "caption": result.get("caption") or "",
+                "image_urls": result.get("image_urls") or [],
+                "images_base64": files_b64,
+                "final_url": result.get("final_url") or url,
+                "warnings": result.get("warnings") or [],
+                "error": result.get("error") or "",
+                "code": code,
+            }
+            _request("POST", _hub_url(hub, "/api/fb-agent/fetch-post-result"), token=token, body=body)
+            if result.get("ok"):
+                done += 1
+                progress(
+                    f"✓ ดึงต้นฉบับ {code} · ข้อความ {len(result.get('caption') or '')} ตัว · "
+                    f"รูป {len(files_b64) or len(result.get('image_urls') or [])} ใบ"
+                )
+            else:
+                failed += 1
+                progress(f"✗ ดึงต้นฉบับไม่สำเร็จ: {result.get('error') or ''}")
+        except Exception as exc:  # noqa: BLE001
+            failed += 1
+            logger.warning("fetch-post job failed: {}", exc)
+            try:
+                _request(
+                    "POST",
+                    _hub_url(hub, "/api/fb-agent/fetch-post-result"),
+                    token=token,
+                    body={"id": job_id, "ok": False, "error": str(exc), "code": code},
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
+    return {"ok": True, "done": done, "failed": failed}
+
+
 def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: int = 1) -> dict:
     """Pull due publish jobs → switch FB account → post images+caption → report."""
     global _alive_auth
@@ -569,7 +686,12 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
 
     for job in due[: max(1, int(max_posts))]:
         job_id = str(job.get("id") or "")
-        code = str(job.get("property_code") or "")
+        if str(job.get("identity_status") or "") != "ok":
+            failed += 1
+            progress(f"⚠ ข้ามงาน {job_id} — ไม่ระบุ property_id หรือรหัสซ้ำ")
+            continue
+        code = str(job.get("property_code") or job.get("code") or "")
+        property_id = str(job.get("property_id") or "")
         group_url = str(job.get("group_url") or "")
         caption = str(job.get("caption") or "")
         images = job.get("image_urls") or []
@@ -618,7 +740,7 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
             outcome = poster.post_to_group(
                 caption=caption,
                 image_urls=resolved_images,
-                property_id=code or "property",
+                property_id=property_id or code or "property",
                 group_url=group_url,
             )
         except Exception as exc:  # noqa: BLE001
@@ -694,6 +816,7 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
     logger.info("Comment agent started · hub={} · host={}", hub, host)
     last_comment_at = 0.0
     last_publish_at = 0.0
+    last_fetch_post_at = 0.0
     last_groups_sync_at = 0.0
     last_session_check = 0.0
     last_thumb_at = 0.0
@@ -702,6 +825,7 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
     thumb_every_sec = float(os.getenv("COMMENT_AGENT_THUMB_EVERY_SEC", "90"))
     profiles_every_sec = float(os.getenv("COMMENT_AGENT_PROFILES_EVERY_SEC", "300"))
     publish_every_sec = float(os.getenv("COMMENT_AGENT_PUBLISH_EVERY_SEC", "180"))
+    fetch_post_every_sec = float(os.getenv("COMMENT_AGENT_FETCH_POST_EVERY_SEC", "15"))
 
     # First tick: publish Chrome profiles for Hub picker
     try:
@@ -773,6 +897,8 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
                     logged_in = do_login(hub, token, email, password)
                     last_session_check = time.time()
                     if logged_in:
+                        run_fetch_posts(hub, token, email, password, max_jobs=1)
+                        last_fetch_post_at = time.time()
                         run_publish(hub, token, email, password, max_posts=1)
                         last_publish_at = time.time()
                         run_comments(hub, token, email, password)
@@ -807,6 +933,9 @@ def loop(hub: str, token: str, *, poll_sec: float, comment_every_sec: float) -> 
                         fb_logged_in=logged_in,
                     )
 
+                if logged_in and (now - last_fetch_post_at >= fetch_post_every_sec):
+                    run_fetch_posts(hub, token, email, password, max_jobs=1)
+                    last_fetch_post_at = time.time()
                 if logged_in and (now - last_publish_at >= publish_every_sec):
                     run_publish(hub, token, email, password, max_posts=1)
                     last_publish_at = time.time()

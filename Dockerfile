@@ -21,7 +21,10 @@ COPY requirements-hub.txt .
 RUN pip install --no-cache-dir -r requirements-hub.txt
 
 COPY scripts/ scripts/
+COPY config/ config/
+COPY requirements-agent.txt .
 COPY src/hub/ src/hub/
+COPY src/facebook/ src/facebook/
 COPY src/__init__.py src/__init__.py
 COPY hub/ hub/
 # Seed copy — Fly volume mounts over /app/data; entrypoint copies missing files.

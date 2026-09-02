@@ -83,7 +83,7 @@ from src.hub.group_post_publish_store import (  # noqa: E402
     cancel_job as cancel_publish_job,
     cancel_open_jobs as cancel_open_publish_jobs,
     create_campaign as create_publish_campaign,
-    list_due as list_publish_due,
+    list_due_for_publish,
     list_jobs as list_publish_jobs,
     mark_result as mark_publish_result,
     stats as publish_job_stats,
@@ -92,6 +92,7 @@ from src.hub.publish_caption import (  # noqa: E402
     build_no_link_captions,
     fetch_publish_bundle,
     resolve_image_urls_for_property,
+    resolve_property_for_publish,
 )
 from src.hub.fetch_post_store import (  # noqa: E402
     enqueue_fetch_post,
@@ -113,8 +114,10 @@ from src.hub.project_store import (  # noqa: E402
     PREVIEW_JS,
     PREVIEW_META,
     backfill_pet_friendly_from_sheet,
+    build_internal_catalog_dict,
     create_project,
     ensure_preview_js,
+    load_projects,
     load_properties,
     project_location_label,
     project_transit_display,
@@ -830,12 +833,6 @@ def _thumb_worker_loop() -> None:
             _THUMB_QUEUE.task_done()
 
 
-def _hub_session_secret() -> str:
-    import os
-
-    return (os.environ.get("HUB_SESSION_SECRET") or "local-dev-hub-session-secret").strip()
-
-
 def _is_cloud_host() -> bool:
     """True on Render / Fly (and similar) where HTTPS + real user secrets apply."""
     import os
@@ -845,6 +842,46 @@ def _is_cloud_host() -> bool:
         or (os.environ.get("FLY_APP_NAME") or "").strip()
         or (os.environ.get("FORCE_SECURE_COOKIES") or "").strip()
     )
+
+
+def _is_explicit_local_dev() -> bool:
+    """Local-only demo login — never enabled on cloud hosts."""
+    import os
+
+    if _is_cloud_host():
+        return False
+    flag = (os.environ.get("HUB_LOCAL_DEV") or os.environ.get("HUB_ALLOW_DEMO_USERS") or "").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
+def _hub_session_secret() -> str:
+    import os
+
+    raw = (os.environ.get("HUB_SESSION_SECRET") or "").strip()
+    if raw:
+        return raw
+    if _is_cloud_host():
+        return ""
+    if _is_explicit_local_dev():
+        return "local-dev-hub-session-secret"
+    return ""
+
+
+def _validate_production_auth_config() -> None:
+    """Fail closed on cloud when real auth secrets are missing."""
+    import os
+
+    if not _is_cloud_host():
+        return
+    problems: list[str] = []
+    if not (os.environ.get("HUB_USERS_JSON") or "").strip():
+        problems.append("HUB_USERS_JSON is not set")
+    if not (os.environ.get("HUB_SESSION_SECRET") or "").strip():
+        problems.append("HUB_SESSION_SECRET is not set")
+    if problems:
+        msg = "; ".join(problems)
+        print(f"[hub] FATAL: production auth misconfigured — {msg}")
+        raise SystemExit(1)
 
 
 def _parse_hub_users_json(raw: str):
@@ -892,10 +929,17 @@ def _load_hub_users() -> dict:
         return users
 
     if _is_cloud_host():
-        print("[hub] WARN: HUB_USERS_JSON not set on cloud host — login will fail until configured")
+        print("[hub] WARN: HUB_USERS_JSON not set on cloud host — login disabled (fail closed)")
         return {}
 
-    # Local-only demo accounts (not used in production HTML / view-source)
+    if not _is_explicit_local_dev():
+        print(
+            "[hub] INFO: login disabled locally — set HUB_USERS_JSON "
+            "or HUB_LOCAL_DEV=1 for weak demo accounts (development only)"
+        )
+        return {}
+
+    # Local-only demo accounts — require HUB_LOCAL_DEV=1; never used on cloud.
     return {
         "angkarn1996": {"password": "localdev", "name": "เจ้าของ"},
         "ptp2": {"password": "localdev2", "name": "แอดมิน 1"},
@@ -1517,7 +1561,7 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
             status = fb_agent_public_status(include_token=False, agent_id=agent_id)
             accounts = status.get("fb_accounts") or []
-            due = list_publish_due(agent_id=agent_id, limit=limit)
+            due, identity_blocked = list_due_for_publish(agent_id=agent_id, limit=limit)
             # Skip jobs for paused accounts
             filtered = []
             for job in due:
@@ -1546,6 +1590,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "agent_id": agent_id,
                     "due": filtered,
+                    "identity_blocked": identity_blocked,
                     "fb_accounts": accounts,
                     "stats": publish_job_stats(agent_id=agent_id),
                     "policy": {
@@ -1994,6 +2039,17 @@ class HubHandler(BaseHTTPRequestHandler):
                 ensure_masters_ready()
                 items = list_transits()
                 self._json(200, {"ok": True, "items": items, "total": len(items)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/hub/catalog":
+            if not self._session_user():
+                self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+                return
+            try:
+                payload = build_internal_catalog_dict(load_projects(), load_properties())
+                payload["ok"] = True
+                self._json(200, payload)
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -2512,9 +2568,16 @@ class HubHandler(BaseHTTPRequestHandler):
                 )
 
                 code = str(job.get("code") or body.get("code") or "").strip().upper()
-                if ok and code and caption:
+                property_id = str(
+                    body.get("property_id") or job.get("property_id") or ""
+                ).strip()
+                if ok and caption and (property_id or code):
                     try:
-                        set_property_page_post_text(code, caption)
+                        set_property_page_post_text(
+                            caption,
+                            property_id=property_id,
+                            code=code,
+                        )
                     except Exception as pe:  # noqa: BLE001
                         print(f"save page_post_text failed: {pe}", flush=True)
 
@@ -2528,19 +2591,30 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/publish-fetch-post":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip().upper()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 url = (body.get("url") or body.get("page_url") or body.get("post_url") or "").strip()
                 agent_id = (body.get("agent_id") or body.get("agent") or "owner").strip() or "owner"
-                if not url and code:
-                    prop = next(
-                        (
-                            p
-                            for p in load_properties()
-                            if str(p.get("code") or "").strip().upper() == code
-                        ),
-                        None,
+                if not url and (property_id or code):
+                    resolved = resolve_property_for_publish(
+                        property_id=property_id,
+                        property_code=code,
                     )
-                    if prop:
+                    if resolved.get("ok"):
+                        prop = resolved["property"]
                         url = str(prop.get("post_pages_url") or prop.get("source_url") or "").strip()
+                        code = str(prop.get("code") or code).strip().upper()
+                        property_id = str(prop.get("id") or property_id)
+                    elif resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS":
+                        self._json(
+                            409,
+                            {
+                                "ok": False,
+                                "error": resolved.get("error"),
+                                "error_code": "PROPERTY_CODE_AMBIGUOUS",
+                                "candidates": resolved.get("candidates") or [],
+                            },
+                        )
+                        return
                 job = enqueue_fetch_post(url=url, code=code, agent_id=agent_id)
                 self._json(200, {"ok": True, "job": job})
             except ValueError as exc:
@@ -2621,15 +2695,52 @@ class HubHandler(BaseHTTPRequestHandler):
             try:
                 agent_id = (body.get("agent_id") or body.get("agent") or "owner").strip() or "owner"
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
+                resolved = resolve_property_for_publish(
+                    property_id=property_id,
+                    property_code=code,
+                )
+                if not resolved.get("ok"):
+                    self._json(
+                        409 if resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS" else 400,
+                        {
+                            "ok": False,
+                            "error": resolved.get("error") or "ไม่พบทรัพย์",
+                            "error_code": resolved.get("error_code") or "",
+                            "candidates": resolved.get("candidates") or [],
+                        },
+                    )
+                    return
+                prop = resolved["property"]
+                code = str(prop.get("code") or code).strip().upper()
+                property_id = str(prop.get("id") or "")
                 groups = body.get("groups") or []
                 if not isinstance(groups, list):
                     groups = []
                 # captions
                 caption = str(body.get("caption") or "").strip()
                 if not caption:
-                    built = build_no_link_captions(code, lang=str(body.get("lang") or "th"), n=4)
+                    built = build_no_link_captions(
+                        code,
+                        lang=str(body.get("lang") or "th"),
+                        n=4,
+                        property_id=property_id,
+                    )
                     if not built.get("ok"):
-                        self._json(400, {"ok": False, "error": built.get("error") or "สร้างแคปชันไม่ได้"})
+                        status = (
+                            409
+                            if built.get("error_code") == "PROPERTY_CODE_AMBIGUOUS"
+                            else 400
+                        )
+                        self._json(
+                            status,
+                            {
+                                "ok": False,
+                                "error": built.get("error") or "สร้างแคปชันไม่ได้",
+                                "error_code": built.get("error_code") or "",
+                                "candidates": built.get("candidates") or [],
+                            },
+                        )
                         return
                     variants = built.get("variants") or [built.get("caption")]
                     # rotate caption per group via index if multiple variants
@@ -2643,7 +2754,11 @@ class HubHandler(BaseHTTPRequestHandler):
                 image_urls = body.get("image_urls") or body.get("images") or []
                 if not isinstance(image_urls, list):
                     image_urls = []
-                image_urls = resolve_image_urls_for_property(code, extra=[str(x) for x in image_urls])
+                image_urls = resolve_image_urls_for_property(
+                    code,
+                    extra=[str(x) for x in image_urls],
+                    property_id=property_id,
+                )
 
                 status = fb_agent_public_status(include_token=False, agent_id=agent_id)
                 accounts = status.get("fb_accounts") or []
@@ -2662,6 +2777,7 @@ class HubHandler(BaseHTTPRequestHandler):
                         cap = variants[i % len(variants)]
                         part = _cc(
                             property_code=code,
+                            property_id=property_id,
                             groups=[g],
                             caption=cap,
                             image_urls=image_urls,
@@ -2686,6 +2802,7 @@ class HubHandler(BaseHTTPRequestHandler):
 
                 result = create_publish_campaign(
                     property_code=code,
+                    property_id=property_id,
                     groups=groups,
                     caption=caption,
                     image_urls=image_urls,
@@ -2774,8 +2891,40 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/publish-images/from-property":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip()
-                urls = resolve_image_urls_for_property(code, extra=[])
-                self._json(200, {"ok": True, "code": code.upper(), "image_urls": urls, "count": len(urls)})
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
+                resolved = resolve_property_for_publish(
+                    property_id=property_id,
+                    property_code=code,
+                )
+                if not resolved.get("ok"):
+                    self._json(
+                        409 if resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS" else 400,
+                        {
+                            "ok": False,
+                            "error": resolved.get("error") or "ไม่พบทรัพย์",
+                            "error_code": resolved.get("error_code") or "",
+                            "candidates": resolved.get("candidates") or [],
+                        },
+                    )
+                    return
+                prop = resolved["property"]
+                code = str(prop.get("code") or code).strip().upper()
+                property_id = str(prop.get("id") or "")
+                urls = resolve_image_urls_for_property(
+                    code,
+                    extra=[],
+                    property_id=property_id,
+                )
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "property_id": property_id,
+                        "code": code,
+                        "image_urls": urls,
+                        "count": len(urls),
+                    },
+                )
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -2783,9 +2932,18 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/publish-from-property":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 allow_scrape = body.get("allow_scrape", True) is not False
-                result = fetch_publish_bundle(code, allow_scrape=allow_scrape)
-                status = 200 if result.get("ok") else 400
+                result = fetch_publish_bundle(
+                    code,
+                    allow_scrape=allow_scrape,
+                    property_id=property_id,
+                )
+                status = (
+                    409
+                    if result.get("error_code") == "PROPERTY_CODE_AMBIGUOUS"
+                    else (200 if result.get("ok") else 400)
+                )
                 self._json(status, result)
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
@@ -2830,10 +2988,12 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/groups/prepare-caption-nolink":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 result = build_no_link_captions(
                     code,
                     lang=str(body.get("lang") or "th"),
                     n=int(body.get("n") or body.get("variants") or 4),
+                    property_id=property_id,
                 )
                 status = 200 if result.get("ok") else 400
                 self._json(status, result)
@@ -2887,18 +3047,31 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/groups/recommend":
             try:
-                from src.hub.publish_caption import find_property_by_code
-
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 prop = body.get("property") if isinstance(body.get("property"), dict) else None
-                # Always hydrate from Hub property master when code is given
-                if code:
-                    found = find_property_by_code(code)
-                    if found:
-                        prop = dict(found)
-                    elif not prop:
-                        prop = {"code": code}
-                    else:
+                if property_id or code:
+                    resolved = resolve_property_for_publish(
+                        property_id=property_id,
+                        property_code=code,
+                    )
+                    if resolved.get("ok"):
+                        prop = dict(resolved["property"])
+                    elif resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS":
+                        self._json(
+                            409,
+                            {
+                                "ok": False,
+                                "error": resolved.get("error"),
+                                "error_code": "PROPERTY_CODE_AMBIGUOUS",
+                                "candidates": resolved.get("candidates") or [],
+                            },
+                        )
+                        return
+                    elif code and not prop:
+                        self._json(404, {"ok": False, "error": resolved.get("error") or "ไม่พบทรัพย์"})
+                        return
+                    elif code and prop:
                         prop = {**prop, "code": code or prop.get("code") or ""}
                 elif not prop:
                     prop = body if isinstance(body, dict) else {}
@@ -4307,6 +4480,8 @@ def main() -> None:
     import os
     import threading
     import time
+
+    _validate_production_auth_config()
 
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", str(PORT)))

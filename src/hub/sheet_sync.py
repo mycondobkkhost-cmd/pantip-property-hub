@@ -22,6 +22,78 @@ except Exception:
     pass
 
 
+def _build_overlay_snapshots(properties: list[dict]) -> tuple[dict[str, dict], dict[str, dict], set[str]]:
+    """Build id-keyed and code-keyed Hub overlay maps; skip ambiguous codes for code-only."""
+    from src.hub.project_store import HUB_OVERLAY_FIELDS
+    from src.hub.property_resolve import overlay_blocked_codes
+
+    overlay_by_id: dict[str, dict] = {}
+    overlay_by_code: dict[str, dict] = {}
+    blocked = overlay_blocked_codes(properties)
+    for p in properties:
+        if not isinstance(p, dict):
+            continue
+        pid = str(p.get("id") or "").strip()
+        code = (p.get("code") or "").strip().upper()
+        snap = {k: p.get(k) for k in HUB_OVERLAY_FIELDS if k in p}
+        if not (
+            snap.get("hub_edited_at")
+            or any(
+                snap.get(k) not in ("", None, [], {})
+                for k in HUB_OVERLAY_FIELDS
+                if k != "hub_edited_at"
+            )
+        ):
+            continue
+        if pid:
+            overlay_by_id[pid] = snap
+        if code and code not in blocked:
+            overlay_by_code[code] = snap
+    return overlay_by_id, overlay_by_code, blocked
+
+
+def _apply_overlay_snapshots(
+    properties: list[dict],
+    *,
+    overlay_by_id: dict[str, dict],
+    overlay_by_code: dict[str, dict],
+    blocked_codes: set[str],
+) -> int:
+    """Re-apply Hub edits after sheet rebuild — prefer property_id, never ambiguous code-only."""
+    from src.hub.project_store import HUB_OVERLAY_FIELDS
+
+    restored_overlay = 0
+
+    def _blank(val) -> bool:
+        return val in ("", None, [], {})
+
+    for p in properties:
+        pid = str(p.get("id") or "").strip()
+        code = (p.get("code") or "").strip().upper()
+        snap = overlay_by_id.get(pid)
+        if not snap and code and code not in blocked_codes:
+            snap = overlay_by_code.get(code)
+        if not snap:
+            continue
+        changed = False
+        stamped = bool(snap.get("hub_edited_at"))
+        for key in HUB_OVERLAY_FIELDS:
+            if key not in snap:
+                continue
+            old = snap.get(key)
+            new = p.get(key)
+            if stamped:
+                if new != old:
+                    p[key] = old
+                    changed = True
+            elif _blank(new) and not _blank(old):
+                p[key] = old
+                changed = True
+        if changed:
+            restored_overlay += 1
+    return restored_overlay
+
+
 def _load_build_master():
     path = BASE_DIR / "scripts" / "build_master.py"
     spec = importlib.util.spec_from_file_location("build_master", path)
@@ -233,27 +305,18 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
     # rebuild so adds that landed during the (slow) CSV download are kept.
     preserved: list[dict] = []
     preserved_loc_by_bucket: dict[str, dict] = {}
+    overlay_by_id: dict[str, dict] = {}
     overlay_by_code: dict[str, dict] = {}
+    overlay_blocked: set[str] = set()
     try:
-        from src.hub.project_store import HUB_OVERLAY_FIELDS
-
-        for p in load_properties():
-            if is_hub_owned(p):
-                preserved.append(dict(p))
-            code = (p.get("code") or "").strip().upper()
-            if not code:
-                continue
-            snap = {k: p.get(k) for k in HUB_OVERLAY_FIELDS if k in p}
-            # Keep even empty hub_edited stamps so clears survive refresh.
-            if snap.get("hub_edited_at") or any(
-                snap.get(k) not in ("", None, [], {})
-                for k in HUB_OVERLAY_FIELDS
-                if k != "hub_edited_at"
-            ):
-                overlay_by_code[code] = snap
+        props_snapshot = load_properties()
+        preserved = [dict(p) for p in props_snapshot if is_hub_owned(p)]
+        overlay_by_id, overlay_by_code, overlay_blocked = _build_overlay_snapshots(props_snapshot)
     except Exception:
         preserved = []
+        overlay_by_id = {}
         overlay_by_code = {}
+        overlay_blocked = set()
     try:
         for proj in load_projects():
             bucket = proj.get("bucket_key") or ""
@@ -345,22 +408,10 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
         # concurrent Hub saves cannot land mid-wipe and then be lost.
         with _STORE_LOCK:
             try:
-                from src.hub.project_store import HUB_OVERLAY_FIELDS
-
                 preserved = [dict(p) for p in load_properties() if is_hub_owned(p)]
-                # Refresh overlay snapshot under lock (latest Hub edits win).
-                overlay_by_code = {}
-                for p in load_properties():
-                    code = (p.get("code") or "").strip().upper()
-                    if not code:
-                        continue
-                    snap = {k: p.get(k) for k in HUB_OVERLAY_FIELDS if k in p}
-                    if snap.get("hub_edited_at") or any(
-                        snap.get(k) not in ("", None, [], {})
-                        for k in HUB_OVERLAY_FIELDS
-                        if k != "hub_edited_at"
-                    ):
-                        overlay_by_code[code] = snap
+                overlay_by_id, overlay_by_code, overlay_blocked = _build_overlay_snapshots(
+                    load_properties()
+                )
             except Exception:
                 pass  # keep earlier snapshot
 
@@ -409,35 +460,16 @@ def refresh_main_sheet(*, csv_url: str = "", rebuild: bool = True) -> dict:
             # Re-apply Hub edits on PTP (and others): links/notes/captions that the
             # main-sheet CSV rebuild blanks. Without this, mobile「รีเฟรช」wipes work.
             restored_overlay = 0
-            if overlay_by_code:
-                from src.hub.project_store import HUB_OVERLAY_FIELDS
-
-                def _blank(val) -> bool:
-                    return val in ("", None, [], {})
-
-                for p in properties:
-                    code = (p.get("code") or "").strip().upper()
-                    snap = overlay_by_code.get(code)
-                    if not snap:
-                        continue
-                    changed = False
-                    stamped = bool(snap.get("hub_edited_at"))
-                    for key in HUB_OVERLAY_FIELDS:
-                        if key not in snap:
-                            continue
-                        old = snap.get(key)
-                        new = p.get(key)
-                        if stamped:
-                            # Hub edit wins fully (including intentional clears).
-                            if new != old:
-                                p[key] = old
-                                changed = True
-                        elif _blank(new) and not _blank(old):
-                            p[key] = old
-                            changed = True
-                    if changed:
-                        restored_overlay += 1
+            if overlay_by_id or overlay_by_code:
+                restored_overlay = _apply_overlay_snapshots(
+                    properties,
+                    overlay_by_id=overlay_by_id,
+                    overlay_by_code=overlay_by_code,
+                    blocked_codes=overlay_blocked,
+                )
             summary["preserved_hub_edits"] = restored_overlay
+            if overlay_blocked:
+                summary["overlay_blocked_ambiguous_codes"] = len(overlay_blocked)
 
             if restored or restored_loc or restored_overlay:
                 # recount listing_count from merged properties

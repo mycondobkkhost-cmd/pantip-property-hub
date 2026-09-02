@@ -56,7 +56,7 @@
     "zone_unverified": [],
     "location_status": "verified",
     "is_thru_thonglor": false,
-    "listing_count": 3
+    "listing_count": 1
   },
   {
     "id": "seed-proj-004",
@@ -111,7 +111,7 @@
     "zone_unverified": [],
     "location_status": "verified",
     "is_thru_thonglor": false,
-    "listing_count": 2
+    "listing_count": 3
   },
   {
     "id": "seed-proj-007",
@@ -128,7 +128,7 @@
     "zone_unverified": [],
     "location_status": "verified",
     "is_thru_thonglor": false,
-    "listing_count": 2
+    "listing_count": 3
   },
   {
     "id": "seed-proj-008",

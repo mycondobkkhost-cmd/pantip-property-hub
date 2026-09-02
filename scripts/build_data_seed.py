@@ -192,13 +192,14 @@ def build_properties() -> list[dict]:
         )
     )
 
-    for i in range(1, 4):
+    dup_projects = ("seed-proj-003", "seed-proj-006", "seed-proj-007")
+    for i, proj_id in enumerate(dup_projects, start=1):
         props.append(
             _base_prop(
                 f"seed-prop-dup-{i}",
                 "PTP4734",
                 prefix="PTP",
-                project_id="seed-proj-003",
+                project_id=proj_id,
                 rent=str(14000 + i * 500),
                 post_url=f"https://example.com/fb/post/ptp4734-{i}",
             )

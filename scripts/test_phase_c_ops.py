@@ -28,6 +28,22 @@ class PhaseCOpsTests(unittest.TestCase):
         dup = [p for p in props if p.get("code") == "PTP4734"]
         self.assertGreaterEqual(len(dup), 3)
         self.assertEqual(len({p["id"] for p in dup}), len(dup))
+        project_ids = {p["project_id"] for p in dup}
+        self.assertGreaterEqual(len(project_ids), 2, "cross-project duplicate fixture required")
+
+    def test_data_seed_duplicate_cross_project(self) -> None:
+        props = json.loads((ROOT / "data_seed/properties.json").read_text(encoding="utf-8"))
+        dup = [p for p in props if p.get("code") == "PTP4734"]
+        self.assertGreaterEqual(len(dup), 3)
+        ids = {p["id"] for p in dup}
+        projects = {p["project_id"] for p in dup}
+        self.assertEqual(len(ids), len(dup))
+        self.assertGreaterEqual(len(projects), 2)
+        from src.hub.property_resolve import resolve_by_code
+
+        result = resolve_by_code(props, "PTP4734")
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error_code, "PROPERTY_CODE_AMBIGUOUS")
 
     def test_data_seed_has_no_pii_fields_populated(self) -> None:
         props = json.loads((ROOT / "data_seed/properties.json").read_text(encoding="utf-8"))

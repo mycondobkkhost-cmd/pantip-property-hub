@@ -27,6 +27,10 @@ scripts/windows/เปิดระบบคอมเมนต์.bat
 
 data/thumb_cache/
 data/living_cache/
+data/propertyhub_cache/
+data/fetch_post_jobs.json
+data/auto_follow.json
+logs/
 logs/*.log
 logs/*.pid
 logs/line_webhook_url.txt

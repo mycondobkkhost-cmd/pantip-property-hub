@@ -107,8 +107,8 @@
     "code_prefix": "PTP",
     "data_source": "hub",
     "listing_kind": "direct",
-    "project_id": "seed-proj-003",
-    "project_name": "Duplicate Code Block (synthetic)",
+    "project_id": "seed-proj-006",
+    "project_name": "Riverside Sample",
     "last_listed_at": "01/09/2026",
     "property_type": "Condo",
     "bedrooms": "1 Bed 1 Bath",
@@ -130,9 +130,9 @@
     "media_status": "pending",
     "sheet_row": "",
     "transit_from_sheet": [
-      "BTS พระโขนง"
+      "BTS สะพานตากสิน"
     ],
-    "location_ref": "พระโขนง",
+    "location_ref": "ธนบุรี",
     "duplicate_flags": []
   },
   {
@@ -141,8 +141,8 @@
     "code_prefix": "PTP",
     "data_source": "hub",
     "listing_kind": "direct",
-    "project_id": "seed-proj-003",
-    "project_name": "Duplicate Code Block (synthetic)",
+    "project_id": "seed-proj-007",
+    "project_name": "Budget Block Condo",
     "last_listed_at": "01/09/2026",
     "property_type": "Condo",
     "bedrooms": "1 Bed 1 Bath",
@@ -164,9 +164,9 @@
     "media_status": "pending",
     "sheet_row": "",
     "transit_from_sheet": [
-      "BTS พระโขนง"
+      "MRT ห้วยขวาง"
     ],
-    "location_ref": "พระโขนง",
+    "location_ref": "ห้วยขวาง",
     "duplicate_flags": []
   },
   {

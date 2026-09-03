@@ -181,6 +181,27 @@
     .hidden { display: none !important; }
     .tech { font-size: .8rem; color: var(--muted); margin-top: 8px; }
     details.tech-box { margin-top: 10px; }
+    .preview-box {
+      border: 2px solid #bbf7d0;
+      background: #f0fdf4;
+      border-radius: 10px;
+      padding: 12px;
+      margin: 12px 0;
+    }
+    .preview-box h4 { margin: 0 0 8px; color: #166534; }
+    .dim-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: .72rem;
+      margin: 2px 4px 2px 0;
+      background: #e2e8f0;
+    }
+    .dim-admin { background: #dbeafe; color: #1e40af; }
+    .dim-market { background: #dcfce7; color: #166534; }
+    .dim-transit { background: #fef9c3; color: #854d0e; }
+    .dim-corridor { background: #f3e8ff; color: #6b21a8; }
+    .pilot-badge { background: #cffafe; color: #0e7490; }
   </style>
 </head>
 <body>
@@ -234,6 +255,7 @@
       </select>
       <input id="f-search" placeholder="ค้นหาชื่อโครงการ / project_id" />
       <label class="muted"><input type="checkbox" id="f-top50" /> แสดง Top 50 ก่อน</label>
+      <label class="muted"><input type="checkbox" id="f-pilot" /> แสดงเฉพาะ Pilot (~8 โครงการ)</label>
       <button id="f-apply">กรอง</button>
       <button id="f-export" style="background:#334155">ส่งออกข้อเสนอที่อนุมัติแล้ว</button>
     </div>
@@ -298,6 +320,7 @@
           <div>
             <span class="badge ${esc(item.priority || "P3").toLowerCase()}">${esc(item.priority)} ${esc(item.priority_label_th || "")}</span>
             <span class="badge status-${esc(st)}">${esc(st)}</span>
+            ${item.is_pilot ? '<span class="badge pilot-badge">Pilot</span>' : ""}
           </div>
           <h3>${esc(item.project_name)}</h3>
           <div class="muted">มีห้องในระบบ: <strong>${item.live_snapshot_listing_count || 0}</strong> ห้อง</div>
@@ -310,46 +333,84 @@
       });
     }
 
+    function renderZoneDimensions(cur) {
+      const dims = (cur.zone_dimensions || []);
+      if (!dims.length) return `<div>${esc(cur.value || "—")}</div>`;
+      return dims.map((d) => {
+        const cls = d.semantic_kind === "ADMIN_DISTRICT" ? "dim-admin"
+          : d.semantic_kind === "MARKETPLACE_AREA" ? "dim-market"
+          : d.semantic_kind === "TRANSIT" ? "dim-transit"
+          : d.semantic_kind === "CORRIDOR" ? "dim-corridor" : "";
+        return `<span class="dim-tag ${cls}">${esc(d.label_th)}: ${esc(d.value)}</span>`;
+      }).join("");
+    }
+
+    function renderMarketplaceRelations(prop) {
+      const rels = prop.marketplace_area_relations || [];
+      if (!rels.length) return `<div>${esc(prop.value || "—")}</div>`;
+      return rels.map((r) => `<div>ทำเลตลาด <strong>${esc(r.role)}</strong>: ${esc(r.area_name || r.area_id || "—")} <span class="muted">(ความมั่นใจ ${esc(r.confidence || "")})</span></div>`).join("");
+    }
+
+    function renderFuturePreview(item) {
+      const fp = item.future_preview_th || {};
+      const lines = (fp.lines_th || []).map((ln) => `<div>${esc(ln)}</div>`).join("");
+      return `<div class="preview-box">
+        <h4>${esc(fp.title_th || "ถ้าอนุมัติข้อเสนอนี้")}</h4>
+        ${lines}
+        <div class="muted" style="margin-top:8px">${esc(fp.notice_th || "")}</div>
+      </div>`;
+    }
+
     function openDetail(id) {
       const item = state.items.find((i) => i.review_item_id === id);
       if (!item) return;
       const cur = item.current_value || {};
       const prop = item.proposed_value || {};
       const evidence = (item.evidence || []).map((e) => `<li>${esc(e.explanation || e.evidence_type)}</li>`).join("");
+      const isPantipOnly = item.review_type === "PANTIP_ONLY_REVIEW";
       document.getElementById("detail-panel").innerHTML = `
         <button onclick="closeDetail()" style="float:right;border:none;background:none;font-size:1.2rem;cursor:pointer">✕</button>
         <h2>${esc(item.project_name)}</h2>
-        <p class="muted">project_id: <code>${esc(item.project_id)}</code></p>
-        <p><strong>มีห้องในระบบ:</strong> ${item.live_snapshot_listing_count || 0} ห้อง</p>
-        <p><strong>ผลกระทบถ้าอนุมัติในอนาคต:</strong> ${item.live_snapshot_listing_count || 0} listings</p>
+        <p class="muted">โครงการนี้คือ: <strong>${esc(item.project_name)}</strong> (มีห้องในระบบ ${item.live_snapshot_listing_count || 0} ห้อง)</p>
+        <p class="muted">${esc(item.why_in_queue_th || "")}</p>
         <div class="row">
           <div class="box">
-            <h4>ข้อมูลปัจจุบันใน Pantip</h4>
-            <div>${esc(cur.value || "—")}</div>
-            <div class="muted">ประเภท: ${esc(cur.semantic_kind || "")}</div>
+            <h4>ข้อมูล Pantip ปัจจุบัน</h4>
+            ${renderZoneDimensions(cur)}
+            ${(cur.transit || []).length ? `<div class="muted" style="margin-top:6px">สถานี: ${esc((cur.transit || []).join(", "))}</div>` : ""}
+            <div class="muted" style="margin-top:6px">${esc(cur.dimension_note_th || "")}</div>
             <div class="muted">${esc(item.legacy_state_th || "")}</div>
+            ${cur.pantip_only_notice_th ? `<p style="color:var(--warn)">${esc(cur.pantip_only_notice_th)}</p>` : ""}
           </div>
           <div class="box">
-            <h4>ข้อมูลที่ Master แนะนำ</h4>
-            <div>${esc(prop.value || "—")}</div>
-            <div class="muted">ประเภท: ${esc(prop.semantic_kind || "")}</div>
-            <div class="muted">ความมั่นใจ: ${esc(prop.confidence || "")}</div>
+            <h4>ข้อเสนอจาก Master อ้างอิง (RealXtate)</h4>
+            ${isPantipOnly ? `<div>${esc(prop.value || "—")}</div>` : renderMarketplaceRelations(prop)}
+            <div class="muted" style="margin-top:6px">${esc(prop.dimension_note_th || "")}</div>
+            <div class="muted">ความมั่นใจ: <strong>${esc(prop.confidence_label_th || prop.confidence || "")}</strong></div>
+            <div class="muted">${esc(prop.confidence_explanation_th || "")}</div>
           </div>
         </div>
         ${item.semantic_note_th ? `<p style="color:var(--warn)">${esc(item.semantic_note_th)}</p>` : ""}
+        ${renderFuturePreview(item)}
         <div class="box">
-          <h4>เหตุผลที่ระบบเสนอ</h4>
+          <h4>ทำไมระบบถึงเสนอให้ตรวจรายการนี้</h4>
           <ul>${evidence || "<li>—</li>"}</ul>
+        </div>
+        <div class="box">
+          <h4>ถ้ายังไม่แน่ใจ</h4>
+          <p class="muted">กด <strong>ไว้ตรวจทีหลัง</strong> — ยังไม่ตัดสินใจ และไม่แก้ข้อมูลใดๆ</p>
+          <p class="muted">กด <strong>ไม่อนุมัติ</strong> เมื่อข้อเสนอไม่ถูกต้อง</p>
+          <p class="muted">กด <strong>อนุมัติข้อเสนอ</strong> เมื่อยอมรับเป็นตัวเลือกแก้ไขในอนาคต (ยังไม่ Apply ทันที)</p>
         </div>
         <details class="tech-box"><summary>ดูรายละเอียดทางเทคนิค</summary>
           <pre class="tech">${esc(JSON.stringify(item, null, 2))}</pre>
         </details>
         <div class="actions">
-          <button class="btn-approve" data-action="APPROVED">อนุมัติข้อเสนอ</button>
-          <button class="btn-reject" data-action="REJECTED">ไม่อนุมัติ</button>
+          ${isPantipOnly ? "" : '<button class="btn-approve" data-action="APPROVED">อนุมัติข้อเสนอ (อนาคต)</button>'}
+          <button class="btn-reject" data-action="REJECTED">${isPantipOnly ? "ไม่ดำเนินการ" : "ไม่อนุมัติ"}</button>
           <button class="btn-defer" data-action="DEFERRED">ไว้ตรวจทีหลัง</button>
         </div>
-        <p class="muted" style="margin-top:10px">การอนุมัติในหน้านี้ยังไม่แก้ข้อมูลจริง</p>
+        <p class="muted" style="margin-top:10px">การอนุมัติในหน้านี้ยังไม่แก้ข้อมูลจริง — บันทึกเฉพาะการตัดสินใจสำหรับขั้นตอนในอนาคต</p>
       `;
       document.getElementById("detail").classList.add("open");
       document.querySelectorAll("#detail-panel [data-action]").forEach((btn) => {
@@ -405,6 +466,7 @@
       if (issue) q.set("issue_type", issue);
       if (search) q.set("search", search);
       if (top50) q.set("top50", "1");
+      if (document.getElementById("f-pilot").checked) q.set("pilot_only", "1");
       const data = await api("/api/master-review/items?" + q.toString());
       state.items = data.items || [];
       state.summary = data.summary || {};

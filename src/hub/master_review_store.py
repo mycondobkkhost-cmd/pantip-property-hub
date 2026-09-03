@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Owner canonical master review — decision recording only (Phase X).
+"""Owner canonical master review — decision recording only (Phase X/Y).
 
 REVIEW != APPLY. This module never mutates projects.json or properties.json.
 """
@@ -19,8 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DEFAULT_REVIEW_DATA_DIR = BASE_DIR / ".local" / "master_review"
 FIXTURE_CROSSWALK = BASE_DIR / "data_fixtures" / "master_review" / "sample_crosswalk.json"
 
-REVIEW_VERSION = "0.1"
+REVIEW_VERSION = "0.2"
 CROSSWALK_VERSION = "phase-w-20260904T035800Z"
+MAX_MARKETPLACE_AREAS = 3
+MARKETPLACE_ROLES = frozenset({"PRIMARY", "SECONDARY", "EDGE"})
 
 STATUSES = frozenset({"PENDING", "APPROVED", "REJECTED", "DEFERRED"})
 FORBIDDEN_STATUSES = frozenset({"APPLIED"})
@@ -66,6 +68,92 @@ CONFIDENCE_THAI = {
     "REALXTATE_LOW": "ต่ำ",
 }
 
+SEMANTIC_KIND_THAI = {
+    "ADMIN_DISTRICT": "เขต/แขวง (การปกครอง)",
+    "CORRIDOR": "โซน/คอร์ริเดอร์",
+    "TRANSIT": "สถานีรถไฟฟ้า/รถไฟ",
+    "MARKETPLACE_AREA": "ทำเลตลาด (ค้นหา)",
+    "PROJECT_IDENTITY": "ตัวตนโครงการ",
+    "UNKNOWN": "ยังไม่ระบุ",
+}
+
+BANGKOK_ADMIN_DISTRICTS = frozenset(
+    {
+        "วัฒนา",
+        "คลองเตย",
+        "บางรัก",
+        "สาทร",
+        "ปทุมวัน",
+        "ราชเทวี",
+        "ดินแดง",
+        "ห้วยขวาง",
+        "พญาไท",
+        "บางกะปิ",
+        "ลาดพร้าว",
+        "จตุจักร",
+        "บางนา",
+        "พระโขนง",
+        "สวนหลวง",
+        "ประเวศ",
+        "บางขุนเทียน",
+        "ทุ่งครุ",
+        "ภาษีเจริญ",
+        "ธนบุรี",
+        "บางกอกใหญ่",
+        "บางกอกน้อย",
+        "บางพลัด",
+        "ตลิ่งชัน",
+        "ทวีวัฒนา",
+        "หนองแขม",
+        "บางแค",
+        "บางซื่อ",
+        "ดุสิต",
+        "พระนคร",
+        "สัมพันธวงศ์",
+        "คลองสาน",
+        "ยานนาวา",
+    }
+)
+
+# Phase Y pilot — deterministic representative set (project_id from live crosswalk).
+PILOT_PROJECT_IDS: tuple[str, ...] = (
+    "ec5214c9-c9fb-5ca5-98fb-852703044e4a",  # Life Asoke Rama 9
+    "9782b822-d4db-5285-b5a7-87c89eec49a6",  # Life Asoke
+    "03f2d9d3-b0b4-5fad-86ef-f9de7939cee2",  # THE BASE Phetchaburi-Thonglor
+    "5e06d489-a116-5f78-87a4-1c3813aac70b",  # Aspire Sukhumvit 48
+    "8d70d6c6-ef51-549c-8822-507c77ab8d70",  # Life Asoke Hype (multi-area)
+    "f2fad7e4-abc9-5b62-ae23-f2d8bb42b86f",  # ATMOZ BANGNA (PANTIP_ONLY)
+    "cc3f0b19-843e-5479-a28d-bf2feb5c7ff9",  # The Diplomat Sathorn (PANTIP_ONLY)
+    "0944c1d9-ce53-5938-aa0d-de7f3ccb7a68",  # Townhouse Ekamai 22 (PANTIP_ONLY)
+)
+
+PILOT_SELECTION_REASONS_TH: dict[str, str] = {
+    "ec5214c9-c9fb-5ca5-98fb-852703044e4a": (
+        "ความมั่นใจสูง + ข้อมูลทำเลขัดแย้ง + มีห้องเยอะ + มีทำเลตลาด 3 บทบาท (PRIMARY/SECONDARY/EDGE)"
+    ),
+    "9782b822-d4db-5285-b5a7-87c89eec49a6": (
+        "โครงการใกล้เคียงกับ Life Asoke Rama 9 แต่เป็นคนละโครงการ — ทดสอบว่าเจ้าของแยกโครงการได้"
+    ),
+    "03f2d9d3-b0b4-5fad-86ef-f9de7939cee2": (
+        "ความมั่นใจระดับกลาง + ข้อมูลทำเลขัดแย้ง — ทดสอบการตัดสินใจเมื่อหลักฐานไม่สูงสุด"
+    ),
+    "5e06d489-a116-5f78-87a4-1c3813aac70b": (
+        "มีทั้งเขตการปกครอง (เช่น วัฒนา) และทำเลตลาด — ทดสอบว่า UI ไม่ปนเขตกับทำเล"
+    ),
+    "8d70d6c6-ef51-549c-8822-507c77ab8d70": (
+        "มีทำเลตลาดหลายบทบาทพร้อมความมั่นใจต่างกัน — ทดสอบโมเดลหลายทำเล"
+    ),
+    "f2fad7e4-abc9-5b62-ae23-f2d8bb42b86f": (
+        "โครงการ Pantip-only — ยังไม่มีใน Canonical Master อ้างอิง"
+    ),
+    "cc3f0b19-843e-5479-a28d-bf2feb5c7ff9": (
+        "โครงการ Pantip-only อีกราย — ทดสอบข้อความที่ไม่ชวนรวมโครงการโดยไม่มีหลักฐาน"
+    ),
+    "0944c1d9-ce53-5938-aa0d-de7f3ccb7a68": (
+        "โครงการ Pantip-only ที่มีชื่อระบุทำเล — ทดสอบการแสดงข้อมูลเมื่อไม่มีข้อเสนอจาก Master"
+    ),
+}
+
 
 class MasterReviewError(Exception):
     def __init__(self, message: str, *, code: str = "review_error", http_status: int = 400):
@@ -95,8 +183,9 @@ def source_crosswalk_path() -> Path:
     return FIXTURE_CROSSWALK
 
 
-def decisions_log_path() -> Path:
-    return review_data_dir() / "master_review_decisions.jsonl"
+def decisions_log_path(*, test_only: bool = False) -> Path:
+    name = "test_only_decisions.jsonl" if test_only else "master_review_decisions.jsonl"
+    return review_data_dir() / name
 
 
 def _now_iso() -> str:
@@ -148,16 +237,64 @@ def _priority_band(score: int) -> str:
     return "P3"
 
 
-def _format_rx_areas(areas: list[dict[str, Any]]) -> str:
-    if not areas:
+def _classify_zone_kind(zone: str) -> str:
+    z = (zone or "").strip()
+    if not z:
+        return "UNKNOWN"
+    upper = z.upper()
+    if upper.startswith(("BTS ", "MRT ", "ARL ", "SRT ")) or "สถานี" in z:
+        return "TRANSIT"
+    if "corridor" in z.lower() or "คอร์ริเดอร์" in z:
+        return "CORRIDOR"
+    if z in BANGKOK_ADMIN_DISTRICTS:
+        return "ADMIN_DISTRICT"
+    return "MARKETPLACE_AREA"
+
+
+def _classify_pantip_zones(zones: list[str]) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for zone in zones[:10]:
+        kind = _classify_zone_kind(zone)
+        out.append(
+            {
+                "value": zone,
+                "semantic_kind": kind,
+                "label_th": SEMANTIC_KIND_THAI.get(kind, kind),
+            }
+        )
+    return out
+
+
+def _normalize_marketplace_area_relations(
+    areas: list[dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    relations: list[dict[str, Any]] = []
+    for area in areas or []:
+        if len(relations) >= MAX_MARKETPLACE_AREAS:
+            break
+        role = str(area.get("role") or "PRIMARY").upper()
+        if role not in MARKETPLACE_ROLES:
+            role = "PRIMARY"
+        relations.append(
+            {
+                "area_id": area.get("area_id"),
+                "area_name": area.get("area_name") or area.get("name") or "",
+                "role": role,
+                "confidence": area.get("confidence") or "LOW",
+            }
+        )
+    return relations
+
+
+def _format_rx_areas_summary(relations: list[dict[str, Any]]) -> str:
+    if not relations:
         return "—"
     parts = []
-    for area in areas[:3]:
-        aid = str(area.get("area_id") or "")
-        short = re.sub(r"^rxa_", "", aid)[:12] or aid
-        role = area.get("role") or ""
-        conf = area.get("confidence") or ""
-        parts.append(f"{short} ({role}/{conf})")
+    for rel in relations:
+        name = rel.get("area_name") or re.sub(r"^rxa_", "", str(rel.get("area_id") or ""))[:16]
+        role = rel.get("role") or ""
+        conf = rel.get("confidence") or ""
+        parts.append(f"{name} ({role}/{conf})")
     return ", ".join(parts)
 
 
@@ -187,6 +324,76 @@ def _semantic_note(row: dict[str, Any]) -> str:
     if zc == "PARTIAL_AGREE":
         return "ข้อมูลบางส่วนตรงกัน แต่ยังไม่ครบ"
     return ""
+
+
+def _confidence_explanation_th(tier: str) -> str:
+    if tier == "HIGH":
+        return "ระบบมีหลักฐานจาก Master อ้างอิงค่อนข้างชัด — แต่เจ้าของยังต้องยืนยันด้วยความรู้จริง"
+    if tier == "MEDIUM":
+        return "มีหลักฐานบางส่วน — ควรอ่านรายละเอียดก่อนตัดสินใจ"
+    return "หลักฐานน้อย — ควรระวังหรือเลื่อนไว้ก่อน"
+
+
+def build_future_preview_th(row: dict[str, Any], review_type: str, proposed_value: dict[str, Any]) -> dict[str, Any]:
+    """Descriptive-only preview of future canonical effect if owner approves."""
+    lines: list[str] = []
+    zones = row.get("pantip_zone_verified") or []
+    classified = _classify_pantip_zones(zones)
+    admin = [z["value"] for z in classified if z["semantic_kind"] == "ADMIN_DISTRICT"]
+    marketplace_pantip = [z["value"] for z in classified if z["semantic_kind"] == "MARKETPLACE_AREA"]
+    transit = row.get("pantip_transit_verified") or []
+
+    if review_type == "PANTIP_ONLY_REVIEW":
+        return {
+            "title_th": "ถ้าอนุมัติข้อเสนอนี้",
+            "lines_th": [
+                "ปัจจุบัน: โครงการนี้ยังไม่มีรายการอ้างอิงใน Canonical Master",
+                "การอนุมัติ (หากมีหลักฐานเพียงพอ): บันทึกว่าโครงการนี้เป็นตัวเลือกสำหรับเพิ่มใน Master ในอนาคต",
+                "ยังไม่มีการสร้าง project_id ใหม่หรือรวมโครงการอัตโนมัติ",
+                "ไม่มีการแก้ข้อมูล Production ทันที",
+            ],
+            "notice_th": "อธิบายผลในอนาคตเท่านั้น — ยังไม่ Apply",
+        }
+
+    relations = proposed_value.get("marketplace_area_relations") or []
+    lines.append("ปัจจุบัน:")
+    if admin:
+        lines.append(f"เขต/โซนจากข้อมูลเดิม (การปกครอง): {', '.join(admin)}")
+    if marketplace_pantip:
+        lines.append(f"ทำเลตลาดจากข้อมูลเดิม Pantip: {', '.join(marketplace_pantip)}")
+    if transit:
+        lines.append(f"สถานีจากข้อมูลเดิม: {', '.join(transit[:3])}")
+    if not admin and not marketplace_pantip and not transit:
+        lines.append("ข้อมูลทำเลจาก Pantip: ยังไม่แยกประเภทชัดในข้อมูลเดิม")
+
+    lines.append("")
+    lines.append("ข้อเสนอจาก Master อ้างอิง:")
+    if relations:
+        for rel in relations:
+            name = rel.get("area_name") or rel.get("area_id") or "—"
+            role = rel.get("role") or "PRIMARY"
+            lines.append(f"ทำเลตลาด {role}: {name}")
+    else:
+        lines.append("ยังไม่มีทำเลตลาดที่เสนอ")
+
+    lines.append("")
+    lines.append("ผลในอนาคตหากนำไป Apply (ยังไม่เกิดขึ้นตอนนี้):")
+    if admin:
+        lines.append(f"- {', '.join(admin)} ยังคงเป็นข้อมูลเขต/การปกครองได้")
+    if transit:
+        lines.append("- ข้อมูลสถานียังแยกจากทำเลตลาด — ไม่ได้หมายความว่าสถานี = ทำเลตลาด")
+    if relations:
+        names = [str(r.get("area_name") or r.get("area_id") or "") for r in relations if r.get("area_name") or r.get("area_id")]
+        if names:
+            lines.append(f"- {', '.join(names)} จะเป็นทำเลตลาดสำหรับการค้นหา (ตามบทบาท PRIMARY/SECONDARY/EDGE)")
+    lines.append("- ไม่ได้หมายความว่าจะลบข้อมูลเขตหรือสถานีเดิม")
+    lines.append("- ยังไม่มีการแก้ Production จนกว่าจะมีขั้นตอน Apply แยกต่างหาก")
+
+    return {
+        "title_th": "ถ้าอนุมัติข้อเสนอนี้",
+        "lines_th": lines,
+        "notice_th": "อธิบายผลในอนาคตเท่านั้น — ยังไม่ Apply",
+    }
 
 
 def _build_evidence(row: dict[str, Any], review_type: str) -> list[dict[str, Any]]:
@@ -233,32 +440,52 @@ def build_review_item(row: dict[str, Any], *, source_hash: str, review_type: str
     score = _priority_score(row)
     priority = _priority_band(score)
     zones = row.get("pantip_zone_verified") or []
+    zone_dimensions = _classify_pantip_zones(zones)
+    relations = _normalize_marketplace_area_relations(row.get("realxtate_marketplace_areas") or [])
+    conf_tier = _confidence_tier(row)
+
     current_value = {
-        "semantic_kind": "MARKETPLACE_AREA" if review_type == "AREA_REVIEW" else "PROJECT_IDENTITY",
-        "value": "; ".join(zones[:5]) if review_type == "AREA_REVIEW" else row.get("pantip_canonical_name"),
+        "semantic_kind": "MIXED_LOCATION",
+        "value": "; ".join(zones[:5]) if zones else "—",
+        "zone_dimensions": zone_dimensions,
+        "transit": row.get("pantip_transit_verified") or [],
         "source": "pantip_live_snapshot",
         "verification_state": "LEGACY_PROMOTION_SUSPECTED" if row.get("legacy_promotion_suspected") else "VERIFIED_SPLIT",
+        "dimension_note_th": "เขต/แขวง สถานี และทำเลตลาด เป็นคนละมิติ — ไม่ควรเทียบกันโดยตรง",
     }
     proposed_value = {
         "semantic_kind": "MARKETPLACE_AREA",
-        "value": _format_rx_areas(row.get("realxtate_marketplace_areas") or []),
+        "value": _format_rx_areas_summary(relations),
+        "marketplace_area_relations": relations,
         "source": "realxtate_reference",
-        "confidence": _confidence_tier(row),
+        "confidence": conf_tier,
+        "confidence_label_th": CONFIDENCE_THAI.get(conf_tier, conf_tier),
+        "confidence_explanation_th": _confidence_explanation_th(conf_tier),
+        "dimension_note_th": "ข้อเสนอนี้เป็นทำเลตลาดสำหรับการค้นหา — ไม่ใช่เขตปกครองหรือสถานี",
     }
+
     if review_type == "PANTIP_ONLY_REVIEW":
         current_value = {
             "semantic_kind": "PROJECT_IDENTITY",
             "value": row.get("pantip_canonical_name"),
+            "zone_dimensions": zone_dimensions,
+            "transit": row.get("pantip_transit_verified") or [],
             "source": "pantip_live_snapshot",
             "verification_state": "PANTIP_ONLY",
+            "pantip_only_notice_th": "โครงการนี้ยังไม่มีรายการอ้างอิงใน Canonical Master",
         }
         proposed_value = {
             "semantic_kind": "UNKNOWN",
-            "value": "ยังไม่มีใน Master อ้างอิง",
+            "value": "ยังไม่มีข้อเสนอจาก Master อ้างอิง",
+            "marketplace_area_relations": [],
             "source": "none",
             "confidence": "LOW",
+            "confidence_label_th": "ต่ำ",
+            "confidence_explanation_th": "ไม่มีข้อเสนอจนกว่าจะมีหลักฐานตัวตนเพิ่มเติม",
+            "dimension_note_th": "ไม่มีการเสนอรวมโครงการโดยอัตโนมัติ",
         }
 
+    future_preview = build_future_preview_th(row, review_type, proposed_value)
     item_id = f"{review_type.lower()}:{project_id}"
     return {
         "review_item_id": item_id,
@@ -270,6 +497,7 @@ def build_review_item(row: dict[str, Any], *, source_hash: str, review_type: str
         "live_snapshot_listing_count": int(row.get("live_listing_count") or 0),
         "current_value": current_value,
         "proposed_value": proposed_value,
+        "future_preview_th": future_preview,
         "evidence": _build_evidence(row, review_type),
         "disagreement_class": row.get("zone_agreement_class") or row.get("match_class") or "",
         "legacy_promotion_suspected": bool(row.get("legacy_promotion_suspected")),
@@ -278,6 +506,7 @@ def build_review_item(row: dict[str, Any], *, source_hash: str, review_type: str
         "priority_label_th": PRIORITY_THAI.get(priority, priority),
         "semantic_note_th": _semantic_note(row),
         "legacy_state_th": _legacy_state_thai(row),
+        "why_in_queue_th": _why_in_queue_th(row, review_type),
         "source_snapshot": {
             "generated_at": CROSSWALK_VERSION,
             "crosswalk_version": CROSSWALK_VERSION,
@@ -291,7 +520,17 @@ def build_review_item(row: dict[str, Any], *, source_hash: str, review_type: str
             "reason": None,
             "note": None,
         },
+        "is_pilot": project_id in PILOT_PROJECT_IDS,
     }
+
+
+def _why_in_queue_th(row: dict[str, Any], review_type: str) -> str:
+    if review_type == "PANTIP_ONLY_REVIEW":
+        return "โครงการนี้อยู่ใน Pantip แต่ยังไม่มีใน Canonical Master อ้างอิง"
+    conf = _confidence_tier(row)
+    if row.get("zone_agreement_class") == "DIRECT_CONFLICT":
+        return f"ทำเลตลาดจาก Pantip กับ Master อ้างอิงขัดแย้งกัน (ความมั่นใจ {CONFIDENCE_THAI.get(conf, conf)})"
+    return "ระบบแนะนำให้ตรวจสอบตามนโยบาย Phase W"
 
 
 def load_crosswalk_rows(path: Path | None = None) -> tuple[list[dict[str, Any]], str]:
@@ -343,8 +582,22 @@ def build_review_queue(
     return items
 
 
-def load_decision_events() -> list[dict[str, Any]]:
-    path = decisions_log_path()
+def pilot_project_ids() -> list[str]:
+    return list(PILOT_PROJECT_IDS)
+
+
+def pilot_selection() -> list[dict[str, str]]:
+    return [
+        {
+            "project_id": pid,
+            "reason_th": PILOT_SELECTION_REASONS_TH.get(pid, ""),
+        }
+        for pid in PILOT_PROJECT_IDS
+    ]
+
+
+def load_decision_events(*, test_only: bool = False) -> list[dict[str, Any]]:
+    path = decisions_log_path(test_only=test_only)
     if not path.is_file():
         return []
     events: list[dict[str, Any]] = []
@@ -359,17 +612,21 @@ def load_decision_events() -> list[dict[str, Any]]:
     return events
 
 
-def current_decision_map() -> dict[str, dict[str, Any]]:
+def current_decision_map(*, test_only: bool = False) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
-    for event in load_decision_events():
+    for event in load_decision_events(test_only=test_only):
         rid = str(event.get("review_item_id") or "")
         if rid:
             out[rid] = event
     return out
 
 
-def apply_decisions_to_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    latest = current_decision_map()
+def apply_decisions_to_items(
+    items: list[dict[str, Any]],
+    *,
+    test_only: bool = False,
+) -> list[dict[str, Any]]:
+    latest = current_decision_map(test_only=test_only)
     enriched: list[dict[str, Any]] = []
     for item in items:
         copy = json.loads(json.dumps(item, ensure_ascii=False))
@@ -388,7 +645,7 @@ def apply_decisions_to_items(items: list[dict[str, Any]]) -> list[dict[str, Any]
 
 def validate_transition(previous: str | None, new_status: str) -> None:
     if new_status in FORBIDDEN_STATUSES:
-        raise MasterReviewError("APPLIED status is not allowed in Phase X", code="forbidden_status")
+        raise MasterReviewError("APPLIED status is not allowed", code="forbidden_status")
     if new_status not in STATUSES:
         raise MasterReviewError(f"Invalid status: {new_status}", code="invalid_status")
     prev = previous or "PENDING"
@@ -412,6 +669,7 @@ def record_decision(
     reason: str | None = None,
     note: str | None = None,
     items: list[dict[str, Any]] | None = None,
+    test_only: bool = False,
 ) -> dict[str, Any]:
     if new_status == "APPROVED" and not reason:
         raise MasterReviewError("APPROVED requires reason code", code="reason_required")
@@ -436,7 +694,7 @@ def record_decision(
             http_status=409,
         )
 
-    latest = current_decision_map().get(review_item_id)
+    latest = current_decision_map(test_only=test_only).get(review_item_id)
     previous = (latest or {}).get("new_status") or "PENDING"
     validate_transition(previous, new_status)
 
@@ -452,8 +710,9 @@ def record_decision(
         "note": note,
         "source_snapshot_hash": expected_source_snapshot_hash,
         "source_project_fingerprint": item.get("source_project_fingerprint"),
+        "test_only": bool(test_only),
     }
-    path = decisions_log_path()
+    path = decisions_log_path(test_only=test_only)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(event, ensure_ascii=False) + "\n")
@@ -470,12 +729,16 @@ def filter_items(
     issue_type: str | None = None,
     search: str | None = None,
     top50_only: bool = False,
+    pilot_only: bool = False,
 ) -> list[dict[str, Any]]:
     area_items = [i for i in items if i.get("review_type") == "AREA_REVIEW"]
     if top50_only:
         area_items = sorted(area_items, key=lambda i: i.get("priority_score", 0), reverse=True)[:50]
         allowed_ids = {i["review_item_id"] for i in area_items}
         items = [i for i in items if i["review_item_id"] in allowed_ids or i.get("review_type") == "PANTIP_ONLY_REVIEW"]
+    if pilot_only:
+        pilot_ids = set(PILOT_PROJECT_IDS)
+        items = [i for i in items if i.get("project_id") in pilot_ids]
     out = items
     if review_type:
         out = [i for i in out if i.get("review_type") == review_type]
@@ -512,26 +775,33 @@ def summary_counts(items: list[dict[str, Any]]) -> dict[str, Any]:
         "total_items": len(items),
         "area_review_count": sum(1 for i in items if i.get("review_type") == "AREA_REVIEW"),
         "pantip_only_count": sum(1 for i in items if i.get("review_type") == "PANTIP_ONLY_REVIEW"),
+        "pilot_count": sum(1 for i in items if i.get("is_pilot")),
         "by_status": by_status,
         "listings_by_status": listings_by_status,
         "message_th": "ยังไม่มีการแก้ข้อมูล Production",
     }
 
 
-def export_promotion_candidate(items: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def export_promotion_candidate(
+    items: list[dict[str, Any]] | None = None,
+    *,
+    test_only: bool = False,
+) -> dict[str, Any]:
     if items is None:
-        items = apply_decisions_to_items(build_review_queue())
+        items = apply_decisions_to_items(build_review_queue(), test_only=test_only)
     approved = [i for i in items if (i.get("decision") or {}).get("status") == "APPROVED"]
     decisions = []
     for item in approved:
         dec = item.get("decision") or {}
+        proposed = item.get("proposed_value") or {}
         decisions.append(
             {
                 "review_item_id": item.get("review_item_id"),
                 "project_id": item.get("project_id"),
                 "review_type": item.get("review_type"),
-                "approved_value": item.get("proposed_value"),
-                "semantic_kind": (item.get("proposed_value") or {}).get("semantic_kind"),
+                "approved_value": proposed,
+                "marketplace_area_relations": proposed.get("marketplace_area_relations") or [],
+                "semantic_kind": proposed.get("semantic_kind"),
                 "evidence": item.get("evidence"),
                 "approved_by": dec.get("decided_by"),
                 "approved_at": dec.get("decided_at"),
@@ -543,11 +813,12 @@ def export_promotion_candidate(items: list[dict[str, Any]] | None = None) -> dic
     if items:
         source_hash = (items[0].get("source_snapshot") or {}).get("source_hash") or ""
     return {
-        "promotion_version": "0.1",
+        "promotion_version": "0.2",
         "artifact_type": "canonical-promotion-candidate",
         "generated_at": _now_iso(),
         "source_crosswalk_version": CROSSWALK_VERSION,
         "source_snapshot_hash": source_hash,
+        "test_only": bool(test_only),
         "decision_count": len(decisions),
         "decisions": decisions,
         "notice_th": "ไฟล์นี้เป็นข้อเสนอสำหรับขั้นตอนแก้ไขในอนาคต — ยังไม่ใช่คำสั่งแก้ Production",
@@ -562,13 +833,14 @@ def batch_record_decision(
     expected_source_snapshot_hash: str,
     reason: str | None = None,
     note: str | None = None,
+    test_only: bool = False,
 ) -> list[dict[str, Any]]:
     if new_status == "APPROVED":
         raise MasterReviewError(
             "BATCH_APPROVE disabled in Phase X v0.1",
             code="batch_approve_disabled",
         )
-    items = apply_decisions_to_items(build_review_queue())
+    items = apply_decisions_to_items(build_review_queue(), test_only=test_only)
     selected = [i for i in items if i["review_item_id"] in review_item_ids]
     if len(selected) != len(set(review_item_ids)):
         raise MasterReviewError("Unknown review item in batch", code="unknown_item")
@@ -590,6 +862,7 @@ def batch_record_decision(
                 reason=reason,
                 note=note,
                 items=items,
+                test_only=test_only,
             )
         )
     return events

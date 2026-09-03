@@ -1570,10 +1570,13 @@ class HubHandler(BaseHTTPRequestHandler):
                     summary_counts,
                 )
 
+                from src.hub.master_review_store import pilot_selection
+
                 rows, source_hash = load_crosswalk_rows()
                 items = apply_decisions_to_items(build_review_queue(rows, source_hash=source_hash))
                 summary = summary_counts(items)
                 summary["source_snapshot_hash"] = source_hash
+                summary["pilot_projects"] = pilot_selection()
                 self._json(200, {"ok": True, **summary})
             except Exception as exc:  # noqa: BLE001
                 from src.hub.master_review_store import MasterReviewError
@@ -1609,6 +1612,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     issue_type=(qs.get("issue_type") or [""])[0] or None,
                     search=(qs.get("search") or [""])[0] or None,
                     top50=(qs.get("top50") or ["0"])[0] in {"1", "true", "yes"},
+                    pilot_only=(qs.get("pilot_only") or ["0"])[0] in {"1", "true", "yes"},
                 )
                 self._json(
                     200,

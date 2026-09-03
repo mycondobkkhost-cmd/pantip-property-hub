@@ -26,4 +26,5 @@ echo "เปิดเบราว์เซอร์ → ติ๊ก 'แสด�
 echo ""
 
 cd "${ROOT}"
-exec python3 scripts/hub_server.py --port "${PORT}"
+export PORT="${PORT}"
+exec python3 scripts/hub_server.py

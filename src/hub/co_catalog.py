@@ -107,6 +107,7 @@ def slim_property(
 
     size_sqm = prop.get("size_sqm") or ""
     return {
+        "property_id": str(prop.get("id") or ""),
         "code": code,
         "project_id": prop.get("project_id") or "",
         "project_name": prop.get("project_name") or proj.get("canonical_name") or "",
@@ -128,6 +129,7 @@ def slim_property(
 
 
 _CO_ITEM_KEYS = (
+    "property_id",
     "code",
     "project_id",
     "project_name",
@@ -396,12 +398,23 @@ def match_co_brief(brief: dict, *, limit: int = 30) -> dict:
         return _finish([s[2] for s in scored[:lim]])
 
     raw = recommend_for_case(case, limit=max(80, lim * 3), exclude_offered=False)
-    by_code = {str(p.get("code") or "").upper(): p for p in load_properties()}
+    props = load_properties()
+    by_id = {str(p.get("id") or ""): p for p in props if isinstance(p, dict)}
+    from src.hub.property_resolve import find_all_by_code
 
     out: list[dict] = []
     for hit in raw.get("items") or []:
         code = str(hit.get("code") or "").upper()
-        prop = by_code.get(code)
+        prop = None
+        hit_pid = str(hit.get("property_id") or hit.get("id") or "").strip()
+        if hit_pid:
+            prop = by_id.get(hit_pid)
+        if not prop and code:
+            matches = find_all_by_code(props, code)
+            if len(matches) == 1:
+                prop = matches[0]
+            elif len(matches) > 1:
+                continue
         if not prop:
             continue
         slim = slim_property(

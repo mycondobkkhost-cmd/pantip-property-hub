@@ -798,6 +798,85 @@ def delete_code(code: str) -> bool:
         return True
 
 
+def clear_comment_work(*, agent_id: str | None = None, mode: str = "pause") -> dict:
+    """Clear current comment queue for an agent.
+
+    mode=pause  → deactivate codes + pause all links (keep codes for later)
+    mode=delete → remove codes and their links entirely
+    """
+    want_agent = str(agent_id).strip() if agent_id else None
+    mode_norm = (mode or "pause").strip().lower()
+    if mode_norm not in {"pause", "delete"}:
+        mode_norm = "pause"
+
+    codes = list_codes(limit=5000)
+    if want_agent is not None:
+        codes = [c for c in codes if str(c.get("agent_id") or "owner") == want_agent]
+    code_set = {_norm_code(c.get("code") or "") for c in codes}
+    code_set.discard("")
+
+    if mode_norm == "delete":
+        deleted_codes = 0
+        deleted_links = 0
+        for code in sorted(code_set):
+            before_links = len(list_items(property_code=code, limit=5000))
+            if delete_code(code):
+                deleted_codes += 1
+                deleted_links += before_links
+        return {
+            "mode": "delete",
+            "agent_id": want_agent or "",
+            "codes_deleted": deleted_codes,
+            "links_deleted": deleted_links,
+            "codes_paused": 0,
+            "links_paused": 0,
+        }
+
+    codes_paused = 0
+    links_paused = 0
+    now = _now_iso()
+    with _LOCK:
+        cdata = _load_codes()
+        for i, raw in enumerate(cdata.get("codes") or []):
+            if not isinstance(raw, dict):
+                continue
+            code = _norm_code(raw.get("code") or "")
+            if code not in code_set:
+                continue
+            if want_agent is not None and str(raw.get("agent_id") or "owner") != want_agent:
+                continue
+            raw["active"] = False
+            raw["updated_at"] = now
+            cdata["codes"][i] = raw
+            codes_paused += 1
+        _save_codes(cdata)
+
+        ldata = _load()
+        for i, raw in enumerate(ldata.get("items") or []):
+            if not isinstance(raw, dict):
+                continue
+            code = _norm_code(raw.get("property_code") or "")
+            if code not in code_set:
+                continue
+            st = str(raw.get("status") or "").strip().lower()
+            if st in {STATUS_DONE, STATUS_PAUSED}:
+                continue
+            raw["status"] = STATUS_PAUSED
+            raw["updated_at"] = now
+            ldata["items"][i] = raw
+            links_paused += 1
+        _save(ldata)
+
+    return {
+        "mode": "pause",
+        "agent_id": want_agent or "",
+        "codes_deleted": 0,
+        "links_deleted": 0,
+        "codes_paused": codes_paused,
+        "links_paused": links_paused,
+    }
+
+
 def get_code_detail(code: str) -> dict:
     row = get_code_by_code(code)
     if not row:

@@ -15,7 +15,6 @@ hub/out
 *.md
 !DEPLOY_FLY.md
 !DEPLOY_RENDER.md
-config
 line_bot
 mobile
 # Runtime / local sample — do not seed onto Fly volume

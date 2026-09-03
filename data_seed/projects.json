@@ -1,0 +1,152 @@
+[
+  {
+    "id": "seed-proj-001",
+    "bucket_key": "sample_tower_a",
+    "canonical_name": "Sample Tower A",
+    "aliases": [
+      "Sample A",
+      "Tower A Condo"
+    ],
+    "transit_verified": [
+      "BTS อโศก"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "อโศก",
+      "สุขุมวิท"
+    ],
+    "zone_unverified": [],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 2
+  },
+  {
+    "id": "seed-proj-002",
+    "bucket_key": "sample_tower_b",
+    "canonical_name": "Sample Tower B",
+    "aliases": [
+      "Sample B"
+    ],
+    "transit_verified": [
+      "MRT สามย่าน"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "สามย่าน"
+    ],
+    "zone_unverified": [],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 2
+  },
+  {
+    "id": "seed-proj-003",
+    "bucket_key": "sample_dup_block",
+    "canonical_name": "Duplicate Code Block (synthetic)",
+    "aliases": [
+      "Dup Block"
+    ],
+    "transit_verified": [
+      "BTS พระโขนง"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "พระโขนง"
+    ],
+    "zone_unverified": [],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 1
+  },
+  {
+    "id": "seed-proj-004",
+    "bucket_key": "co_agent_demo",
+    "canonical_name": "Co-Agent Demo Condo",
+    "aliases": [
+      "COA Demo"
+    ],
+    "transit_verified": [
+      "BTS ทองหล่อ"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "ทองหล่อ"
+    ],
+    "zone_unverified": [],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 3
+  },
+  {
+    "id": "seed-proj-005",
+    "bucket_key": "studio_hub",
+    "canonical_name": "Studio Hub Place",
+    "aliases": [],
+    "transit_verified": [
+      "ARL มักกะสัน"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "มักกะสัน"
+    ],
+    "zone_unverified": [],
+    "location_status": "pending_verification",
+    "is_thru_thonglor": false,
+    "listing_count": 2
+  },
+  {
+    "id": "seed-proj-006",
+    "bucket_key": "riverside_sample",
+    "canonical_name": "Riverside Sample",
+    "aliases": [
+      "River Sample"
+    ],
+    "transit_verified": [
+      "BTS สะพานตากสิน"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "ธนบุรี"
+    ],
+    "zone_unverified": [],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 3
+  },
+  {
+    "id": "seed-proj-007",
+    "bucket_key": "budget_block",
+    "canonical_name": "Budget Block Condo",
+    "aliases": [],
+    "transit_verified": [
+      "MRT ห้วยขวาง"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "ห้วยขวาง"
+    ],
+    "zone_unverified": [],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 3
+  },
+  {
+    "id": "seed-proj-008",
+    "bucket_key": "penthouse_demo",
+    "canonical_name": "Penthouse Demo Residences",
+    "aliases": [
+      "PH Demo"
+    ],
+    "transit_verified": [
+      "BTS ช่องนนทรี"
+    ],
+    "transit_unverified": [],
+    "zone_verified": [
+      "ช่องนนทรี"
+    ],
+    "zone_unverified": [],
+    "location_status": "verified",
+    "is_thru_thonglor": false,
+    "listing_count": 2
+  }
+]

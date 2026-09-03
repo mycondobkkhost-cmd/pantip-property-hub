@@ -1,0 +1,42 @@
+# Verify the repository Dockerfile builds — no deploy, no registry push, no secrets.
+name: Docker Build Check
+
+on:
+  push:
+    branches:
+      - cursor/co-agent-plain-thai-dashboard
+    paths:
+      - Dockerfile
+      - requirements-hub.txt
+      - scripts/**
+      - src/**
+      - hub/**
+      - data_seed/**
+      - .github/workflows/docker-build-check.yml
+  pull_request:
+    paths:
+      - Dockerfile
+      - requirements-hub.txt
+      - scripts/**
+      - src/**
+      - hub/**
+      - data_seed/**
+      - .github/workflows/docker-build-check.yml
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Dockerfile (no push, no deploy)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: pantip-hub-build-check:local

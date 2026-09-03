@@ -82,16 +82,22 @@ from src.hub.fb_agent_store import (  # noqa: E402
 from src.hub.group_post_publish_store import (  # noqa: E402
     cancel_job as cancel_publish_job,
     cancel_open_jobs as cancel_open_publish_jobs,
+    claim_due_for_publish,
     create_campaign as create_publish_campaign,
-    list_due as list_publish_due,
+    list_due_for_publish,
     list_jobs as list_publish_jobs,
+    list_needs_reconcile as list_publish_needs_reconcile,
+    mark_external_action_started as mark_publish_external_started,
     mark_result as mark_publish_result,
+    reconcile_publish_job,
+    ReconcileError as PublishReconcileError,
     stats as publish_job_stats,
 )
 from src.hub.publish_caption import (  # noqa: E402
     build_no_link_captions,
     fetch_publish_bundle,
     resolve_image_urls_for_property,
+    resolve_property_for_publish,
 )
 from src.hub.fetch_post_store import (  # noqa: E402
     enqueue_fetch_post,
@@ -113,8 +119,10 @@ from src.hub.project_store import (  # noqa: E402
     PREVIEW_JS,
     PREVIEW_META,
     backfill_pet_friendly_from_sheet,
+    build_internal_catalog_dict,
     create_project,
     ensure_preview_js,
+    load_projects,
     load_properties,
     project_location_label,
     project_transit_display,
@@ -307,8 +315,21 @@ def _mark_sheet_export_ok() -> None:
 def _queue_sheet_sync_enabled() -> bool:
     import os
 
-    flag = (os.environ.get("HUB_QUEUE_SHEET_SYNC") or "1").strip().lower()
+    # Default OFF: Hub volume JSON is SoT; sheet pull must not replace the queue.
+    flag = (os.environ.get("HUB_QUEUE_SHEET_SYNC") or "0").strip().lower()
     return flag not in ("0", "false", "no", "off")
+
+
+def _queue_sheet_pull_allowed() -> bool:
+    """Emergency-only: explicit flag required to pull/replace wait-post queue from sheet."""
+    import os
+
+    flag = (
+        os.environ.get("HUB_ALLOW_QUEUE_SHEET_PULL")
+        or os.environ.get("HUB_ALLOW_SHEET_PULL")
+        or "0"
+    ).strip().lower()
+    return flag in ("1", "true", "yes", "on")
 
 
 def _queue_sheet_sync_interval_sec() -> float:
@@ -324,12 +345,15 @@ def _queue_sheet_sync_interval_sec() -> float:
 def sync_queue_from_sheet(*, force: bool = False) -> dict:
     """Pull「รอโพสต์」and replace local queue (preserve hub-local pending).
 
+    Off by default — Hub ``wait_post_queue.json`` on the volume is source of truth.
     Prefers gspread (service account) because public CSV export often 401s.
     """
     import time
 
     if not _queue_sheet_sync_enabled():
         return {"ok": True, "skipped": True, "reason": "disabled"}
+    if not _queue_sheet_pull_allowed():
+        return {"ok": True, "skipped": True, "reason": "pull_blocked"}
     now = time.time()
     interval = _queue_sheet_sync_interval_sec()
     with _QUEUE_SHEET_SYNC_LOCK:
@@ -814,12 +838,6 @@ def _thumb_worker_loop() -> None:
             _THUMB_QUEUE.task_done()
 
 
-def _hub_session_secret() -> str:
-    import os
-
-    return (os.environ.get("HUB_SESSION_SECRET") or "local-dev-hub-session-secret").strip()
-
-
 def _is_cloud_host() -> bool:
     """True on Render / Fly (and similar) where HTTPS + real user secrets apply."""
     import os
@@ -829,6 +847,46 @@ def _is_cloud_host() -> bool:
         or (os.environ.get("FLY_APP_NAME") or "").strip()
         or (os.environ.get("FORCE_SECURE_COOKIES") or "").strip()
     )
+
+
+def _is_explicit_local_dev() -> bool:
+    """Local-only demo login — never enabled on cloud hosts."""
+    import os
+
+    if _is_cloud_host():
+        return False
+    flag = (os.environ.get("HUB_LOCAL_DEV") or os.environ.get("HUB_ALLOW_DEMO_USERS") or "").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
+def _hub_session_secret() -> str:
+    import os
+
+    raw = (os.environ.get("HUB_SESSION_SECRET") or "").strip()
+    if raw:
+        return raw
+    if _is_cloud_host():
+        return ""
+    if _is_explicit_local_dev():
+        return "local-dev-hub-session-secret"
+    return ""
+
+
+def _validate_production_auth_config() -> None:
+    """Fail closed on cloud when real auth secrets are missing."""
+    import os
+
+    if not _is_cloud_host():
+        return
+    problems: list[str] = []
+    if not (os.environ.get("HUB_USERS_JSON") or "").strip():
+        problems.append("HUB_USERS_JSON is not set")
+    if not (os.environ.get("HUB_SESSION_SECRET") or "").strip():
+        problems.append("HUB_SESSION_SECRET is not set")
+    if problems:
+        msg = "; ".join(problems)
+        print(f"[hub] FATAL: production auth misconfigured — {msg}")
+        raise SystemExit(1)
 
 
 def _parse_hub_users_json(raw: str):
@@ -872,20 +930,29 @@ def _load_hub_users() -> dict:
             name = str(val.get("name") or username)
             if not password:
                 continue
-            users[username] = {"password": password, "name": name}
+            role = str(val.get("role") or val.get("privilege") or "").strip().lower()
+            users[username] = {"password": password, "name": name, "role": role}
         return users
 
     if _is_cloud_host():
-        print("[hub] WARN: HUB_USERS_JSON not set on cloud host — login will fail until configured")
+        print("[hub] WARN: HUB_USERS_JSON not set on cloud host — login disabled (fail closed)")
         return {}
 
-    # Local-only demo accounts (not used in production HTML / view-source)
+    if not _is_explicit_local_dev():
+        print(
+            "[hub] INFO: login disabled locally — set HUB_USERS_JSON "
+            "or HUB_LOCAL_DEV=1 for weak demo accounts (development only)"
+        )
+        return {}
+
+    # Local-only demo accounts — require HUB_LOCAL_DEV=1; never used on cloud.
+    # Phase H: only angkarn1996 is privileged by default in local demo.
     return {
-        "angkarn1996": {"password": "localdev", "name": "เจ้าของ"},
-        "ptp2": {"password": "localdev2", "name": "แอดมิน 1"},
-        "ptp3": {"password": "localdev3", "name": "แอดมิน 2"},
-        "ptp4": {"password": "localdev4", "name": "ทีม 4"},
-        "ptp5": {"password": "localdev5", "name": "ทีม 5"},
+        "angkarn1996": {"password": "localdev", "name": "เจ้าของ", "role": "admin"},
+        "ptp2": {"password": "localdev2", "name": "แอดมิน 1", "role": ""},
+        "ptp3": {"password": "localdev3", "name": "แอดมิน 2", "role": ""},
+        "ptp4": {"password": "localdev4", "name": "ทีม 4", "role": ""},
+        "ptp5": {"password": "localdev5", "name": "ทีม 5", "role": ""},
     }
 
 
@@ -964,18 +1031,65 @@ def _cookie_value(headers: dict | None, name: str) -> str:
 
 
 def _client_ip(handler: BaseHTTPRequestHandler) -> str:
-    """Best-effort client IP (Fly/Cloudflare forwarded headers). Never store raw in analytics."""
-    xff = (handler.headers.get("Fly-Client-IP") or handler.headers.get("CF-Connecting-IP") or "").strip()
-    if xff:
-        return xff.split(",")[0].strip()
-    forwarded = (handler.headers.get("X-Forwarded-For") or "").strip()
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    """Client IP for rate limiting / analytics.
+
+    Trust order:
+    1. Fly-Client-IP (Fly injects; preferred in production)
+    2. CF-Connecting-IP (Cloudflare)
+    3. Socket peer address
+
+    Do NOT trust arbitrary X-Forwarded-For unless HUB_TRUST_X_FORWARDED_FOR=1
+    is explicitly set (edge must overwrite the header).
+    """
+    import os
+
+    fly = (handler.headers.get("Fly-Client-IP") or "").strip()
+    if fly:
+        return fly.split(",")[0].strip()
+    cf = (handler.headers.get("CF-Connecting-IP") or "").strip()
+    if cf:
+        return cf.split(",")[0].strip()
+    trust_xff = (os.environ.get("HUB_TRUST_X_FORWARDED_FOR") or "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if trust_xff:
+        forwarded = (handler.headers.get("X-Forwarded-For") or "").strip()
+        if forwarded:
+            return forwarded.split(",")[0].strip()
     try:
         return str(handler.client_address[0] or "")
     except Exception:  # noqa: BLE001
         return ""
 
+
+def _is_operator_user(user: dict | None) -> bool:
+    """Phase H privileged operator check (token rotate + reconciliation)."""
+    from src.hub.operator_auth import is_privileged_username
+
+    if not user:
+        return False
+    username = str(user.get("username") or "").strip().lower()
+    return is_privileged_username(
+        username,
+        users=_load_hub_users(),
+        cloud_host=_is_cloud_host(),
+        local_dev=_is_explicit_local_dev(),
+    )
+
+
+def _require_operator(handler: "HubHandler") -> dict | None:
+    """Return session user if privileged; else write 401/403 and return None."""
+    user = handler._session_user()
+    if not user:
+        handler._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+        return None
+    if not _is_operator_user(user):
+        handler._json(403, {"ok": False, "error": "ไม่มีสิทธิ์ดำเนินการนี้"})
+        return None
+    return user
 
 def _co_track_side(
     handler: BaseHTTPRequestHandler,
@@ -1073,6 +1187,7 @@ _AGENT_API_PREFIXES = (
     "/api/fb-agent/chrome-profiles",
     "/api/fb-agent/publish-due",
     "/api/fb-agent/publish-result",
+    "/api/fb-agent/publish-external-started",
     "/api/fb-agent/fetch-post-due",
     "/api/fb-agent/fetch-post-result",
 )
@@ -1085,11 +1200,8 @@ def _request_agent_token(handler: "HubHandler") -> str:
     header = (handler.headers.get("X-Agent-Token") or "").strip()
     if header:
         return header
-    # Allow ?t= for Mac Terminal curl bootstrap (avoids browser Gatekeeper).
-    from urllib.parse import parse_qs
-
-    qs = parse_qs(urlparse(handler.path).query or "")
-    return ((qs.get("t") or qs.get("token") or [""])[0] or "").strip()
+    # Phase H: do not accept agent tokens from query strings (?t= / ?token=).
+    return ""
 
 
 def _is_agent_authorized(handler: "HubHandler") -> bool:
@@ -1100,17 +1212,66 @@ def _agent_id_from_handler(handler: "HubHandler") -> str | None:
     return resolve_agent_id_by_token(_request_agent_token(handler))
 
 
+def _iter_fb_agent_project_files():
+    """Files needed on the always-on PC to run comment_agent.py."""
+    root = BASE_DIR
+    for rel in (
+        "requirements-agent.txt",
+        "scripts/comment_agent.py",
+        "scripts/comment_group_posts.py",
+        "scripts/launch_chrome_for_agent.py",
+    ):
+        path = root / rel
+        if path.is_file():
+            yield path
+    for sub in ("config", "src"):
+        base = root / sub
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*"):
+            if not path.is_file():
+                continue
+            if "__pycache__" in path.parts:
+                continue
+            if path.suffix in {".pyc", ".pyo"}:
+                continue
+            yield path
+
+
+def _build_fb_agent_project_zip() -> bytes:
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in _iter_fb_agent_project_files():
+            zf.write(path, path.relative_to(BASE_DIR).as_posix())
+    return buf.getvalue()
+
+
+def _fb_agent_project_zip_download(handler: "HubHandler") -> None:
+    if not _is_agent_authorized(handler):
+        handler._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+        return
+    try:
+        data = _build_fb_agent_project_zip()
+    except Exception as exc:
+        handler._json(500, {"ok": False, "error": f"สร้างแพ็กเกจไม่สำเร็จ: {exc}"})
+        return
+    handler._send_bytes(200, data, content_type="application/zip", filename="pantip-agent.zip")
+
+
 def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
-    """Serve a ready-to-run starter script for Windows (.bat) or Mac (.command)."""
+    """Serve a ready-to-run starter script for Windows (.bat) or Mac (.command).
+
+    Phase G: do NOT embed agent_token in downloadable scripts or query URLs.
+    Operators must set COMMENT_AGENT_TOKEN via environment after an explicit rotate.
+    """
     from urllib.parse import parse_qs
 
     qs = parse_qs(urlparse(handler.path).query or "")
     agent_id = ((qs.get("agent") or qs.get("agent_id") or ["owner"])[0] or "owner").strip() or "owner"
-    status = fb_agent_public_status(include_token=True, agent_id=agent_id)
-    token = str(status.get("agent_token") or "").strip()
-    if not token:
-        handler._json(500, {"ok": False, "error": "ยังไม่มีรหัสเชื่อมต่อของ Agent นี้"})
-        return
+    status = fb_agent_public_status(include_token=False, agent_id=agent_id)
     hub_url = ((qs.get("hub") or [""])[0] or "").strip()
     if not hub_url:
         host = (handler.headers.get("Host") or "127.0.0.1:8765").strip()
@@ -1122,7 +1283,10 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
         project_dir = raw_project
 
     label = str(status.get("label") or agent_id)
+    # No token in URL — zip download requires Authorization bearer separately.
+    project_zip_url = f"{hub_url.rstrip('/')}/api/fb-agent/download-project-zip"
     kind = (kind or "windows").strip().lower()
+    token_placeholder = ""
     if kind in {"mac", "macos", "darwin"}:
         tpl = BASE_DIR / "scripts" / "mac" / "เปิดระบบคอมเมนต์.command.template"
         filename = f"เปิดระบบคอมเมนต์-{agent_id}.command"
@@ -1132,14 +1296,16 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
             'COMMENT_AGENT_TOKEN="__AGENT_TOKEN__"\n'
             'COMMENT_AGENT_ID="__AGENT_ID__"\n'
             'export COMMENT_AGENT_ID\n'
+            'if [ -z "$COMMENT_AGENT_TOKEN" ]; then echo "Set COMMENT_AGENT_TOKEN first (Hub rotate)"; exit 1; fi\n'
             'python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN" --agent "$COMMENT_AGENT_ID"\n'
         )
         text = (
             text.replace("__PROJECT_DIR__", project_dir)
             .replace("__HUB_URL__", hub_url)
-            .replace("__AGENT_TOKEN__", token)
+            .replace("__AGENT_TOKEN__", token_placeholder)
             .replace("__AGENT_ID__", agent_id)
             .replace("__AGENT_LABEL__", label)
+            .replace("__PROJECT_ZIP_URL__", project_zip_url)
         )
         handler._send_bytes(200, text.encode("utf-8"), content_type="application/x-sh", filename=filename)
         return
@@ -1154,32 +1320,39 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
             'set "HUB_URL=__HUB_URL__"\r\n'
             'set "COMMENT_AGENT_TOKEN=__AGENT_TOKEN__"\r\n'
             'set "COMMENT_AGENT_ID=__AGENT_ID__"\r\n'
+            "if \"%COMMENT_AGENT_TOKEN%\"==\"\" (\r\n"
+            "  echo Set COMMENT_AGENT_TOKEN first via Hub rotate\r\n"
+            "  pause\r\n"
+            "  exit /b 1\r\n"
+            ")\r\n"
             'python scripts\\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%" --agent "%COMMENT_AGENT_ID%"\r\n'
             "pause\r\n"
         )
     text = (
         text.replace("__HUB_URL__", hub_url.replace("%", "%%"))
-        .replace("__AGENT_TOKEN__", token.replace("%", "%%"))
+        .replace("__AGENT_TOKEN__", token_placeholder)
         .replace("__PROJECT_DIR__", project_dir.replace("%", "%%"))
         .replace("__AGENT_ID__", agent_id.replace("%", "%%"))
         .replace("__AGENT_LABEL__", label.replace("%", "%%"))
+        .replace("__PROJECT_ZIP_URL__", project_zip_url.replace("%", "%%"))
     )
     data = ("\ufeff" + text.replace("\n", "\r\n")).encode("utf-8")
     handler._send_bytes(200, data, content_type="application/octet-stream", filename=filename)
 
 
 def _fb_agent_install_mac_to_downloads() -> dict:
-    """Write ready .command into ~/Downloads so user never has to move files."""
+    """Write ready .command into ~/Downloads so user never has to move files.
+
+    Phase G: never embed agent_token. Operator must set COMMENT_AGENT_TOKEN
+    after an explicit Hub rotate-token (token is not returned by status).
+    """
     import os
     import subprocess
 
-    status = fb_agent_public_status(include_token=True)
-    token = str(status.get("agent_token") or "").strip()
-    if not token:
-        raise ValueError("ยังไม่มีรหัสเชื่อมต่อ")
-
+    status = fb_agent_public_status(include_token=False)
     hub_url = "http://127.0.0.1:8765"
     project_dir = str(BASE_DIR.resolve())
+    project_zip_url = f"{hub_url}/api/fb-agent/download-project-zip"
     tpl = BASE_DIR / "scripts" / "mac" / "เปิดระบบคอมเมนต์.command.template"
     if not tpl.exists():
         raise ValueError("ไม่พบเทมเพลตไฟล์ Mac")
@@ -1187,9 +1360,10 @@ def _fb_agent_install_mac_to_downloads() -> dict:
         tpl.read_text(encoding="utf-8")
         .replace("__PROJECT_DIR__", project_dir)
         .replace("__HUB_URL__", hub_url)
-        .replace("__AGENT_TOKEN__", token)
+        .replace("__AGENT_TOKEN__", "")
         .replace("__AGENT_ID__", "owner")
-        .replace("__AGENT_LABEL__", "เจ้าของ (Mac)")
+        .replace("__AGENT_LABEL__", str(status.get("label") or "เจ้าของ (Mac)"))
+        .replace("__PROJECT_ZIP_URL__", project_zip_url)
     )
     downloads = Path.home() / "Downloads"
     downloads.mkdir(parents=True, exist_ok=True)
@@ -1238,8 +1412,21 @@ class HubHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Co-Vid, X-Co-Sid")
         self.send_header("Vary", "Origin")
 
-    def _json(self, status: int, payload: dict, *, set_cookie: str | None = None, clear_cookie: bool = False) -> None:
-        body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    def _json(
+        self,
+        status: int,
+        payload: dict,
+        *,
+        set_cookie: str | None = None,
+        clear_cookie: bool = False,
+        allow_agent_token: bool = False,
+    ) -> None:
+        from src.hub.operator_auth import strip_agent_tokens
+
+        safe = payload if allow_agent_token else strip_agent_tokens(payload)
+        if not isinstance(safe, dict):
+            safe = {"ok": False, "error": "invalid payload"}
+        body = json.dumps(safe, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         self.send_response(status)
         self._cors()
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -1335,13 +1522,51 @@ class HubHandler(BaseHTTPRequestHandler):
 
             qs = parse_qs(urlparse(self.path).query or "")
             agent_id = ((qs.get("agent") or qs.get("agent_id") or [""])[0] or "").strip() or None
-            self._json(200, fb_agent_public_status(include_token=True, agent_id=agent_id))
+            # Phase G: never return agent_token on status endpoint.
+            self._json(200, fb_agent_public_status(include_token=False, agent_id=agent_id))
+            return
+        if path == "/api/groups/publish/reconcile":
+            if not _require_operator(self):
+                return
+            try:
+                from urllib.parse import parse_qs
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                try:
+                    limit = int((qs.get("limit") or ["100"])[0] or 100)
+                except ValueError:
+                    limit = 100
+                items = list_publish_needs_reconcile(limit=limit)
+                self._json(200, {"ok": True, "items": items, "count": len(items)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/line/reconcile":
+            if not _require_operator(self):
+                return
+            try:
+                from urllib.parse import parse_qs
+
+                from src.hub.line_event_dedupe import list_needs_reconcile_events
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                try:
+                    limit = int((qs.get("limit") or ["100"])[0] or 100)
+                except ValueError:
+                    limit = 100
+                items = list_needs_reconcile_events(limit=limit)
+                self._json(200, {"ok": True, "items": items, "count": len(items)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
             return
         if path == "/api/fb-agent/download-windows":
             _fb_agent_starter_download(self, kind="windows")
             return
         if path == "/api/fb-agent/download-mac":
             _fb_agent_starter_download(self, kind="mac")
+            return
+        if path == "/api/fb-agent/download-project-zip":
+            _fb_agent_project_zip_download(self)
             return
         if path == "/api/fb-agent/pull":
             if not _is_agent_authorized(self):
@@ -1444,7 +1669,7 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
             status = fb_agent_public_status(include_token=False, agent_id=agent_id)
             accounts = status.get("fb_accounts") or []
-            due = list_publish_due(agent_id=agent_id, limit=limit)
+            due, identity_blocked = list_due_for_publish(agent_id=agent_id, limit=limit)
             # Skip jobs for paused accounts
             filtered = []
             for job in due:
@@ -1473,6 +1698,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "agent_id": agent_id,
                     "due": filtered,
+                    "identity_blocked": identity_blocked,
                     "fb_accounts": accounts,
                     "stats": publish_job_stats(agent_id=agent_id),
                     "policy": {
@@ -1549,7 +1775,16 @@ class HubHandler(BaseHTTPRequestHandler):
             if not user:
                 self._json(401, {"ok": False, "logged_in": False})
                 return
-            self._json(200, {"ok": True, "logged_in": True, "username": user["username"], "name": user["name"]})
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "logged_in": True,
+                    "username": user["username"],
+                    "name": user["name"],
+                    "is_operator": _is_operator_user(user),
+                },
+            )
             return
         if path in {"/line/health", "/line/webhook"}:
             self._json(200, line_health_payload())
@@ -1659,12 +1894,23 @@ class HubHandler(BaseHTTPRequestHandler):
             include_done = "done=1" in (urlparse(self.path).query or "")
             q = urlparse(self.path).query or ""
             force_sync = "sync=1" in q or "refresh=1" in q
-            try:
-                sync_queue_from_sheet(force=force_sync)
-            except Exception as sync_exc:  # noqa: BLE001
-                print(f"[hub] queue sheet sync on GET failed: {sync_exc}")
+            if _queue_sheet_sync_enabled() and _queue_sheet_pull_allowed():
+                try:
+                    sync_queue_from_sheet(force=force_sync)
+                except Exception as sync_exc:  # noqa: BLE001
+                    print(f"[hub] queue sheet sync on GET failed: {sync_exc}")
             items = list_queue(include_done=include_done)
-            self._json(200, {"items": items, "stats": queue_stats()})
+            stats = queue_stats()
+            self._json(
+                200,
+                {
+                    "items": items,
+                    "stats": stats,
+                    "sot": "hub_volume",
+                    "sheet_pull": _queue_sheet_sync_enabled()
+                    and _queue_sheet_pull_allowed(),
+                },
+            )
             return
         if path == "/api/customers":
             include_closed = "closed=1" in (urlparse(self.path).query or "")
@@ -1913,6 +2159,17 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/hub/catalog":
+            if not self._session_user():
+                self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+                return
+            try:
+                payload = build_internal_catalog_dict(load_projects(), load_properties())
+                payload["ok"] = True
+                self._json(200, payload)
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/co/catalog":
             try:
                 payload = get_co_catalog()
@@ -2053,13 +2310,43 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/auth/login":
+            from src.hub.login_rate_limit import (
+                check_login_allowed,
+                record_login_failure,
+                record_login_success,
+            )
+
             username = str(body.get("username") or "").strip().lower()
             password = str(body.get("password") or "")
+            client_ip = _client_ip(self)
+            gate = check_login_allowed(ip=client_ip, username=username)
+            if not gate.get("allowed"):
+                retry = int(gate.get("retry_after_sec") or 60)
+                self.send_response(429)
+                self._cors()
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Retry-After", str(retry))
+                body_out = json.dumps(
+                    {
+                        "ok": False,
+                        "error": "ลองเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่",
+                    },
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+                self.send_header("Content-Length", str(len(body_out)))
+                _no_store_headers(self)
+                self.end_headers()
+                self.wfile.write(body_out)
+                return
             users = _load_hub_users()
             user = users.get(username)
             if not user or user.get("password") != password:
+                record_login_failure(ip=client_ip, username=username)
+                # Generic message — do not reveal whether username exists.
                 self._json(401, {"ok": False, "error": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"})
                 return
+            record_login_success(ip=client_ip, username=username)
             token = _make_session_token(username, user.get("name") or username)
             self._json(
                 200,
@@ -2199,11 +2486,63 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/fb-agent/rotate-token":
+            user = _require_operator(self)
+            if not user:
+                return
             try:
                 agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
-                self._json(200, {"ok": True, **rotate_agent_token(agent_id=agent_id)})
+                # Privileged only — may return agent_token once.
+                self._json(200, {"ok": True, **rotate_agent_token(agent_id=agent_id)}, allow_agent_token=True)
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/groups/publish/reconcile":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                job_id = str(body.get("job_id") or body.get("id") or "").strip()
+                action = str(body.get("action") or "").strip().lower()
+                evidence = str(body.get("external_post_url") or body.get("permalink") or "").strip()
+                job = reconcile_publish_job(
+                    job_id,
+                    action=action,
+                    external_post_url=evidence,
+                    operator=str(user.get("username") or ""),
+                )
+                self._json(200, {"ok": True, "job": job})
+            except PublishReconcileError as exc:
+                self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/line/reconcile":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.line_event_dedupe import (
+                    LineReconcileError,
+                    reconcile_line_event,
+                )
+
+                event_key = str(body.get("event_key") or body.get("key") or "").strip()
+                action = str(body.get("action") or "").strip().lower()
+                record = reconcile_line_event(
+                    event_key,
+                    action=action,
+                    operator=str(user.get("username") or ""),
+                )
+                self._json(200, {"ok": True, "event": record})
+            except Exception as exc:  # noqa: BLE001
+                from src.hub.line_event_dedupe import LineReconcileError
+
+                if isinstance(exc, LineReconcileError):
+                    self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+                else:
+                    self._json(500, {"ok": False, "error": str(exc)})
             return
 
         if path == "/api/fb-agent/heartbeat":
@@ -2295,6 +2634,24 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"ok": False, "error": str(exc)})
             return
 
+        if path == "/api/fb-agent/publish-external-started":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            try:
+                job_id = (body.get("id") or body.get("job_id") or "").strip()
+                if not job_id:
+                    self._json(400, {"ok": False, "error": "ต้องระบุ id"})
+                    return
+                attempt_id = str(body.get("attempt_id") or "").strip()
+                job = mark_publish_external_started(job_id, attempt_id=attempt_id)
+                self._json(200, {"ok": True, "job": job})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/fb-agent/publish-result":
             if not _is_agent_authorized(self):
                 self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
@@ -2315,6 +2672,8 @@ class HubHandler(BaseHTTPRequestHandler):
                     detail=str(body.get("detail") or ""),
                     join_status=str(body.get("join_status") or ""),
                     needs_manual_join=body.get("needs_manual_join"),
+                    attempt_id=str(body.get("attempt_id") or "").strip(),
+                    ambiguous=bool(body.get("ambiguous")),
                 )
                 agent_id = _agent_id_from_handler(self) or job.get("agent_id") or "owner"
                 # Auto-pause FB account on restriction
@@ -2428,9 +2787,16 @@ class HubHandler(BaseHTTPRequestHandler):
                 )
 
                 code = str(job.get("code") or body.get("code") or "").strip().upper()
-                if ok and code and caption:
+                property_id = str(
+                    body.get("property_id") or job.get("property_id") or ""
+                ).strip()
+                if ok and caption and (property_id or code):
                     try:
-                        set_property_page_post_text(code, caption)
+                        set_property_page_post_text(
+                            caption,
+                            property_id=property_id,
+                            code=code,
+                        )
                     except Exception as pe:  # noqa: BLE001
                         print(f"save page_post_text failed: {pe}", flush=True)
 
@@ -2444,19 +2810,30 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/publish-fetch-post":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip().upper()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 url = (body.get("url") or body.get("page_url") or body.get("post_url") or "").strip()
                 agent_id = (body.get("agent_id") or body.get("agent") or "owner").strip() or "owner"
-                if not url and code:
-                    prop = next(
-                        (
-                            p
-                            for p in load_properties()
-                            if str(p.get("code") or "").strip().upper() == code
-                        ),
-                        None,
+                if not url and (property_id or code):
+                    resolved = resolve_property_for_publish(
+                        property_id=property_id,
+                        property_code=code,
                     )
-                    if prop:
+                    if resolved.get("ok"):
+                        prop = resolved["property"]
                         url = str(prop.get("post_pages_url") or prop.get("source_url") or "").strip()
+                        code = str(prop.get("code") or code).strip().upper()
+                        property_id = str(prop.get("id") or property_id)
+                    elif resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS":
+                        self._json(
+                            409,
+                            {
+                                "ok": False,
+                                "error": resolved.get("error"),
+                                "error_code": "PROPERTY_CODE_AMBIGUOUS",
+                                "candidates": resolved.get("candidates") or [],
+                            },
+                        )
+                        return
                 job = enqueue_fetch_post(url=url, code=code, agent_id=agent_id)
                 self._json(200, {"ok": True, "job": job})
             except ValueError as exc:
@@ -2515,7 +2892,7 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
             try:
                 agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
-                status = fb_agent_public_status(include_token=True, agent_id=agent_id)
+                status = fb_agent_public_status(include_token=False, agent_id=agent_id)
                 accounts = list(status.get("fb_accounts") or [])
                 want = str(body.get("account_id") or body.get("id") or "").strip()
                 updated = []
@@ -2537,15 +2914,52 @@ class HubHandler(BaseHTTPRequestHandler):
             try:
                 agent_id = (body.get("agent_id") or body.get("agent") or "owner").strip() or "owner"
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
+                resolved = resolve_property_for_publish(
+                    property_id=property_id,
+                    property_code=code,
+                )
+                if not resolved.get("ok"):
+                    self._json(
+                        409 if resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS" else 400,
+                        {
+                            "ok": False,
+                            "error": resolved.get("error") or "ไม่พบทรัพย์",
+                            "error_code": resolved.get("error_code") or "",
+                            "candidates": resolved.get("candidates") or [],
+                        },
+                    )
+                    return
+                prop = resolved["property"]
+                code = str(prop.get("code") or code).strip().upper()
+                property_id = str(prop.get("id") or "")
                 groups = body.get("groups") or []
                 if not isinstance(groups, list):
                     groups = []
                 # captions
                 caption = str(body.get("caption") or "").strip()
                 if not caption:
-                    built = build_no_link_captions(code, lang=str(body.get("lang") or "th"), n=4)
+                    built = build_no_link_captions(
+                        code,
+                        lang=str(body.get("lang") or "th"),
+                        n=4,
+                        property_id=property_id,
+                    )
                     if not built.get("ok"):
-                        self._json(400, {"ok": False, "error": built.get("error") or "สร้างแคปชันไม่ได้"})
+                        status = (
+                            409
+                            if built.get("error_code") == "PROPERTY_CODE_AMBIGUOUS"
+                            else 400
+                        )
+                        self._json(
+                            status,
+                            {
+                                "ok": False,
+                                "error": built.get("error") or "สร้างแคปชันไม่ได้",
+                                "error_code": built.get("error_code") or "",
+                                "candidates": built.get("candidates") or [],
+                            },
+                        )
                         return
                     variants = built.get("variants") or [built.get("caption")]
                     # rotate caption per group via index if multiple variants
@@ -2559,7 +2973,11 @@ class HubHandler(BaseHTTPRequestHandler):
                 image_urls = body.get("image_urls") or body.get("images") or []
                 if not isinstance(image_urls, list):
                     image_urls = []
-                image_urls = resolve_image_urls_for_property(code, extra=[str(x) for x in image_urls])
+                image_urls = resolve_image_urls_for_property(
+                    code,
+                    extra=[str(x) for x in image_urls],
+                    property_id=property_id,
+                )
 
                 status = fb_agent_public_status(include_token=False, agent_id=agent_id)
                 accounts = status.get("fb_accounts") or []
@@ -2578,6 +2996,7 @@ class HubHandler(BaseHTTPRequestHandler):
                         cap = variants[i % len(variants)]
                         part = _cc(
                             property_code=code,
+                            property_id=property_id,
                             groups=[g],
                             caption=cap,
                             image_urls=image_urls,
@@ -2602,6 +3021,7 @@ class HubHandler(BaseHTTPRequestHandler):
 
                 result = create_publish_campaign(
                     property_code=code,
+                    property_id=property_id,
                     groups=groups,
                     caption=caption,
                     image_urls=image_urls,
@@ -2690,8 +3110,40 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/publish-images/from-property":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip()
-                urls = resolve_image_urls_for_property(code, extra=[])
-                self._json(200, {"ok": True, "code": code.upper(), "image_urls": urls, "count": len(urls)})
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
+                resolved = resolve_property_for_publish(
+                    property_id=property_id,
+                    property_code=code,
+                )
+                if not resolved.get("ok"):
+                    self._json(
+                        409 if resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS" else 400,
+                        {
+                            "ok": False,
+                            "error": resolved.get("error") or "ไม่พบทรัพย์",
+                            "error_code": resolved.get("error_code") or "",
+                            "candidates": resolved.get("candidates") or [],
+                        },
+                    )
+                    return
+                prop = resolved["property"]
+                code = str(prop.get("code") or code).strip().upper()
+                property_id = str(prop.get("id") or "")
+                urls = resolve_image_urls_for_property(
+                    code,
+                    extra=[],
+                    property_id=property_id,
+                )
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "property_id": property_id,
+                        "code": code,
+                        "image_urls": urls,
+                        "count": len(urls),
+                    },
+                )
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -2699,9 +3151,18 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/publish-from-property":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 allow_scrape = body.get("allow_scrape", True) is not False
-                result = fetch_publish_bundle(code, allow_scrape=allow_scrape)
-                status = 200 if result.get("ok") else 400
+                result = fetch_publish_bundle(
+                    code,
+                    allow_scrape=allow_scrape,
+                    property_id=property_id,
+                )
+                status = (
+                    409
+                    if result.get("error_code") == "PROPERTY_CODE_AMBIGUOUS"
+                    else (200 if result.get("ok") else 400)
+                )
                 self._json(status, result)
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
@@ -2746,10 +3207,12 @@ class HubHandler(BaseHTTPRequestHandler):
         if path == "/api/groups/prepare-caption-nolink":
             try:
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 result = build_no_link_captions(
                     code,
                     lang=str(body.get("lang") or "th"),
                     n=int(body.get("n") or body.get("variants") or 4),
+                    property_id=property_id,
                 )
                 status = 200 if result.get("ok") else 400
                 self._json(status, result)
@@ -2803,18 +3266,31 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/groups/recommend":
             try:
-                from src.hub.publish_caption import find_property_by_code
-
                 code = (body.get("code") or body.get("property_code") or "").strip()
+                property_id = str(body.get("property_id") or body.get("id") or "").strip()
                 prop = body.get("property") if isinstance(body.get("property"), dict) else None
-                # Always hydrate from Hub property master when code is given
-                if code:
-                    found = find_property_by_code(code)
-                    if found:
-                        prop = dict(found)
-                    elif not prop:
-                        prop = {"code": code}
-                    else:
+                if property_id or code:
+                    resolved = resolve_property_for_publish(
+                        property_id=property_id,
+                        property_code=code,
+                    )
+                    if resolved.get("ok"):
+                        prop = dict(resolved["property"])
+                    elif resolved.get("error_code") == "PROPERTY_CODE_AMBIGUOUS":
+                        self._json(
+                            409,
+                            {
+                                "ok": False,
+                                "error": resolved.get("error"),
+                                "error_code": "PROPERTY_CODE_AMBIGUOUS",
+                                "candidates": resolved.get("candidates") or [],
+                            },
+                        )
+                        return
+                    elif code and not prop:
+                        self._json(404, {"ok": False, "error": resolved.get("error") or "ไม่พบทรัพย์"})
+                        return
+                    elif code and prop:
                         prop = {**prop, "code": code or prop.get("code") or ""}
                 elif not prop:
                     prop = body if isinstance(body, dict) else {}
@@ -3508,6 +3984,19 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/queue/import-sheet":
+            if not _queue_sheet_pull_allowed():
+                self._json(
+                    403,
+                    {
+                        "ok": False,
+                        "error": (
+                            "ปิดการดึงชีททับคิวรอโพสต์แล้ว — เว็บ (Hub) เป็นแหล่งความจริง "
+                            "(ตั้ง HUB_ALLOW_QUEUE_SHEET_PULL=1 เฉพาะกรณีฉุกเฉิน)"
+                        ),
+                        "sot": "hub_volume",
+                    },
+                )
+                return
             try:
                 sheet_meta = refresh_wait_post_sheet(
                     csv_url=(body.get("csv_url") or "").strip()
@@ -4210,6 +4699,8 @@ def main() -> None:
     import os
     import threading
     import time
+
+    _validate_production_auth_config()
 
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", str(PORT)))

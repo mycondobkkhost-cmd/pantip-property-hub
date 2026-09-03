@@ -395,6 +395,8 @@ def write_sqlite(projects: list[dict], properties: list[dict]) -> None:
 def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
     # Omit project_map from the baked JS — client builds it from projects[]
     # (duplicate map nearly doubled catalog size and OOMed free-tier deploys).
+    from src.hub.public_projection import build_public_catalog_payload
+
     flagged = sum(1 for p in properties if p.get("duplicate_flags"))
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
     data_version = datetime.now().astimezone().strftime("%Y%m%d%H%M%S")
@@ -412,13 +414,13 @@ def write_preview_js(projects: list[dict], properties: list[dict]) -> None:
         ),
         "properties_flagged_duplicate": flagged,
     }
-    payload = {
-        "projects": projects,
-        "properties": properties,
-        "stats": stats,
-        "generated_at": generated_at,
-        "data_version": data_version,
-    }
+    payload = build_public_catalog_payload(
+        projects,
+        properties,
+        stats=stats,
+        generated_at=generated_at,
+        data_version=data_version,
+    )
     body = (
         "// Auto-generated — do not edit\n"
         "window.PTP_DATA = "
@@ -736,6 +738,62 @@ def _stamp_hub_edited(prop: dict) -> None:
     prop["hub_edited_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def build_internal_catalog_dict(projects: list[dict], properties: list[dict]) -> dict:
+    """Full catalog for authenticated Hub admin (includes private fields)."""
+    from src.hub.public_projection import build_internal_catalog_payload
+
+    flagged = sum(1 for p in properties if p.get("duplicate_flags"))
+    generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    data_version = datetime.now().astimezone().strftime("%Y%m%d%H%M%S")
+    stats = {
+        "projects": len(projects),
+        "properties_total": len(properties),
+        "properties_active": sum(
+            1 for p in properties if p.get("import_status") == "active"
+        ),
+        "properties_archived": sum(
+            1 for p in properties if p.get("import_status") == "archived"
+        ),
+        "properties_needs_review": sum(
+            1 for p in properties if p.get("import_status") == "needs_review"
+        ),
+        "properties_flagged_duplicate": flagged,
+    }
+    return build_internal_catalog_payload(
+        projects,
+        properties,
+        stats=stats,
+        generated_at=generated_at,
+        data_version=data_version,
+    )
+
+
+def set_property_page_post_text(
+    text: str,
+    *,
+    property_id: str = "",
+    code: str = "",
+) -> dict | None:
+    """Store full Page-post caption without touching other listing fields."""
+    from src.hub.property_resolve import resolve_for_action
+
+    with _STORE_LOCK:
+        properties = load_properties()
+        projects = load_projects()
+        res = resolve_for_action(
+            properties,
+            property_id=property_id,
+            property_code=code,
+        )
+        if not res.ok or not res.record:
+            return None
+        prop = res.record
+        prop["page_post_text"] = (text or "").strip()
+        _stamp_hub_edited(prop)
+        persist(projects, properties)
+        return prop
+
+
 def update_property(property_id: str, payload: dict) -> dict:
     """Update an existing listing from the edit form (same fields as save)."""
     with _STORE_LOCK:
@@ -745,14 +803,20 @@ def update_property(property_id: str, payload: dict) -> dict:
 def _update_property_locked(property_id: str, payload: dict) -> dict:
     from datetime import datetime
 
+    from src.hub.property_resolve import find_by_id, resolve_for_action
+
     properties = load_properties()
     projects = load_projects()
-    prop = next(
-        (p for p in properties if p.get("id") == property_id or p.get("code") == property_id),
-        None,
-    )
+    prop = find_by_id(properties, property_id)
     if not prop:
-        raise ValueError("ไม่พบทรัพย์")
+        res = resolve_for_action(properties, property_code=property_id)
+        if not res.ok or not res.record:
+            if res.error_code == "PROPERTY_CODE_AMBIGUOUS":
+                raise ValueError(
+                    "รหัสทรัพย์ซ้ำหลายรายการ — บันทึกด้วย property_id"
+                )
+            raise ValueError("ไม่พบทรัพย์")
+        prop = res.record
 
     old_project_id = prop.get("project_id")
     project_id = (payload.get("project_id") or prop.get("project_id") or "").strip()
@@ -849,11 +913,20 @@ def update_property_links(property_id: str, payload: dict) -> dict:
 
 
 def _update_property_links_locked(property_id: str, payload: dict) -> dict:
+    from src.hub.property_resolve import find_by_id, resolve_for_action
+
     properties = load_properties()
     projects = load_projects()
-    prop = next((p for p in properties if p.get("id") == property_id or p.get("code") == property_id), None)
+    prop = find_by_id(properties, property_id)
     if not prop:
-        raise ValueError("ไม่พบทรัพย์")
+        res = resolve_for_action(properties, property_code=property_id)
+        if not res.ok or not res.record:
+            if res.error_code == "PROPERTY_CODE_AMBIGUOUS":
+                raise ValueError(
+                    "รหัสทรัพย์ซ้ำหลายรายการ — บันทึกด้วย property_id"
+                )
+            raise ValueError("ไม่พบทรัพย์")
+        prop = res.record
 
     if "post_url" in payload:
         post_url = (payload.get("post_url") or "").strip()

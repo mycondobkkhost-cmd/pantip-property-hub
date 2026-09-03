@@ -3770,6 +3770,21 @@
       try { sessionStorage.setItem("ptp_display_name", name || ""); } catch (e) { /* ignore */ }
     }
 
+    async function loadHubInternalCatalog() {
+      if (window.location.protocol === "file:") return false;
+      try {
+        var res = await fetch("/api/hub/catalog", { credentials: "same-origin", cache: "no-store" });
+        if (!res.ok) return false;
+        var data = await res.json();
+        if (!data || !data.ok) return false;
+        window.PTP_DATA = data;
+        ensureProjectMap();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     function showLogin() {
       appScreen.classList.add("hidden");
       loginScreen.classList.remove("hidden");
@@ -3824,6 +3839,8 @@
           return;
         }
         showApp(data.name || u);
+        await loadHubInternalCatalog();
+        initData();
       } catch (err) {
         loginError.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เปิด hub/เปิดดู.command";
         loginError.classList.remove("hidden");
@@ -5673,6 +5690,11 @@
     function updateDataFreshnessLabel() {
       var el = document.getElementById("data-freshness");
       if (!el || !window.PTP_DATA) return;
+      if (activeView === "queue") {
+        el.classList.add("hidden");
+        el.textContent = "";
+        return;
+      }
       var gen = window.PTP_DATA.generated_at || "";
       var total = (window.PTP_DATA.stats && window.PTP_DATA.stats.properties_total) || 0;
       if (!gen && !total) {
@@ -8145,6 +8167,9 @@
         activeDbTab = view === "projects" ? "projects" : view;
         view = "db";
       }
+      if (view !== "add") {
+        clearActiveQueueContext();
+      }
       activeView = view;
       var mainEl = document.querySelector("#app-screen main");
       if (mainEl) mainEl.classList.add("main-wide");
@@ -8227,6 +8252,9 @@
       if (view === "queue") {
         initQueueQueuedAtDefault();
         loadQueue();
+        updateQueuePanelMeta();
+      } else if (typeof updateDataFreshnessLabel === "function") {
+        updateDataFreshnessLabel();
       }
       else if (view === "focus") {
         switchFocusTab(activeFocusTab || "team");
@@ -9790,7 +9818,7 @@
           }).join("");
         }
       }
-      if (tokenEl) tokenEl.textContent = data.agent_token || "—";
+      if (tokenEl) tokenEl.textContent = data.agent_token || "— (กดหมุนรหัสเพื่อดูครั้งเดียว)";
       if (emailEl && data.email && !emailEl.value) emailEl.value = data.email;
       if (step1) {
         if (data.email && data.has_password) step1.textContent = "✓ บันทึกไว้ช่วยพิมพ์แล้ว (ไม่บังคับ)";
@@ -10909,25 +10937,23 @@
       var hub = window.location.origin || "https://hub.realxtateth.com";
       var okEl = document.getElementById("fb-agent-copy-mac-ok");
       try {
-        var data = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(fbSelectedAgentId));
-        var token = (data && data.agent_token) || "";
-        if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
+        // Phase G: do not put agent_token in clipboard URLs. Starter script has empty token;
+        // operator sets COMMENT_AGENT_TOKEN after explicit rotate-token.
         var cmd =
           "curl -fsSL " +
           JSON.stringify(
             hub + "/api/fb-agent/download-mac?hub=" + encodeURIComponent(hub) +
-            "&agent=" + encodeURIComponent(fbSelectedAgentId) +
-            "&t=" + encodeURIComponent(token)
+            "&agent=" + encodeURIComponent(fbSelectedAgentId)
           ) +
           " -o /tmp/ptp-comment-" + fbSelectedAgentId + ".command && chmod +x /tmp/ptp-comment-" + fbSelectedAgentId +
-          ".command && /tmp/ptp-comment-" + fbSelectedAgentId + ".command";
+          ".command && echo 'Set COMMENT_AGENT_TOKEN from Hub rotate-token, then run:' && /tmp/ptp-comment-" + fbSelectedAgentId + ".command";
         await navigator.clipboard.writeText(cmd);
-        if (okEl) okEl.textContent = "คัดลอกแล้ว — ไปวางใน Terminal ได้เลย";
+        if (okEl) okEl.textContent = "คัดลอกแล้ว — ตั้ง COMMENT_AGENT_TOKEN หลัง rotate แล้วรัน";
         alert(
           "คัดลอกคำสั่งแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\n" +
-          "1) เปิดแอป Terminal\n" +
-          "2) วางคำสั่ง (Cmd+V) แล้วกด Enter\n" +
-          "3) อย่าปิดหน้าต่าง — รอจน Hub ขึ้น「ทำงานอยู่」"
+          "1) กด「หมุนรหัสเชื่อมต่อ」ใน Hub แล้วคัดลอกรหัส\n" +
+          "2) เปิด Terminal วางคำสั่ง\n" +
+          "3) ตั้ง COMMENT_AGENT_TOKEN ก่อนรันสคริปต์"
         );
       } catch (e) {
         if (okEl) okEl.textContent = "";
@@ -10939,24 +10965,21 @@
       var hub = window.location.origin || "https://hub.realxtateth.com";
       var okEl = document.getElementById("fb-agent-copy-win-ok");
       try {
-        var data = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(fbSelectedAgentId));
-        var token = (data && data.agent_token) || "";
-        if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
         var url = hub + "/api/fb-agent/download-windows?hub=" + encodeURIComponent(hub) +
-          "&agent=" + encodeURIComponent(fbSelectedAgentId) +
-          "&t=" + encodeURIComponent(token);
+          "&agent=" + encodeURIComponent(fbSelectedAgentId);
         var cmd =
           "$u='" + url.replace(/'/g, "''") + "'; " +
           "$f=Join-Path $env:TEMP 'ptp-comment-" + fbSelectedAgentId + ".bat'; " +
           "Invoke-WebRequest -Uri $u -OutFile $f -UseBasicParsing; " +
+          "Write-Host 'Set COMMENT_AGENT_TOKEN from Hub rotate-token, then run the .bat'; " +
           "Start-Process $f";
         await navigator.clipboard.writeText(cmd);
-        if (okEl) okEl.textContent = "คัดลอกแล้ว — วางใน PowerShell ได้เลย";
+        if (okEl) okEl.textContent = "คัดลอกแล้ว — ตั้ง COMMENT_AGENT_TOKEN หลัง rotate";
         alert(
           "คัดลอกคำสั่งแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\n" +
-          "1) คลิกขวา Start → Windows PowerShell / Terminal\n" +
-          "2) วางคำสั่ง (Ctrl+V) แล้วกด Enter\n" +
-          "3) อย่าปิดหน้าต่างดำ — รอจน Hub ขึ้น「ทำงานอยู่」"
+          "1) กด「หมุนรหัสเชื่อมต่อ」ใน Hub แล้วคัดลอกรหัส\n" +
+          "2) วางคำสั่งใน PowerShell\n" +
+          "3) ตั้ง COMMENT_AGENT_TOKEN ก่อนรัน .bat"
         );
       } catch (e) {
         if (okEl) okEl.textContent = "";
@@ -11304,6 +11327,52 @@
     var pendingOwnerFb = "";
     var pendingOwnerPhone = "";
 
+    function clearActiveQueueContext() {
+      activeQueueId = "";
+      var hint = document.getElementById("add-proceed-hint");
+      if (hint) {
+        hint.textContent = "บันทึกลง Hub · ถ้ามาจากคิวจะปิดคิวงานนี้";
+      }
+    }
+
+    function normalizeQueueUrl(u) {
+      return String(u || "").trim().replace(/\/+$/, "").split("?")[0].split("#")[0].toLowerCase();
+    }
+
+    async function removeQueueItemIfMatched(queueId, sourceUrl) {
+      if (!queueId) return false;
+      var item = queueItems.find(function (x) { return x.id === queueId; });
+      if (!item) return false;
+      var formUrl = normalizeQueueUrl(
+        sourceUrl || ((document.getElementById("add-url") || {}).value || "")
+      );
+      var queueUrl = normalizeQueueUrl(item.source_url || item.url);
+      if (!formUrl || !queueUrl || formUrl !== queueUrl) {
+        return false;
+      }
+      await apiPost("/api/queue/delete", { id: queueId });
+      return true;
+    }
+
+    function updateQueuePanelMeta() {
+      if (activeView !== "queue") return;
+      var subEl = document.getElementById("panel-sub");
+      if (!subEl) return;
+      var showDone = document.getElementById("queue-show-done") &&
+        document.getElementById("queue-show-done").checked;
+      var visible = queueItems.filter(function (x) {
+        return showDone || x.status !== "done";
+      });
+      var pending = queueItems.filter(function (x) {
+        return x.status === "pending" || x.status === "working";
+      }).length;
+      var doneN = queueItems.filter(function (x) { return x.status === "done"; }).length;
+      subEl.textContent = "คิวรอโพสต์ " + visible.length + " รายการในหน้านี้" +
+        " · รอ/กำลังทำ " + pending +
+        (doneN ? " · เสร็จแล้ว " + doneN : "") +
+        " · เก่า→ใหม่";
+    }
+
     function isFacebookUrl(u) {
       return /facebook\.com|fb\.com|fb\.me/i.test(u || "");
     }
@@ -11569,6 +11638,7 @@
         if (!res.ok) throw new Error(data.error || "โหลดคิวไม่ได้");
         queueItems = data.items || [];
         updateQueueBadge(data.stats || {});
+        updateQueuePanelMeta();
         if (activeView === "queue") renderQueue();
       } catch (e) {
         if (activeView === "queue") {
@@ -13412,8 +13482,18 @@
           queued_at: queuedAt
         });
         closeQueueAddForm();
+        if (data.created && data.created.length) {
+          var created = data.created[0];
+          queueItems = [created].concat(queueItems.filter(function (x) {
+            return x.id !== created.id;
+          }));
+          if (activeView === "queue") renderQueue();
+        }
         updateQueueBadge(data.stats || {});
-        await loadQueue(true);
+        await loadQueue();
+        if (data.sheet && data.sheet.ok === false && data.sheet.error) {
+          alert("บันทึกคิวบนเว็บแล้ว แต่ส่งขึ้นชีทไม่สำเร็จ:\n" + data.sheet.error);
+        }
       } catch (e) {
         alert(e.message);
       }
@@ -13520,14 +13600,21 @@
           switchView("properties");
         } else {
           data = await apiPost("/api/properties/save", { property: payload });
+          var removedFromQueue = false;
           if (activeQueueId) {
             try {
-              await apiPost("/api/queue/delete", { id: activeQueueId });
+              removedFromQueue = await removeQueueItemIfMatched(
+                activeQueueId,
+                payload.source_url || document.getElementById("add-url").value
+              );
             } catch (e) { /* ignore */ }
           }
           var code = (data.property && data.property.code) || payload.code;
-          alert("บันทึกแล้ว · " + code + (activeQueueId ? " · ลบออกจากคิวแล้ว" : ""));
-          activeQueueId = "";
+          alert(
+            "บันทึกแล้ว · " + code +
+            (removedFromQueue ? " · ลบออกจากคิวแล้ว" : "")
+          );
+          clearActiveQueueContext();
           pendingOwnerFb = "";
           pendingOwnerPhone = "";
           clearAddFormFields(data.next_code || "");
@@ -15233,6 +15320,21 @@
     }
   </script>
   <script src="preview-data.js"></script>
-  <script>initData();</script>
+  <script>
+    (async function bootHubData() {
+      if (window.location.protocol !== "file:") {
+        try {
+          var res = await fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" });
+          if (res.ok) {
+            var me = await res.json();
+            if (me && me.ok && me.logged_in) {
+              await loadHubInternalCatalog();
+            }
+          }
+        } catch (e) { /* public preview-data only */ }
+      }
+      initData();
+    })();
+  </script>
 </body>
 </html>

@@ -1,20 +1,9 @@
-# Deploy Property Hub to Fly.io on push to main (after FLY_API_TOKEN is set).
+# Deploy Property Hub to Fly.io — manual only (workflow_dispatch).
 # Does not touch LivingBKK / apex realxtateth.com.
+# Production deploys require explicit operator approval in GitHub Actions.
 name: Fly deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "Dockerfile"
-      - "fly.toml"
-      - "requirements-hub.txt"
-      - "scripts/hub_server.py"
-      - "src/hub/**"
-      - "hub/**"
-      - "data/properties.json"
-      - "data/projects.json"
-      - ".github/workflows/fly-deploy.yml"
   workflow_dispatch:
 
 jobs:

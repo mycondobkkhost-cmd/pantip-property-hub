@@ -113,7 +113,11 @@ class PhaseBIdentityTests(unittest.TestCase):
         self.assertEqual(res.error_code, "PROPERTY_CODE_AMBIGUOUS")
 
     def test_list_due_for_publish_filters_ambiguous(self) -> None:
-        from src.hub.group_post_publish_store import list_due_for_publish
+        import json
+        import tempfile
+        from pathlib import Path
+
+        from src.hub import group_post_publish_store as store
 
         jobs = [
             {
@@ -121,26 +125,48 @@ class PhaseBIdentityTests(unittest.TestCase):
                 "status": "pending",
                 "property_id": "pid-4734-1",
                 "property_code": "PTP4734",
+                "group_url": "https://www.facebook.com/groups/g1",
+                "group_name": "G1",
+                "fb_account_id": "a1",
+                "agent_id": "owner",
+                "caption": "c",
+                "image_urls": [],
                 "next_post_at": "",
+                "campaign_id": "",
             },
             {
                 "id": "bad",
                 "status": "pending",
                 "property_code": "PTP4734",
+                "group_url": "https://www.facebook.com/groups/g2",
+                "group_name": "G2",
+                "fb_account_id": "a1",
+                "agent_id": "owner",
+                "caption": "c",
+                "image_urls": [],
                 "next_post_at": "",
+                "campaign_id": "",
             },
         ]
-        with mock.patch(
-            "src.hub.group_post_publish_store.list_due",
-            return_value=jobs,
-        ), mock.patch(
-            "src.hub.project_store.load_properties",
-            return_value=ptp4734_fixture(),
-        ):
-            safe, blocked = list_due_for_publish(limit=5)
-        self.assertEqual(len(safe), 1)
-        self.assertEqual(blocked, 1)
-        self.assertEqual(safe[0]["identity_status"], "ok")
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "jobs.json"
+            path.write_text(
+                json.dumps({"jobs": jobs, "group_last_post": {}}, indent=2),
+                encoding="utf-8",
+            )
+            with mock.patch.object(store, "STORE_PATH", path), mock.patch(
+                "src.hub.project_store.load_properties",
+                return_value=ptp4734_fixture(),
+            ):
+                safe, blocked = store.list_due_for_publish(limit=5)
+            self.assertEqual(len(safe), 1)
+            self.assertEqual(blocked, 1)
+            self.assertEqual(safe[0]["identity_status"], "ok")
+            self.assertEqual(safe[0]["id"], "good")
+            self.assertEqual(safe[0]["status"], "running")
+            data = json.loads(path.read_text(encoding="utf-8"))
+            bad = next(j for j in data["jobs"] if j["id"] == "bad")
+            self.assertEqual(bad["status"], "needs_reconcile")
 
     def test_co_catalog_rows_have_property_id(self) -> None:
         from src.hub.co_catalog import slim_property

@@ -702,6 +702,7 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
             last_account = acc
 
         progress(f"โพส {code} → กลุ่ม · บัญชี {switch_name or job.get('fb_account_id') or 'ปัจจุบัน'}")
+        attempt_id = str(job.get("attempt_id") or "").strip()
 
         if switch_name:
             sw = switcher.switch_to(switch_name)
@@ -719,6 +720,7 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
                             "action": "switch_failed",
                             "error": detail,
                             "detail": detail,
+                            "attempt_id": attempt_id,
                         },
                     )
                 except Exception:  # noqa: BLE001
@@ -726,7 +728,39 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
                 failed += 1
                 continue
 
+        external_started = False
         try:
+            # Mark before Facebook action — any later unknown outcome is ambiguous.
+            try:
+                _request(
+                    "POST",
+                    _hub_url(hub, "/api/fb-agent/publish-external-started"),
+                    token=token,
+                    body={"id": job_id, "attempt_id": attempt_id},
+                )
+                external_started = True
+            except Exception as start_exc:  # noqa: BLE001
+                logger.warning("publish-external-started failed: {}", start_exc)
+                # Do not proceed to Facebook if we cannot record the lease marker.
+                try:
+                    _request(
+                        "POST",
+                        _hub_url(hub, "/api/fb-agent/publish-result"),
+                        token=token,
+                        body={
+                            "id": job_id,
+                            "ok": False,
+                            "action": "pre_external_failed",
+                            "error": f"cannot mark external start: {start_exc}",
+                            "detail": str(start_exc),
+                            "attempt_id": attempt_id,
+                        },
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                failed += 1
+                continue
+
             # Expand relative Hub upload URLs to absolute for local download
             hub_base = hub.rstrip("/")
             resolved_images = []
@@ -749,28 +783,54 @@ def run_publish(hub: str, token: str, email: str, password: str, *, max_posts: i
                 "error": str(exc),
                 "action": "exception",
                 "detail": str(exc),
+                "ambiguous": external_started,
             }
 
         ok = bool(outcome.get("ok"))
+        report_body = {
+            "id": job_id,
+            "ok": ok,
+            "permalink": outcome.get("permalink") or "",
+            "action": outcome.get("action") or ("posted" if ok else "failed"),
+            "error": outcome.get("error") or "",
+            "detail": outcome.get("detail") or "",
+            "join_status": outcome.get("join_status") or "",
+            "needs_manual_join": bool(outcome.get("needs_manual_join")),
+            "comment_immediately": ok,
+            "attempt_id": attempt_id,
+            "ambiguous": bool(outcome.get("ambiguous")),
+        }
         try:
             _request(
                 "POST",
                 _hub_url(hub, "/api/fb-agent/publish-result"),
                 token=token,
-                body={
-                    "id": job_id,
-                    "ok": ok,
-                    "permalink": outcome.get("permalink") or "",
-                    "action": outcome.get("action") or ("posted" if ok else "failed"),
-                    "error": outcome.get("error") or "",
-                    "detail": outcome.get("detail") or "",
-                    "join_status": outcome.get("join_status") or "",
-                    "needs_manual_join": bool(outcome.get("needs_manual_join")),
-                    "comment_immediately": ok,
-                },
+                body=report_body,
             )
         except Exception as report_exc:  # noqa: BLE001
             logger.warning("publish-result report failed: {}", report_exc)
+            # External action may have succeeded — never leave as silent pending retry.
+            if external_started:
+                try:
+                    _request(
+                        "POST",
+                        _hub_url(hub, "/api/fb-agent/publish-result"),
+                        token=token,
+                        body={
+                            "id": job_id,
+                            "ok": False,
+                            "action": "callback_lost",
+                            "error": str(report_exc),
+                            "detail": "callback failed after external start",
+                            "attempt_id": attempt_id,
+                            "ambiguous": True,
+                        },
+                    )
+                except Exception:  # noqa: BLE001
+                    logger.error(
+                        "could not mark needs_reconcile after lost callback for job {}",
+                        job_id,
+                    )
 
         if ok:
             done += 1

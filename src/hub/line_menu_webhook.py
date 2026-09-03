@@ -1,6 +1,7 @@
 """Minimal LINE Messaging API webhook — Rich Menu keyword replies only.
 
 Runs inside Property Hub on Fly (always-on). No OpenAI, ops, or case store.
+Phase G: durable event dedupe before outbound send.
 """
 
 from __future__ import annotations
@@ -11,10 +12,18 @@ import hmac
 import json
 import os
 import time
-from typing import Any
+from typing import Any, Callable
 
 import requests
 
+from src.hub.line_event_dedupe import (
+    claim_event,
+    cleanup_expired,
+    event_key_from_line_event,
+    mark_completed,
+    mark_needs_reconcile,
+    mark_outbound_started,
+)
 from src.hub.line_menu_replies import MENU_REPLIES, WELCOME_MESSAGE, menu_reply_for
 
 _BOT_INFO_CACHE: dict[str, Any] = {"at": 0.0, "info": {}}
@@ -133,12 +142,20 @@ def deliver_text(
     return "skip"
 
 
-def handle_line_events(payload: dict) -> dict:
-    """Process webhook JSON. Returns summary counts."""
+def handle_line_events(
+    payload: dict,
+    *,
+    deliver: Callable[..., str] | None = None,
+) -> dict:
+    """Process webhook JSON with durable dedupe. Returns summary counts."""
+    deliver_fn = deliver or deliver_text
+    cleanup_expired()
     events = payload.get("events") or []
     matched = 0
     replied = 0
     ignored = 0
+    deduped = 0
+    ambiguous = 0
     for event in events:
         if not isinstance(event, dict):
             ignored += 1
@@ -150,7 +167,6 @@ def handle_line_events(payload: dict) -> dict:
         mode = event.get("mode") or "active"
 
         if etype == "follow":
-            # Greeting is usually set in OA Manager; skip to avoid double message.
             ignored += 1
             continue
 
@@ -167,19 +183,46 @@ def handle_line_events(payload: dict) -> dict:
             ignored += 1
             continue
         matched += 1
-        via = deliver_text(
-            reply_token=reply_token,
-            user_id=user_id,
-            text=answer,
-            mode=mode,
-        )
-        if via != "skip":
-            replied += 1
+
+        ekey = event_key_from_line_event(event)
+        if not ekey:
+            # No stable identity — fail closed (do not send; avoid unreliable dedupe).
+            ignored += 1
+            continue
+
+        claim = claim_event(ekey)
+        if claim.get("action") in {"duplicate_completed", "duplicate_processing"}:
+            deduped += 1
+            continue
+        if claim.get("action") == "ambiguous":
+            ambiguous += 1
+            continue
+        if not claim.get("ok"):
+            ignored += 1
+            continue
+
+        try:
+            mark_outbound_started(ekey)
+            via = deliver_fn(
+                reply_token=reply_token,
+                user_id=user_id,
+                text=answer,
+                mode=mode,
+            )
+            if via != "skip":
+                replied += 1
+            mark_completed(ekey)
+        except Exception as exc:  # noqa: BLE001
+            # Outbound may have started — never auto-resend.
+            mark_needs_reconcile(ekey, reason=str(exc)[:200])
+            ambiguous += 1
     return {
         "events": len(events),
         "matched": matched,
         "replied": replied,
         "ignored": ignored,
+        "deduped": deduped,
+        "ambiguous": ambiguous,
     }
 
 

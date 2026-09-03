@@ -82,9 +82,11 @@ from src.hub.fb_agent_store import (  # noqa: E402
 from src.hub.group_post_publish_store import (  # noqa: E402
     cancel_job as cancel_publish_job,
     cancel_open_jobs as cancel_open_publish_jobs,
+    claim_due_for_publish,
     create_campaign as create_publish_campaign,
     list_due_for_publish,
     list_jobs as list_publish_jobs,
+    mark_external_action_started as mark_publish_external_started,
     mark_result as mark_publish_result,
     stats as publish_job_stats,
 )
@@ -1024,7 +1026,12 @@ def _cookie_value(headers: dict | None, name: str) -> str:
 
 
 def _client_ip(handler: BaseHTTPRequestHandler) -> str:
-    """Best-effort client IP (Fly/Cloudflare forwarded headers). Never store raw in analytics."""
+    """Best-effort client IP for rate limiting / analytics.
+
+    Prefer platform-injected headers (Fly-Client-IP, CF-Connecting-IP).
+    X-Forwarded-For is used only as a last resort and may be client-spoofable
+    if the edge does not overwrite it — treat as best-effort, not cryptographic trust.
+    """
     xff = (handler.headers.get("Fly-Client-IP") or handler.headers.get("CF-Connecting-IP") or "").strip()
     if xff:
         return xff.split(",")[0].strip()
@@ -1133,6 +1140,7 @@ _AGENT_API_PREFIXES = (
     "/api/fb-agent/chrome-profiles",
     "/api/fb-agent/publish-due",
     "/api/fb-agent/publish-result",
+    "/api/fb-agent/publish-external-started",
     "/api/fb-agent/fetch-post-due",
     "/api/fb-agent/fetch-post-result",
 )
@@ -1210,16 +1218,16 @@ def _fb_agent_project_zip_download(handler: "HubHandler") -> None:
 
 
 def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
-    """Serve a ready-to-run starter script for Windows (.bat) or Mac (.command)."""
+    """Serve a ready-to-run starter script for Windows (.bat) or Mac (.command).
+
+    Phase G: do NOT embed agent_token in downloadable scripts or query URLs.
+    Operators must set COMMENT_AGENT_TOKEN via environment after an explicit rotate.
+    """
     from urllib.parse import parse_qs
 
     qs = parse_qs(urlparse(handler.path).query or "")
     agent_id = ((qs.get("agent") or qs.get("agent_id") or ["owner"])[0] or "owner").strip() or "owner"
-    status = fb_agent_public_status(include_token=True, agent_id=agent_id)
-    token = str(status.get("agent_token") or "").strip()
-    if not token:
-        handler._json(500, {"ok": False, "error": "ยังไม่มีรหัสเชื่อมต่อของ Agent นี้"})
-        return
+    status = fb_agent_public_status(include_token=False, agent_id=agent_id)
     hub_url = ((qs.get("hub") or [""])[0] or "").strip()
     if not hub_url:
         host = (handler.headers.get("Host") or "127.0.0.1:8765").strip()
@@ -1231,8 +1239,10 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
         project_dir = raw_project
 
     label = str(status.get("label") or agent_id)
-    project_zip_url = f"{hub_url.rstrip('/')}/api/fb-agent/download-project-zip?t={token}"
+    # No token in URL — zip download requires Authorization bearer separately.
+    project_zip_url = f"{hub_url.rstrip('/')}/api/fb-agent/download-project-zip"
     kind = (kind or "windows").strip().lower()
+    token_placeholder = ""
     if kind in {"mac", "macos", "darwin"}:
         tpl = BASE_DIR / "scripts" / "mac" / "เปิดระบบคอมเมนต์.command.template"
         filename = f"เปิดระบบคอมเมนต์-{agent_id}.command"
@@ -1242,12 +1252,13 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
             'COMMENT_AGENT_TOKEN="__AGENT_TOKEN__"\n'
             'COMMENT_AGENT_ID="__AGENT_ID__"\n'
             'export COMMENT_AGENT_ID\n'
+            'if [ -z "$COMMENT_AGENT_TOKEN" ]; then echo "Set COMMENT_AGENT_TOKEN first (Hub rotate)"; exit 1; fi\n'
             'python3 scripts/comment_agent.py --hub "$HUB_URL" --token "$COMMENT_AGENT_TOKEN" --agent "$COMMENT_AGENT_ID"\n'
         )
         text = (
             text.replace("__PROJECT_DIR__", project_dir)
             .replace("__HUB_URL__", hub_url)
-            .replace("__AGENT_TOKEN__", token)
+            .replace("__AGENT_TOKEN__", token_placeholder)
             .replace("__AGENT_ID__", agent_id)
             .replace("__AGENT_LABEL__", label)
             .replace("__PROJECT_ZIP_URL__", project_zip_url)
@@ -1265,12 +1276,17 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
             'set "HUB_URL=__HUB_URL__"\r\n'
             'set "COMMENT_AGENT_TOKEN=__AGENT_TOKEN__"\r\n'
             'set "COMMENT_AGENT_ID=__AGENT_ID__"\r\n'
+            "if \"%COMMENT_AGENT_TOKEN%\"==\"\" (\r\n"
+            "  echo Set COMMENT_AGENT_TOKEN first via Hub rotate\r\n"
+            "  pause\r\n"
+            "  exit /b 1\r\n"
+            ")\r\n"
             'python scripts\\comment_agent.py --hub "%HUB_URL%" --token "%COMMENT_AGENT_TOKEN%" --agent "%COMMENT_AGENT_ID%"\r\n'
             "pause\r\n"
         )
     text = (
         text.replace("__HUB_URL__", hub_url.replace("%", "%%"))
-        .replace("__AGENT_TOKEN__", token.replace("%", "%%"))
+        .replace("__AGENT_TOKEN__", token_placeholder)
         .replace("__PROJECT_DIR__", project_dir.replace("%", "%%"))
         .replace("__AGENT_ID__", agent_id.replace("%", "%%"))
         .replace("__AGENT_LABEL__", label.replace("%", "%%"))
@@ -1281,18 +1297,18 @@ def _fb_agent_starter_download(handler: "HubHandler", *, kind: str) -> None:
 
 
 def _fb_agent_install_mac_to_downloads() -> dict:
-    """Write ready .command into ~/Downloads so user never has to move files."""
+    """Write ready .command into ~/Downloads so user never has to move files.
+
+    Phase G: never embed agent_token. Operator must set COMMENT_AGENT_TOKEN
+    after an explicit Hub rotate-token (token is not returned by status).
+    """
     import os
     import subprocess
 
-    status = fb_agent_public_status(include_token=True)
-    token = str(status.get("agent_token") or "").strip()
-    if not token:
-        raise ValueError("ยังไม่มีรหัสเชื่อมต่อ")
-
+    status = fb_agent_public_status(include_token=False)
     hub_url = "http://127.0.0.1:8765"
     project_dir = str(BASE_DIR.resolve())
-    project_zip_url = f"{hub_url}/api/fb-agent/download-project-zip?t={token}"
+    project_zip_url = f"{hub_url}/api/fb-agent/download-project-zip"
     tpl = BASE_DIR / "scripts" / "mac" / "เปิดระบบคอมเมนต์.command.template"
     if not tpl.exists():
         raise ValueError("ไม่พบเทมเพลตไฟล์ Mac")
@@ -1300,9 +1316,9 @@ def _fb_agent_install_mac_to_downloads() -> dict:
         tpl.read_text(encoding="utf-8")
         .replace("__PROJECT_DIR__", project_dir)
         .replace("__HUB_URL__", hub_url)
-        .replace("__AGENT_TOKEN__", token)
+        .replace("__AGENT_TOKEN__", "")
         .replace("__AGENT_ID__", "owner")
-        .replace("__AGENT_LABEL__", "เจ้าของ (Mac)")
+        .replace("__AGENT_LABEL__", str(status.get("label") or "เจ้าของ (Mac)"))
         .replace("__PROJECT_ZIP_URL__", project_zip_url)
     )
     downloads = Path.home() / "Downloads"
@@ -1449,7 +1465,8 @@ class HubHandler(BaseHTTPRequestHandler):
 
             qs = parse_qs(urlparse(self.path).query or "")
             agent_id = ((qs.get("agent") or qs.get("agent_id") or [""])[0] or "").strip() or None
-            self._json(200, fb_agent_public_status(include_token=True, agent_id=agent_id))
+            # Phase G: never return agent_token on status endpoint.
+            self._json(200, fb_agent_public_status(include_token=False, agent_id=agent_id))
             return
         if path == "/api/fb-agent/download-windows":
             _fb_agent_starter_download(self, kind="windows")
@@ -2193,13 +2210,43 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/auth/login":
+            from src.hub.login_rate_limit import (
+                check_login_allowed,
+                record_login_failure,
+                record_login_success,
+            )
+
             username = str(body.get("username") or "").strip().lower()
             password = str(body.get("password") or "")
+            client_ip = _client_ip(self)
+            gate = check_login_allowed(ip=client_ip, username=username)
+            if not gate.get("allowed"):
+                retry = int(gate.get("retry_after_sec") or 60)
+                self.send_response(429)
+                self._cors()
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Retry-After", str(retry))
+                body_out = json.dumps(
+                    {
+                        "ok": False,
+                        "error": "ลองเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่",
+                    },
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+                self.send_header("Content-Length", str(len(body_out)))
+                _no_store_headers(self)
+                self.end_headers()
+                self.wfile.write(body_out)
+                return
             users = _load_hub_users()
             user = users.get(username)
             if not user or user.get("password") != password:
+                record_login_failure(ip=client_ip, username=username)
+                # Generic message — do not reveal whether username exists.
                 self._json(401, {"ok": False, "error": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"})
                 return
+            record_login_success(ip=client_ip, username=username)
             token = _make_session_token(username, user.get("name") or username)
             self._json(
                 200,
@@ -2435,6 +2482,24 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"ok": False, "error": str(exc)})
             return
 
+        if path == "/api/fb-agent/publish-external-started":
+            if not _is_agent_authorized(self):
+                self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
+                return
+            try:
+                job_id = (body.get("id") or body.get("job_id") or "").strip()
+                if not job_id:
+                    self._json(400, {"ok": False, "error": "ต้องระบุ id"})
+                    return
+                attempt_id = str(body.get("attempt_id") or "").strip()
+                job = mark_publish_external_started(job_id, attempt_id=attempt_id)
+                self._json(200, {"ok": True, "job": job})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/fb-agent/publish-result":
             if not _is_agent_authorized(self):
                 self._json(401, {"ok": False, "error": "agent token ไม่ถูกต้อง"})
@@ -2455,6 +2520,8 @@ class HubHandler(BaseHTTPRequestHandler):
                     detail=str(body.get("detail") or ""),
                     join_status=str(body.get("join_status") or ""),
                     needs_manual_join=body.get("needs_manual_join"),
+                    attempt_id=str(body.get("attempt_id") or "").strip(),
+                    ambiguous=bool(body.get("ambiguous")),
                 )
                 agent_id = _agent_id_from_handler(self) or job.get("agent_id") or "owner"
                 # Auto-pause FB account on restriction
@@ -2673,7 +2740,7 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
             try:
                 agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
-                status = fb_agent_public_status(include_token=True, agent_id=agent_id)
+                status = fb_agent_public_status(include_token=False, agent_id=agent_id)
                 accounts = list(status.get("fb_accounts") or [])
                 want = str(body.get("account_id") or body.get("id") or "").strip()
                 updated = []

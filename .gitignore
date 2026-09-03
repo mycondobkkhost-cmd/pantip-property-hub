@@ -19,6 +19,7 @@ data/post_footer_snippets.json
 data/group_post_links.json
 data/group_post_codes.json
 data/group_publish_jobs.json
+data/line_event_dedupe.json
 data/fb_agent.json
 data/co_traffic/
 data/publish_uploads/

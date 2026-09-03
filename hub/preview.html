@@ -9818,7 +9818,7 @@
           }).join("");
         }
       }
-      if (tokenEl) tokenEl.textContent = data.agent_token || "—";
+      if (tokenEl) tokenEl.textContent = data.agent_token || "— (กดหมุนรหัสเพื่อดูครั้งเดียว)";
       if (emailEl && data.email && !emailEl.value) emailEl.value = data.email;
       if (step1) {
         if (data.email && data.has_password) step1.textContent = "✓ บันทึกไว้ช่วยพิมพ์แล้ว (ไม่บังคับ)";
@@ -10937,25 +10937,23 @@
       var hub = window.location.origin || "https://hub.realxtateth.com";
       var okEl = document.getElementById("fb-agent-copy-mac-ok");
       try {
-        var data = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(fbSelectedAgentId));
-        var token = (data && data.agent_token) || "";
-        if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
+        // Phase G: do not put agent_token in clipboard URLs. Starter script has empty token;
+        // operator sets COMMENT_AGENT_TOKEN after explicit rotate-token.
         var cmd =
           "curl -fsSL " +
           JSON.stringify(
             hub + "/api/fb-agent/download-mac?hub=" + encodeURIComponent(hub) +
-            "&agent=" + encodeURIComponent(fbSelectedAgentId) +
-            "&t=" + encodeURIComponent(token)
+            "&agent=" + encodeURIComponent(fbSelectedAgentId)
           ) +
           " -o /tmp/ptp-comment-" + fbSelectedAgentId + ".command && chmod +x /tmp/ptp-comment-" + fbSelectedAgentId +
-          ".command && /tmp/ptp-comment-" + fbSelectedAgentId + ".command";
+          ".command && echo 'Set COMMENT_AGENT_TOKEN from Hub rotate-token, then run:' && /tmp/ptp-comment-" + fbSelectedAgentId + ".command";
         await navigator.clipboard.writeText(cmd);
-        if (okEl) okEl.textContent = "คัดลอกแล้ว — ไปวางใน Terminal ได้เลย";
+        if (okEl) okEl.textContent = "คัดลอกแล้ว — ตั้ง COMMENT_AGENT_TOKEN หลัง rotate แล้วรัน";
         alert(
           "คัดลอกคำสั่งแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\n" +
-          "1) เปิดแอป Terminal\n" +
-          "2) วางคำสั่ง (Cmd+V) แล้วกด Enter\n" +
-          "3) อย่าปิดหน้าต่าง — รอจน Hub ขึ้น「ทำงานอยู่」"
+          "1) กด「หมุนรหัสเชื่อมต่อ」ใน Hub แล้วคัดลอกรหัส\n" +
+          "2) เปิด Terminal วางคำสั่ง\n" +
+          "3) ตั้ง COMMENT_AGENT_TOKEN ก่อนรันสคริปต์"
         );
       } catch (e) {
         if (okEl) okEl.textContent = "";
@@ -10967,24 +10965,21 @@
       var hub = window.location.origin || "https://hub.realxtateth.com";
       var okEl = document.getElementById("fb-agent-copy-win-ok");
       try {
-        var data = await apiGet("/api/fb-agent/status?agent=" + encodeURIComponent(fbSelectedAgentId));
-        var token = (data && data.agent_token) || "";
-        if (!token) throw new Error("ยังไม่มีรหัสเชื่อมต่อ — รีเฟรชหน้าแล้วลองใหม่");
         var url = hub + "/api/fb-agent/download-windows?hub=" + encodeURIComponent(hub) +
-          "&agent=" + encodeURIComponent(fbSelectedAgentId) +
-          "&t=" + encodeURIComponent(token);
+          "&agent=" + encodeURIComponent(fbSelectedAgentId);
         var cmd =
           "$u='" + url.replace(/'/g, "''") + "'; " +
           "$f=Join-Path $env:TEMP 'ptp-comment-" + fbSelectedAgentId + ".bat'; " +
           "Invoke-WebRequest -Uri $u -OutFile $f -UseBasicParsing; " +
+          "Write-Host 'Set COMMENT_AGENT_TOKEN from Hub rotate-token, then run the .bat'; " +
           "Start-Process $f";
         await navigator.clipboard.writeText(cmd);
-        if (okEl) okEl.textContent = "คัดลอกแล้ว — วางใน PowerShell ได้เลย";
+        if (okEl) okEl.textContent = "คัดลอกแล้ว — ตั้ง COMMENT_AGENT_TOKEN หลัง rotate";
         alert(
           "คัดลอกคำสั่งแล้ว (" + agentLabel(fbSelectedAgentId) + ")\n\n" +
-          "1) คลิกขวา Start → Windows PowerShell / Terminal\n" +
-          "2) วางคำสั่ง (Ctrl+V) แล้วกด Enter\n" +
-          "3) อย่าปิดหน้าต่างดำ — รอจน Hub ขึ้น「ทำงานอยู่」"
+          "1) กด「หมุนรหัสเชื่อมต่อ」ใน Hub แล้วคัดลอกรหัส\n" +
+          "2) วางคำสั่งใน PowerShell\n" +
+          "3) ตั้ง COMMENT_AGENT_TOKEN ก่อนรัน .bat"
         );
       } catch (e) {
         if (okEl) okEl.textContent = "";

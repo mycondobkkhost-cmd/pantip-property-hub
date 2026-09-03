@@ -903,6 +903,24 @@ def _parse_hub_users_json(raw: str):
         raise
 
 
+def _local_demo_hub_users() -> dict:
+    """Local-only demo accounts — require HUB_LOCAL_DEV=1; never used on cloud."""
+    return {
+        "angkarn1996": {"password": "localdev", "name": "เจ้าของ", "role": "admin"},
+        "ptp2": {"password": "localdev2", "name": "แอดมิน 1", "role": ""},
+        "ptp3": {"password": "localdev3", "name": "แอดมิน 2", "role": ""},
+        "ptp4": {"password": "localdev4", "name": "ทีม 4", "role": ""},
+        "ptp5": {"password": "localdev5", "name": "ทีม 5", "role": ""},
+    }
+
+
+def _is_master_review_pilot_mode() -> bool:
+    import os
+
+    flag = (os.environ.get("MASTER_REVIEW_PILOT_MODE") or "").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
 def _load_hub_users() -> dict:
     """Login users from HUB_USERS_JSON only (never embed passwords in HTML).
 
@@ -910,6 +928,11 @@ def _load_hub_users() -> dict:
     must set HUB_USERS_JSON (and ideally HUB_SESSION_SECRET).
     """
     import os
+
+    # Owner-review pilot launcher: .env may define production HUB_USERS_JSON,
+    # but pilot must use local demo login only (no secrets in launcher script).
+    if _is_explicit_local_dev() and _is_master_review_pilot_mode():
+        return _local_demo_hub_users()
 
     raw = (os.environ.get("HUB_USERS_JSON") or "").strip()
     if raw:
@@ -947,13 +970,7 @@ def _load_hub_users() -> dict:
 
     # Local-only demo accounts — require HUB_LOCAL_DEV=1; never used on cloud.
     # Phase H: only angkarn1996 is privileged by default in local demo.
-    return {
-        "angkarn1996": {"password": "localdev", "name": "เจ้าของ", "role": "admin"},
-        "ptp2": {"password": "localdev2", "name": "แอดมิน 1", "role": ""},
-        "ptp3": {"password": "localdev3", "name": "แอดมิน 2", "role": ""},
-        "ptp4": {"password": "localdev4", "name": "ทีม 4", "role": ""},
-        "ptp5": {"password": "localdev5", "name": "ทีม 5", "role": ""},
-    }
+    return _local_demo_hub_users()
 
 
 def _b64url_encode(raw: bytes) -> str:
@@ -1611,7 +1628,7 @@ class HubHandler(BaseHTTPRequestHandler):
                     review_type=(qs.get("review_type") or [""])[0] or None,
                     issue_type=(qs.get("issue_type") or [""])[0] or None,
                     search=(qs.get("search") or [""])[0] or None,
-                    top50=(qs.get("top50") or ["0"])[0] in {"1", "true", "yes"},
+                    top50_only=(qs.get("top50") or ["0"])[0] in {"1", "true", "yes"},
                     pilot_only=(qs.get("pilot_only") or ["0"])[0] in {"1", "true", "yes"},
                 )
                 self._json(

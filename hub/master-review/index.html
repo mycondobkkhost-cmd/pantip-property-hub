@@ -437,6 +437,7 @@
         <h4>${esc(overlay.section_title_th || "ผลตรวจสอบจาก Area Engine")}</h4>
         <div class="area-engine-disclaimer">${esc(overlay.disclaimer_th || "ผลวิเคราะห์นี้ยังไม่ได้แก้ข้อมูลจริง")}</div>
         <p><strong>สรุปโครงการ:</strong> ${esc(overlay.project_outcome_label_th || "")}</p>
+        ${(overlay.coordinate_provenance_th || []).map((ln) => `<p class="muted">${esc(ln)}</p>`).join("")}
         ${body}
         <p class="muted" style="margin-top:8px">อ้างอิงเท่านั้น — ไม่มีปุ่ม Apply</p>
       </div>`;

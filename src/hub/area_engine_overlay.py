@@ -156,6 +156,32 @@ def build_area_engine_overlay(
         result.get("classification", ""), ""
     )
 
+    coord_provenance_th: list[str] = []
+    prov = getattr(ctx, "acquired_provenance", None)
+    if ctx.latitude is not None and ctx.longitude is not None:
+        coord_provenance_th.append(f"พิกัดโครงการ: {ctx.latitude:.6f}, {ctx.longitude:.6f}")
+        tier = result.get("coordinate_tier") or ctx.coordinate_tier
+        tier_labels = {
+            "T1_COORD": "T1 — ยืนยันโดยเจ้าของ",
+            "T2_COORD": "T2 — แหล่งอ้างอิงที่ระบบเชื่อถือ",
+            "T3_COORD": "T3 — พบตรงกันจาก 2 แหล่งอิสระ",
+            "T4_COORD": "T4 — พบจาก 1 แหล่ง (ยังไม่ใช้แก้ข้อมูลอัตโนมัติ)",
+        }
+        coord_provenance_th.append(f"ระดับหลักฐาน: {tier_labels.get(tier, tier)}")
+    if prov and prov.get("candidates"):
+        lineages = {c.get("evidence_lineage_id") for c in prov["candidates"]}
+        if len(prov["candidates"]) >= 2 and len(lineages) == 1:
+            coord_provenance_th.append(
+                "พบข้อมูลหลายจุด แต่สืบย้อนกลับไปยังแหล่งเดิมเดียวกัน — จึงนับเป็นหลักฐาน 1 แหล่ง"
+            )
+        elif prov.get("outcome") == "RECOVERED_CORROBORATED":
+            coord_provenance_th.append("พบพิกัดตรงกันจาก 2 แหล่งอิสระ")
+        elif prov.get("outcome") == "CANDIDATE_SINGLE_SOURCE":
+            coord_provenance_th.append("พบพิกัดจาก 1 แหล่ง — ยังไม่ใช้แก้ข้อมูลอัตโนมัติ")
+        for c in prov["candidates"][:2]:
+            if c.get("provider"):
+                coord_provenance_th.append(f"แหล่งข้อมูล: {c['provider']}")
+
     return {
         "ok": True,
         "project_id": project_id,
@@ -168,6 +194,7 @@ def build_area_engine_overlay(
         "project_outcome_label_th": OUTCOME_LABEL_TH.get(project_outcome, project_outcome),
         "coordinate_tier": result.get("coordinate_tier"),
         "coordinate_usable": result.get("coordinate_usable"),
+        "coordinate_provenance_th": coord_provenance_th,
         "picked_areas": [_format_area_line(a) for a in result.get("picked_areas") or []],
         "existing_assignment_analysis": existing_lines,
         "top_candidates": candidate_lines,

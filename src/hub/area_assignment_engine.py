@@ -107,6 +107,7 @@ class ProjectContext:
     coordinate_tier: str = "T5_COORD"
     existing_assignments: list[dict[str, Any]] = field(default_factory=list)
     legacy_promotion_suspected: bool = False
+    acquired_provenance: dict[str, Any] | None = None
 
 
 @dataclass

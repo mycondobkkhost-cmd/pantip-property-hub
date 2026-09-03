@@ -202,6 +202,29 @@
     .dim-transit { background: #fef9c3; color: #854d0e; }
     .dim-corridor { background: #f3e8ff; color: #6b21a8; }
     .pilot-badge { background: #cffafe; color: #0e7490; }
+    .area-rel {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin: 8px 0;
+      background: #fff;
+    }
+    .area-rel .area-name { font-size: 1.05rem; font-weight: 700; }
+    .area-rel .area-role { color: var(--accent); font-weight: 600; }
+    .area-rel .area-conf { color: var(--muted); font-size: .9rem; }
+    .approve-blocked {
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      font-weight: 600;
+    }
+    .btn-approve:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -348,7 +371,17 @@
     function renderMarketplaceRelations(prop) {
       const rels = prop.marketplace_area_relations || [];
       if (!rels.length) return `<div>${esc(prop.value || "—")}</div>`;
-      return rels.map((r) => `<div>ทำเลตลาด <strong>${esc(r.role)}</strong>: ${esc(r.area_name || r.area_id || "—")} <span class="muted">(ความมั่นใจ ${esc(r.confidence || "")})</span></div>`).join("");
+      return rels.map((r) => {
+        const name = r.display_name_th || r.area_name_th || r.area_name || "ทำเลที่ยังไม่มีชื่อแสดงผล";
+        const role = r.role_label_th || r.role || "";
+        const conf = r.confidence_label_th || r.confidence || "";
+        const tip = r.role_tooltip_th ? ` title="${esc(r.role_tooltip_th)}"` : "";
+        return `<div class="area-rel">
+          <div class="area-name">${esc(name)}</div>
+          <div class="area-role"${tip}>${esc(role)}</div>
+          <div class="area-conf">${esc(conf)}</div>
+        </div>`;
+      }).join("");
     }
 
     function renderFuturePreview(item) {
@@ -368,6 +401,9 @@
       const prop = item.proposed_value || {};
       const evidence = (item.evidence || []).map((e) => `<li>${esc(e.explanation || e.evidence_type)}</li>`).join("");
       const isPantipOnly = item.review_type === "PANTIP_ONLY_REVIEW";
+      const gate = item.approval_gate || {};
+      const canApprove = !isPantipOnly && gate.can_approve !== false;
+      const approveBlocked = !isPantipOnly && gate.can_approve === false;
       document.getElementById("detail-panel").innerHTML = `
         <button onclick="closeDetail()" style="float:right;border:none;background:none;font-size:1.2rem;cursor:pointer">✕</button>
         <h2>${esc(item.project_name)}</h2>
@@ -405,8 +441,9 @@
         <details class="tech-box"><summary>ดูรายละเอียดทางเทคนิค</summary>
           <pre class="tech">${esc(JSON.stringify(item, null, 2))}</pre>
         </details>
+        ${approveBlocked ? `<div class="approve-blocked">${esc(gate.blocked_reason_th || "ยังไม่ควรอนุมัติ — ข้อมูลชื่อทำเลไม่ครบ")}</div>` : ""}
         <div class="actions">
-          ${isPantipOnly ? "" : '<button class="btn-approve" data-action="APPROVED">อนุมัติข้อเสนอ (อนาคต)</button>'}
+          ${isPantipOnly ? "" : `<button class="btn-approve" data-action="APPROVED" ${canApprove ? "" : "disabled"}>อนุมัติข้อเสนอ (อนาคต)</button>`}
           <button class="btn-reject" data-action="REJECTED">${isPantipOnly ? "ไม่ดำเนินการ" : "ไม่อนุมัติ"}</button>
           <button class="btn-defer" data-action="DEFERRED">ไว้ตรวจทีหลัง</button>
         </div>
@@ -414,7 +451,10 @@
       `;
       document.getElementById("detail").classList.add("open");
       document.querySelectorAll("#detail-panel [data-action]").forEach((btn) => {
-        btn.addEventListener("click", () => submitDecision(item, btn.dataset.action));
+        btn.addEventListener("click", () => {
+          if (btn.disabled) return;
+          submitDecision(item, btn.dataset.action);
+        });
       });
     }
 

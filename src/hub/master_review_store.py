@@ -15,6 +15,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from src.hub.marketplace_area_lookup import (
+    UNNAMED_AREA_LABEL_TH,
+    build_approval_gate,
+    confidence_label_th,
+    display_name_th,
+    enrich_area_relation,
+    enrich_area_relations,
+    has_trusted_name,
+    role_label_th,
+)
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DEFAULT_REVIEW_DATA_DIR = BASE_DIR / ".local" / "master_review"
 FIXTURE_CROSSWALK = BASE_DIR / "data_fixtures" / "master_review" / "sample_crosswalk.json"
@@ -275,14 +286,13 @@ def _normalize_marketplace_area_relations(
         role = str(area.get("role") or "PRIMARY").upper()
         if role not in MARKETPLACE_ROLES:
             role = "PRIMARY"
-        relations.append(
-            {
-                "area_id": area.get("area_id"),
-                "area_name": area.get("area_name") or area.get("name") or "",
-                "role": role,
-                "confidence": area.get("confidence") or "LOW",
-            }
-        )
+        base = {
+            "area_id": area.get("area_id"),
+            "area_name": area.get("area_name") or area.get("name") or "",
+            "role": role,
+            "confidence": area.get("confidence") or "LOW",
+        }
+        relations.append(enrich_area_relation(base))
     return relations
 
 
@@ -291,10 +301,10 @@ def _format_rx_areas_summary(relations: list[dict[str, Any]]) -> str:
         return "—"
     parts = []
     for rel in relations:
-        name = rel.get("area_name") or re.sub(r"^rxa_", "", str(rel.get("area_id") or ""))[:16]
-        role = rel.get("role") or ""
-        conf = rel.get("confidence") or ""
-        parts.append(f"{name} ({role}/{conf})")
+        name = display_name_th(rel)
+        role = rel.get("role_label_th") or role_label_th(rel.get("role"))
+        conf = rel.get("confidence_label_th") or confidence_label_th(rel.get("confidence"))
+        parts.append(f"{name} ({role} · {conf})")
     return ", ".join(parts)
 
 
@@ -370,24 +380,33 @@ def build_future_preview_th(row: dict[str, Any], review_type: str, proposed_valu
     lines.append("ข้อเสนอจาก Master อ้างอิง:")
     if relations:
         for rel in relations:
-            name = rel.get("area_name") or rel.get("area_id") or "—"
-            role = rel.get("role") or "PRIMARY"
-            lines.append(f"ทำเลตลาด {role}: {name}")
+            name = display_name_th(rel)
+            role = rel.get("role_label_th") or role_label_th(rel.get("role"))
+            conf = rel.get("confidence_label_th") or confidence_label_th(rel.get("confidence"))
+            lines.append(f"{name} — {role} ({conf})")
     else:
         lines.append("ยังไม่มีทำเลตลาดที่เสนอ")
 
     lines.append("")
-    lines.append("ผลในอนาคตหากนำไป Apply (ยังไม่เกิดขึ้นตอนนี้):")
+    lines.append("หากนำข้อเสนอนี้ไปใช้ในอนาคต:")
+    if relations:
+        for rel in relations:
+            name = display_name_th(rel)
+            role = rel.get("role_label_th") or role_label_th(rel.get("role"))
+            canonical_role = str(rel.get("role") or "").upper()
+            if canonical_role == "PRIMARY":
+                lines.append(f'- โครงการจะมี "{name}" เป็น{role}')
+            elif canonical_role == "SECONDARY":
+                lines.append(f'- มี "{name}" เป็น{role}')
+            else:
+                lines.append(f'- มี "{name}" เป็น{role}')
     if admin:
-        lines.append(f"- {', '.join(admin)} ยังคงเป็นข้อมูลเขต/การปกครองได้")
+        lines.append("- ข้อมูลเขต/แขวงเดิมจะไม่ถูกลบเพียงเพราะเพิ่มทำเลตลาด")
     if transit:
         lines.append("- ข้อมูลสถานียังแยกจากทำเลตลาด — ไม่ได้หมายความว่าสถานี = ทำเลตลาด")
-    if relations:
-        names = [str(r.get("area_name") or r.get("area_id") or "") for r in relations if r.get("area_name") or r.get("area_id")]
-        if names:
-            lines.append(f"- {', '.join(names)} จะเป็นทำเลตลาดสำหรับการค้นหา (ตามบทบาท PRIMARY/SECONDARY/EDGE)")
-    lines.append("- ไม่ได้หมายความว่าจะลบข้อมูลเขตหรือสถานีเดิม")
-    lines.append("- ยังไม่มีการแก้ Production จนกว่าจะมีขั้นตอน Apply แยกต่างหาก")
+    if not relations and not admin:
+        lines.append("- ยังไม่มีการเปลี่ยนทำเลตลาดที่ชัดเจน")
+    lines.append("- ยังไม่มีการแก้ข้อมูลจริง")
 
     return {
         "title_th": "ถ้าอนุมัติข้อเสนอนี้",
@@ -487,7 +506,7 @@ def build_review_item(row: dict[str, Any], *, source_hash: str, review_type: str
 
     future_preview = build_future_preview_th(row, review_type, proposed_value)
     item_id = f"{review_type.lower()}:{project_id}"
-    return {
+    draft = {
         "review_item_id": item_id,
         "review_version": REVIEW_VERSION,
         "review_type": review_type,
@@ -522,6 +541,8 @@ def build_review_item(row: dict[str, Any], *, source_hash: str, review_type: str
         },
         "is_pilot": project_id in PILOT_PROJECT_IDS,
     }
+    draft["approval_gate"] = build_approval_gate(draft)
+    return draft
 
 
 def _why_in_queue_th(row: dict[str, Any], review_type: str) -> str:
@@ -691,6 +712,14 @@ def record_decision(
         raise MasterReviewError(
             "Stale source snapshot hash — review source changed",
             code="stale_snapshot",
+            http_status=409,
+        )
+
+    gate = item.get("approval_gate") or build_approval_gate(item)
+    if new_status == "APPROVED" and not gate.get("can_approve", True):
+        raise MasterReviewError(
+            gate.get("blocked_reason_th") or UNNAMED_AREA_LABEL_TH,
+            code="approval_blocked",
             http_status=409,
         )
 

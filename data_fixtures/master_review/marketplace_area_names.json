@@ -1,0 +1,225 @@
+{
+  "fixture_version": "phase-y2-20260904",
+  "source": "realxtate-trusted-master.sqlite/market_area_seed_8z2b",
+  "source_read_only": true,
+  "area_count": 31,
+  "areas": {
+    "rxa_12397f1a28fab3f096a377927bc05684": {
+      "area_id": "rxa_12397f1a28fab3f096a377927bc05684",
+      "area_name_th": "เอกมัย",
+      "area_name_en": "Ekkamai",
+      "identity_key": "ekkamai",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_1e67f3d83305733352dc4e2b68a754da": {
+      "area_id": "rxa_1e67f3d83305733352dc4e2b68a754da",
+      "area_name_th": "อ่อนนุช",
+      "area_name_en": "On Nut",
+      "identity_key": "onnut",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_2285d5a71303a9078ee9252decd86a27": {
+      "area_id": "rxa_2285d5a71303a9078ee9252decd86a27",
+      "area_name_th": "สะพานควาย",
+      "area_name_en": "Saphan Khwai",
+      "identity_key": "saphan_kwai",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_23511c474115de48ab6b29971512a66d": {
+      "area_id": "rxa_23511c474115de48ab6b29971512a66d",
+      "area_name_th": "อโศก",
+      "area_name_en": "Asoke",
+      "identity_key": "asoke",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_3bc0a070a9a6d101b1e6604e059e72e7": {
+      "area_id": "rxa_3bc0a070a9a6d101b1e6604e059e72e7",
+      "area_name_th": "ลาดพร้าว",
+      "area_name_en": "Ladprao",
+      "identity_key": "lat_phrao",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_3ce1fc9296c1bc1f8a05b87cd25eaa5f": {
+      "area_id": "rxa_3ce1fc9296c1bc1f8a05b87cd25eaa5f",
+      "area_name_th": "เพลินจิต",
+      "area_name_en": "Ploenchit",
+      "identity_key": "ploenchit",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_40e7f886c58c36f4f1631848e93c3a0b": {
+      "area_id": "rxa_40e7f886c58c36f4f1631848e93c3a0b",
+      "area_name_th": "เพชรบุรี",
+      "area_name_en": "Phetchaburi",
+      "identity_key": "phetchaburi",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_487921f84a065f6270d59b6c9cfb3e5f": {
+      "area_id": "rxa_487921f84a065f6270d59b6c9cfb3e5f",
+      "area_name_th": "บางซื่อ",
+      "area_name_en": "Bang Sue",
+      "identity_key": "bang_sue",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_58573a17fdafe8fa8c3b14b57e3c58e1": {
+      "area_id": "rxa_58573a17fdafe8fa8c3b14b57e3c58e1",
+      "area_name_th": "รัตนาธิเบศร์",
+      "area_name_en": "Rattanathibet",
+      "identity_key": "rattanathibet",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_5cddf2d0099e750d75827cef34816e08": {
+      "area_id": "rxa_5cddf2d0099e750d75827cef34816e08",
+      "area_name_th": "เจริญนคร",
+      "area_name_en": "Charoen Nakhon",
+      "identity_key": "charoen_nakhon",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_622b05559f59f4b8c70d163dbd5a1926": {
+      "area_id": "rxa_622b05559f59f4b8c70d163dbd5a1926",
+      "area_name_th": "ทองหล่อ",
+      "area_name_en": "Thonglor",
+      "identity_key": "thonglor",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_6be56cca2b0becddb99b08c6b8eab4a9": {
+      "area_id": "rxa_6be56cca2b0becddb99b08c6b8eab4a9",
+      "area_name_th": "รัชดา",
+      "area_name_en": "Ratchada",
+      "identity_key": "ratchada",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_754abd196130cbdce134616b167896be": {
+      "area_id": "rxa_754abd196130cbdce134616b167896be",
+      "area_name_th": "สยาม",
+      "area_name_en": "Siam",
+      "identity_key": "siam",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_78217d4b24307785be04a7bd1c9ae13d": {
+      "area_id": "rxa_78217d4b24307785be04a7bd1c9ae13d",
+      "area_name_th": "บางนา",
+      "area_name_en": "Bang Na",
+      "identity_key": "bang_na",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_7f24e6abd51497eb2af740c453cc9699": {
+      "area_id": "rxa_7f24e6abd51497eb2af740c453cc9699",
+      "area_name_th": "พระราม 9",
+      "area_name_en": "Rama 9",
+      "identity_key": "rama_9",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_9fd952819c8ceb0fca945b39e4f77084": {
+      "area_id": "rxa_9fd952819c8ceb0fca945b39e4f77084",
+      "area_name_th": "ห้วยขวาง",
+      "area_name_en": "Huai Khwang",
+      "identity_key": "huai_khwang",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_a73f929ab83672af40e8bb53f2290531": {
+      "area_id": "rxa_a73f929ab83672af40e8bb53f2290531",
+      "area_name_th": "อารีย์",
+      "area_name_en": "Ari",
+      "identity_key": "ari",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_b51ee333db3416d5a1f5c26c9c5052a8": {
+      "area_id": "rxa_b51ee333db3416d5a1f5c26c9c5052a8",
+      "area_name_th": "พร้อมพงษ์",
+      "area_name_en": "Phrom Phong",
+      "identity_key": "phrom_phong",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_c0ac0e7bd07699b29b6d788c3c376db1": {
+      "area_id": "rxa_c0ac0e7bd07699b29b6d788c3c376db1",
+      "area_name_th": "วงศ์สว่าง",
+      "area_name_en": "Wong Sawang",
+      "identity_key": "wong_sawang",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_c243de93e6003476512f35b0e90dc92d": {
+      "area_id": "rxa_c243de93e6003476512f35b0e90dc92d",
+      "area_name_th": "นานา",
+      "area_name_en": "Nana",
+      "identity_key": "nana",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_c3762e0b52eba0ad2f6875f00282386b": {
+      "area_id": "rxa_c3762e0b52eba0ad2f6875f00282386b",
+      "area_name_th": "คลองเตย",
+      "area_name_en": "Khlong Toei",
+      "identity_key": "khlong_toei",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_dd17655b30e403466196c9331cf87243": {
+      "area_id": "rxa_dd17655b30e403466196c9331cf87243",
+      "area_name_th": "อุดมสุข",
+      "area_name_en": "Udom Suk",
+      "identity_key": "udom_suk",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_dde1f41f53a86171aee8d0fd5a825c75": {
+      "area_id": "rxa_dde1f41f53a86171aee8d0fd5a825c75",
+      "area_name_th": "ศรีนครินทร์",
+      "area_name_en": "Srinagarindra",
+      "identity_key": "srinagarindra",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_e371d262a48da98cfdc7816b8b508665": {
+      "area_id": "rxa_e371d262a48da98cfdc7816b8b508665",
+      "area_name_th": "สำโรง",
+      "area_name_en": "Samrong",
+      "identity_key": "samrong",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_eb70980e8997bb516cd8886c74bbaf80": {
+      "area_id": "rxa_eb70980e8997bb516cd8886c74bbaf80",
+      "area_name_th": "จตุจักร",
+      "area_name_en": "Chatuchak",
+      "identity_key": "chatuchak",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_ec65d1df51ccfd87b9ec9ffe740858ec": {
+      "area_id": "rxa_ec65d1df51ccfd87b9ec9ffe740858ec",
+      "area_name_th": "สีลม",
+      "area_name_en": "Silom",
+      "identity_key": "silom",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_ec778f624c704a5214304d638469cb85": {
+      "area_id": "rxa_ec778f624c704a5214304d638469cb85",
+      "area_name_th": "แบริ่ง",
+      "area_name_en": "Bearing",
+      "identity_key": "bearing",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_ef717fa42914a0c4c6f86832876d2fbd": {
+      "area_id": "rxa_ef717fa42914a0c4c6f86832876d2fbd",
+      "area_name_th": "สาทร",
+      "area_name_en": "Sathorn",
+      "identity_key": "sathon",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_f370ccb6a96c9ceb76411d29894d5cc3": {
+      "area_id": "rxa_f370ccb6a96c9ceb76411d29894d5cc3",
+      "area_name_th": "พระโขนง",
+      "area_name_en": "Phra Khanong",
+      "identity_key": "phra_khanong",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_f7a1c51bb89616ab10f5e002f8f8d2b5": {
+      "area_id": "rxa_f7a1c51bb89616ab10f5e002f8f8d2b5",
+      "area_name_th": "แจ้งวัฒนะ",
+      "area_name_en": "Chaeng Watthana",
+      "identity_key": "chaeng_watthana",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    },
+    "rxa_f951141ae146b4b9d22ea33468f47c97": {
+      "area_id": "rxa_f951141ae146b4b9d22ea33468f47c97",
+      "area_name_th": "รามคำแหง",
+      "area_name_en": "Ramkhamhaeng",
+      "identity_key": "ramkhamhaeng",
+      "source": "realxtate-trusted-master.market_area_seed_8z2b"
+    }
+  }
+}

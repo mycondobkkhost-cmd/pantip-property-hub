@@ -37,3 +37,12 @@ A property may have multiple listing cycles over time.
 ## Boundary
 
 Never add to Canonical Project Master: listing verification, viewing requests, customer profiles, lease dates, notification history.
+
+## Z5 alignment (2026-09-04)
+
+RealXtate inspection confirms:
+- Listing freshness: **IMPLEMENTED** (verification overlay) — Pantip contract aligned; public freshness deferred
+- Source provenance: **FOUNDATION_ONLY** (9B parallel DB) — shared SOURCE_PROVENANCE_CONTRACT v0.1
+- Notifications / lease / renewal: **DEFERRED or NOT_FOUND** on RealXtate — Pantip builds operator lease opportunity first
+
+See `docs/SHARED-OPERATIONAL-CAPABILITY-CONTRACT-v0.1.md` and `docs/PHASE-Z5-REALXTATE-PANTIP-SYNC.md`.

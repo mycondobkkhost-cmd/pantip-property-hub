@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>งานติดตาม / ทรัพย์ใกล้ว่าง — Pantip Hub</title>
+  <style>
+    :root { --bg:#f6f7f9; --card:#fff; --text:#1a1a1a; --muted:#5c6570; --accent:#0b6e4f; --warn:#b45309; --danger:#b91c1c; --border:#e2e8f0; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Noto Sans Thai",system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+    .banner { background:#fff7ed; border-bottom:2px solid #fdba74; padding:10px 16px; font-weight:600; color:#9a3412; text-align:center; font-size:.9rem; }
+    header { background:var(--card); border-bottom:1px solid var(--border); padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    h1 { margin:0; font-size:1.15rem; }
+    .bell { position:relative; cursor:pointer; font-size:1.2rem; }
+    .badge { position:absolute; top:-6px; right:-8px; background:var(--danger); color:#fff; border-radius:999px; font-size:.7rem; padding:1px 5px; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; padding:12px 16px; }
+    .stat { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center; }
+    .stat strong { display:block; font-size:1.3rem; }
+    .stat span { font-size:.8rem; color:var(--muted); }
+    main { padding:0 16px 24px; max-width:1100px; margin:0 auto; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:12px; }
+    table { width:100%; border-collapse:collapse; font-size:.85rem; }
+    th, td { padding:8px 6px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-weight:600; }
+    .tag { display:inline-block; background:#e2e8f0; padding:2px 6px; border-radius:6px; font-size:.75rem; margin:2px 2px 0 0; }
+    .tag.warn { background:#fef3c7; color:#92400e; }
+    .tag.strong { background:#d1fae5; color:#065f46; }
+    .tag.estimated { background:#fee2e2; color:#991b1b; }
+    .actions button { margin:2px 4px 2px 0; padding:4px 8px; font-size:.75rem; border:1px solid var(--border); border-radius:6px; background:#fff; cursor:pointer; }
+    .login { max-width:360px; margin:40px auto; }
+    input, button.primary { width:100%; padding:10px; margin:6px 0; border:1px solid var(--border); border-radius:8px; font-size:1rem; }
+    button.primary { background:var(--accent); color:#fff; border:none; cursor:pointer; }
+    .err { color:var(--danger); }
+    #notifPanel { display:none; position:fixed; top:56px; right:16px; width:320px; max-height:70vh; overflow:auto; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:10; padding:8px; }
+    .notif-item { padding:8px; border-bottom:1px solid var(--border); font-size:.85rem; }
+    .muted { color:var(--muted); font-size:.85rem; }
+    @media (max-width:700px) { table, thead { display:block; } tr { display:block; margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:8px; } td, th { display:block; border:none; } }
+  </style>
+</head>
+<body>
+  <div class="banner">⚠️ Phase Z5 — ข้อมูลทดสอบเท่านั้น ยังไม่เขียน Production</div>
+  <header>
+    <div>
+      <h1>งานติดตาม / ทรัพย์ใกล้ว่าง</h1>
+      <div class="muted">โอกาสทำตลาดก่อนหมดสัญญา — ไม่สรุปว่างจากเวลาอย่างเดียว</div>
+    </div>
+    <div class="bell" id="bell" title="การแจ้งเตือน">🔔<span class="badge" id="notifBadge" style="display:none">0</span></div>
+  </header>
+  <div id="notifPanel"></div>
+  <div id="loginView" class="login card" style="display:none">
+    <h2>เข้าสู่ระบบ (Local)</h2>
+    <input id="username" placeholder="ชื่อผู้ใช้" autocomplete="username" />
+    <input id="password" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
+    <button class="primary" id="loginBtn">เข้าสู่ระบบ</button>
+    <p id="loginErr" class="err"></p>
+  </div>
+  <div id="app" style="display:none">
+    <div class="stats" id="stats"></div>
+    <main>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <strong>รายการโอกาส</strong>
+          <button class="primary" style="width:auto;padding:6px 12px" id="seedBtn">โหลดข้อมูลทดสอบ</button>
+        </div>
+        <div id="coverage" class="muted" style="margin-bottom:8px"></div>
+        <div style="overflow-x:auto"><table><thead><tr>
+          <th>รหัส</th><th>โครงการ</th><th>หลักฐาน</th><th>ครบสัญญา</th><th>เหลือ</th><th>ติดตามถัดไป</th><th>สถานะ</th><th>การทำงาน</th>
+        </tr></thead><tbody id="rows"></tbody></table></div>
+      </div>
+    </main>
+  </div>
+  <script>
+    let data = null;
+    let notifs = null;
+    async function api(path, opts) {
+      const r = await fetch(path, { credentials: 'same-origin', ...opts });
+      if (r.status === 401) throw new Error('unauthorized');
+      return r.json();
+    }
+    async function ensureAuth() {
+      try { await api('/api/auth/me'); document.getElementById('loginView').style.display='none'; document.getElementById('app').style.display='block'; return true; }
+      catch { document.getElementById('loginView').style.display='block'; return false; }
+    }
+    document.getElementById('loginBtn').onclick = async () => {
+      const res = await fetch('/api/auth/login', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: document.getElementById('username').value.trim(), password: document.getElementById('password').value }) });
+      const body = await res.json();
+      if (!body.ok) { document.getElementById('loginErr').textContent = body.error || 'เข้าสู่ระบบไม่สำเร็จ'; return; }
+      await boot();
+    };
+    function daysLeft(end) {
+      if (!end) return '-';
+      const d = Math.ceil((new Date(end) - new Date()) / 86400000);
+      return d + ' วัน';
+    }
+    function evidenceTag(c) {
+      const cls = c.includes('ESTIMATED') || c.includes('DEAL') ? 'estimated' : (c.includes('CONFIRMED') || c.includes('DERIVED') ? 'strong' : 'warn');
+      return `<span class="tag ${cls}">${c}</span>`;
+    }
+    function renderStats(s) {
+      document.getElementById('stats').innerHTML = [
+        ['due_today','ต้องติดตามวันนี้'],['overdue','เกินกำหนด'],['within_30_days','ใกล้ครบ 30 วัน'],
+        ['within_60_days','ใกล้ครบ 60 วัน'],['owner_confirmed_vacant_soon','เจ้าของยืนยันว่าจะว่าง'],['waiting_for_owner','รอคำตอบ']
+      ].map(([k,l]) => `<div class="stat"><strong>${s[k]||0}</strong><span>${l}</span></div>`).join('');
+    }
+    function renderRows(items) {
+      document.getElementById('rows').innerHTML = (items||[]).map(o => `<tr>
+        <td>${o.property_code_display||'-'}</td>
+        <td>${o.project_name_display||'-'}</td>
+        <td>${evidenceTag(o.evidence_class||'')}${o.disclaimer_th?`<div class="muted">${o.disclaimer_th}</div>`:''}</td>
+        <td>${o.expected_lease_end_date||'-'}</td>
+        <td>${daysLeft(o.expected_lease_end_date)}</td>
+        <td>${o.next_followup_at||'-'}</td>
+        <td><span class="tag">${o.opportunity_status||''}</span></td>
+        <td class="actions">${actionBtns(o)}</td>
+      </tr>`).join('');
+    }
+    function actionBtns(o) {
+      const id = o.opportunity_id;
+      return [
+        ['WAITING_FOR_OWNER','ติดต่อแล้ว'],['OWNER_CONFIRMED_VACANCY','เจ้าของแจ้งว่าจะว่าง'],
+        ['TENANT_RENEWED','ผู้เช่าต่อสัญญา'],['OWNER_NOT_MARKETING','ไม่ทำตลาด'],['CONTACT_FAILED','ติดต่อไม่ได้']
+      ].map(([r,l]) => `<button data-id="${id}" data-result="${r}">${l}</button>`).join('');
+    }
+    async function loadAll() {
+      data = await api('/api/lease-opportunities');
+      renderStats(data.summary||{});
+      renderRows(data.opportunities||[]);
+      const cov = data.data_coverage||{};
+      document.getElementById('coverage').textContent = `ข้อมูลจริง: เช่า ${cov.RENTAL_PROPERTIES_TOTAL||0} รายการ | หลักฐานแข็ง ${cov.HIGH_CONFIDENCE_FOLLOWUP||0} | ประมาณการ ${cov.ESTIMATED_FOLLOWUP||0} | ไม่พอ ${cov.INSUFFICIENT_DATA||0}`;
+      notifs = await api('/api/notifications');
+      const n = notifs.unread_count||0;
+      const badge = document.getElementById('notifBadge');
+      badge.style.display = n>0?'inline':'none'; badge.textContent = n;
+      document.getElementById('notifPanel').innerHTML = (notifs.events||[]).slice(0,20).map(e => `<div class="notif-item"><strong>${e.event_type}</strong><div class="muted">${e.created_at||''}</div></div>`).join('') || '<div class="muted" style="padding:8px">ไม่มีการแจ้งเตือน</div>';
+    }
+    document.getElementById('bell').onclick = () => {
+      const p = document.getElementById('notifPanel');
+      p.style.display = p.style.display==='block'?'none':'block';
+    };
+    document.getElementById('seedBtn').onclick = async () => { await api('/api/lease-opportunities/seed-fixtures', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' }); await api('/api/notifications/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' }); await loadAll(); };
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-result]');
+      if (!btn) return;
+      await api(`/api/lease-opportunities/${btn.dataset.id}/contact`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ result: btn.dataset.result }) });
+      await loadAll();
+    });
+    async function boot() { if (!await ensureAuth()) return; await loadAll(); }
+    boot();
+  </script>
+</body>
+</html>

@@ -921,6 +921,13 @@ def _is_master_review_pilot_mode() -> bool:
     return flag in ("1", "true", "yes", "on")
 
 
+def _is_lease_opportunity_pilot_mode() -> bool:
+    import os
+
+    flag = (os.environ.get("LEASE_OPPORTUNITY_PILOT_MODE") or "").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
 def _load_hub_users() -> dict:
     """Login users from HUB_USERS_JSON only (never embed passwords in HTML).
 
@@ -931,7 +938,7 @@ def _load_hub_users() -> dict:
 
     # Owner-review pilot launcher: .env may define production HUB_USERS_JSON,
     # but pilot must use local demo login only (no secrets in launcher script).
-    if _is_explicit_local_dev() and _is_master_review_pilot_mode():
+    if _is_explicit_local_dev() and (_is_master_review_pilot_mode() or _is_lease_opportunity_pilot_mode()):
         return _local_demo_hub_users()
 
     raw = (os.environ.get("HUB_USERS_JSON") or "").strip()
@@ -1696,6 +1703,39 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/lease-opportunities":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.lease_opportunity import build_api_payload
+
+                self._json(200, build_api_payload())
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path.startswith("/api/lease-opportunities/") and path.endswith("/contact-events"):
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.lease_opportunity import list_contact_events
+
+                oid = path.split("/")[3]
+                self._json(200, {"ok": True, "items": list_contact_events(oid)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/notifications":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.notification_center import build_api_payload
+
+                uid = str(user.get("username") or user.get("id") or "")
+                self._json(200, build_api_payload(recipient_user_id=uid))
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/master-review/export":
             if not _require_operator(self):
                 return
@@ -2360,6 +2400,8 @@ class HubHandler(BaseHTTPRequestHandler):
             path = "/master-review/index.html"
         if path in {"/master-definition-review", "/master-definition-review/"}:
             path = "/master-definition-review/index.html"
+        if path in {"/lease-opportunities", "/lease-opportunities/"}:
+            path = "/lease-opportunities/index.html"
         if path == "/":
             path = "/preview.html"
         # Catalog JS/meta live on the data volume (not ephemeral hub/).
@@ -2529,6 +2571,81 @@ class HubHandler(BaseHTTPRequestHandler):
             elif not self._session_user():
                 self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
                 return
+
+        if path == "/api/lease-opportunities/seed-fixtures":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.lease_opportunity import seed_test_fixtures
+
+                items = seed_test_fixtures()
+                self._json(200, {"ok": True, "count": len(items), "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path.startswith("/api/lease-opportunities/") and path.endswith("/contact"):
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.lease_opportunity import record_contact_event
+
+                oid = path.split("/")[3]
+                evt = record_contact_event(
+                    opportunity_id=oid,
+                    actor=str(user.get("username") or ""),
+                    result=str(body.get("result") or ""),
+                    note=str(body.get("note") or ""),
+                    next_followup_at=str(body.get("next_followup_at") or ""),
+                )
+                self._json(200, {"ok": True, "event": evt, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/notifications/sync":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.notification_center import sync_notifications_from_opportunities
+
+                uid = str(user.get("username") or user.get("id") or "")
+                created = sync_notifications_from_opportunities(recipient_user_id=uid)
+                self._json(200, {"ok": True, "created": len(created), "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path.startswith("/api/notifications/") and path.endswith("/read"):
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.notification_center import mark_read
+
+                nid = path.split("/")[3]
+                evt = mark_read(nid)
+                self._json(200, {"ok": True, "event": evt, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path.startswith("/api/notifications/") and path.endswith("/dismiss"):
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.notification_center import mark_dismissed
+
+                nid = path.split("/")[3]
+                evt = mark_dismissed(nid)
+                self._json(200, {"ok": True, "event": evt, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
 
         if path == "/api/fb-agent/credentials":
             try:

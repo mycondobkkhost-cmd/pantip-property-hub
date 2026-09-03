@@ -14,7 +14,11 @@ chmod +x scripts/start_owner_review_pilot.sh
 
 URL: **http://127.0.0.1:8765/master-review/**
 
-เข้าสู่ระบบด้วยบัญชีเจ้าของ (local dev)
+เข้าสู่ระบบ:
+- ชื่อผู้ใช้: `angkarn1996`
+- รหัสผ่าน: `localdev` (โหมด pilot บนเครื่องเท่านั้น — ไม่ใช่รหัส production)
+
+หากหน้าไม่โหลดรายการ ให้ปิดแล้วรัน `./scripts/start_owner_review_pilot.sh` ใหม่
 
 ## ขั้นตอนตรวจ Pilot
 

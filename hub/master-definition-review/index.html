@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ทบทวนคำนิยาม Master — Pantip Hub</title>
+  <style>
+    :root { --bg:#f6f7f9; --card:#fff; --text:#1a1a1a; --muted:#5c6570; --accent:#0b6e4f; --warn:#b45309; --border:#e2e8f0; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Noto Sans Thai",system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; }
+    .banner { background:#fff7ed; border-bottom:2px solid #fdba74; padding:12px 16px; font-weight:600; color:#9a3412; text-align:center; }
+    header { background:var(--card); border-bottom:1px solid var(--border); padding:16px; }
+    h1 { margin:0 0 4px; font-size:1.2rem; }
+    .muted { color:var(--muted); font-size:.9rem; }
+    main { padding:16px; max-width:960px; margin:0 auto; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px; }
+    .card h2 { margin:0 0 8px; font-size:1.1rem; color:var(--accent); }
+    .option { border-left:4px solid var(--border); padding:10px 12px; margin:10px 0; background:#fafbfc; border-radius:0 8px 8px 0; }
+    .option strong { display:block; margin-bottom:4px; }
+    .tag { display:inline-block; background:#e2e8f0; padding:2px 8px; border-radius:6px; font-size:.8rem; margin-right:4px; }
+    .child { margin:6px 0; padding:8px; background:#f8fafc; border-radius:8px; }
+    .login { max-width:360px; margin:40px auto; }
+    input, button { width:100%; padding:10px; margin:6px 0; border:1px solid var(--border); border-radius:8px; font-size:1rem; }
+    button { background:var(--accent); color:#fff; border:none; cursor:pointer; }
+    .err { color:#b91c1c; }
+    nav { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+    nav button { width:auto; background:#fff; color:var(--text); border:1px solid var(--border); }
+    nav button.active { background:var(--accent); color:#fff; }
+  </style>
+</head>
+<body>
+  <div class="banner">⚠️ การเลือกในหน้านี้ยังไม่แก้ข้อมูล Production</div>
+  <header>
+    <h1>ทบทวนคำนิยาม Master</h1>
+    <p class="muted">Phase Z4 — ตัดสินใจเฉพาะคำนิยามพื้นที่ (ไม่ใช่แก้ทีละโครงการ)</p>
+  </header>
+  <div id="loginView" class="login card" style="display:none">
+    <h2>เข้าสู่ระบบ (Local)</h2>
+    <input id="username" placeholder="ชื่อผู้ใช้" autocomplete="username" />
+    <input id="password" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
+    <button id="loginBtn">เข้าสู่ระบบ</button>
+    <p id="loginErr" class="err"></p>
+  </div>
+  <main id="app" style="display:none">
+    <nav>
+      <button type="button" data-topic="phatthanakan" class="active">พัฒนาการ</button>
+      <button type="button" data-topic="rama9">พระราม 9</button>
+    </nav>
+    <div id="content"></div>
+    <div class="card muted">
+      <strong>สิ่งที่ยังไม่เปลี่ยน:</strong>
+      <ul id="noChange"></ul>
+    </div>
+  </main>
+  <script>
+    let packets = null;
+    async function api(path, opts) {
+      const r = await fetch(path, { credentials: 'same-origin', ...opts });
+      if (r.status === 401) throw new Error('unauthorized');
+      return r.json();
+    }
+    async function ensureAuth() {
+      try {
+        await api('/api/auth/me');
+        document.getElementById('loginView').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        return true;
+      } catch {
+        document.getElementById('loginView').style.display = 'block';
+        return false;
+      }
+    }
+    document.getElementById('loginBtn').onclick = async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const res = await fetch('/api/auth/login', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const body = await res.json();
+      if (!body.ok) { document.getElementById('loginErr').textContent = body.error || 'เข้าสู่ระบบไม่สำเร็จ'; return; }
+      document.getElementById('loginErr').textContent = '';
+      await boot();
+    };
+    function renderTopic(topic) {
+      const p = packets[topic];
+      const el = document.getElementById('content');
+      if (topic === 'phatthanakan') {
+        el.innerHTML = `<div class="card"><h2>${p.title}</h2><p>${p.question}</p>
+          <p><span class="tag">สถานะ: ${p.status}</span> <span class="tag">ไทย: ${p.canonical_spellings.th}</span></p>
+          <h3>ตัวเลือก</h3>
+          ${p.options.map(o => `<div class="option"><strong>${o.id}. ${o.label_th}</strong>
+            <div>${o.meaning_th || o.search_effect || ''}</div>
+            <div class="muted">RealXtate: ${o.realxtate_effect || '-'} | Pantip: ${o.pantip_effect || '-'}</div></div>`).join('')}
+          </div>`;
+      } else {
+        el.innerHTML = `<div class="card"><h2>${p.title}</h2><p>${p.explanation_th}</p>
+          <p><strong>${p.owner_question_th}</strong></p>
+          <h3>พื้นที่ย่อยที่มีหลักฐาน</h3>
+          ${(p.verified_children||[]).map(c => `<div class="child"><span class="tag">${c.semantic_kind}</span> <strong>${c.name_th}</strong> (${c.identity_key})</div>`).join('')}
+          <h3>ตัวอย่างโครงการ</h3>
+          <ul>${(p.representative_projects||[]).map(x => `<li>${x.name} — ${x.note}</li>`).join('')}</ul>
+          </div>`;
+      }
+      document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.topic === topic));
+    }
+    async function boot() {
+      if (!await ensureAuth()) return;
+      const res = await api('/api/master-definition-review/packets');
+      packets = res.packets;
+      const ul = document.getElementById('noChange');
+      ul.innerHTML = (res.index.what_will_not_change || []).map(x => `<li>${x}</li>`).join('');
+      document.querySelectorAll('nav button').forEach(btn => {
+        btn.onclick = () => renderTopic(btn.dataset.topic);
+      });
+      renderTopic('phatthanakan');
+    }
+    boot();
+  </script>
+</body>
+</html>

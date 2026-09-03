@@ -1,7 +1,7 @@
 {
   "shared_master_version": "v0.1",
   "schema_version": "shared-area-master-0.1",
-  "generated_at": "2026-09-03T23:07:17.078824+00:00",
+  "generated_at": "2026-09-03T23:18:14.301297+00:00",
   "semantic_kinds": [
     "ADMIN_AREA",
     "CORRIDOR",
@@ -1653,46 +1653,114 @@
     {
       "entity_id": "group_central_sukhumvit",
       "identity_key": "group_central_sukhumvit",
-      "canonical_name_th": "สุขุมวิทกลาง",
+      "canonical_name_th": "สุขุมวิทตอนกลาง",
       "canonical_name_en": "Central Sukhumvit",
       "semantic_kind": "MARKETPLACE_GROUP",
       "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
       "provenance": [
         "realxtate:marketplace-group-config.ts"
-      ]
+      ],
+      "shared_classification": "SHARED_CANONICAL_CANDIDATE",
+      "member_relations": [
+        {
+          "area_id": "phrom_phong",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "thonglor",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "ekkamai",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        }
+      ],
+      "status": "READY"
     },
     {
       "entity_id": "group_inner_sukhumvit",
       "identity_key": "group_inner_sukhumvit",
-      "canonical_name_th": "สุขุมวิทใน",
+      "canonical_name_th": "สุขุมวิทตอนใน",
       "canonical_name_en": "Inner Sukhumvit",
       "semantic_kind": "MARKETPLACE_GROUP",
       "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
       "provenance": [
         "realxtate:marketplace-group-config.ts"
-      ]
+      ],
+      "shared_classification": "SHARED_CANONICAL_CANDIDATE",
+      "member_relations": [
+        {
+          "area_id": "nana",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "ploenchit",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "siam",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        }
+      ],
+      "status": "READY"
     },
     {
       "entity_id": "group_outer_sukhumvit",
       "identity_key": "group_outer_sukhumvit",
-      "canonical_name_th": "สุขุมวิทนอก",
+      "canonical_name_th": "สุขุมวิทตอนนอก",
       "canonical_name_en": "Outer Sukhumvit",
       "semantic_kind": "MARKETPLACE_GROUP",
       "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
       "provenance": [
         "realxtate:marketplace-group-config.ts"
-      ]
+      ],
+      "shared_classification": "SHARED_CANONICAL_CANDIDATE",
+      "member_relations": [
+        {
+          "area_id": "ekkamai",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "phra_khanong",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "onnut",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "udom_suk",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "bearing",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        }
+      ],
+      "status": "READY"
     },
     {
       "entity_id": "group_asoke_rama9",
       "identity_key": "group_asoke_rama9",
-      "canonical_name_th": "อโศก – พระราม 9",
+      "canonical_name_th": "อโศก–พระราม 9",
       "canonical_name_en": "Asoke – Rama 9",
       "semantic_kind": "MARKETPLACE_GROUP",
       "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
       "provenance": [
         "realxtate:marketplace-group-config.ts"
       ],
+      "shared_classification": "SHARED_CANONICAL_CANDIDATE",
       "member_relations": [
         {
           "area_id": "asoke",
@@ -1700,27 +1768,112 @@
           "confidence": "HIGH"
         },
         {
-          "area_id": "rama9",
+          "area_id": "phetchaburi",
           "relation": "MEMBER",
           "confidence": "HIGH"
         },
         {
-          "area_id": "phrom_phong",
+          "area_id": "rama_9",
           "relation": "MEMBER",
-          "confidence": "MEDIUM"
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "khlong_toei",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
         }
-      ]
+      ],
+      "status": "READY"
     },
     {
       "entity_id": "group_ratchada",
       "identity_key": "group_ratchada",
-      "canonical_name_th": "รัชดา",
-      "canonical_name_en": "Ratchada",
+      "canonical_name_th": "รัชดา–ห้วยขวาง",
+      "canonical_name_en": "Ratchada – Huai Khwang",
       "semantic_kind": "MARKETPLACE_GROUP",
       "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
       "provenance": [
         "realxtate:marketplace-group-config.ts"
-      ]
+      ],
+      "shared_classification": "SHARED_CANONICAL_CANDIDATE",
+      "member_relations": [
+        {
+          "area_id": "ratchada",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "huai_khwang",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        }
+      ],
+      "status": "READY"
+    },
+    {
+      "entity_id": "group_north_phaholyothin",
+      "identity_key": "group_north_phaholyothin",
+      "canonical_name_th": "พหลโยธินตอนบน",
+      "canonical_name_en": "Upper Phaholyothin",
+      "semantic_kind": "MARKETPLACE_GROUP",
+      "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
+      "provenance": [
+        "realxtate:marketplace-group-config.ts"
+      ],
+      "shared_classification": "SHARED_CANONICAL_CANDIDATE",
+      "member_relations": [
+        {
+          "area_id": "ari",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "saphan_kwai",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "chatuchak",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "lat_phrao",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        }
+      ],
+      "status": "READY"
+    },
+    {
+      "entity_id": "group_sathon_silom",
+      "identity_key": "group_sathon_silom",
+      "canonical_name_th": "สาทร–สีลม",
+      "canonical_name_en": "Sathorn – Silom",
+      "semantic_kind": "MARKETPLACE_GROUP",
+      "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
+      "provenance": [
+        "realxtate:marketplace-group-config.ts"
+      ],
+      "shared_classification": "SHARED_CANONICAL_CANDIDATE",
+      "member_relations": [
+        {
+          "area_id": "sathon",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "silom",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        },
+        {
+          "area_id": "charoen_nakhon",
+          "relation": "MEMBER",
+          "confidence": "HIGH"
+        }
+      ],
+      "status": "READY"
     }
   ],
   "discovered_candidates": [
@@ -1731,5 +1884,5 @@
       "recommended_status": "INSUFFICIENT_EVIDENCE"
     }
   ],
-  "content_hash": "c6ac5089f09516be79b0ac62ad349ace365e31f6dcf35b191fada56fd9c6ce2f"
+  "content_hash": "bc45a8aefabc104b46d1c9f283c5dafc52955dc9ab5a81221576b2397b5371e1"
 }

@@ -19,7 +19,11 @@ from src.hub.coordinate_evidence import (
     parse_coordinate_from_payload,
 )
 from src.hub.population_accounting import DEFAULT_PHASE_W, DEFAULT_TRUSTED
-from src.hub.shared_master.project_contract import classify_pantip_only_project
+from src.hub.shared_master.identity_accounting import (
+    build_identity_accounting,
+    classify_identity_bucket,
+    identity_status_from_bucket,
+)
 
 TRUSTED_DB = DEFAULT_TRUSTED
 CATALOG_DB = Path(
@@ -103,21 +107,15 @@ def build_field_readiness_matrix(
     }
 
     rows: list[FieldReadiness] = []
+    identity_states = {
+        row[0]: row[1]
+        for row in cur.execute("SELECT project_id, identity_state FROM project_master_v01")
+    }
+
     for r in crosswalk:
         pid = r["pantip_project_id"]
-        match_class = r.get("match_class")
-
-        if match_class == "EXACT_ID_MATCH":
-            identity = "READY"
-        elif match_class == "PANTIP_ONLY":
-            poc = classify_pantip_only_project(r)
-            identity = (
-                "READY"
-                if poc in ("PANTIP_ONLY_VALID_PROJECT", "POSSIBLE_REALXTATE_MISSING_PROJECT")
-                else "REVIEW_REQUIRED"
-            )
-        else:
-            identity = "REVIEW_REQUIRED"
+        bucket = classify_identity_bucket(r, identity_state=identity_states.get(pid))
+        identity = identity_status_from_bucket(bucket)
 
         name = "READY" if r.get("pantip_canonical_name") else "MISSING"
 

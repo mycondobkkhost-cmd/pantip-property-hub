@@ -1685,6 +1685,17 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/master-definition-review/packets":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.master_definition_review import build_all_packets_v2
+
+                data = build_all_packets_v2()
+                self._json(200, {"ok": True, "index": data["index"], "packets": data})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/master-review/export":
             if not _require_operator(self):
                 return
@@ -2347,6 +2358,8 @@ class HubHandler(BaseHTTPRequestHandler):
             path = "/co/index.html"
         if path in {"/master-review", "/master-review/"}:
             path = "/master-review/index.html"
+        if path in {"/master-definition-review", "/master-definition-review/"}:
+            path = "/master-definition-review/index.html"
         if path == "/":
             path = "/preview.html"
         # Catalog JS/meta live on the data volume (not ephemeral hub/).
@@ -4908,20 +4921,26 @@ def main() -> None:
 
     # Make catalog JS available before the first browser hit (Render free tier
     # can otherwise briefly 404 preview-data.js during a bad sync window).
-    try:
-        ensured = ensure_preview_js()
-        if ensured.get("rebuilt"):
-            print(
-                f"[hub] boot: rebuilt preview-data.js "
-                f"({ensured.get('properties_total') or 0} properties)"
-            )
-        else:
-            print(
-                f"[hub] boot: preview-data.js ok "
-                f"({ensured.get('properties_total') or 0} properties)"
-            )
-    except Exception as exc:  # noqa: BLE001
-        print(f"[hub] boot ensure_preview_js failed: {exc}")
+    skip_preview = (os.environ.get("HUB_SKIP_PREVIEW_BOOT") or "").strip().lower() in {
+        "1", "true", "yes", "on",
+    }
+    if skip_preview:
+        print("[hub] boot: HUB_SKIP_PREVIEW_BOOT=1 — skipping preview-data.js rebuild")
+    else:
+        try:
+            ensured = ensure_preview_js()
+            if ensured.get("rebuilt"):
+                print(
+                    f"[hub] boot: rebuilt preview-data.js "
+                    f"({ensured.get('properties_total') or 0} properties)"
+                )
+            else:
+                print(
+                    f"[hub] boot: preview-data.js ok "
+                    f"({ensured.get('properties_total') or 0} properties)"
+                )
+        except Exception as exc:  # noqa: BLE001
+            print(f"[hub] boot ensure_preview_js failed: {exc}")
 
     try:
         masters = ensure_masters_ready()

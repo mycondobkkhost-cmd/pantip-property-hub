@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from src.hub.area_candidate_evidence import build_all_candidate_packets, discover_other_candidates
+from src.hub.shared_master.marketplace_group_reconciliation import marketplace_groups_for_shared_draft
 
 AREA_SEMANTIC_KINDS = frozenset(
     {
@@ -148,59 +149,8 @@ def build_shared_area_master_draft() -> dict[str, Any]:
                 }
             )
 
-    # Marketplace groups from RealXtate config (read-only reference)
-    groups = [
-        {
-            "entity_id": "group_central_sukhumvit",
-            "identity_key": "group_central_sukhumvit",
-            "canonical_name_th": "สุขุมวิทกลาง",
-            "canonical_name_en": "Central Sukhumvit",
-            "semantic_kind": "MARKETPLACE_GROUP",
-            "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
-            "provenance": ["realxtate:marketplace-group-config.ts"],
-        },
-        {
-            "entity_id": "group_inner_sukhumvit",
-            "identity_key": "group_inner_sukhumvit",
-            "canonical_name_th": "สุขุมวิทใน",
-            "canonical_name_en": "Inner Sukhumvit",
-            "semantic_kind": "MARKETPLACE_GROUP",
-            "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
-            "provenance": ["realxtate:marketplace-group-config.ts"],
-        },
-        {
-            "entity_id": "group_outer_sukhumvit",
-            "identity_key": "group_outer_sukhumvit",
-            "canonical_name_th": "สุขุมวิทนอก",
-            "canonical_name_en": "Outer Sukhumvit",
-            "semantic_kind": "MARKETPLACE_GROUP",
-            "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
-            "provenance": ["realxtate:marketplace-group-config.ts"],
-        },
-        {
-            "entity_id": "group_asoke_rama9",
-            "identity_key": "group_asoke_rama9",
-            "canonical_name_th": "อโศก – พระราม 9",
-            "canonical_name_en": "Asoke – Rama 9",
-            "semantic_kind": "MARKETPLACE_GROUP",
-            "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
-            "provenance": ["realxtate:marketplace-group-config.ts"],
-            "member_relations": [
-                {"area_id": "asoke", "relation": "MEMBER", "confidence": "HIGH"},
-                {"area_id": "rama9", "relation": "MEMBER", "confidence": "HIGH"},
-                {"area_id": "phrom_phong", "relation": "MEMBER", "confidence": "MEDIUM"},
-            ],
-        },
-        {
-            "entity_id": "group_ratchada",
-            "identity_key": "group_ratchada",
-            "canonical_name_th": "รัชดา",
-            "canonical_name_en": "Ratchada",
-            "semantic_kind": "MARKETPLACE_GROUP",
-            "review_status": "OWNER_APPROVED_FOR_STAGED_ENABLEMENT",
-            "provenance": ["realxtate:marketplace-group-config.ts"],
-        },
-    ]
+    # Marketplace groups — all 7 from RealXtate (Z4 reconciliation)
+    groups = marketplace_groups_for_shared_draft()
 
     return {
         "shared_master_version": "v0.1",

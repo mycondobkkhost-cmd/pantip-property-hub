@@ -66,12 +66,15 @@ class PhaseCOpsTests(unittest.TestCase):
     def test_restore_drill_on_seed_copy(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             data = Path(td) / "data"
+            dest = Path(td) / "restored"
             shutil.copytree(ROOT / "data_seed", data)
-            result = run_restore_drill(data)
+            before = (data / "properties.json").read_bytes()
+            result = run_restore_drill(source_backup=data, restore_destination=dest)
             self.assertTrue(result["ok"])
+            self.assertTrue(result["source_immutable"])
             self.assertGreater(result["restored_property_count"], 0)
-            # source restored after drill
-            props = json.loads((data / "properties.json").read_text(encoding="utf-8"))
+            self.assertEqual(before, (data / "properties.json").read_bytes())
+            props = json.loads((dest / "properties.json").read_text(encoding="utf-8"))
             self.assertGreater(len(props), 0)
 
     def test_migration_readiness_passes(self) -> None:

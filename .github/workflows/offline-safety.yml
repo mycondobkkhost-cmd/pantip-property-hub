@@ -1,0 +1,40 @@
+# Offline safety tests — never needs cloud credentials.
+
+name: Offline Safety Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  offline-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install hub requirements (offline-safe subset)
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-hub.txt ]; then pip install -r requirements-hub.txt; fi
+
+      - name: Phase A–F offline suites
+        env:
+          HUB_ALLOW_SHEET_PULL: "0"
+          HUB_STARTUP_SHEET_SYNC: "0"
+          HUB_AUTO_SYNC_TO_SHEET: "0"
+          OPENAI_API_KEY: ""
+          LINE_MENU_WEBHOOK: "0"
+        run: |
+          python scripts/test_phase_a_safety.py
+          python scripts/test_phase_b_identity.py
+          python scripts/test_phase_b_public.py
+          python scripts/test_phase_b_backup.py
+          python scripts/test_phase_c_ops.py
+          python scripts/test_phase_d_reconciliation.py
+          python scripts/test_phase_f_restore_safety.py

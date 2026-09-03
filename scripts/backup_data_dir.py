@@ -220,6 +220,13 @@ def restore_data_dir(
     dest_dir = dest_dir.resolve()
     if backup_dir == dest_dir:
         raise ValueError("restore destination must differ from backup directory")
+    if backup_dir in dest_dir.parents or dest_dir == backup_dir:
+        raise ValueError("restore destination must not be nested inside backup directory")
+    if dest_dir.exists():
+        if not dest_dir.is_dir():
+            raise ValueError("restore destination exists and is not a directory")
+        if any(dest_dir.iterdir()):
+            raise ValueError("restore destination must be absent or an empty directory")
     manifest = load_manifest(backup_dir)
     verify = verify_backup(backup_dir)
     if not verify.get("ok"):
@@ -229,12 +236,13 @@ def restore_data_dir(
     for entry in manifest.get("files") or []:
         rel = str(entry.get("path") or "")
         src = backup_dir / rel
-        dst = dest_dir / rel
-        if dest_dir not in dst.resolve().parents:
+        dst = (dest_dir / rel).resolve()
+        if dest_dir not in dst.parents and dst != dest_dir:
             raise ValueError(f"path traversal on restore: {rel}")
         planned.append(rel)
         if dry_run:
             continue
+        dest_dir.mkdir(parents=True, exist_ok=True)
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
 

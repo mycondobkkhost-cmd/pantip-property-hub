@@ -31,6 +31,7 @@ data/living_cache/
 data/propertyhub_cache/
 data/fetch_post_jobs.json
 data/auto_follow.json
+.local/
 logs/
 logs/*.log
 logs/*.pid

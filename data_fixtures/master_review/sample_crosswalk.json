@@ -1,0 +1,439 @@
+[
+  {
+    "pantip_project_id": "ec5214c9-c9fb-5ca5-98fb-852703044e4a",
+    "pantip_bucket_key": "life_asoke_rama9",
+    "pantip_canonical_name": "Life Asoke Rama 9 (ไลฟ์ อโศก - พระราม 9)",
+    "pantip_aliases": [],
+    "live_listing_count": 84,
+    "realxtate_project_id": "ec5214c9-c9fb-5ca5-98fb-852703044e4a",
+    "realxtate_bucket_key": "life_asoke_rama9",
+    "realxtate_name": "Life Asoke Rama 9 (ไลฟ์ อโศก - พระราม 9)",
+    "match_class": "EXACT_ID_MATCH",
+    "match_evidence": [
+      "stable_project_id"
+    ],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [
+      "อโศก",
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "มศว ประสานมิตร",
+      "พระราม 9"
+    ],
+    "pantip_zone_unverified": [
+      "อโศก",
+      "เพชรบุรีตัดใหม่",
+      "RCA"
+    ],
+    "pantip_transit_verified": [
+      "MRT พระราม 9",
+      "ARL มักกะสัน",
+      "MRT เพชรบุรี"
+    ],
+    "pantip_transit_unverified": [
+      "MRT พระราม 9",
+      "ARL มักกะสัน",
+      "MRT เพชรบุรี"
+    ],
+    "realxtate_marketplace_areas": [
+      {
+        "area_id": "rxa_7f24e6abd51497eb2af740c453cc9699",
+        "role": "PRIMARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_40e7f886c58c36f4f1631848e93c3a0b",
+        "role": "SECONDARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_23511c474115de48ab6b29971512a66d",
+        "role": "EDGE",
+        "confidence": "MEDIUM"
+      }
+    ],
+    "realxtate_area_confidence": "REALXTATE_HIGH",
+    "zone_agreement_class": "DIRECT_CONFLICT",
+    "transit_agreement_class": "PANTIP_UNVERIFIED_ONLY",
+    "legacy_promotion_suspected": true,
+    "legacy_verification_class": "LEGACY_PROMOTION_SUSPECTED",
+    "coordinate_reference_class": "COORD_CONFLICT",
+    "correction_class": "REVIEW_RECOMMENDED",
+    "review_reason": [
+      "DIRECT_CONFLICT"
+    ],
+    "priority": "P0"
+  },
+  {
+    "pantip_project_id": "f2fad7e4-abc9-5b62-ae23-f2d8bb42b86f",
+    "pantip_bucket_key": "atmozbangna",
+    "pantip_canonical_name": "ATMOZ BANGNA (แอทโมซ บางนา)",
+    "pantip_aliases": [],
+    "live_listing_count": 1,
+    "realxtate_project_id": null,
+    "realxtate_bucket_key": null,
+    "realxtate_name": null,
+    "match_class": "PANTIP_ONLY",
+    "match_evidence": [],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [
+      "บางนา"
+    ],
+    "pantip_zone_unverified": [],
+    "pantip_transit_verified": [
+      "BTS บางนา",
+      "MRT ศรีเอี่ยม"
+    ],
+    "pantip_transit_unverified": [],
+    "realxtate_marketplace_areas": [],
+    "realxtate_area_confidence": "NO_REALXTATE_AREA",
+    "zone_agreement_class": "PANTIP_HAS_VALUE_REALXTATE_MISSING",
+    "transit_agreement_class": "EXACT_STATION_AGREE",
+    "legacy_promotion_suspected": false,
+    "legacy_verification_class": "INDEPENDENTLY_CORROBORATED",
+    "coordinate_reference_class": "COORD_MISSING",
+    "correction_class": "DO_NOT_TOUCH",
+    "review_reason": []
+  },
+  {
+    "pantip_project_id": "0e4101fe-7235-57ea-a1c6-449a335ce06a",
+    "pantip_bucket_key": "homeofficeลาดพร้าว80",
+    "pantip_canonical_name": "Home Office ลาดพร้าว 80",
+    "pantip_aliases": [],
+    "live_listing_count": 1,
+    "realxtate_project_id": null,
+    "realxtate_bucket_key": null,
+    "realxtate_name": null,
+    "match_class": "PANTIP_ONLY",
+    "match_evidence": [],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [],
+    "pantip_zone_unverified": [],
+    "pantip_transit_verified": [],
+    "pantip_transit_unverified": [
+      "MRT ลาดพร้าว"
+    ],
+    "realxtate_marketplace_areas": [],
+    "realxtate_area_confidence": "NO_REALXTATE_AREA",
+    "zone_agreement_class": "INSUFFICIENT_EVIDENCE",
+    "transit_agreement_class": "PANTIP_MISSING",
+    "legacy_promotion_suspected": false,
+    "legacy_verification_class": "INDEPENDENTLY_CORROBORATED",
+    "coordinate_reference_class": "COORD_MISSING",
+    "correction_class": "DO_NOT_TOUCH",
+    "review_reason": []
+  },
+  {
+    "pantip_project_id": "8d70d6c6-ef51-549c-8822-507c77ab8d70",
+    "pantip_bucket_key": "life_asoke_hype",
+    "pantip_canonical_name": "Life Asoke Hype (ไลฟ์ อโศก ไฮป์)",
+    "pantip_aliases": [],
+    "live_listing_count": 63,
+    "realxtate_project_id": "8d70d6c6-ef51-549c-8822-507c77ab8d70",
+    "realxtate_bucket_key": "life_asoke_hype",
+    "realxtate_name": "Life Asoke Hype (ไลฟ์ อโศก ไฮป์)",
+    "match_class": "EXACT_ID_MATCH",
+    "match_evidence": [
+      "stable_project_id"
+    ],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [
+      "อโศก",
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "มศว ประสานมิตร",
+      "พระราม 9"
+    ],
+    "pantip_zone_unverified": [
+      "อโศก",
+      "เพชรบุรีตัดใหม่",
+      "RCA"
+    ],
+    "pantip_transit_verified": [
+      "ARL มักกะสัน",
+      "MRT พระราม 9",
+      "MRT เพชรบุรี"
+    ],
+    "pantip_transit_unverified": [
+      "ARL มักกะสัน",
+      "MRT พระราม 9",
+      "MRT เพชรบุรี"
+    ],
+    "realxtate_marketplace_areas": [
+      {
+        "area_id": "rxa_23511c474115de48ab6b29971512a66d",
+        "role": "PRIMARY",
+        "confidence": "MEDIUM"
+      },
+      {
+        "area_id": "rxa_7f24e6abd51497eb2af740c453cc9699",
+        "role": "SECONDARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_40e7f886c58c36f4f1631848e93c3a0b",
+        "role": "EDGE",
+        "confidence": "HIGH"
+      }
+    ],
+    "realxtate_area_confidence": "REALXTATE_HIGH",
+    "zone_agreement_class": "DIRECT_CONFLICT",
+    "transit_agreement_class": "PANTIP_UNVERIFIED_ONLY",
+    "legacy_promotion_suspected": true,
+    "legacy_verification_class": "LEGACY_PROMOTION_SUSPECTED",
+    "coordinate_reference_class": "COORD_CONFLICT",
+    "correction_class": "REVIEW_RECOMMENDED",
+    "review_reason": [
+      "DIRECT_CONFLICT"
+    ],
+    "priority": "P0"
+  },
+  {
+    "pantip_project_id": "c1323058-60f1-5fea-93bc-240704e2dabf",
+    "pantip_bucket_key": "lifeonewireless",
+    "pantip_canonical_name": "Life One Wireless (ไลฟ์ วัน ไวร์เลส)",
+    "pantip_aliases": [],
+    "live_listing_count": 53,
+    "realxtate_project_id": "c1323058-60f1-5fea-93bc-240704e2dabf",
+    "realxtate_bucket_key": "lifeonewireless",
+    "realxtate_name": "Life One Wireless (ไลฟ์ วัน ไวร์เลส)",
+    "match_class": "EXACT_ID_MATCH",
+    "match_evidence": [
+      "stable_project_id"
+    ],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [
+      "วิทยุ",
+      "ชิดลม",
+      "หลังสวน",
+      "เพลินจิต",
+      "ราชเทวี"
+    ],
+    "pantip_zone_unverified": [
+      "วิทยุ",
+      "ชิดลม",
+      "หลังสวน"
+    ],
+    "pantip_transit_verified": [
+      "BTS เพลินจิต",
+      "BTS ชิดลม",
+      "ARL ราชปรารภ"
+    ],
+    "pantip_transit_unverified": [
+      "BTS เพลินจิต",
+      "BTS ชิดลม"
+    ],
+    "realxtate_marketplace_areas": [
+      {
+        "area_id": "rxa_3ce1fc9296c1bc1f8a05b87cd25eaa5f",
+        "role": "PRIMARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_40e7f886c58c36f4f1631848e93c3a0b",
+        "role": "EDGE",
+        "confidence": "LOW"
+      }
+    ],
+    "realxtate_area_confidence": "REALXTATE_HIGH",
+    "zone_agreement_class": "DIRECT_CONFLICT",
+    "transit_agreement_class": "PANTIP_UNVERIFIED_ONLY",
+    "legacy_promotion_suspected": true,
+    "legacy_verification_class": "LEGACY_PROMOTION_SUSPECTED",
+    "coordinate_reference_class": "COORD_CONFLICT",
+    "correction_class": "REVIEW_RECOMMENDED",
+    "review_reason": [
+      "DIRECT_CONFLICT"
+    ],
+    "priority": "P0"
+  },
+  {
+    "pantip_project_id": "9782b822-d4db-5285-b5a7-87c89eec49a6",
+    "pantip_bucket_key": "life_asoke",
+    "pantip_canonical_name": "Life Asoke (ไลฟ์ อโศก)",
+    "pantip_aliases": [],
+    "live_listing_count": 49,
+    "realxtate_project_id": "9782b822-d4db-5285-b5a7-87c89eec49a6",
+    "realxtate_bucket_key": "life_asoke",
+    "realxtate_name": "Life Asoke (ไลฟ์ อโศก)",
+    "match_class": "EXACT_ID_MATCH",
+    "match_evidence": [
+      "stable_project_id"
+    ],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [
+      "อโศก",
+      "เพชรบุรีตัดใหม่",
+      "RCA",
+      "มศว ประสานมิตร",
+      "พระราม 9"
+    ],
+    "pantip_zone_unverified": [
+      "อโศก",
+      "เพชรบุรีตัดใหม่",
+      "RCA"
+    ],
+    "pantip_transit_verified": [
+      "MRT เพชรบุรี",
+      "ARL มักกะสัน",
+      "MRT พระราม 9"
+    ],
+    "pantip_transit_unverified": [
+      "MRT เพชรบุรี",
+      "ARL มักกะสัน",
+      "MRT พระราม 9"
+    ],
+    "realxtate_marketplace_areas": [
+      {
+        "area_id": "rxa_23511c474115de48ab6b29971512a66d",
+        "role": "PRIMARY",
+        "confidence": "MEDIUM"
+      },
+      {
+        "area_id": "rxa_40e7f886c58c36f4f1631848e93c3a0b",
+        "role": "SECONDARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_7f24e6abd51497eb2af740c453cc9699",
+        "role": "EDGE",
+        "confidence": "HIGH"
+      }
+    ],
+    "realxtate_area_confidence": "REALXTATE_HIGH",
+    "zone_agreement_class": "DIRECT_CONFLICT",
+    "transit_agreement_class": "PANTIP_UNVERIFIED_ONLY",
+    "legacy_promotion_suspected": true,
+    "legacy_verification_class": "LEGACY_PROMOTION_SUSPECTED",
+    "coordinate_reference_class": "COORD_CONFLICT",
+    "correction_class": "REVIEW_RECOMMENDED",
+    "review_reason": [
+      "DIRECT_CONFLICT"
+    ],
+    "priority": "P0"
+  },
+  {
+    "pantip_project_id": "5e06d489-a116-5f78-87a4-1c3813aac70b",
+    "pantip_bucket_key": "aspiresukhumvit48",
+    "pantip_canonical_name": "Aspire Sukhumvit 48 (แอสปาย สุขุมวิท 48)",
+    "pantip_aliases": [],
+    "live_listing_count": 48,
+    "realxtate_project_id": "5e06d489-a116-5f78-87a4-1c3813aac70b",
+    "realxtate_bucket_key": "aspiresukhumvit48",
+    "realxtate_name": "Aspire Sukhumvit 48 (แอสปาย สุขุมวิท 48)",
+    "match_class": "EXACT_ID_MATCH",
+    "match_evidence": [
+      "stable_project_id"
+    ],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "พระโขนง",
+      "วัฒนา",
+      "คลองเตย"
+    ],
+    "pantip_zone_unverified": [
+      "อ่อนนุช",
+      "อุดมสุข",
+      "พระโขนง"
+    ],
+    "pantip_transit_verified": [
+      "BTS พระโขนง",
+      "BTS อ่อนนุช"
+    ],
+    "pantip_transit_unverified": [
+      "BTS พระโขนง",
+      "BTS อ่อนนุช"
+    ],
+    "realxtate_marketplace_areas": [
+      {
+        "area_id": "rxa_f370ccb6a96c9ceb76411d29894d5cc3",
+        "role": "PRIMARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_1e67f3d83305733352dc4e2b68a754da",
+        "role": "SECONDARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_c3762e0b52eba0ad2f6875f00282386b",
+        "role": "EDGE",
+        "confidence": "LOW"
+      }
+    ],
+    "realxtate_area_confidence": "REALXTATE_HIGH",
+    "zone_agreement_class": "DIRECT_CONFLICT",
+    "transit_agreement_class": "PANTIP_UNVERIFIED_ONLY",
+    "legacy_promotion_suspected": true,
+    "legacy_verification_class": "LEGACY_PROMOTION_SUSPECTED",
+    "coordinate_reference_class": "COORD_CONFLICT",
+    "correction_class": "REVIEW_RECOMMENDED",
+    "review_reason": [
+      "DIRECT_CONFLICT"
+    ],
+    "priority": "P0"
+  },
+  {
+    "pantip_project_id": "763d1a96-689e-571a-8dbe-cf29a51aefd5",
+    "pantip_bucket_key": "xthuaikwang",
+    "pantip_canonical_name": "XT HUAIKWANG (เอ็กซ์ที ห้วยขวาง)",
+    "pantip_aliases": [],
+    "live_listing_count": 47,
+    "realxtate_project_id": "763d1a96-689e-571a-8dbe-cf29a51aefd5",
+    "realxtate_bucket_key": "xthuaikwang",
+    "realxtate_name": "XT HUAIKWANG (เอ็กซ์ที ห้วยขวาง)",
+    "match_class": "EXACT_ID_MATCH",
+    "match_evidence": [
+      "stable_project_id"
+    ],
+    "identity_conflict_flags": [],
+    "pantip_zone_verified": [
+      "รัชดา",
+      "ห้วยขวาง"
+    ],
+    "pantip_zone_unverified": [
+      "รัชดา",
+      "ห้วยขวาง"
+    ],
+    "pantip_transit_verified": [
+      "MRT ห้วยขวาง",
+      "MRT ศูนย์วัฒนธรรมแห่งประเทศไทย",
+      "MRT สุทธิสาร"
+    ],
+    "pantip_transit_unverified": [
+      "MRT ห้วยขวาง",
+      "MRT ศูนย์วัฒนธรรมแห่งประเทศไทย",
+      "MRT สุทธิสาร"
+    ],
+    "realxtate_marketplace_areas": [
+      {
+        "area_id": "rxa_9fd952819c8ceb0fca945b39e4f77084",
+        "role": "PRIMARY",
+        "confidence": "HIGH"
+      },
+      {
+        "area_id": "rxa_6be56cca2b0becddb99b08c6b8eab4a9",
+        "role": "SECONDARY",
+        "confidence": "MEDIUM"
+      },
+      {
+        "area_id": "rxa_23511c474115de48ab6b29971512a66d",
+        "role": "EDGE",
+        "confidence": "LOW"
+      }
+    ],
+    "realxtate_area_confidence": "REALXTATE_HIGH",
+    "zone_agreement_class": "DIRECT_CONFLICT",
+    "transit_agreement_class": "PANTIP_UNVERIFIED_ONLY",
+    "legacy_promotion_suspected": true,
+    "legacy_verification_class": "LEGACY_PROMOTION_SUSPECTED",
+    "coordinate_reference_class": "COORD_CONFLICT",
+    "correction_class": "REVIEW_RECOMMENDED",
+    "review_reason": [
+      "DIRECT_CONFLICT"
+    ],
+    "priority": "P0"
+  }
+]

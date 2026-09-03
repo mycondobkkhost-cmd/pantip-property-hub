@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ตรวจสอบข้อมูล Master — Pantip Hub</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #fff;
+      --text: #1a1a1a;
+      --muted: #5c6570;
+      --accent: #0b6e4f;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --border: #e2e8f0;
+      --shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .banner {
+      background: #fff7ed;
+      border-bottom: 2px solid #fdba74;
+      padding: 12px 16px;
+      font-weight: 600;
+      color: #9a3412;
+      text-align: center;
+    }
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      padding: 16px;
+    }
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+    .stat .label { color: var(--muted); font-size: .85rem; }
+    .stat .value { font-size: 1.4rem; font-weight: 700; }
+    .filters {
+      padding: 0 16px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .filters select, .filters input, .filters button {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: .95rem;
+    }
+    .filters button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    main { padding: 0 16px 32px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card h3 { margin: 0 0 6px; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .p0 { background: #fee2e2; color: #991b1b; }
+    .p1 { background: #ffedd5; color: #9a3412; }
+    .p2 { background: #fef9c3; color: #854d0e; }
+    .p3 { background: #e0e7ff; color: #3730a3; }
+    .status-PENDING { background: #e2e8f0; color: #334155; }
+    .status-APPROVED { background: #dcfce7; color: #166534; }
+    .status-REJECTED { background: #fee2e2; color: #991b1b; }
+    .status-DEFERRED { background: #fef9c3; color: #854d0e; }
+    .muted { color: var(--muted); font-size: .9rem; }
+    .detail {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      z-index: 20;
+    }
+    .detail.open { display: flex; }
+    .panel {
+      background: var(--card);
+      width: min(720px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+    @media (max-width: 640px) {
+      .row { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+    .box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafafa;
+    }
+    .box h4 { margin: 0 0 8px; font-size: .95rem; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .actions button {
+      flex: 1 1 140px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn-approve { background: var(--accent); color: #fff; }
+    .btn-reject { background: #fff; border: 1px solid var(--danger) !important; color: var(--danger); }
+    .btn-defer { background: #fff; border: 1px solid var(--border) !important; color: var(--text); }
+    .login {
+      max-width: 360px;
+      margin: 80px auto;
+      background: var(--card);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .login input, .login button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .login button { background: var(--accent); color: #fff; border: none; cursor: pointer; }
+    .hidden { display: none !important; }
+    .tech { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+    details.tech-box { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="banner">⚠️ การอนุมัติในหน้านี้ยังไม่แก้ข้อมูลจริง — บันทึกเฉพาะการตัดสินใจสำหรับขั้นตอนในอนาคต</div>
+
+  <div id="login-view" class="login">
+    <h2>เข้าสู่ระบบ</h2>
+    <p class="muted">เฉพาะเจ้าของ/ผู้ดูแลระบบเท่านั้น</p>
+    <input id="login-user" placeholder="ชื่อผู้ใช้" autocomplete="username" />
+    <input id="login-pass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
+    <button id="login-btn">เข้าสู่ระบบ</button>
+    <p id="login-error" class="muted" style="color:var(--danger)"></p>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <div>
+        <h1>ตรวจสอบข้อมูล Master</h1>
+        <div class="muted" id="user-line"></div>
+      </div>
+      <button id="logout-btn" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">ออกจากระบบ</button>
+    </header>
+
+    <div class="summary" id="summary"></div>
+
+    <div class="filters">
+      <select id="f-status">
+        <option value="">สถานะ: ทั้งหมด</option>
+        <option value="PENDING">รอตรวจ</option>
+        <option value="APPROVED">อนุมัติแล้ว</option>
+        <option value="REJECTED">ไม่อนุมัติ</option>
+        <option value="DEFERRED">ตรวจภายหลัง</option>
+      </select>
+      <select id="f-priority">
+        <option value="">ระดับ: ทั้งหมด</option>
+        <option value="P0">P0 ควรตรวจสอบก่อน</option>
+        <option value="P1">P1 สำคัญ</option>
+        <option value="P2">P2 ตรวจตามลำดับ</option>
+        <option value="P3">P3 ต้องใช้ข้อมูลเพิ่ม</option>
+      </select>
+      <select id="f-type">
+        <option value="">ประเภท: ทั้งหมด</option>
+        <option value="AREA_REVIEW">ทำเล Marketplace</option>
+        <option value="PANTIP_ONLY_REVIEW">โครงการที่ยังไม่มีใน Master</option>
+      </select>
+      <select id="f-issue">
+        <option value="">ปัญหา: ทั้งหมด</option>
+        <option value="area_conflict">ข้อมูลทำเลขัดแย้ง</option>
+        <option value="legacy_suspect">ข้อมูลเดิมน่าสงสัย</option>
+        <option value="pantip_only">Pantip-only</option>
+      </select>
+      <input id="f-search" placeholder="ค้นหาชื่อโครงการ / project_id" />
+      <label class="muted"><input type="checkbox" id="f-top50" /> แสดง Top 50 ก่อน</label>
+      <button id="f-apply">กรอง</button>
+      <button id="f-export" style="background:#334155">ส่งออกข้อเสนอที่อนุมัติแล้ว</button>
+    </div>
+
+    <main>
+      <h2 id="section-title">รายการตรวจสอบ</h2>
+      <div class="grid" id="cards"></div>
+    </main>
+  </div>
+
+  <div id="detail" class="detail">
+    <div class="panel" id="detail-panel"></div>
+  </div>
+
+  <script>
+    const API = location.origin;
+    let state = { items: [], summary: {}, sourceHash: "", user: null };
+
+    async function api(path, opts = {}) {
+      const res = await fetch(API + path, {
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
+        ...opts,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+      }[c]));
+    }
+
+    function renderSummary() {
+      const s = state.summary;
+      const by = s.by_status || {};
+      const listings = s.listings_by_status || {};
+      document.getElementById("summary").innerHTML = `
+        <div class="stat"><div class="label">ทั้งหมดที่ต้องตรวจ</div><div class="value">${s.total_items || 0}</div></div>
+        <div class="stat"><div class="label">รอตรวจ</div><div class="value">${by.PENDING || 0}</div></div>
+        <div class="stat"><div class="label">อนุมัติแล้ว</div><div class="value">${by.APPROVED || 0}</div><div class="muted">${listings.APPROVED || 0} ห้อง (อนาคต)</div></div>
+        <div class="stat"><div class="label">ไม่อนุมัติ</div><div class="value">${by.REJECTED || 0}</div></div>
+        <div class="stat"><div class="label">ไว้ตรวจทีหลัง</div><div class="value">${by.DEFERRED || 0}</div></div>
+        <div class="stat"><div class="label">ทำเลขัดแย้ง</div><div class="value">${s.area_review_count || 0}</div></div>
+        <div class="stat"><div class="label">Pantip-only</div><div class="value">${s.pantip_only_count || 0}</div></div>
+      `;
+    }
+
+    function renderCards() {
+      const el = document.getElementById("cards");
+      if (!state.items.length) {
+        el.innerHTML = '<p class="muted">ไม่พบรายการ</p>';
+        return;
+      }
+      el.innerHTML = state.items.map((item) => {
+        const dec = item.decision || {};
+        const st = dec.status || "PENDING";
+        const conf = (item.proposed_value || {}).confidence || "";
+        return `<article class="card" data-id="${esc(item.review_item_id)}">
+          <div>
+            <span class="badge ${esc(item.priority || "P3").toLowerCase()}">${esc(item.priority)} ${esc(item.priority_label_th || "")}</span>
+            <span class="badge status-${esc(st)}">${esc(st)}</span>
+          </div>
+          <h3>${esc(item.project_name)}</h3>
+          <div class="muted">มีห้องในระบบ: <strong>${item.live_snapshot_listing_count || 0}</strong> ห้อง</div>
+          <div class="muted">ความมั่นใจ: ${esc(conf)} · ${esc(item.review_type || "")}</div>
+          ${item.semantic_note_th ? `<div class="muted">${esc(item.semantic_note_th)}</div>` : ""}
+        </article>`;
+      }).join("");
+      el.querySelectorAll(".card").forEach((card) => {
+        card.addEventListener("click", () => openDetail(card.dataset.id));
+      });
+    }
+
+    function openDetail(id) {
+      const item = state.items.find((i) => i.review_item_id === id);
+      if (!item) return;
+      const cur = item.current_value || {};
+      const prop = item.proposed_value || {};
+      const evidence = (item.evidence || []).map((e) => `<li>${esc(e.explanation || e.evidence_type)}</li>`).join("");
+      document.getElementById("detail-panel").innerHTML = `
+        <button onclick="closeDetail()" style="float:right;border:none;background:none;font-size:1.2rem;cursor:pointer">✕</button>
+        <h2>${esc(item.project_name)}</h2>
+        <p class="muted">project_id: <code>${esc(item.project_id)}</code></p>
+        <p><strong>มีห้องในระบบ:</strong> ${item.live_snapshot_listing_count || 0} ห้อง</p>
+        <p><strong>ผลกระทบถ้าอนุมัติในอนาคต:</strong> ${item.live_snapshot_listing_count || 0} listings</p>
+        <div class="row">
+          <div class="box">
+            <h4>ข้อมูลปัจจุบันใน Pantip</h4>
+            <div>${esc(cur.value || "—")}</div>
+            <div class="muted">ประเภท: ${esc(cur.semantic_kind || "")}</div>
+            <div class="muted">${esc(item.legacy_state_th || "")}</div>
+          </div>
+          <div class="box">
+            <h4>ข้อมูลที่ Master แนะนำ</h4>
+            <div>${esc(prop.value || "—")}</div>
+            <div class="muted">ประเภท: ${esc(prop.semantic_kind || "")}</div>
+            <div class="muted">ความมั่นใจ: ${esc(prop.confidence || "")}</div>
+          </div>
+        </div>
+        ${item.semantic_note_th ? `<p style="color:var(--warn)">${esc(item.semantic_note_th)}</p>` : ""}
+        <div class="box">
+          <h4>เหตุผลที่ระบบเสนอ</h4>
+          <ul>${evidence || "<li>—</li>"}</ul>
+        </div>
+        <details class="tech-box"><summary>ดูรายละเอียดทางเทคนิค</summary>
+          <pre class="tech">${esc(JSON.stringify(item, null, 2))}</pre>
+        </details>
+        <div class="actions">
+          <button class="btn-approve" data-action="APPROVED">อนุมัติข้อเสนอ</button>
+          <button class="btn-reject" data-action="REJECTED">ไม่อนุมัติ</button>
+          <button class="btn-defer" data-action="DEFERRED">ไว้ตรวจทีหลัง</button>
+        </div>
+        <p class="muted" style="margin-top:10px">การอนุมัติในหน้านี้ยังไม่แก้ข้อมูลจริง</p>
+      `;
+      document.getElementById("detail").classList.add("open");
+      document.querySelectorAll("#detail-panel [data-action]").forEach((btn) => {
+        btn.addEventListener("click", () => submitDecision(item, btn.dataset.action));
+      });
+    }
+
+    window.closeDetail = function () {
+      document.getElementById("detail").classList.remove("open");
+    };
+
+    async function submitDecision(item, status) {
+      let reason = null;
+      if (status === "APPROVED") {
+        reason = prompt("เหตุผล (เช่น REFERENCE_EVIDENCE_ACCEPTED):", "REFERENCE_EVIDENCE_ACCEPTED");
+        if (!reason) return;
+      }
+      if (status === "REJECTED") {
+        reason = prompt("เหตุผล (เช่น REFERENCE_INCORRECT):", "REFERENCE_INCORRECT");
+        if (!reason) return;
+      }
+      const note = prompt("หมายเหตุ (ไม่บังคับ):", "") || "";
+      try {
+        await api("/api/master-review/decision", {
+          method: "POST",
+          body: JSON.stringify({
+            review_item_id: item.review_item_id,
+            project_id: item.project_id,
+            new_status: status,
+            expected_source_snapshot_hash: state.sourceHash,
+            reason,
+            note,
+          }),
+        });
+        closeDetail();
+        await loadItems();
+      } catch (e) {
+        alert(e.message || "บันทึกไม่สำเร็จ");
+      }
+    }
+
+    async function loadItems() {
+      const q = new URLSearchParams();
+      const status = document.getElementById("f-status").value;
+      const priority = document.getElementById("f-priority").value;
+      const reviewType = document.getElementById("f-type").value;
+      const issue = document.getElementById("f-issue").value;
+      const search = document.getElementById("f-search").value.trim();
+      const top50 = document.getElementById("f-top50").checked;
+      if (status) q.set("status", status);
+      if (priority) q.set("priority", priority);
+      if (reviewType) q.set("review_type", reviewType);
+      if (issue) q.set("issue_type", issue);
+      if (search) q.set("search", search);
+      if (top50) q.set("top50", "1");
+      const data = await api("/api/master-review/items?" + q.toString());
+      state.items = data.items || [];
+      state.summary = data.summary || {};
+      state.sourceHash = data.source_snapshot_hash || state.sourceHash;
+      renderSummary();
+      renderCards();
+    }
+
+    async function restoreSession() {
+      const me = await api("/api/auth/me");
+      if (!me.ok || !me.user) {
+        document.getElementById("login-view").classList.remove("hidden");
+        document.getElementById("app").classList.add("hidden");
+        return;
+      }
+      if (!me.is_operator) {
+        document.getElementById("login-error").textContent = "ไม่มีสิทธิ์เข้าหน้านี้";
+        return;
+      }
+      state.user = me.user;
+      document.getElementById("login-view").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      document.getElementById("user-line").textContent = `ผู้ใช้: ${me.user.username}`;
+      const meta = await api("/api/master-review/summary");
+      state.sourceHash = meta.source_snapshot_hash || "";
+      await loadItems();
+    }
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      try {
+        await api("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            username: document.getElementById("login-user").value.trim(),
+            password: document.getElementById("login-pass").value,
+          }),
+        });
+        await restoreSession();
+      } catch (e) {
+        document.getElementById("login-error").textContent = e.message || "เข้าสู่ระบบไม่สำเร็จ";
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await api("/api/auth/logout", { method: "POST", body: "{}" });
+      location.reload();
+    });
+
+    document.getElementById("f-apply").addEventListener("click", loadItems);
+    document.getElementById("f-export").addEventListener("click", async () => {
+      try {
+        const data = await api("/api/master-review/export");
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "canonical-promotion-candidate-v0.1.json";
+        a.click();
+      } catch (e) {
+        alert(e.message || "ส่งออกไม่สำเร็จ");
+      }
+    });
+
+    restoreSession().catch(() => {
+      document.getElementById("login-view").classList.remove("hidden");
+    });
+  </script>
+</body>
+</html>

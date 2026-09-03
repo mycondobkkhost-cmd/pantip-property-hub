@@ -1559,6 +1559,107 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/master-review/summary":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.master_review_store import (
+                    apply_decisions_to_items,
+                    build_review_queue,
+                    load_crosswalk_rows,
+                    summary_counts,
+                )
+
+                rows, source_hash = load_crosswalk_rows()
+                items = apply_decisions_to_items(build_review_queue(rows, source_hash=source_hash))
+                summary = summary_counts(items)
+                summary["source_snapshot_hash"] = source_hash
+                self._json(200, {"ok": True, **summary})
+            except Exception as exc:  # noqa: BLE001
+                from src.hub.master_review_store import MasterReviewError
+
+                if isinstance(exc, MasterReviewError):
+                    self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+                else:
+                    self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/master-review/items":
+            if not _require_operator(self):
+                return
+            try:
+                from urllib.parse import parse_qs
+
+                from src.hub.master_review_store import (
+                    apply_decisions_to_items,
+                    build_review_queue,
+                    filter_items,
+                    load_crosswalk_rows,
+                    summary_counts,
+                )
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                rows, source_hash = load_crosswalk_rows()
+                items = apply_decisions_to_items(build_review_queue(rows, source_hash=source_hash))
+                filtered = filter_items(
+                    items,
+                    status=(qs.get("status") or [""])[0] or None,
+                    priority=(qs.get("priority") or [""])[0] or None,
+                    confidence=(qs.get("confidence") or [""])[0] or None,
+                    review_type=(qs.get("review_type") or [""])[0] or None,
+                    issue_type=(qs.get("issue_type") or [""])[0] or None,
+                    search=(qs.get("search") or [""])[0] or None,
+                    top50=(qs.get("top50") or ["0"])[0] in {"1", "true", "yes"},
+                )
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "items": filtered,
+                        "count": len(filtered),
+                        "summary": summary_counts(items),
+                        "source_snapshot_hash": source_hash,
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                from src.hub.master_review_store import MasterReviewError
+
+                if isinstance(exc, MasterReviewError):
+                    self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+                else:
+                    self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path.startswith("/api/master-review/items/"):
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.master_review_store import (
+                    apply_decisions_to_items,
+                    build_review_queue,
+                    load_crosswalk_rows,
+                )
+
+                review_item_id = path.split("/api/master-review/items/", 1)[1].strip("/")
+                rows, source_hash = load_crosswalk_rows()
+                items = apply_decisions_to_items(build_review_queue(rows, source_hash=source_hash))
+                item = next((i for i in items if i.get("review_item_id") == review_item_id), None)
+                if not item:
+                    self._json(404, {"ok": False, "error": "ไม่พบรายการ"})
+                    return
+                self._json(200, {"ok": True, "item": item, "source_snapshot_hash": source_hash})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/master-review/export":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.master_review_store import export_promotion_candidate
+
+                payload = export_promotion_candidate()
+                self._json(200, {"ok": True, **payload})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/fb-agent/download-windows":
             _fb_agent_starter_download(self, kind="windows")
             return
@@ -2208,6 +2309,8 @@ class HubHandler(BaseHTTPRequestHandler):
             return
         if path in {"/co", "/co/"}:
             path = "/co/index.html"
+        if path in {"/master-review", "/master-review/"}:
+            path = "/master-review/index.html"
         if path == "/":
             path = "/preview.html"
         # Catalog JS/meta live on the data volume (not ephemeral hub/).
@@ -2540,6 +2643,68 @@ class HubHandler(BaseHTTPRequestHandler):
                 from src.hub.line_event_dedupe import LineReconcileError
 
                 if isinstance(exc, LineReconcileError):
+                    self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+                else:
+                    self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/master-review/decision":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.master_review_store import MasterReviewError, record_decision
+
+                review_item_id = str(body.get("review_item_id") or "").strip()
+                project_id = str(body.get("project_id") or "").strip()
+                new_status = str(body.get("new_status") or body.get("status") or "").strip().upper()
+                expected_hash = str(body.get("expected_source_snapshot_hash") or "").strip()
+                reason = str(body.get("reason") or "").strip() or None
+                note = str(body.get("note") or "").strip() or None
+                event = record_decision(
+                    review_item_id=review_item_id,
+                    project_id=project_id,
+                    new_status=new_status,
+                    actor=str(user.get("username") or ""),
+                    expected_source_snapshot_hash=expected_hash,
+                    reason=reason,
+                    note=note,
+                )
+                self._json(200, {"ok": True, "event": event, "notice_th": "ยังไม่มีการแก้ข้อมูล Production"})
+            except Exception as exc:  # noqa: BLE001
+                from src.hub.master_review_store import MasterReviewError
+
+                if isinstance(exc, MasterReviewError):
+                    self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+                else:
+                    self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/master-review/batch-decision":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.master_review_store import MasterReviewError, batch_record_decision
+
+                ids = body.get("review_item_ids") or []
+                if not isinstance(ids, list):
+                    raise MasterReviewError("review_item_ids must be a list")
+                new_status = str(body.get("new_status") or "").strip().upper()
+                expected_hash = str(body.get("expected_source_snapshot_hash") or "").strip()
+                events = batch_record_decision(
+                    review_item_ids=[str(x) for x in ids],
+                    new_status=new_status,
+                    actor=str(user.get("username") or ""),
+                    expected_source_snapshot_hash=expected_hash,
+                    reason=str(body.get("reason") or "").strip() or None,
+                    note=str(body.get("note") or "").strip() or None,
+                )
+                self._json(200, {"ok": True, "events": events, "count": len(events)})
+            except Exception as exc:  # noqa: BLE001
+                from src.hub.master_review_store import MasterReviewError
+
+                if isinstance(exc, MasterReviewError):
                     self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
                 else:
                     self._json(500, {"ok": False, "error": str(exc)})

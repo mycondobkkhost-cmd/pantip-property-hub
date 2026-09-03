@@ -145,6 +145,28 @@
       background: #fafafa;
     }
     .box h4 { margin: 0 0 8px; font-size: .95rem; }
+    .area-engine-box {
+      border: 2px dashed #64748b;
+      border-radius: 10px;
+      padding: 12px;
+      background: #f8fafc;
+      margin: 12px 0;
+    }
+    .area-engine-box h4 { color: #334155; }
+    .area-engine-disclaimer {
+      color: #b45309;
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .area-engine-line {
+      border-left: 3px solid #94a3b8;
+      padding-left: 10px;
+      margin: 8px 0;
+    }
+    .area-engine-line.safe { border-color: var(--accent); }
+    .area-engine-line.quarantine { border-color: var(--danger); }
+    .area-engine-line.review { border-color: var(--warn); }
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -394,6 +416,40 @@
       </div>`;
     }
 
+    function renderAreaEngineOverlay(overlay) {
+      if (!overlay || !overlay.ok) {
+        return `<div class="area-engine-box">
+          <h4>ผลตรวจสอบจาก Area Engine</h4>
+          <div class="area-engine-disclaimer">ผลวิเคราะห์นี้ยังไม่ได้แก้ข้อมูลจริง</div>
+          <p class="muted">${esc(overlay?.error || "ยังโหลดผลวิเคราะห์ไม่ได้")}</p>
+        </div>`;
+      }
+      const lines = (overlay.existing_assignment_analysis || []).concat(overlay.picked_areas || []);
+      const body = lines.length
+        ? lines.map((ln) => {
+            const cls = ln.classification === "AUTO_SAFE" ? "safe"
+              : ln.classification === "REJECT_QUARANTINE" ? "quarantine" : "review";
+            const expl = (ln.explanation_th || []).map((e) => `<div class="muted">${esc(e)}</div>`).join("");
+            return `<div class="area-engine-line ${cls}"><strong>${esc(ln.name_th)}</strong>${expl}</div>`;
+          }).join("")
+        : `<p class="muted">${esc(overlay.project_outcome_label_th || "—")}</p>`;
+      return `<div class="area-engine-box">
+        <h4>${esc(overlay.section_title_th || "ผลตรวจสอบจาก Area Engine")}</h4>
+        <div class="area-engine-disclaimer">${esc(overlay.disclaimer_th || "ผลวิเคราะห์นี้ยังไม่ได้แก้ข้อมูลจริง")}</div>
+        <p><strong>สรุปโครงการ:</strong> ${esc(overlay.project_outcome_label_th || "")}</p>
+        ${body}
+        <p class="muted" style="margin-top:8px">อ้างอิงเท่านั้น — ไม่มีปุ่ม Apply</p>
+      </div>`;
+    }
+
+    async function loadAreaEngineOverlay(projectId) {
+      try {
+        return await api("/api/master-review/area-engine/" + encodeURIComponent(projectId));
+      } catch (e) {
+        return { ok: false, error: e.message || "โหลดไม่สำเร็จ" };
+      }
+    }
+
     function openDetail(id) {
       const item = state.items.find((i) => i.review_item_id === id);
       if (!item) return;
@@ -427,6 +483,7 @@
           </div>
         </div>
         ${item.semantic_note_th ? `<p style="color:var(--warn)">${esc(item.semantic_note_th)}</p>` : ""}
+        <div id="area-engine-slot"><div class="area-engine-box"><p class="muted">กำลังโหลดผล Area Engine…</p></div></div>
         ${renderFuturePreview(item)}
         <div class="box">
           <h4>ทำไมระบบถึงเสนอให้ตรวจรายการนี้</h4>
@@ -450,6 +507,10 @@
         <p class="muted" style="margin-top:10px">การอนุมัติในหน้านี้ยังไม่แก้ข้อมูลจริง — บันทึกเฉพาะการตัดสินใจสำหรับขั้นตอนในอนาคต</p>
       `;
       document.getElementById("detail").classList.add("open");
+      loadAreaEngineOverlay(item.project_id).then((overlay) => {
+        const slot = document.getElementById("area-engine-slot");
+        if (slot) slot.innerHTML = renderAreaEngineOverlay(overlay);
+      });
       document.querySelectorAll("#detail-panel [data-action]").forEach((btn) => {
         btn.addEventListener("click", () => {
           if (btn.disabled) return;

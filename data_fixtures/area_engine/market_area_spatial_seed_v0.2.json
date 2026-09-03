@@ -1,0 +1,1610 @@
+{
+  "fixture_version": "area-engine-spatial-v0.2",
+  "source": "derived read-only from RealXtate market_area_seed_8z2b + candidate research",
+  "approved_count": 31,
+  "candidate_count": 12,
+  "areas": [
+    {
+      "area_id": "rxa_622b05559f59f4b8c70d163dbd5a1926",
+      "identity_key": "thonglor",
+      "canonical_name_th": "ทองหล่อ",
+      "canonical_name_en": "Thonglor",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_thong_lo",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "ekkamai",
+        "phrom_phong",
+        "asoke",
+        "phra_khanong",
+        "sukhumvit",
+        "sukhumvit_inner",
+        "sukhumvit_middle"
+      ],
+      "road_anchor_ids": [
+        "road_thong_lo",
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_thong_lo"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_12397f1a28fab3f096a377927bc05684",
+      "identity_key": "ekkamai",
+      "canonical_name_th": "เอกมัย",
+      "canonical_name_en": "Ekkamai",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_ekkamai",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "thonglor",
+        "phrom_phong",
+        "phra_khanong",
+        "onnut",
+        "sukhumvit_inner",
+        "sukhumvit_middle",
+        "sukhumvit_outer"
+      ],
+      "road_anchor_ids": [
+        "road_ekkamai",
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_ekkamai"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_b51ee333db3416d5a1f5c26c9c5052a8",
+      "identity_key": "phrom_phong",
+      "canonical_name_th": "พร้อมพงษ์",
+      "canonical_name_en": "Phrom Phong",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_phrom_phong",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "thonglor",
+        "ekkamai",
+        "asoke",
+        "nana",
+        "phetchaburi",
+        "sukhumvit",
+        "rama_4",
+        "khlong_toei",
+        "sukhumvit_inner",
+        "sukhumvit_middle"
+      ],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_phrom_phong"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_23511c474115de48ab6b29971512a66d",
+      "identity_key": "asoke",
+      "canonical_name_th": "อโศก",
+      "canonical_name_en": "Asoke",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_asok",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_sukhumvit",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "thonglor",
+        "phrom_phong",
+        "nana",
+        "ploenchit",
+        "chidlom",
+        "rama_9",
+        "phetchaburi",
+        "sukhumvit",
+        "rama_4",
+        "khlong_toei",
+        "ratchada_rama9_corridor",
+        "sukhumvit_inner",
+        "sukhumvit_middle"
+      ],
+      "road_anchor_ids": [
+        "road_asok_montri"
+      ],
+      "transit_anchor_ids": [
+        "bts_asok",
+        "mrt_sukhumvit"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_c243de93e6003476512f35b0e90dc92d",
+      "identity_key": "nana",
+      "canonical_name_th": "นานา",
+      "canonical_name_en": "Nana",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_nana",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "phrom_phong",
+        "asoke",
+        "ploenchit",
+        "chidlom",
+        "siam",
+        "rama_9",
+        "phetchaburi",
+        "sukhumvit",
+        "silom",
+        "rama_4",
+        "khlong_toei",
+        "ratchada_rama9_corridor",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_nana"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_3ce1fc9296c1bc1f8a05b87cd25eaa5f",
+      "identity_key": "ploenchit",
+      "canonical_name_th": "เพลินจิต",
+      "canonical_name_en": "Ploenchit",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_ploenchit",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "asoke",
+        "nana",
+        "chidlom",
+        "siam",
+        "rama_9",
+        "phetchaburi",
+        "sukhumvit",
+        "silom",
+        "rama_4",
+        "khlong_toei",
+        "ratchada_rama9_corridor",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_ploenchit"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_bd0ebc211d1ff5e641e6e1550a85c3a1",
+      "identity_key": "chidlom",
+      "canonical_name_th": "ชิดลม",
+      "canonical_name_en": "Chidlom",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_chit_lom",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "asoke",
+        "nana",
+        "ploenchit",
+        "siam",
+        "phetchaburi",
+        "sukhumvit",
+        "silom",
+        "rama_4",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_chit_lom"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_754abd196130cbdce134616b167896be",
+      "identity_key": "siam",
+      "canonical_name_th": "สยาม",
+      "canonical_name_en": "Siam",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_siam",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "nana",
+        "ploenchit",
+        "chidlom",
+        "silom",
+        "sathon",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_siam"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_a73f929ab83672af40e8bb53f2290531",
+      "identity_key": "ari",
+      "canonical_name_th": "อารีย์",
+      "canonical_name_en": "Ari",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_ari",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "saphan_kwai"
+      ],
+      "road_anchor_ids": [
+        "road_phahonyothin"
+      ],
+      "transit_anchor_ids": [
+        "bts_ari"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_2285d5a71303a9078ee9252decd86a27",
+      "identity_key": "saphan_kwai",
+      "canonical_name_th": "สะพานควาย",
+      "canonical_name_en": "Saphan Khwai",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_saphan_khwai",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "ari",
+        "chatuchak",
+        "bang_sue"
+      ],
+      "road_anchor_ids": [
+        "road_phahonyothin"
+      ],
+      "transit_anchor_ids": [
+        "bts_saphan_khwai"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_eb70980e8997bb516cd8886c74bbaf80",
+      "identity_key": "chatuchak",
+      "canonical_name_th": "จตุจักร",
+      "canonical_name_en": "Chatuchak",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_chatuchak_park",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_mo_chit",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "saphan_kwai",
+        "lat_phrao",
+        "ratchada",
+        "ratchada_rama9_corridor",
+        "bang_sue"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_chatuchak_park",
+        "bts_mo_chit"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_3bc0a070a9a6d101b1e6604e059e72e7",
+      "identity_key": "lat_phrao",
+      "canonical_name_th": "ลาดพร้าว",
+      "canonical_name_en": "Ladprao",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 3000,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_lat_phrao",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "chatuchak",
+        "ratchada",
+        "ratchada_rama9_corridor"
+      ],
+      "road_anchor_ids": [
+        "road_lat_phrao"
+      ],
+      "transit_anchor_ids": [
+        "mrt_lat_phrao"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_6be56cca2b0becddb99b08c6b8eab4a9",
+      "identity_key": "ratchada",
+      "canonical_name_th": "รัชดา",
+      "canonical_name_en": "Ratchada",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 3000,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_ratchadaphisek",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "chatuchak",
+        "lat_phrao",
+        "huai_khwang",
+        "ratchada_rama9_corridor"
+      ],
+      "road_anchor_ids": [
+        "road_ratchadaphisek"
+      ],
+      "transit_anchor_ids": [
+        "mrt_ratchadaphisek"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_9fd952819c8ceb0fca945b39e4f77084",
+      "identity_key": "huai_khwang",
+      "canonical_name_th": "ห้วยขวาง",
+      "canonical_name_en": "Huai Khwang",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_huai_khwang",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "ratchada",
+        "rama_9",
+        "ratchada_rama9_corridor"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_huai_khwang"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_7f24e6abd51497eb2af740c453cc9699",
+      "identity_key": "rama_9",
+      "canonical_name_th": "พระราม 9",
+      "canonical_name_en": "Rama 9",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_phra_ram_9",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "asoke",
+        "nana",
+        "ploenchit",
+        "huai_khwang",
+        "phetchaburi",
+        "sukhumvit",
+        "ratchada_rama9_corridor",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [
+        "road_rama_ix"
+      ],
+      "transit_anchor_ids": [
+        "mrt_phra_ram_9"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_40e7f886c58c36f4f1631848e93c3a0b",
+      "identity_key": "phetchaburi",
+      "canonical_name_th": "เพชรบุรี",
+      "canonical_name_en": "Phetchaburi",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_phetchaburi",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "phrom_phong",
+        "asoke",
+        "nana",
+        "ploenchit",
+        "chidlom",
+        "rama_9",
+        "sukhumvit",
+        "ratchada_rama9_corridor",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [
+        "road_phetchaburi"
+      ],
+      "transit_anchor_ids": [
+        "mrt_phetchaburi"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_f370ccb6a96c9ceb76411d29894d5cc3",
+      "identity_key": "phra_khanong",
+      "canonical_name_th": "พระโขนง",
+      "canonical_name_en": "Phra Khanong",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_phra_khanong",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "thonglor",
+        "ekkamai",
+        "onnut",
+        "sukhumvit_middle",
+        "sukhumvit_outer"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_phra_khanong"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_1e67f3d83305733352dc4e2b68a754da",
+      "identity_key": "onnut",
+      "canonical_name_th": "อ่อนนุช",
+      "canonical_name_en": "On Nut",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_on_nut",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "ekkamai",
+        "phra_khanong",
+        "sukhumvit_middle",
+        "sukhumvit_outer"
+      ],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_on_nut"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_dd17655b30e403466196c9331cf87243",
+      "identity_key": "udom_suk",
+      "canonical_name_th": "อุดมสุข",
+      "canonical_name_en": "Udom Suk",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_udom_suk",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "bang_na",
+        "bearing",
+        "sukhumvit_outer"
+      ],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_udom_suk"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_78217d4b24307785be04a7bd1c9ae13d",
+      "identity_key": "bang_na",
+      "canonical_name_th": "บางนา",
+      "canonical_name_en": "Bang Na",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_bangna",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "udom_suk",
+        "bearing",
+        "sukhumvit_outer"
+      ],
+      "road_anchor_ids": [
+        "road_bang_na_trat",
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_bangna"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_ec778f624c704a5214304d638469cb85",
+      "identity_key": "bearing",
+      "canonical_name_th": "แบริ่ง",
+      "canonical_name_en": "Bearing",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_bearing",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "udom_suk",
+        "bang_na",
+        "sukhumvit_outer"
+      ],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_bearing"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_e371d262a48da98cfdc7816b8b508665",
+      "identity_key": "samrong",
+      "canonical_name_th": "สำโรง",
+      "canonical_name_en": "Samrong",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_samrong",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "yl_samrong",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "bts_samrong",
+        "yl_samrong"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_3867a9600c46c6c52c24bb3f29917832",
+      "identity_key": "sukhumvit",
+      "canonical_name_th": "สุขุมวิท",
+      "canonical_name_en": "Sukhumvit",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 3000,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_sukhumvit",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "thonglor",
+        "phrom_phong",
+        "asoke",
+        "nana",
+        "ploenchit",
+        "chidlom",
+        "rama_9",
+        "phetchaburi",
+        "rama_4",
+        "khlong_toei",
+        "ratchada_rama9_corridor",
+        "sukhumvit_inner",
+        "sukhumvit_middle"
+      ],
+      "road_anchor_ids": [
+        "road_sukhumvit"
+      ],
+      "transit_anchor_ids": [
+        "mrt_sukhumvit"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_ec65d1df51ccfd87b9ec9ffe740858ec",
+      "identity_key": "silom",
+      "canonical_name_th": "สีลม",
+      "canonical_name_en": "Silom",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_si_lom",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_sala_daeng",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "nana",
+        "ploenchit",
+        "chidlom",
+        "siam",
+        "sathon",
+        "rama_4",
+        "khlong_toei",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_si_lom",
+        "bts_sala_daeng"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_ef717fa42914a0c4c6f86832876d2fbd",
+      "identity_key": "sathon",
+      "canonical_name_th": "สาทร",
+      "canonical_name_en": "Sathorn",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_surasak",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_chong_nonsi",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "siam",
+        "silom",
+        "rama_4",
+        "charoen_nakhon",
+        "krung_thon_buri"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_surasak",
+        "bts_chong_nonsi"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_69e9699b12cc5771e9fac7bc3acc4c5d",
+      "identity_key": "rama_4",
+      "canonical_name_th": "พระราม 4",
+      "canonical_name_en": "Rama 4",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_khlong_toei",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_lumphini",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "phrom_phong",
+        "asoke",
+        "nana",
+        "ploenchit",
+        "chidlom",
+        "sukhumvit",
+        "silom",
+        "sathon",
+        "khlong_toei",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_khlong_toei",
+        "mrt_lumphini"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_c3762e0b52eba0ad2f6875f00282386b",
+      "identity_key": "khlong_toei",
+      "canonical_name_th": "คลองเตย",
+      "canonical_name_en": "Khlong Toei",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_khlong_toei",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "phrom_phong",
+        "asoke",
+        "nana",
+        "ploenchit",
+        "sukhumvit",
+        "silom",
+        "rama_4",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_khlong_toei"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_d926f78c6371f4d697ae4f7dafa88be9",
+      "identity_key": "ratchada_rama9_corridor",
+      "canonical_name_th": "รัชดา–พระราม 9",
+      "canonical_name_en": "Ratchada / Rama 9 Corridor",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_phra_ram_9",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_ratchadaphisek",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_huai_khwang",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "asoke",
+        "nana",
+        "ploenchit",
+        "chatuchak",
+        "lat_phrao",
+        "ratchada",
+        "huai_khwang",
+        "rama_9",
+        "phetchaburi",
+        "sukhumvit",
+        "sukhumvit_inner"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_phra_ram_9",
+        "mrt_ratchadaphisek",
+        "mrt_huai_khwang"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_f951141ae146b4b9d22ea33468f47c97",
+      "identity_key": "ramkhamhaeng",
+      "canonical_name_th": "รามคำแหง",
+      "canonical_name_en": "Ramkhamhaeng",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "arl_ramkhamhaeng",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [
+        "road_ramkhamhaeng"
+      ],
+      "transit_anchor_ids": [
+        "arl_ramkhamhaeng"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_6e451c56102e48f013914a0624339b52",
+      "identity_key": "phatthanakan",
+      "canonical_name_th": "พัฒนาการ",
+      "canonical_name_en": "Phatthanakan",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "NAME_ONLY",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_dde1f41f53a86171aee8d0fd5a825c75",
+      "identity_key": "srinagarindra",
+      "canonical_name_th": "ศรีนครินทร์",
+      "canonical_name_en": "Srinagarindra",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_srinagarindra",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "yl_si_udom",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [
+        "road_srinagarindra"
+      ],
+      "transit_anchor_ids": [
+        "bts_srinagarindra",
+        "yl_si_udom"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_efd7fbaf16091930e5af6dd789482aff",
+      "identity_key": "krungthep_kreetha",
+      "canonical_name_th": "กรุงเทพกรีฑา",
+      "canonical_name_en": "Krungthep Kreetha",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "NAME_ONLY",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_f7a1c51bb89616ab10f5e002f8f8d2b5",
+      "identity_key": "chaeng_watthana",
+      "canonical_name_th": "แจ้งวัฒนะ",
+      "canonical_name_en": "Chaeng Watthana",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "pk_government_complex",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [
+        "road_chaeng_watthana"
+      ],
+      "transit_anchor_ids": [
+        "pk_government_complex"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_58573a17fdafe8fa8c3b14b57e3c58e1",
+      "identity_key": "rattanathibet",
+      "canonical_name_th": "รัตนาธิเบศร์",
+      "canonical_name_en": "Rattanathibet",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "pk_nonthaburi_civic",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_nonthaburi_civic_center",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [
+        "road_rattanathibet"
+      ],
+      "transit_anchor_ids": [
+        "pk_nonthaburi_civic",
+        "mrt_nonthaburi_civic_center"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_c0ac0e7bd07699b29b6d788c3c376db1",
+      "identity_key": "wong_sawang",
+      "canonical_name_th": "วงศ์สว่าง",
+      "canonical_name_en": "Wong Sawang",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_wong_sawang",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_wong_sawang"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_487921f84a065f6270d59b6c9cfb3e5f",
+      "identity_key": "bang_sue",
+      "canonical_name_th": "บางซื่อ",
+      "canonical_name_en": "Bang Sue",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "mrt_bang_sue",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "srt_bang_sue",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "saphan_kwai",
+        "chatuchak"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "mrt_bang_sue",
+        "srt_bang_sue"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_5cddf2d0099e750d75827cef34816e08",
+      "identity_key": "charoen_nakhon",
+      "canonical_name_th": "เจริญนคร",
+      "canonical_name_en": "Charoen Nakhon",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "EXISTING_APPROVED",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 3000,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_charoen_nakhon",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "sathon",
+        "krung_thon_buri"
+      ],
+      "road_anchor_ids": [
+        "road_charoen_nakhon"
+      ],
+      "transit_anchor_ids": [
+        "bts_charoen_nakhon"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "HIGH",
+      "review_status": "APPROVED"
+    },
+    {
+      "area_id": "rxa_248459481d6ea93f4c690aeddc711de2",
+      "identity_key": "krung_thon_buri",
+      "canonical_name_th": "กรุงธนบุรี",
+      "canonical_name_en": "Krung Thon Buri",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_krung_thon_buri",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "sathon",
+        "charoen_nakhon"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_krung_thon_buri"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_905e62324668c998b6458146b9208a93",
+      "identity_key": "rangsit",
+      "canonical_name_th": "รังสิต",
+      "canonical_name_en": "Rangsit",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "srt_rangsit",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "srt_rangsit"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_6e4b34e81d8ec3ad13ada521db6ea2ab",
+      "identity_key": "sukhumvit_inner",
+      "canonical_name_th": "สุขุมวิทตอนต้น",
+      "canonical_name_en": "Inner Sukhumvit",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_nana",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_asok",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_phrom_phong",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "thonglor",
+        "ekkamai",
+        "phrom_phong",
+        "asoke",
+        "nana",
+        "ploenchit",
+        "chidlom",
+        "siam",
+        "rama_9",
+        "phetchaburi",
+        "sukhumvit",
+        "silom",
+        "rama_4",
+        "khlong_toei",
+        "ratchada_rama9_corridor",
+        "sukhumvit_middle"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_nana",
+        "bts_asok",
+        "bts_phrom_phong"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_4c510afc3dcf3c93238e6140aa2abd5b",
+      "identity_key": "sukhumvit_middle",
+      "canonical_name_th": "สุขุมวิทตอนกลาง",
+      "canonical_name_en": "Mid Sukhumvit",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_thong_lo",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_ekkamai",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_phra_khanong",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "thonglor",
+        "ekkamai",
+        "phrom_phong",
+        "asoke",
+        "phra_khanong",
+        "onnut",
+        "sukhumvit",
+        "sukhumvit_inner",
+        "sukhumvit_outer"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_thong_lo",
+        "bts_ekkamai",
+        "bts_phra_khanong"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "rxa_57c0fb3024b6c0e4f8d0070818d1855f",
+      "identity_key": "sukhumvit_outer",
+      "canonical_name_th": "สุขุมวิทตอนปลาย",
+      "canonical_name_en": "Outer Sukhumvit",
+      "semantic_kind": "CORRIDOR",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_STRONG",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_on_nut",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_bangna",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        },
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "bts_bearing",
+          "source": "market_area_seed_8z2b.transit_anchors_json"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "ekkamai",
+        "phra_khanong",
+        "onnut",
+        "udom_suk",
+        "bang_na",
+        "bearing",
+        "sukhumvit_middle"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "bts_on_nut",
+        "bts_bangna",
+        "bts_bearing"
+      ],
+      "source_records": [
+        "realxtate-trusted-master.market_area_seed_8z2b"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED"
+    },
+    {
+      "area_id": "candidate_suan_luang_v02",
+      "identity_key": "suan_luang",
+      "canonical_name_th": "สวนหลวง",
+      "canonical_name_en": "Suan Luang",
+      "semantic_kind": "MARKETPLACE_AREA",
+      "status": "CANDIDATE",
+      "spatial_strength": "SPATIAL_PARTIAL",
+      "core_distance_m": 1000,
+      "extended_distance_m": 2200,
+      "anchors": [
+        {
+          "anchor_type": "TRANSIT_STATION",
+          "anchor_id": "yl_suan_luang_rama_9",
+          "source": "realxtate.transit-seed.ts"
+        }
+      ],
+      "adjacent_identity_keys": [
+        "onnut",
+        "phra_khanong",
+        "bang_na"
+      ],
+      "road_anchor_ids": [],
+      "transit_anchor_ids": [
+        "yl_suan_luang_rama_9"
+      ],
+      "source_records": [
+        "realxtate.transit-seed.ts",
+        "area-candidates-8z2b.ts:gap_review"
+      ],
+      "confidence": "LOW",
+      "review_status": "REVIEW_REQUIRED",
+      "notes_th": "แยกจากเขตสวนหลวงการปกครอง — ต้องมีหลักฐานเพิ่มก่อนอนุมัติ"
+    }
+  ]
+}

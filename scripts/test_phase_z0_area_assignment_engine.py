@@ -116,6 +116,7 @@ class PhaseZ0AreaAssignmentEngineTests(unittest.TestCase):
             ["เจริญนคร"],
             [],
             ["เจริญนคร"],
+            coordinate_tier="T2_COORD",
         )
         hit = evaluate_area(
             ctx,
@@ -135,6 +136,7 @@ class PhaseZ0AreaAssignmentEngineTests(unittest.TestCase):
             ["อ่อนนุช"],
             ["BTS อ่อนนุช"],
             ["อ่อนนุช"],
+            coordinate_tier="T2_COORD",
         )
         hit = evaluate_area(
             ctx,
@@ -146,7 +148,7 @@ class PhaseZ0AreaAssignmentEngineTests(unittest.TestCase):
     def test_max_three_areas(self):
         hits = [
             evaluate_area(
-                ProjectContext("p", "T", 13.707728, 100.599766, "SOURCE_PROVIDED", "ACCEPTED", [], [], []),
+                ProjectContext("p", "T", 13.707728, 100.599766, "SOURCE_PROVIDED", "ACCEPTED", [], [], [], coordinate_tier="T2_COORD"),
                 _seed(f"a{i}", f"rxa_{i}", f"A{i}", ["bts_on_nut"]),
                 {"bts_on_nut": Station("bts_on_nut", "อ่อนนุช", "BTS", 13.705629, 100.601001)},
             )
@@ -156,7 +158,18 @@ class PhaseZ0AreaAssignmentEngineTests(unittest.TestCase):
         self.assertLessEqual(len(picked), MAX_AREAS_PER_PROJECT)
 
     def test_one_area_output_allowed(self):
-        ctx = ProjectContext("p", "Aspire Onnut Station", 13.707728, 100.599766, "SOURCE_PROVIDED", "ACCEPTED", ["อ่อนนุช"], [], ["อ่อนนุช"])
+        ctx = ProjectContext(
+            "p",
+            "Aspire Onnut Station",
+            13.707728,
+            100.599766,
+            "SOURCE_PROVIDED",
+            "ACCEPTED",
+            ["อ่อนนุช"],
+            [],
+            ["อ่อนนุช"],
+            coordinate_tier="T2_COORD",
+        )
         result = evaluate_project(
             ctx,
             [_seed("onnut", "rxa_on", "อ่อนนุช", ["bts_on_nut"])],
@@ -208,7 +221,7 @@ class PhaseZ0AreaAssignmentEngineTests(unittest.TestCase):
         self.assertEqual(before, after)
 
     def test_deterministic_output(self):
-        ctx = ProjectContext("p", "Aspire Onnut Station", 13.707728, 100.599766, "SOURCE_PROVIDED", "ACCEPTED", ["อ่อนนุช"], [], ["อ่อนนุช"])
+        ctx = ProjectContext("p", "Aspire Onnut Station", 13.707728, 100.599766, "SOURCE_PROVIDED", "ACCEPTED", ["อ่อนนุช"], [], ["อ่อนนุช"], coordinate_tier="T2_COORD")
         seeds = [_seed("onnut", "rxa_on", "อ่อนนุช", ["bts_on_nut"])]
         stations = {"bts_on_nut": Station("bts_on_nut", "อ่อนนุช", "BTS", 13.705629, 100.601001)}
         a = evaluate_project(ctx, seeds, stations)

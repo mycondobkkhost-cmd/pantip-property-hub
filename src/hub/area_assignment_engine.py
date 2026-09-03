@@ -1,6 +1,6 @@
-"""Evidence-based marketplace area assignment engine — Phase Z0 prototype.
+"""Evidence-based marketplace area assignment engine — Phase Z0/Z1.
 
-READ-ONLY discovery. Does not mutate production data or canonical assignments.
+READ-ONLY discovery/foundation. Does not mutate production data or canonical assignments.
 """
 
 from __future__ import annotations
@@ -12,7 +12,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-# RealXtate 8z3 thresholds (reference only; prototype may be stricter).
+from src.hub.coordinate_evidence import (
+    EVALUABLE_TIERS,
+    USABLE_TIERS,
+    coordinate_evaluable,
+    parse_coordinate_from_payload,
+)
+from src.hub.location_evidence import (
+    LINEAGE_LEGACY_SHEET,
+    build_legacy_evidence_records,
+    count_independent_lineages,
+    legacy_bag_lineage_shared,
+)
+
+# Default distance bands (fallback when area-specific not defined).
 CORE_METERS = 1000
 EXTENDED_METERS = 2200
 MAX_AREAS_PER_PROJECT = 3
@@ -21,6 +34,12 @@ CLASS_AUTO_SAFE = "AUTO_SAFE"
 CLASS_REVIEW = "REVIEW"
 CLASS_REJECT_QUARANTINE = "REJECT_QUARANTINE"
 CLASS_NOT_EVALUABLE = "NOT_EVALUABLE"
+
+# Z1 project-level outcomes (mutually exclusive).
+OUTCOME_AUTO_SAFE = "AUTO_SAFE"
+OUTCOME_OWNER_REVIEW_REQUIRED = "OWNER_REVIEW_REQUIRED"
+OUTCOME_AUTO_QUARANTINED = "AUTO_QUARANTINED"
+OUTCOME_NOT_EVALUABLE = "NOT_EVALUABLE"
 
 SUPPORT_SUPPORTED = "SUPPORTED"
 SUPPORT_QUESTIONABLE = "QUESTIONABLE"
@@ -59,6 +78,10 @@ class AreaSeed:
     station_ids: list[str]
     road_ids: list[str]
     adjacent_keys: list[str]
+    core_distance_m: int = CORE_METERS
+    extended_distance_m: int = EXTENDED_METERS
+    spatial_strength: str = "SPATIAL_PARTIAL"
+    status: str = "EXISTING_APPROVED"
 
 
 @dataclass
@@ -81,7 +104,9 @@ class ProjectContext:
     listing_locations: list[str]
     listing_transit: list[str]
     pantip_zones: list[str]
+    coordinate_tier: str = "T5_COORD"
     existing_assignments: list[dict[str, Any]] = field(default_factory=list)
+    legacy_promotion_suspected: bool = False
 
 
 @dataclass
@@ -97,6 +122,9 @@ class AreaEvidence:
     contradictions: list[str]
     existing_rx_role: str | None = None
     existing_rx_confidence: str | None = None
+    independent_lineage_count: int = 0
+    explanation_th: list[str] = field(default_factory=list)
+    distance_model: str = "DISTANCE_MODEL_FALLBACK"
 
 
 def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -128,12 +156,17 @@ def nearest_area_anchor_meters(
 
 
 def coordinate_usable(ctx: ProjectContext) -> bool:
+    """Coordinate present and evaluable for geographic distance checks (T1–T4)."""
     return (
-        ctx.coordinate_state == "SOURCE_PROVIDED"
-        and ctx.acceptance_status == "ACCEPTED"
-        and ctx.latitude is not None
+        ctx.latitude is not None
         and ctx.longitude is not None
+        and ctx.coordinate_tier in EVALUABLE_TIERS
+        and ctx.coordinate_state in {"VERIFIED", "CANDIDATE", "SOURCE_PROVIDED"}
     )
+
+
+def coordinate_trusted_for_auto_safe(ctx: ProjectContext) -> bool:
+    return ctx.coordinate_tier in USABLE_TIERS
 
 
 def _token_hit(text: str, token: str) -> bool:
@@ -158,11 +191,25 @@ def evaluate_area(
         else (None, None)
     )
 
+    core_m = area.core_distance_m
+    ext_m = area.extended_distance_m
+    distance_model = "AREA_SPECIFIC" if (core_m != CORE_METERS or ext_m != EXTENDED_METERS) else "DISTANCE_MODEL_FALLBACK"
+
+    legacy_records = build_legacy_evidence_records(
+        project_id=ctx.project_id,
+        pantip_zones=ctx.pantip_zones,
+        catalog_locations=ctx.listing_locations,
+        listing_transit=ctx.listing_transit,
+        project_name=ctx.name,
+    )
+    lineage_count = count_independent_lineages(legacy_records)
+    shared_bag = legacy_bag_lineage_shared(ctx.pantip_zones, ctx.listing_locations)
+
     if coordinate_usable(ctx) and meters is not None:
-        if meters <= CORE_METERS:
+        if meters <= core_m:
             score += WEIGHTS["coordinate_core"]
             evidence.append(f"straight_line_distance_core:{int(meters)}m")
-        elif meters <= EXTENDED_METERS:
+        elif meters <= ext_m:
             score += WEIGHTS["coordinate_extended"]
             evidence.append(f"straight_line_distance_extended:{int(meters)}m")
         else:
@@ -172,6 +219,9 @@ def evaluate_area(
         score += WEIGHTS["coordinate_missing"]
         contradictions.append("coordinate_unavailable")
 
+    if ctx.coordinate_tier == "T5_COORD":
+        contradictions.append("coordinate_tier_t5")
+
     if anchor_station:
         st = stations.get(anchor_station)
         if st:
@@ -179,16 +229,21 @@ def evaluate_area(
 
     name_tokens = [area.name_th, area.name_en, area.identity_key.replace("_", " ")]
     if any(_token_hit(ctx.name, t) for t in name_tokens if t):
-        score += WEIGHTS["name_branding"]
-        evidence.append("name_branding")
+        if lineage_count > 1 or not shared_bag:
+            score += WEIGHTS["name_branding"]
+            evidence.append("name_branding")
 
     listing_hit = any(_token_hit(loc, area.name_th) or _token_hit(loc, area.name_en) for loc in ctx.listing_locations)
     if listing_hit:
-        score += WEIGHTS["catalog_listing_bag"]
-        evidence.append("catalog_listing_bag")
+        if not shared_bag:
+            score += WEIGHTS["catalog_listing_bag"]
+            evidence.append("catalog_listing_bag")
+        else:
+            evidence.append("catalog_listing_bag_same_lineage_as_pantip_zone")
+            contradictions.append("legacy_sheet_duplicate_lineage")
 
     admin_hit = any(_token_hit(z, area.name_th) or _token_hit(z, area.name_en) for z in ctx.pantip_zones)
-    if admin_hit:
+    if admin_hit and not shared_bag:
         score += WEIGHTS["admin"]
         evidence.append("admin_or_zone_token")
 
@@ -215,24 +270,41 @@ def evaluate_area(
         if not e.startswith("existing_realxtate")
     )
 
-    if meters is not None and meters > EXTENDED_METERS and not has_geo:
+    if meters is not None and meters > ext_m and not has_geo:
         score += WEIGHTS["weak_only_far"]
         contradictions.append("far_without_geographic_evidence")
 
     if weak_only and "legacy_multi_zone_listing_bag" in contradictions:
         score += WEIGHTS["legacy_zone_contamination"]
 
+    if shared_bag and listing_hit and not has_geo:
+        contradictions.append("single_lineage_legacy_bag_only")
+
+    explanation_th: list[str] = []
+    if has_geo and meters is not None:
+        explanation_th.append(f"ระยะทางเส้นตรงจากพิกัดโครงการถึงจุดอ้างอิงทำเลประมาณ {int(meters)} เมตร")
+    if "legacy_sheet_duplicate_lineage" in contradictions:
+        explanation_th.append("ข้อมูลทำเลจากชีตเดิมปรากฏทั้งใน Pantip และ catalog — ไม่นับเป็นหลักฐานอิสระซ้ำ")
+    if "far_without_geographic_evidence" in contradictions and meters is not None:
+        explanation_th.append(f"อยู่ห่างประมาณ {int(meters/1000)} กม. โดยไม่มีหลักฐานภูมิศาสตร์รองรับ")
+
     # Classification thresholds — precision-first.
     if not coordinate_usable(ctx):
         classification = CLASS_REVIEW
-    elif meters is not None and meters > EXTENDED_METERS and not has_geo:
+    elif meters is not None and meters > ext_m and not has_geo:
         classification = CLASS_REJECT_QUARANTINE
-    elif has_geo and meters is not None and meters <= CORE_METERS and len([e for e in evidence if not e.startswith("existing_")]) >= 2:
+    elif (
+        has_geo
+        and meters is not None
+        and meters <= core_m
+        and lineage_count >= 2
+        and coordinate_trusted_for_auto_safe(ctx)
+    ):
         classification = CLASS_AUTO_SAFE
-    elif has_geo and meters is not None and meters <= EXTENDED_METERS:
+    elif has_geo and meters is not None and meters <= ext_m:
         classification = CLASS_REVIEW
-    elif weak_only:
-        classification = CLASS_REJECT_QUARANTINE if meters and meters > CORE_METERS else CLASS_REVIEW
+    elif weak_only or "single_lineage_legacy_bag_only" in contradictions:
+        classification = CLASS_REJECT_QUARANTINE if meters and meters > core_m else CLASS_REVIEW
     else:
         classification = CLASS_REVIEW
 
@@ -256,7 +328,32 @@ def evaluate_area(
         contradictions=contradictions,
         existing_rx_role=rx_role,
         existing_rx_confidence=rx_conf,
+        independent_lineage_count=lineage_count,
+        explanation_th=explanation_th,
+        distance_model=distance_model,
     )
+
+
+def map_project_outcome(
+    *,
+    coordinate_usable_flag: bool,
+    picked: list[AreaEvidence],
+    hits: list[AreaEvidence],
+    existing_audits: list[dict[str, Any]],
+) -> str:
+    if not coordinate_usable_flag:
+        return OUTCOME_NOT_EVALUABLE
+    if any(h.classification == CLASS_AUTO_SAFE for h in picked):
+        if len(picked) == 1 and picked[0].classification == CLASS_AUTO_SAFE:
+            return OUTCOME_AUTO_SAFE
+        return OUTCOME_OWNER_REVIEW_REQUIRED
+    implausible_existing = [a for a in existing_audits if a.get("audit") == SUPPORT_IMPLAUSIBLE]
+    if implausible_existing and not any(h.classification == CLASS_AUTO_SAFE for h in hits):
+        return OUTCOME_AUTO_QUARANTINED
+    rx_hits = [h for h in hits if h.existing_rx_confidence]
+    if rx_hits and all(h.classification == CLASS_REJECT_QUARANTINE for h in rx_hits):
+        return OUTCOME_AUTO_QUARANTINED
+    return OUTCOME_OWNER_REVIEW_REQUIRED
 
 
 def audit_existing_assignment(hit: AreaEvidence) -> str:
@@ -307,7 +404,36 @@ def pick_output_areas(hits: list[AreaEvidence]) -> list[AreaEvidence]:
     return out[:MAX_AREAS_PER_PROJECT]
 
 
-def load_area_seeds(db_path: Path) -> list[AreaSeed]:
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+SPATIAL_SEED_V02 = BASE_DIR / "data_fixtures" / "area_engine" / "market_area_spatial_seed_v0.2.json"
+
+
+def load_area_seeds(db_path: Path | None = None, *, fixture: Path | None = None) -> list[AreaSeed]:
+    path = fixture or SPATIAL_SEED_V02
+    if path.is_file():
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        seeds: list[AreaSeed] = []
+        for entry in payload.get("areas", []):
+            anchors = entry.get("anchors") or []
+            station_ids = [a["anchor_id"] for a in anchors if a.get("anchor_type") == "TRANSIT_STATION"]
+            seeds.append(
+                AreaSeed(
+                    area_id=entry["area_id"],
+                    identity_key=entry["identity_key"],
+                    name_th=entry["canonical_name_th"],
+                    name_en=entry.get("canonical_name_en") or entry["canonical_name_th"],
+                    station_ids=station_ids or entry.get("transit_anchor_ids") or [],
+                    road_ids=entry.get("road_anchor_ids") or [],
+                    adjacent_keys=entry.get("adjacent_identity_keys") or [],
+                    core_distance_m=int(entry.get("core_distance_m") or CORE_METERS),
+                    extended_distance_m=int(entry.get("extended_distance_m") or EXTENDED_METERS),
+                    spatial_strength=entry.get("spatial_strength") or "SPATIAL_PARTIAL",
+                    status=entry.get("status") or "EXISTING_APPROVED",
+                )
+            )
+        return seeds
+    if not db_path:
+        return []
     conn = sqlite3.connect(str(db_path))
     cur = conn.cursor()
     rows = cur.execute(
@@ -355,14 +481,15 @@ def load_project_contexts(
     contexts: dict[str, ProjectContext] = {}
     for project_id, payload in cur.execute("SELECT project_id, payload_json FROM project_master_v01"):
         body = json.loads(payload or "{}")
-        coord = body.get("coordinate") or {}
+        ce = parse_coordinate_from_payload(project_id, body)
         contexts[project_id] = ProjectContext(
             project_id=project_id,
             name=body.get("catalog_name") or "",
-            latitude=coord.get("latitude"),
-            longitude=coord.get("longitude"),
-            coordinate_state=coord.get("state") or "NONE",
-            acceptance_status=coord.get("acceptance_status") or "NONE",
+            latitude=ce.latitude,
+            longitude=ce.longitude,
+            coordinate_state=ce.coordinate_state,
+            acceptance_status=ce.acceptance_state,
+            coordinate_tier=ce.evidence_tier,
             listing_locations=[],
             listing_transit=[],
             pantip_zones=[],
@@ -395,6 +522,7 @@ def load_project_contexts(
             pid = row.get("pantip_project_id") or row.get("realxtate_project_id")
             if pid and pid in contexts:
                 contexts[pid].pantip_zones = list(row.get("pantip_zone_verified") or [])
+                contexts[pid].legacy_promotion_suspected = bool(row.get("legacy_promotion_suspected"))
 
     return contexts
 
@@ -418,17 +546,6 @@ def evaluate_project(
     ]
     picked = pick_output_areas(hits)
 
-    if not coordinate_usable(ctx):
-        project_class = CLASS_NOT_EVALUABLE
-    elif any(h.classification == CLASS_AUTO_SAFE for h in picked):
-        project_class = CLASS_AUTO_SAFE if len(picked) == 1 and picked[0].classification == CLASS_AUTO_SAFE else CLASS_REVIEW
-    elif picked:
-        project_class = CLASS_REVIEW
-    elif any(h.classification == CLASS_REJECT_QUARANTINE for h in hits if h.existing_rx_confidence):
-        project_class = CLASS_REJECT_QUARANTINE
-    else:
-        project_class = CLASS_REVIEW
-
     existing_audit = []
     for area in seeds:
         hit = next((h for h in hits if h.area_id == area.area_id), None)
@@ -443,16 +560,36 @@ def evaluate_project(
                     "straight_line_meters": hit.straight_line_meters,
                     "evidence": hit.evidence,
                     "contradictions": hit.contradictions,
+                    "classification": hit.classification,
+                    "explanation_th": hit.explanation_th,
                 }
             )
+
+    project_outcome = map_project_outcome(
+        coordinate_usable_flag=coordinate_usable(ctx),
+        picked=picked,
+        hits=hits,
+        existing_audits=existing_audit,
+    )
+    # v0 compatibility mapping
+    if project_outcome == OUTCOME_AUTO_SAFE:
+        project_class = CLASS_AUTO_SAFE
+    elif project_outcome == OUTCOME_AUTO_QUARANTINED:
+        project_class = CLASS_REJECT_QUARANTINE
+    elif project_outcome == OUTCOME_NOT_EVALUABLE:
+        project_class = CLASS_NOT_EVALUABLE
+    else:
+        project_class = CLASS_REVIEW
 
     return {
         "project_id": ctx.project_id,
         "project_name": ctx.name,
         "coordinate_usable": coordinate_usable(ctx),
+        "coordinate_tier": ctx.coordinate_tier,
         "latitude": ctx.latitude,
         "longitude": ctx.longitude,
         "classification": project_class,
+        "project_outcome": project_outcome,
         "picked_areas": [
             {
                 "area_id": h.area_id,

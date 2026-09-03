@@ -1670,6 +1670,21 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path.startswith("/api/master-review/area-engine/"):
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.area_engine_overlay import build_area_engine_overlay
+
+                project_id = path.split("/api/master-review/area-engine/", 1)[1].strip("/")
+                if not project_id:
+                    self._json(400, {"ok": False, "error": "ต้องระบุ project_id"})
+                    return
+                overlay = build_area_engine_overlay(project_id)
+                self._json(200, overlay)
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/master-review/export":
             if not _require_operator(self):
                 return

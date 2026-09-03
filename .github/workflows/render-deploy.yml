@@ -1,12 +1,10 @@
-# Auto-deploy Property Hub to Render on push to main.
+# Deploy Property Hub to Render — manual only (workflow_dispatch).
 # Required GitHub repo secrets:
 #   RENDER_API_KEY  — from https://dashboard.render.com/u/settings#api-keys
 #   RENDER_SERVICE_ID — from service Settings after first Blueprint create (optional for first run)
 name: Deploy to Render
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:

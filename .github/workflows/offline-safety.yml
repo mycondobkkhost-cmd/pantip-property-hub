@@ -23,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements-hub.txt ]; then pip install -r requirements-hub.txt; fi
 
-      - name: Phase A–G offline suites
+      - name: Phase A–H offline suites
         env:
           HUB_ALLOW_SHEET_PULL: "0"
           HUB_STARTUP_SHEET_SYNC: "0"
@@ -41,3 +41,6 @@ jobs:
           python scripts/test_phase_g_facebook_publish.py
           python scripts/test_phase_g_line_dedupe.py
           python scripts/test_phase_g_auth_security.py
+          python scripts/test_phase_h_facebook_reconcile.py
+          python scripts/test_phase_h_line_reconcile.py
+          python scripts/test_phase_h_operator_auth.py

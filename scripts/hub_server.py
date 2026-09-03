@@ -86,8 +86,11 @@ from src.hub.group_post_publish_store import (  # noqa: E402
     create_campaign as create_publish_campaign,
     list_due_for_publish,
     list_jobs as list_publish_jobs,
+    list_needs_reconcile as list_publish_needs_reconcile,
     mark_external_action_started as mark_publish_external_started,
     mark_result as mark_publish_result,
+    reconcile_publish_job,
+    ReconcileError as PublishReconcileError,
     stats as publish_job_stats,
 )
 from src.hub.publish_caption import (  # noqa: E402
@@ -927,7 +930,8 @@ def _load_hub_users() -> dict:
             name = str(val.get("name") or username)
             if not password:
                 continue
-            users[username] = {"password": password, "name": name}
+            role = str(val.get("role") or val.get("privilege") or "").strip().lower()
+            users[username] = {"password": password, "name": name, "role": role}
         return users
 
     if _is_cloud_host():
@@ -942,12 +946,13 @@ def _load_hub_users() -> dict:
         return {}
 
     # Local-only demo accounts — require HUB_LOCAL_DEV=1; never used on cloud.
+    # Phase H: only angkarn1996 is privileged by default in local demo.
     return {
-        "angkarn1996": {"password": "localdev", "name": "เจ้าของ"},
-        "ptp2": {"password": "localdev2", "name": "แอดมิน 1"},
-        "ptp3": {"password": "localdev3", "name": "แอดมิน 2"},
-        "ptp4": {"password": "localdev4", "name": "ทีม 4"},
-        "ptp5": {"password": "localdev5", "name": "ทีม 5"},
+        "angkarn1996": {"password": "localdev", "name": "เจ้าของ", "role": "admin"},
+        "ptp2": {"password": "localdev2", "name": "แอดมิน 1", "role": ""},
+        "ptp3": {"password": "localdev3", "name": "แอดมิน 2", "role": ""},
+        "ptp4": {"password": "localdev4", "name": "ทีม 4", "role": ""},
+        "ptp5": {"password": "localdev5", "name": "ทีม 5", "role": ""},
     }
 
 
@@ -1026,23 +1031,65 @@ def _cookie_value(headers: dict | None, name: str) -> str:
 
 
 def _client_ip(handler: BaseHTTPRequestHandler) -> str:
-    """Best-effort client IP for rate limiting / analytics.
+    """Client IP for rate limiting / analytics.
 
-    Prefer platform-injected headers (Fly-Client-IP, CF-Connecting-IP).
-    X-Forwarded-For is used only as a last resort and may be client-spoofable
-    if the edge does not overwrite it — treat as best-effort, not cryptographic trust.
+    Trust order:
+    1. Fly-Client-IP (Fly injects; preferred in production)
+    2. CF-Connecting-IP (Cloudflare)
+    3. Socket peer address
+
+    Do NOT trust arbitrary X-Forwarded-For unless HUB_TRUST_X_FORWARDED_FOR=1
+    is explicitly set (edge must overwrite the header).
     """
-    xff = (handler.headers.get("Fly-Client-IP") or handler.headers.get("CF-Connecting-IP") or "").strip()
-    if xff:
-        return xff.split(",")[0].strip()
-    forwarded = (handler.headers.get("X-Forwarded-For") or "").strip()
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    import os
+
+    fly = (handler.headers.get("Fly-Client-IP") or "").strip()
+    if fly:
+        return fly.split(",")[0].strip()
+    cf = (handler.headers.get("CF-Connecting-IP") or "").strip()
+    if cf:
+        return cf.split(",")[0].strip()
+    trust_xff = (os.environ.get("HUB_TRUST_X_FORWARDED_FOR") or "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if trust_xff:
+        forwarded = (handler.headers.get("X-Forwarded-For") or "").strip()
+        if forwarded:
+            return forwarded.split(",")[0].strip()
     try:
         return str(handler.client_address[0] or "")
     except Exception:  # noqa: BLE001
         return ""
 
+
+def _is_operator_user(user: dict | None) -> bool:
+    """Phase H privileged operator check (token rotate + reconciliation)."""
+    from src.hub.operator_auth import is_privileged_username
+
+    if not user:
+        return False
+    username = str(user.get("username") or "").strip().lower()
+    return is_privileged_username(
+        username,
+        users=_load_hub_users(),
+        cloud_host=_is_cloud_host(),
+        local_dev=_is_explicit_local_dev(),
+    )
+
+
+def _require_operator(handler: "HubHandler") -> dict | None:
+    """Return session user if privileged; else write 401/403 and return None."""
+    user = handler._session_user()
+    if not user:
+        handler._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
+        return None
+    if not _is_operator_user(user):
+        handler._json(403, {"ok": False, "error": "ไม่มีสิทธิ์ดำเนินการนี้"})
+        return None
+    return user
 
 def _co_track_side(
     handler: BaseHTTPRequestHandler,
@@ -1153,11 +1200,8 @@ def _request_agent_token(handler: "HubHandler") -> str:
     header = (handler.headers.get("X-Agent-Token") or "").strip()
     if header:
         return header
-    # Allow ?t= for Mac Terminal curl bootstrap (avoids browser Gatekeeper).
-    from urllib.parse import parse_qs
-
-    qs = parse_qs(urlparse(handler.path).query or "")
-    return ((qs.get("t") or qs.get("token") or [""])[0] or "").strip()
+    # Phase H: do not accept agent tokens from query strings (?t= / ?token=).
+    return ""
 
 
 def _is_agent_authorized(handler: "HubHandler") -> bool:
@@ -1368,8 +1412,21 @@ class HubHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Co-Vid, X-Co-Sid")
         self.send_header("Vary", "Origin")
 
-    def _json(self, status: int, payload: dict, *, set_cookie: str | None = None, clear_cookie: bool = False) -> None:
-        body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    def _json(
+        self,
+        status: int,
+        payload: dict,
+        *,
+        set_cookie: str | None = None,
+        clear_cookie: bool = False,
+        allow_agent_token: bool = False,
+    ) -> None:
+        from src.hub.operator_auth import strip_agent_tokens
+
+        safe = payload if allow_agent_token else strip_agent_tokens(payload)
+        if not isinstance(safe, dict):
+            safe = {"ok": False, "error": "invalid payload"}
+        body = json.dumps(safe, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         self.send_response(status)
         self._cors()
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -1467,6 +1524,40 @@ class HubHandler(BaseHTTPRequestHandler):
             agent_id = ((qs.get("agent") or qs.get("agent_id") or [""])[0] or "").strip() or None
             # Phase G: never return agent_token on status endpoint.
             self._json(200, fb_agent_public_status(include_token=False, agent_id=agent_id))
+            return
+        if path == "/api/groups/publish/reconcile":
+            if not _require_operator(self):
+                return
+            try:
+                from urllib.parse import parse_qs
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                try:
+                    limit = int((qs.get("limit") or ["100"])[0] or 100)
+                except ValueError:
+                    limit = 100
+                items = list_publish_needs_reconcile(limit=limit)
+                self._json(200, {"ok": True, "items": items, "count": len(items)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/line/reconcile":
+            if not _require_operator(self):
+                return
+            try:
+                from urllib.parse import parse_qs
+
+                from src.hub.line_event_dedupe import list_needs_reconcile_events
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                try:
+                    limit = int((qs.get("limit") or ["100"])[0] or 100)
+                except ValueError:
+                    limit = 100
+                items = list_needs_reconcile_events(limit=limit)
+                self._json(200, {"ok": True, "items": items, "count": len(items)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
             return
         if path == "/api/fb-agent/download-windows":
             _fb_agent_starter_download(self, kind="windows")
@@ -1684,7 +1775,16 @@ class HubHandler(BaseHTTPRequestHandler):
             if not user:
                 self._json(401, {"ok": False, "logged_in": False})
                 return
-            self._json(200, {"ok": True, "logged_in": True, "username": user["username"], "name": user["name"]})
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "logged_in": True,
+                    "username": user["username"],
+                    "name": user["name"],
+                    "is_operator": _is_operator_user(user),
+                },
+            )
             return
         if path in {"/line/health", "/line/webhook"}:
             self._json(200, line_health_payload())
@@ -2386,11 +2486,63 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/fb-agent/rotate-token":
+            user = _require_operator(self)
+            if not user:
+                return
             try:
                 agent_id = (body.get("agent_id") or body.get("agent") or "").strip() or None
-                self._json(200, {"ok": True, **rotate_agent_token(agent_id=agent_id)})
+                # Privileged only — may return agent_token once.
+                self._json(200, {"ok": True, **rotate_agent_token(agent_id=agent_id)}, allow_agent_token=True)
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/groups/publish/reconcile":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                job_id = str(body.get("job_id") or body.get("id") or "").strip()
+                action = str(body.get("action") or "").strip().lower()
+                evidence = str(body.get("external_post_url") or body.get("permalink") or "").strip()
+                job = reconcile_publish_job(
+                    job_id,
+                    action=action,
+                    external_post_url=evidence,
+                    operator=str(user.get("username") or ""),
+                )
+                self._json(200, {"ok": True, "job": job})
+            except PublishReconcileError as exc:
+                self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/line/reconcile":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.line_event_dedupe import (
+                    LineReconcileError,
+                    reconcile_line_event,
+                )
+
+                event_key = str(body.get("event_key") or body.get("key") or "").strip()
+                action = str(body.get("action") or "").strip().lower()
+                record = reconcile_line_event(
+                    event_key,
+                    action=action,
+                    operator=str(user.get("username") or ""),
+                )
+                self._json(200, {"ok": True, "event": record})
+            except Exception as exc:  # noqa: BLE001
+                from src.hub.line_event_dedupe import LineReconcileError
+
+                if isinstance(exc, LineReconcileError):
+                    self._json(exc.http_status, {"ok": False, "error": str(exc), "error_code": exc.code})
+                else:
+                    self._json(500, {"ok": False, "error": str(exc)})
             return
 
         if path == "/api/fb-agent/heartbeat":

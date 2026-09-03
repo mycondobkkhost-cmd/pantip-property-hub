@@ -183,3 +183,117 @@ def get_event(event_key: str) -> dict[str, Any] | None:
     with _LOCK:
         row = (_load().get("events") or {}).get(key)
         return dict(row) if isinstance(row, dict) else None
+
+
+class LineReconcileError(Exception):
+    def __init__(self, message: str, *, code: str = "invalid", http_status: int = 400):
+        super().__init__(message)
+        self.code = code
+        self.http_status = http_status
+
+
+LINE_ACTION_MARK_COMPLETED = "mark_completed"
+LINE_ACTION_ALLOW_REPROCESS = "allow_reprocess"
+LINE_ACTION_SUPPRESS = "suppress"
+LINE_ACTION_KEEP = "keep_unresolved"
+
+LINE_RECONCILE_ACTIONS = {
+    LINE_ACTION_MARK_COMPLETED,
+    LINE_ACTION_ALLOW_REPROCESS,
+    LINE_ACTION_SUPPRESS,
+    LINE_ACTION_KEEP,
+}
+
+
+def list_needs_reconcile_events(*, limit: int = 100) -> list[dict[str, Any]]:
+    """Ambiguous LINE events needing operator attention. No message text/PII."""
+    cleanup_expired()
+    with _LOCK:
+        events = (_load().get("events") or {})
+    out: list[dict[str, Any]] = []
+    for key, row in events.items():
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("status") or "") != STATUS_NEEDS_RECONCILE:
+            continue
+        out.append(
+            {
+                "key": key,
+                "status": row.get("status"),
+                "created_at": row.get("created_at"),
+                "updated_at": row.get("updated_at"),
+                "outbound_started_at": row.get("outbound_started_at"),
+                "reason": str(row.get("reason") or "")[:200],
+                "reconciled_at": row.get("reconciled_at"),
+                "reconciliation_action": row.get("reconciliation_action"),
+            }
+        )
+        if len(out) >= max(1, min(int(limit or 100), 500)):
+            break
+    out.sort(key=lambda r: float(r.get("updated_at") or 0), reverse=True)
+    return out
+
+
+def reconcile_line_event(
+    event_key: str,
+    *,
+    action: str,
+    operator: str = "",
+    now: float | None = None,
+) -> dict[str, Any]:
+    """Operator reconciliation. Never sends a LINE message."""
+    key = (event_key or "").strip()
+    act = (action or "").strip().lower()
+    now = _now() if now is None else float(now)
+    if not key:
+        raise LineReconcileError("event_key is required", code="missing_key", http_status=400)
+    if act not in LINE_RECONCILE_ACTIONS:
+        raise LineReconcileError("invalid action", code="invalid_action", http_status=400)
+
+    with _LOCK:
+        data = _load()
+        events = data.setdefault("events", {})
+        row = events.get(key)
+        if not isinstance(row, dict):
+            raise LineReconcileError("event not found", code="not_found", http_status=404)
+        st = str(row.get("status") or "")
+        if act == LINE_ACTION_KEEP:
+            if st != STATUS_NEEDS_RECONCILE:
+                raise LineReconcileError("event is not awaiting reconciliation", code="invalid_state", http_status=409)
+            return dict(row)
+        if st == STATUS_COMPLETED and act == LINE_ACTION_MARK_COMPLETED:
+            return dict(row)  # duplicate confirm harmless
+        if st != STATUS_NEEDS_RECONCILE:
+            raise LineReconcileError("event is not awaiting reconciliation", code="invalid_state", http_status=409)
+
+        # Preserve identity + outbound evidence; never store tokens.
+        row["reconciled_at"] = now
+        row["reconciliation_action"] = act
+        row["reconciled_by"] = (operator or "")[:80]
+        row["updated_at"] = now
+
+        if act == LINE_ACTION_MARK_COMPLETED:
+            row["status"] = STATUS_COMPLETED
+            row["completed_at"] = now
+        elif act == LINE_ACTION_ALLOW_REPROCESS:
+            # Explicit only: clear to allow a future claim. Does not send.
+            events.pop(key, None)
+            data["events"] = events
+            _save(data)
+            return {
+                "ok": True,
+                "key": key,
+                "status": "cleared_for_reprocess",
+                "reconciliation_action": act,
+                "reconciled_at": now,
+                "reconciled_by": (operator or "")[:80],
+            }
+        elif act == LINE_ACTION_SUPPRESS:
+            row["status"] = STATUS_COMPLETED
+            row["completed_at"] = now
+            row["suppressed"] = True
+
+        events[key] = row
+        data["events"] = events
+        _save(data)
+        return dict(row)

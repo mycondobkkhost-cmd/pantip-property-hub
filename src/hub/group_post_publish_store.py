@@ -164,6 +164,9 @@ def _normalize_job(raw: dict[str, Any]) -> dict[str, Any] | None:
         "external_action_confirmed_at": str(raw.get("external_action_confirmed_at") or ""),
         "external_post_url": str(raw.get("external_post_url") or raw.get("permalink") or ""),
         "last_error_class": str(raw.get("last_error_class") or ""),
+        "reconciled_at": str(raw.get("reconciled_at") or ""),
+        "reconciliation_action": str(raw.get("reconciliation_action") or ""),
+        "reconciled_by": str(raw.get("reconciled_by") or ""),
     }
 
 
@@ -700,6 +703,152 @@ def mark_result(
         _save_raw(data)
         return found
 
+
+class ReconcileError(Exception):
+    """Invalid reconciliation request."""
+
+    def __init__(self, message: str, *, code: str = "invalid", http_status: int = 400):
+        super().__init__(message)
+        self.code = code
+        self.http_status = http_status
+
+
+ACTION_CONFIRM_POSTED = "confirm_posted"
+ACTION_CONFIRM_NOT_POSTED = "confirm_not_posted"
+ACTION_CANCEL = "cancel"
+ACTION_KEEP_UNRESOLVED = "keep_unresolved"
+
+RECONCILE_ACTIONS = {
+    ACTION_CONFIRM_POSTED,
+    ACTION_CONFIRM_NOT_POSTED,
+    ACTION_CANCEL,
+    ACTION_KEEP_UNRESOLVED,
+}
+
+
+def list_needs_reconcile(*, limit: int = 100) -> list[dict[str, Any]]:
+    """Jobs requiring operator attention (never auto-claimable)."""
+    jobs = list_jobs(status=STATUS_NEEDS_RECONCILE, limit=max(1, min(int(limit or 100), 500)))
+    out: list[dict[str, Any]] = []
+    for j in jobs:
+        out.append(
+            {
+                "id": j.get("id"),
+                "property_id": j.get("property_id"),
+                "property_code": j.get("property_code"),
+                "group_url": j.get("group_url"),
+                "group_name": j.get("group_name"),
+                "status": j.get("status"),
+                "attempt_count": j.get("attempt_count"),
+                "attempt_id": j.get("attempt_id"),
+                "idempotency_key": j.get("idempotency_key"),
+                "claimed_at": j.get("claimed_at"),
+                "external_action_started_at": j.get("external_action_started_at"),
+                "external_post_url": j.get("external_post_url") or j.get("permalink"),
+                "last_error_class": j.get("last_error_class"),
+                "detail": j.get("detail"),
+                "error": j.get("error"),
+                "updated_at": j.get("updated_at"),
+            }
+        )
+    return out
+
+
+def reconcile_publish_job(
+    job_id: str,
+    *,
+    action: str,
+    external_post_url: str = "",
+    operator: str = "",
+) -> dict[str, Any]:
+    """Explicit operator reconciliation. Never posts to Facebook."""
+    want = (job_id or "").strip()
+    act = (action or "").strip().lower()
+    if not want:
+        raise ReconcileError("job_id is required", code="missing_job_id", http_status=400)
+    if act not in RECONCILE_ACTIONS:
+        raise ReconcileError("invalid action", code="invalid_action", http_status=400)
+    if act == ACTION_KEEP_UNRESOLVED:
+        job = get_job(want)
+        if not job:
+            raise ReconcileError("job not found", code="not_found", http_status=404)
+        if job.get("status") != STATUS_NEEDS_RECONCILE:
+            raise ReconcileError("job is not awaiting reconciliation", code="invalid_state", http_status=409)
+        return job
+
+    evidence = (external_post_url or "").strip()
+    if act == ACTION_CONFIRM_POSTED and not evidence:
+        raise ReconcileError(
+            "external_post_url is required for confirm_posted",
+            code="missing_evidence",
+            http_status=400,
+        )
+
+    with _LOCK:
+        data = _load_raw()
+        jobs = data.get("jobs") or []
+        for i, raw in enumerate(jobs):
+            if not isinstance(raw, dict):
+                continue
+            if str(raw.get("id") or "") != want:
+                continue
+            st = str(raw.get("status") or "")
+            if st == STATUS_POSTED and act == ACTION_CONFIRM_POSTED:
+                # Duplicate confirm — harmless; preserve existing evidence.
+                return _normalize_job(raw) or dict(raw)
+            if st != STATUS_NEEDS_RECONCILE:
+                raise ReconcileError(
+                    "job is not awaiting reconciliation",
+                    code="invalid_state",
+                    http_status=409,
+                )
+
+            # Preserve identity fields; never mutate by property_code.
+            pid = str(raw.get("property_id") or "")
+            idem = str(raw.get("idempotency_key") or "")
+            raw["reconciled_at"] = _now_iso()
+            raw["reconciliation_action"] = act
+            raw["reconciled_by"] = (operator or "")[:80]
+            raw["property_id"] = pid
+            if idem:
+                raw["idempotency_key"] = idem
+
+            if act == ACTION_CONFIRM_POSTED:
+                raw["status"] = STATUS_POSTED
+                raw["permalink"] = evidence
+                raw["external_post_url"] = evidence
+                raw["external_action_confirmed_at"] = _now_iso()
+                if not str(raw.get("external_action_started_at") or "").strip():
+                    raw["external_action_started_at"] = raw["external_action_confirmed_at"]
+                raw["posted_at"] = _now_iso()
+                raw["error"] = ""
+                raw["last_error_class"] = ""
+                raw["detail"] = "operator confirmed posted"
+                raw["lease_until"] = ""
+            elif act == ACTION_CONFIRM_NOT_POSTED:
+                raw["status"] = STATUS_PENDING
+                raw["attempt_id"] = ""
+                raw["claimed_at"] = ""
+                raw["claimed_by"] = ""
+                raw["lease_until"] = ""
+                raw["external_action_started_at"] = ""
+                raw["external_action_confirmed_at"] = ""
+                raw["next_post_at"] = _now_iso()
+                raw["last_error_class"] = "operator_confirmed_not_posted"
+                raw["detail"] = "operator confirmed not posted — safe retry"
+                raw["error"] = ""
+            elif act == ACTION_CANCEL:
+                raw["status"] = STATUS_CANCELLED
+                raw["lease_until"] = ""
+                raw["detail"] = "operator cancelled after reconcile"
+                raw["last_error_class"] = "operator_cancelled"
+
+            raw["updated_at"] = _now_iso()
+            jobs[i] = raw
+            data["jobs"] = jobs
+            _save_raw(data)
+            return _normalize_job(raw) or dict(raw)
+    raise ReconcileError("job not found", code="not_found", http_status=404)
 
 
 def cancel_job(job_id: str) -> bool:

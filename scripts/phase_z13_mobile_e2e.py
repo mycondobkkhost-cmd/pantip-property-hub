@@ -193,7 +193,13 @@ def run_e2e() -> dict[str, Any]:
             # Property list
             page.evaluate("switchView('properties')")
             page.wait_for_timeout(800)
-            result["phone"]["property_list"] = page.locator("#property-rows .prop-sheet-row").count() >= 0
+            result["phone"]["property_cards_visible"] = page.locator("#property-rows .prop-sheet-row").count() > 0
+            result["phone"]["filter_count_numeric"] = page.evaluate(
+                """() => {
+                  const t = (document.getElementById('filter-result') || {}).textContent || '';
+                  return /\\d/.test(t);
+                }"""
+            )
             result["phone"]["overflow_list"] = _overflow(page)
             result["phone"]["desktop_header_hidden"] = not _desktop_header_visible(page)
             result["phone"]["compact_search"] = page.locator("#search-box").count() > 0
@@ -312,6 +318,14 @@ def run_e2e() -> dict[str, Any]:
             page.evaluate("() => { if (typeof loadRecheckPanel === 'function') return loadRecheckPanel(); }")
             page.wait_for_timeout(3000)
             result["phone"]["recheck"] = page.locator("#recheck-panel:not(.hidden)").count() > 0
+            recheck_api = page.evaluate(
+                """async () => {
+                  const r = await fetch('/api/recheck-capacity', { credentials: 'same-origin' });
+                  const t = await r.text();
+                  return { ok: r.ok, hasUnbound: t.indexOf('cannot access local variable') >= 0 };
+                }"""
+            )
+            result["phone"]["recheck_api"] = recheck_api
             result["phone"]["recheck_cards"] = page.locator(".recheck-summary-card").count() >= 4
             result["phone"]["recheck_settings_collapsed"] = page.locator(".recheck-settings-collapsible").count() > 0
             result["phone"]["overflow_recheck"] = _overflow(page)
@@ -321,16 +335,40 @@ def run_e2e() -> dict[str, Any]:
             page.evaluate("switchView('focus')")
             page.wait_for_timeout(600)
             result["phone"]["focus_nav"] = page.locator("#focus-panel:not(.hidden)").count() > 0
+            page.evaluate("switchView('focus')")
+            page.wait_for_timeout(600)
+            result["phone"]["focus_oversized_icons"] = page.evaluate(
+                """() => {
+                  const bad = [];
+                  document.querySelectorAll('#focus-panel svg, .mobile-more-item svg').forEach(function (svg) {
+                    const r = svg.getBoundingClientRect();
+                    if (r.width > 64 || r.height > 64) bad.push(Math.round(r.width));
+                  });
+                  return bad;
+                }"""
+            )
             geo_focus = _nav_geometry(page)
             result["phone"]["nav_geometry_focus"] = geo_focus
             page.click('#mobile-nav [data-view="more"]')
             page.wait_for_timeout(400)
-            result["phone"]["more_sheet"] = page.locator("#mobile-more-sheet:not(.hidden)").count() > 0
+            result["phone"]["more_sheet"] = page.locator("#mobile-more-sheet.open").count() > 0
+            result["phone"]["oversized_more_icons"] = page.evaluate(
+                """() => {
+                  const bad = [];
+                  document.querySelectorAll('.mobile-more-item svg').forEach(function (svg) {
+                    const r = svg.getBoundingClientRect();
+                    if (r.width > 64 || r.height > 64) bad.push({w: r.width, h: r.height});
+                  });
+                  return bad;
+                }"""
+            )
             page.screenshot(path=str(OUT / "z13-1-phone-390-more.png"), full_page=False)
             page.evaluate(
                 """() => {
                   const s = document.getElementById('mobile-more-sheet');
-                  if (s) s.classList.add('hidden');
+                  const b = document.getElementById('mobile-more-backdrop');
+                  if (s) s.classList.remove('open');
+                  if (b) b.classList.remove('open');
                 }"""
             )
 
@@ -415,10 +453,16 @@ def run_e2e() -> dict[str, Any]:
             and result["phone"].get("save")
             and result["phone"].get("xss")
             and result["phone"].get("recheck")
+            and result["phone"].get("recheck_api", {}).get("ok")
+            and not result["phone"].get("recheck_api", {}).get("hasUnbound")
             and result["phone"].get("coagent_privacy", True)
             and result["phone"].get("desktop_header_hidden", False)
+            and result["phone"].get("property_cards_visible", False)
+            and result["phone"].get("filter_count_numeric", False)
             and result["phone"].get("focus_nav", False)
+            and not result["phone"].get("focus_oversized_icons")
             and result["phone"].get("more_sheet", False)
+            and not result["phone"].get("oversized_more_icons")
             and viewport_geom_ok
             and not result["phone"].get("overflow_list", {}).get("overflow", True)
             and not result["phone"].get("overflow_recheck", {}).get("overflow", True)

@@ -182,6 +182,7 @@ def build_eligible_backlog(*, threshold_days: int | None = None, today: date | N
 
     for p in load_properties():
         pid = str(p.get("id") or "")
+        existing = queue_items.get(pid) or backlog_items.get(pid)
         kind = _listing_kind(p)
         th = threshold_days
         if th is None:
@@ -198,7 +199,6 @@ def build_eligible_backlog(*, threshold_days: int | None = None, today: date | N
             state = RECHECK_NOT_ELIGIBLE
             reason = "active_lease"
         else:
-            existing = queue_items.get(pid) or backlog_items.get(pid)
             if existing and existing.get("queue_state") in ACTIVE_QUEUE_STATES | {RECHECK_COMPLETED, RECHECK_DEFERRED}:
                 state = existing.get("queue_state", RECHECK_ELIGIBLE_BACKLOG)
                 reason = "already_tracked"

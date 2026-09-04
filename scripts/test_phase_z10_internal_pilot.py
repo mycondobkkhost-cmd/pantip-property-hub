@@ -181,8 +181,10 @@ class PhaseZ10Tests(unittest.TestCase):
     def test_21_embedded_recheck_panel_html(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")
         self.assertIn('id="recheck-panel"', html)
-        self.assertIn("OLD_RECORD_RECHECK", html)
-        self.assertIn("LEASE_END_FOLLOWUP", html)
+        self.assertIn("ติดตามทรัพย์", html)
+        dash = (ROOT / "src" / "hub" / "operational_dashboard.py").read_text(encoding="utf-8")
+        self.assertIn('"old_record_recheck"', dash)
+        self.assertIn('"lease_end_soon"', dash)
 
     def test_22_recheck_settings_form(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")

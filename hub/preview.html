@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_1" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_2" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -3846,10 +3846,41 @@
         if (!data || !data.ok) return false;
         window.PTP_DATA = data;
         ensureProjectMap();
-        return true;
+        return (window.PTP_DATA.properties || []).length > 0;
       } catch (e) {
         return false;
       }
+    }
+
+    var __ptpHubBootDone = false;
+
+    async function ensureHubCatalogLoaded() {
+      if (window.location.protocol === "file:") return !!(window.PTP_DATA && (window.PTP_DATA.properties || []).length);
+      var hasProps = window.PTP_DATA && (window.PTP_DATA.properties || []).length;
+      if (hasProps && window.PTP_DATA.catalog_scope === "internal") return true;
+      try {
+        var meRes = await fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" });
+        if (meRes.ok) {
+          var me = await meRes.json();
+          if (me && me.ok && me.logged_in) {
+            var ok = await loadHubInternalCatalog();
+            if (ok) return true;
+          }
+        }
+      } catch (e) { /* fall through */ }
+      if (!hasProps && typeof reloadPreviewData === "function") {
+        try {
+          await reloadPreviewData();
+          return !!(window.PTP_DATA && (window.PTP_DATA.properties || []).length);
+        } catch (e2) { /* ignore */ }
+      }
+      return !!(window.PTP_DATA && (window.PTP_DATA.properties || []).length);
+    }
+
+    function runHubInit(force) {
+      if (__ptpHubBootDone && !force) return;
+      __ptpHubBootDone = true;
+      initData();
     }
 
     function showLogin() {
@@ -3869,6 +3900,8 @@
         var data = await res.json();
         if (data && data.ok && data.logged_in) {
           showApp(data.name || data.username || "ผู้ใช้");
+          await ensureHubCatalogLoaded();
+          runHubInit(true);
         }
       } catch (e) { /* stay on login */ }
     }
@@ -3906,8 +3939,8 @@
           return;
         }
         showApp(data.name || u);
-        await loadHubInternalCatalog();
-        initData();
+        await ensureHubCatalogLoaded();
+        runHubInit(true);
       } catch (err) {
         loginError.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เปิด hub/เปิดดู.command";
         loginError.classList.remove("hidden");
@@ -15666,22 +15699,14 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_1"></script>
+  <script src="mobile-operations.js?v=z13_2"></script>
   <script src="preview-data.js"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol !== "file:") {
-        try {
-          var res = await fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" });
-          if (res.ok) {
-            var me = await res.json();
-            if (me && me.ok && me.logged_in) {
-              await loadHubInternalCatalog();
-            }
-          }
-        } catch (e) { /* public preview-data only */ }
+        await ensureHubCatalogLoaded();
       }
-      initData();
+      runHubInit(false);
     })();
   </script>
 </body>

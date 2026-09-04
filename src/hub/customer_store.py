@@ -464,6 +464,18 @@ def update_case(case_id: str, **fields) -> dict:
         merged["updated_at"] = _now()
         items[i] = _normalize(merged)
         save_cases(items)
+        try:
+            from src.hub.lease_capture_integration import on_customer_status_changed
+
+            on_customer_status_changed(
+                case_id=cid,
+                old_status=str(it.get("status") or ""),
+                new_status=str(merged.get("status") or ""),
+                reserved_codes=list(merged.get("reserved_codes") or []),
+                contract_start=str(merged.get("status_date") or "") if merged.get("status") == "contract_started" else "",
+            )
+        except Exception:
+            pass
         return items[i]
     raise ValueError("ไม่พบเคส")
 

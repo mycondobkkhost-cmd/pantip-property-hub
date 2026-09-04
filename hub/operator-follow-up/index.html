@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>งานติดตามทรัพย์ — Pantip Hub</title>
+  <style>
+    :root{--bg:#f4f6f8;--card:#fff;--text:#1a1a1a;--muted:#5c6570;--accent:#0b6e4f;--warn:#b45309;--border:#e2e8f0}
+    body{margin:0;font-family:"Noto Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--text)}
+    .banner{background:#fff7ed;border-bottom:2px solid #fdba74;padding:10px;text-align:center;font-weight:600;color:#9a3412}
+    header{padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)}
+    main{max-width:1100px;margin:0 auto;padding:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+    .card h3{margin:0 0 4px;font-size:.85rem;color:var(--muted)}
+    .card .n{font-size:1.5rem;font-weight:700}
+    table{width:100%;border-collapse:collapse;font-size:.82rem}
+    th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+    .tag{display:inline-block;padding:2px 8px;border-radius:6px;background:#e2e8f0;font-size:.72rem}
+    .tag.warn{background:#fef3c7;color:#92400e}
+    nav a{margin-right:10px;color:var(--accent);font-size:.9rem}
+    button{padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;margin-right:6px}
+    .muted{color:var(--muted);font-size:.85rem}
+    h2{font-size:1rem;margin:16px 0 8px}
+  </style>
+</head>
+<body>
+  <div class="banner">⚠️ TEST_ONLY — ติดตามจากวันที่ลงข้อมูลเท่านั้น (ไม่ใช้ legacy วันที่ว่าง)</div>
+  <header>
+    <h1>งานติดตามทรัพย์</h1>
+    <nav>
+      <a href="/lease-opportunities/">โอกาสเช่า</a>
+      <a href="/lease-capture/">บันทึกสัญญา</a>
+      <a href="/listing-freshness/">ความสดประกาศ</a>
+    </nav>
+  </header>
+  <main>
+    <div class="grid" id="cats"></div>
+    <div class="card">
+      <button id="seedBtn">โหลดข้อมูลทดสอบ</button>
+      <button id="syncBtn">ซิงก์การแจ้งเตือน (ภายใน)</button>
+      <p class="muted" id="meta"></p>
+    </div>
+    <h2>ทรัพย์เก่าควรตรวจสอบ (ตัวอย่าง)</h2>
+    <div class="card"><table><thead><tr><th>รหัส</th><th>โครงการ</th><th>วันลงข้อมูล</th><th>อายุ (วัน)</th><th>สถานะ</th></tr></thead><tbody id="recheckRows"></tbody></table></div>
+    <h2>ต้องยืนยันสถานะประกาศ</h2>
+    <div class="card"><table><thead><tr><th>Listing</th><th>สถานะ</th><th>ครบกำหนด</th></tr></thead><tbody id="freshRows"></tbody></table></div>
+  </main>
+  <script>
+    async function api(p,o){const r=await fetch(p,{credentials:'same-origin',...o});return r.json()}
+    function tag(s){return `<span class="tag ${/OVERDUE|STALE/.test(s)?'warn':''}">${s||'-'}</span>`}
+    async function load(){
+      const d=await api('/api/operator-follow-up');
+      document.getElementById('meta').textContent=`ฟิลด์อ้างอิง: ${d.entry_date_semantics.persisted_field} | dry-run threshold ${d.recheck_dry_run.threshold_days}d → ${d.recheck_dry_run.candidate_count} รายการ`;
+      document.getElementById('cats').innerHTML=Object.entries(d.categories).map(([k,v])=>`<div class="card"><h3>${v.label_th}</h3><div class="n">${v.count}</div></div>`).join('');
+      document.getElementById('recheckRows').innerHTML=(d.recheck_rows||[]).map(x=>`<tr><td>${x.property_code_display||x.property_id}</td><td>${x.project_name_display||'-'}</td><td>${x.source_record_entered_at||'-'}</td><td>${x.record_age_days||0}</td><td>${tag(x.recheck_status)}</td></tr>`).join('');
+      document.getElementById('freshRows').innerHTML=(d.verification_items||[]).map(x=>`<tr><td>${x.listing_id}</td><td>${tag(x.availability_state)}</td><td>${x.verification_due_at||'-'}</td></tr>`).join('');
+    }
+    async function boot(){
+      await fetch('/api/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'angkarn1996',password:'localdev'})});
+      await load();
+    }
+    document.getElementById('seedBtn').onclick=async()=>{await api('/api/property-status-recheck/seed-fixtures',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});await api('/api/listing-freshness/seed-fixtures',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});await load();};
+    document.getElementById('syncBtn').onclick=async()=>{await api('/api/notifications/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});alert('ซิงก์ภายในแล้ว (ไม่มีการส่งจริง)');};
+    boot();
+  </script>
+</body>
+</html>

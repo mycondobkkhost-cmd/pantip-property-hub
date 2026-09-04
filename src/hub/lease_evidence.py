@@ -108,14 +108,16 @@ def classify_available_raw(raw: str) -> dict[str, Any]:
             "parsed_date": parsed.isoformat(),
             "may_map_to_lease_end": False,
             "meaning_th": "วันที่คาดว่าจะว่าง/พร้อมให้เช่า — ไม่ใช่ lease_end",
-            "followup_type": "AVAILABLE_DATE_CONFIRMATION_DUE",
+            "legacy_raw_evidence": True,
+            "active_scheduling_disabled": True,
         }
     if re.match(r"^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)", s, re.I):
         return {
             "semantic": AVAILABLE_SEMANTIC_OWNER_EXPECTED,
             "may_map_to_lease_end": False,
             "meaning_th": "เดือนที่คาดว่าจะว่าง — ต้องยืนยันกับเจ้าของ",
-            "followup_type": "AVAILABLE_DATE_CONFIRMATION_DUE",
+            "legacy_raw_evidence": True,
+            "active_scheduling_disabled": True,
         }
     return {
         "semantic": AVAILABLE_SEMANTIC_LEGACY_AMBIGUOUS,
@@ -364,6 +366,7 @@ def build_recovery_dry_run(*, skip_live_sheet: bool = False) -> dict[str, Any]:
             if sem["semantic"] == AVAILABLE_SEMANTIC_AVAILABLE_FROM_DATE:
                 covered.add(pid)
                 categories["AVAILABLE_FROM_ONLY"] += 1
+                categories["LEGACY_RAW_EVIDENCE"] += 1
                 records.append(
                     {
                         "property_id": pid,
@@ -375,7 +378,9 @@ def build_recovery_dry_run(*, skip_live_sheet: bool = False) -> dict[str, Any]:
                         "source_type": "main_sheet_available_raw",
                         "source_fingerprint": _fingerprint("avail", pid, sem.get("parsed_date") or av),
                         "confidence": "MEDIUM",
-                        "review_status": "AVAILABILITY_DATE_ONLY",
+                        "review_status": "LEGACY_RAW_EVIDENCE",
+                        "active_scheduling_disabled": True,
+                        "legacy_wang_scheduling_disabled": True,
                     }
                 )
             elif sem["semantic"] in {AVAILABLE_SEMANTIC_LEGACY_AMBIGUOUS, AVAILABLE_SEMANTIC_OWNER_EXPECTED}:
@@ -388,14 +393,16 @@ def build_recovery_dry_run(*, skip_live_sheet: bool = False) -> dict[str, Any]:
 
     total = len(rentals)
     high_conf = categories["STRONG_EXPLICIT_LEASE_END"] + categories.get("STRONG_START_PLUS_TERM", 0)
-    avail_follow = categories["AVAILABLE_FROM_ONLY"]
+    legacy_raw = categories.get("LEGACY_RAW_EVIDENCE", categories["AVAILABLE_FROM_ONLY"])
 
     return {
         "generated_at": _now(),
         "audited_rental_population": total,
         "categories": dict(categories),
         "HIGH_CONFIDENCE_FOLLOWUP": high_conf,
-        "AVAILABILITY_DATE_FOLLOWUP": avail_follow,
+        "AVAILABILITY_DATE_FOLLOWUP": 0,
+        "LEGACY_RAW_EVIDENCE_COUNT": legacy_raw,
+        "legacy_wang_active_scheduling_disabled": True,
         "ESTIMATED_12M_CANDIDATE": categories.get("DEAL_DATE_ONLY", 0),
         "INSUFFICIENT_DATA": categories["NO_EVIDENCE"],
         "duplicate_property_code_count": len(dup_codes),
@@ -439,7 +446,9 @@ def classify_lease_evidence_authority(
             "evidence_level": EVIDENCE_L4,
             "available_from_date": af.isoformat(),
             "strong": False,
-            "followup_type": "AVAILABLE_DATE_CONFIRMATION_DUE",
+            "legacy_raw_evidence": True,
+            "active_scheduling_disabled": True,
+            "followup_type": "LEGACY_RAW_EVIDENCE_ONLY",
         }
     if dd:
         return {

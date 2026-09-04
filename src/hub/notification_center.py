@@ -22,14 +22,21 @@ PANTIP_MVP_EVENT_TYPES = frozenset(
         "LEASE_FOLLOWUP_DUE",
         "LEASE_END_WITHIN_14_DAYS",
         "LEASE_END_WITHIN_30_DAYS",
+        "LEASE_END_WITHIN_45_DAYS",
         "LEASE_END_WITHIN_60_DAYS",
         "OWNER_CONFIRMED_VACANT_SOON",
-        "AVAILABLE_DATE_CONFIRMATION_DUE",
+        "AVAILABLE_DATE_CONFIRMATION_DUE",  # taxonomy only — never from legacy วันที่ว่าง
+        "PROPERTY_STATUS_RECHECK_DUE",
+        "PROPERTY_STATUS_RECHECK_OVERDUE",
         "LISTING_VERIFICATION_DUE",
         "LISTING_VERIFICATION_OVERDUE",
         "LISTING_STALE",
+        "LEASE_DATA_COMPLETION_REQUIRED",
+        "OWNER_CONFIRMED_AVAILABLE_FROM_FOLLOWUP",
     }
 )
+
+LEGACY_WANG_EVENT_GENERATION_DISABLED = True
 
 DELIVERY_CHANNELS = frozenset({"WEB_NOTIFICATION", "HUB_NOTIFICATION"})
 OTP_IS_NOT_NOTIFICATION = True
@@ -238,12 +245,145 @@ def sync_notifications_from_opportunities(*, recipient_user_id: str) -> list[dic
     return created
 
 
+def sync_notifications_from_recheck(*, recipient_user_id: str) -> list[dict[str, Any]]:
+    """Age-based property status recheck events (NOT legacy วันที่ว่าง)."""
+    from src.hub.property_status_recheck import list_rechecks
+
+    created: list[dict[str, Any]] = []
+    today = _today()
+    for rec in list_rechecks():
+        rid = rec.get("recheck_id") or rec.get("property_id") or ""
+        st = rec.get("recheck_status") or ""
+        if st in {"CLOSED", "OWNER_CONFIRMED_AVAILABLE", "OWNER_CONFIRMED_RENTED", "OWNER_CONFIRMED_SOLD"}:
+            continue
+        nxt = _parse_day(rec.get("next_followup_at") or rec.get("recommended_followup_at"))
+        if st == "OVERDUE" or (nxt and nxt < today):
+            evt = create_notification_event(
+                event_type="PROPERTY_STATUS_RECHECK_OVERDUE",
+                recipient_user_id=recipient_user_id,
+                related_entity_type="property_status_recheck",
+                related_entity_id=rid,
+                dedupe_key=f"recheck_overdue::{rid}",
+                priority="high",
+            )
+            if evt:
+                created.append(evt)
+        elif st in {"DUE", "UPCOMING"} and nxt and nxt == today:
+            evt = create_notification_event(
+                event_type="PROPERTY_STATUS_RECHECK_DUE",
+                recipient_user_id=recipient_user_id,
+                related_entity_type="property_status_recheck",
+                related_entity_id=rid,
+                dedupe_key=f"recheck_due::{rid}",
+            )
+            if evt:
+                created.append(evt)
+        if rec.get("owner_confirmed_available_from"):
+            evt = create_notification_event(
+                event_type="OWNER_CONFIRMED_AVAILABLE_FROM_FOLLOWUP",
+                recipient_user_id=recipient_user_id,
+                related_entity_type="property_status_recheck",
+                related_entity_id=rid,
+                dedupe_key=f"owner_confirmed_avail::{rid}",
+                priority="high",
+            )
+            if evt:
+                created.append(evt)
+    return created
+
+
+def sync_notifications_from_freshness(*, recipient_user_id: str) -> list[dict[str, Any]]:
+    from src.hub.listing_freshness import _load_items, derive_freshness_state
+
+    created: list[dict[str, Any]] = []
+    for it in _load_items():
+        lid = it.get("listing_id") or it.get("property_id") or ""
+        st = derive_freshness_state(it)
+        mapping = {
+            "VERIFICATION_DUE": "LISTING_VERIFICATION_DUE",
+            "VERIFICATION_OVERDUE": "LISTING_VERIFICATION_OVERDUE",
+            "STALE_UNCONFIRMED": "LISTING_STALE",
+        }
+        et = mapping.get(st)
+        if not et:
+            continue
+        evt = create_notification_event(
+            event_type=et,
+            recipient_user_id=recipient_user_id,
+            related_entity_type="listing_freshness",
+            related_entity_id=lid,
+            dedupe_key=f"{et.lower()}::{lid}",
+        )
+        if evt:
+            created.append(evt)
+    return created
+
+
+def sync_notifications_from_lease_records(*, recipient_user_id: str) -> list[dict[str, Any]]:
+    from src.hub.lease_record import list_lease_records
+
+    created: list[dict[str, Any]] = []
+    today = _today()
+    for rec in list_lease_records():
+        lid = rec.get("lease_record_id") or ""
+        if rec.get("lease_status") == "DATA_COMPLETION_REQUIRED":
+            evt = create_notification_event(
+                event_type="LEASE_DATA_COMPLETION_REQUIRED",
+                recipient_user_id=recipient_user_id,
+                related_entity_type="lease_record",
+                related_entity_id=lid,
+                dedupe_key=f"lease_completion::{lid}",
+            )
+            if evt:
+                created.append(evt)
+        end = _parse_day(rec.get("contract_end"))
+        if not end:
+            continue
+        days = (end - today).days
+        if days <= 14:
+            t = "LEASE_END_WITHIN_14_DAYS"
+        elif days <= 30:
+            t = "LEASE_END_WITHIN_30_DAYS"
+        elif days <= 45:
+            t = "LEASE_END_WITHIN_45_DAYS"
+        elif days <= 60:
+            t = "LEASE_END_WITHIN_60_DAYS"
+        else:
+            continue
+        evt = create_notification_event(
+            event_type=t,
+            recipient_user_id=recipient_user_id,
+            related_entity_type="lease_record",
+            related_entity_id=lid,
+            dedupe_key=f"{t.lower()}::{lid}",
+        )
+        if evt:
+            created.append(evt)
+    return created
+
+
+def sync_all_notifications(*, recipient_user_id: str) -> dict[str, Any]:
+    """Unified notification sync — internal events only, no delivery adapters."""
+    created: list[dict[str, Any]] = []
+    created.extend(sync_notifications_from_opportunities(recipient_user_id=recipient_user_id))
+    created.extend(sync_notifications_from_recheck(recipient_user_id=recipient_user_id))
+    created.extend(sync_notifications_from_freshness(recipient_user_id=recipient_user_id))
+    created.extend(sync_notifications_from_lease_records(recipient_user_id=recipient_user_id))
+    return {
+        "created_count": len(created),
+        "legacy_wang_event_generation_disabled": LEGACY_WANG_EVENT_GENERATION_DISABLED,
+        "events": created,
+        "test_only": True,
+    }
+
+
 def build_api_payload(*, recipient_user_id: str = "") -> dict[str, Any]:
     return {
         "ok": True,
         "test_only": True,
         "contract_version": NOTIFICATION_EVENT_CONTRACT["version"],
         "otp_is_notification_channel": False,
+        "legacy_wang_event_generation_disabled": LEGACY_WANG_EVENT_GENERATION_DISABLED,
         "delivery_channels": sorted(DELIVERY_CHANNELS),
         "event_types": sorted(PANTIP_MVP_EVENT_TYPES),
         "unread_count": unread_count(recipient_user_id),

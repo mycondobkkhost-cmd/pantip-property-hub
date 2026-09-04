@@ -127,7 +127,9 @@ class PhaseZ6Tests(unittest.TestCase):
 
     def test_11_availability_date_separate(self):
         c = classify_lease_evidence_authority(available_from="2026-06-01")
-        self.assertEqual(c.get("followup_type"), "AVAILABLE_DATE_CONFIRMATION_DUE")
+        self.assertFalse(c.get("strong"))
+        self.assertTrue(c.get("legacy_raw_evidence"))
+        self.assertTrue(c.get("active_scheduling_disabled"))
 
     def test_12_ambiguous_legacy(self):
         c = classify_lease_evidence_authority(contract_start="")

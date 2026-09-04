@@ -935,6 +935,13 @@ def _is_z6_pilot_mode() -> bool:
     return flag in ("1", "true", "yes", "on")
 
 
+def _is_z7_pilot_mode() -> bool:
+    import os
+
+    flag = (os.environ.get("Z7_PILOT_MODE") or "").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
 def _load_hub_users() -> dict:
     """Login users from HUB_USERS_JSON only (never embed passwords in HTML).
 
@@ -946,7 +953,10 @@ def _load_hub_users() -> dict:
     # Owner-review pilot launcher: .env may define production HUB_USERS_JSON,
     # but pilot must use local demo login only (no secrets in launcher script).
     if _is_explicit_local_dev() and (
-        _is_master_review_pilot_mode() or _is_lease_opportunity_pilot_mode() or _is_z6_pilot_mode()
+        _is_master_review_pilot_mode()
+        or _is_lease_opportunity_pilot_mode()
+        or _is_z6_pilot_mode()
+        or _is_z7_pilot_mode()
     ):
         return _local_demo_hub_users()
 
@@ -1788,6 +1798,45 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/operator-follow-up":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.operational_dashboard import build_dashboard_payload
+
+                self._json(200, build_dashboard_payload())
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/property-status-recheck":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.property_status_recheck import build_recheck_dry_run, list_rechecks, summary
+
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "test_only": True,
+                        "summary": summary(),
+                        "dry_run": build_recheck_dry_run(),
+                        "items": list_rechecks(),
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/lease-migration/dry-run":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.lease_capture_integration import build_migration_dry_run
+
+                self._json(200, {"ok": True, **build_migration_dry_run(skip_live_sheet=True)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/master-review/export":
             if not _require_operator(self):
                 return
@@ -2458,6 +2507,8 @@ class HubHandler(BaseHTTPRequestHandler):
             path = "/lease-capture/index.html"
         if path in {"/listing-freshness", "/listing-freshness/"}:
             path = "/listing-freshness/index.html"
+        if path in {"/operator-follow-up", "/operator-follow-up/"}:
+            path = "/operator-follow-up/index.html"
         if path == "/":
             path = "/preview.html"
         # Catalog JS/meta live on the data volume (not ephemeral hub/).
@@ -2699,11 +2750,62 @@ class HubHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             try:
-                from src.hub.notification_center import sync_notifications_from_opportunities
+                from src.hub.notification_center import sync_all_notifications
 
                 uid = str(user.get("username") or user.get("id") or "")
-                created = sync_notifications_from_opportunities(recipient_user_id=uid)
-                self._json(200, {"ok": True, "created": len(created), "test_only": True})
+                result = sync_all_notifications(recipient_user_id=uid)
+                self._json(200, {"ok": True, **result})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/property-status-recheck/seed-fixtures":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.property_status_recheck import seed_test_fixtures
+
+                items = seed_test_fixtures()
+                self._json(200, {"ok": True, "count": len(items), "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/property-status-recheck/contact":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.property_status_recheck import record_contact
+
+                evt = record_contact(
+                    property_id=str(body.get("property_id") or ""),
+                    actor=str(user.get("username") or ""),
+                    result=str(body.get("result") or ""),
+                    note=str(body.get("note") or ""),
+                    next_followup_at=str(body.get("next_followup_at") or ""),
+                    owner_confirmed_available_from=str(body.get("owner_confirmed_available_from") or ""),
+                )
+                self._json(200, {"ok": True, "event": evt, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/listing-renewal/renew":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.listing_renewal import renew_listing
+
+                result = renew_listing(
+                    str(body.get("listing_id") or ""),
+                    verified_by=str(user.get("username") or ""),
+                    transaction=str(body.get("transaction") or "rent"),
+                    trigger_bump=bool(body.get("trigger_bump")),
+                )
+                self._json(200, {"ok": True, **result})
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return

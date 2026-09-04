@@ -23,6 +23,21 @@ PREVIEW_META = BASE_DIR / "data" / "preview-data.meta.json"
 PREVIEW_JS_LEGACY = BASE_DIR / "hub" / "preview-data.js"
 PREVIEW_META_LEGACY = BASE_DIR / "hub" / "preview-data.meta.json"
 
+
+def _e2e_data_root() -> Path | None:
+    raw = (os.environ.get("PANTIP_E2E_DATA_ROOT") or "").strip()
+    return Path(raw) if raw else None
+
+
+def projects_path() -> Path:
+    root = _e2e_data_root()
+    return (root / "projects.json") if root else PROJECTS_JSON
+
+
+def properties_path() -> Path:
+    root = _e2e_data_root()
+    return (root / "properties.json") if root else PROPERTIES_JSON
+
 # ThreadingHTTPServer serves requests concurrently — serialize read-modify-write
 # so multi-add / parallel saves cannot lose rows or collide on hub.db rebuild.
 _STORE_LOCK = threading.RLock()
@@ -204,15 +219,17 @@ def dedupe_stations(tags: list[str]) -> list[str]:
 
 
 def load_projects() -> list[dict]:
-    if not PROJECTS_JSON.exists():
+    path = projects_path()
+    if not path.exists():
         return []
-    return json.loads(PROJECTS_JSON.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def load_properties() -> list[dict]:
-    if not PROPERTIES_JSON.exists():
+    path = properties_path()
+    if not path.exists():
         return []
-    return json.loads(PROPERTIES_JSON.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 _PROPERTIES_CACHE: dict = {"mtime": None, "data": None}
@@ -565,15 +582,16 @@ def ensure_preview_js(*, min_bytes: int = 64, force: bool = False) -> dict:
 def persist(projects: list[dict], properties: list[dict]) -> None:
     with _STORE_LOCK:
         _atomic_write_text(
-            PROJECTS_JSON,
+            projects_path(),
             json.dumps(projects, ensure_ascii=False, indent=2),
         )
         _atomic_write_text(
-            PROPERTIES_JSON,
+            properties_path(),
             json.dumps(properties, ensure_ascii=False, indent=2),
         )
-        write_sqlite(projects, properties)
-        write_preview_js(projects, properties)
+        if not _e2e_data_root():
+            write_sqlite(projects, properties)
+            write_preview_js(projects, properties)
         # Drop short-lived load cache so next_code / health see fresh rows.
         _PROPERTIES_CACHE["data"] = None
         _PROPERTIES_CACHE["mtime"] = None

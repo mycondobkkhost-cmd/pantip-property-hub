@@ -1869,6 +1869,16 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/operational-settings/audit":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.operational_settings import list_settings_audit
+
+                self._json(200, {"ok": True, "items": list_settings_audit(limit=50)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/live-freshness/dry-run":
             if not _require_operator(self):
                 return
@@ -2914,13 +2924,45 @@ class HubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/operational-settings":
-            if not _require_operator(self):
+            user = _require_operator(self)
+            if not user:
                 return
             try:
-                from src.hub.operational_settings import save_operational_settings
+                from src.hub.operational_settings import (
+                    can_write_operational_settings,
+                    save_operational_settings,
+                )
 
-                settings = save_operational_settings(**{k: body.get(k) for k in body if k != "ok"})
-                self._json(200, {"ok": True, "settings": settings, "test_only": True})
+                gate = can_write_operational_settings()
+                if not gate.get("allowed"):
+                    self._json(
+                        403,
+                        {
+                            "ok": False,
+                            "error": gate.get("reason") or "operational settings writes disabled",
+                            "write_gate": gate,
+                        },
+                    )
+                    return
+                settings = save_operational_settings(
+                    operator_id=str(user.get("username") or ""),
+                    reason=str(body.get("reason") or ""),
+                    source="api",
+                    **{k: body.get(k) for k in body if k not in {"ok", "reason"}},
+                )
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "settings": settings,
+                        "test_only": settings.get("test_only", True),
+                        "write_gate": gate,
+                    },
+                )
+            except PermissionError as exc:
+                self._json(403, {"ok": False, "error": str(exc)})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -3888,6 +3930,11 @@ class HubHandler(BaseHTTPRequestHandler):
                 if not url:
                     self._json(400, {"error": "กรุณาใส่ URL"})
                     return
+            import os
+
+            if (os.environ.get("PANTIP_E2E_DATA_ROOT") or "").strip():
+                self._json(200, {"fetch_ok": False, "source_url": url, "e2e_mock": True, "raw_text": ""})
+                return
             try:
                 pasted = (body.get("text") or body.get("pasted_text") or "").strip()
                 data = scrape_url(url, pasted_text=pasted)

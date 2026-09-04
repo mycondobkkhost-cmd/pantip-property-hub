@@ -1742,7 +1742,8 @@
           <div class="sidebar-subnav" id="follow-sidebar-sub" aria-label="ซับเมนู ฟอโล่ว">
             <button type="button" class="tab-sub" data-view="followup">ฟอโล่วเคส</button>
             <button type="button" class="tab-sub" data-view="tenants">เช่า<span class="tab-badge hidden" id="tenants-badge">0</span></button>
-            <a class="tab-sub" href="/operator-follow-up/" style="text-decoration:none;display:block">ติดตามทรัพย์เก่า</a>
+            <button type="button" class="tab-sub" data-view="recheck">ติดตามทรัพย์เก่า</button>
+            <a class="tab-sub" href="/operator-follow-up/" style="text-decoration:none;display:block;font-size:12px;opacity:.85" title="หน้าเดิม (รองรับย้อนหลัง)">หน้าเดิม ↗</a>
           </div>
           <button type="button" class="tab" data-view="co-traffic">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
@@ -2168,7 +2169,64 @@
         <div id="follow-subnav" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" role="tablist" aria-label="ซับเมนู ฟอโล่ว">
           <button type="button" class="btn-sm primary" data-follow-tab="followup" id="follow-tab-cases">ฟอโล่วเคส</button>
           <button type="button" class="btn-sm" data-follow-tab="tenants" id="follow-tab-tenants">เช่า<span class="follow-inline-badge hidden" id="mobile-tenants-badge">0</span></button>
+          <button type="button" class="btn-sm" data-follow-tab="recheck" id="follow-tab-recheck">ติดตามทรัพย์เก่า</button>
         </div>
+      </div>
+
+      <div class="hidden" id="recheck-panel">
+        <div class="fu-board-bar">
+          <p class="fu-board-intro">
+            ติดตามทรัพย์เก่า (OLD_RECORD_RECHECK) — Backlog แยกจากคิว Active · ควบคุมความจุรายวัน ·
+            <span class="muted">LEASE_END_FOLLOWUP แสดงแยกด้านล่าง (หลักฐานสัญญาเท่านั้น)</span>
+          </p>
+          <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
+            <button type="button" class="btn-sm primary" id="recheck-release-btn">ดึงงานเข้าคิววันนี้</button>
+            <button type="button" class="btn-sm" id="recheck-refresh-btn">รีเฟรช</button>
+            <span id="recheck-meta" class="muted" style="font-size:12px;margin-left:auto"></span>
+          </div>
+          <div class="fu-stats-strip" id="recheck-stats-strip" aria-live="polite"></div>
+        </div>
+        <div class="recheck-settings card-like" style="margin:12px 0;padding:12px;border:1px solid #e4e4e7;border-radius:12px;background:#fafafa">
+          <strong style="font-size:13px;display:block;margin-bottom:8px">การตั้งค่าติดตาม (ภายใน)</strong>
+          <div id="recheck-settings-readonly" class="muted" style="font-size:12px;margin-bottom:8px"></div>
+          <div class="fu-form-grid" id="recheck-settings-form" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">
+            <label><span>เช่า (วัน)</span><input type="number" id="rs-rent" min="30" max="730" /></label>
+            <label><span>ขาย (วัน)</span><input type="number" id="rs-sale" min="30" max="1095" /></label>
+            <label><span>ชุด/วัน</span><input type="number" id="rs-batch" min="1" max="200" /></label>
+            <label><span>Active สูงสุด</span><input type="number" id="rs-max" min="1" max="500" /></label>
+            <label><span>ต่อคน</span><input type="number" id="rs-per-op" min="1" max="100" /></label>
+            <label><span>คูลดาวน์ (วัน)</span><input type="number" id="rs-cooldown" min="0" max="90" /></label>
+          </div>
+          <div class="toolbar-row" style="margin-top:8px;gap:8px">
+            <button type="button" class="btn-sm primary" id="recheck-settings-save" disabled>บันทึกการตั้งค่า</button>
+            <span id="recheck-settings-msg" class="muted" style="font-size:12px"></span>
+          </div>
+        </div>
+        <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;margin:8px 0">
+          <label style="font-size:12px"><span>ประเภท </span>
+            <select id="recheck-filter-kind"><option value="">ทั้งหมด</option><option value="rent">เช่า</option><option value="sale">ขาย</option><option value="both">เช่า+ขาย</option></select>
+          </label>
+          <label style="font-size:12px"><span>สถานะ </span>
+            <select id="recheck-filter-status"><option value="">ทั้งหมด</option><option value="RECHECK_QUEUED">คิว</option><option value="RECHECK_ASSIGNED">มอบหมาย</option><option value="RECHECK_WAITING_OWNER">รอเจ้าของ</option></select>
+          </label>
+          <label style="font-size:12px"><input type="checkbox" id="recheck-filter-overdue" /> เกินกำหนด</label>
+        </div>
+        <h3 style="font-size:14px;margin:12px 0 6px">คิวงาน Active (OLD_RECORD_RECHECK)</h3>
+        <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
+          <th>รหัส</th><th>โครงการ</th><th>ประเภท</th><th>อายุ</th><th>สถานะ</th><th>ผู้รับผิดชอบ</th><th></th>
+        </tr></thead><tbody id="recheck-active-rows"></tbody></table></div></div>
+        <h3 style="font-size:14px;margin:16px 0 6px">Backlog (ยังไม่ดึงเข้าคิว)</h3>
+        <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
+          <th>รหัส</th><th>โครงการ</th><th>ประเภท</th><th>อายุ (วัน)</th><th>คะแนน</th>
+        </tr></thead><tbody id="recheck-backlog-rows"></tbody></table></div></div>
+        <h3 style="font-size:14px;margin:16px 0 6px;color:#b45309">LEASE_END_FOLLOWUP — ใกล้หมดสัญญา (หลักฐานสัญญา)</h3>
+        <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
+          <th>property_id</th><th>หมดสัญญา</th><th>เหลือ (วัน)</th>
+        </tr></thead><tbody id="recheck-lease-rows"></tbody></table></div></div>
+        <h3 style="font-size:14px;margin:16px 0 6px">เจ้าของยืนยันว่าจะว่าง (explicit only)</h3>
+        <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
+          <th>รหัส</th><th>ว่างตั้งแต่</th><th>ยืนยันโดย</th>
+        </tr></thead><tbody id="recheck-owner-conf-rows"></tbody></table></div></div>
       </div>
 
       <div class="hidden" id="followup-panel">
@@ -8157,13 +8215,171 @@
     }
 
     function syncFollowSubnav(view) {
-      var inFollow = view === "followup" || view === "tenants";
-      var tab = (view === "tenants") ? "tenants" : "followup";
+      var inFollow = view === "followup" || view === "tenants" || view === "recheck";
+      var tab = view === "tenants" ? "tenants" : (view === "recheck" ? "recheck" : "followup");
       document.querySelectorAll("#follow-subnav [data-follow-tab]").forEach(function (b) {
         b.classList.toggle("primary", inFollow && b.getAttribute("data-follow-tab") === tab);
       });
       document.querySelectorAll("#follow-sidebar-sub .tab-sub[data-view]").forEach(function (b) {
-        b.classList.toggle("active", inFollow && b.getAttribute("data-view") === tab);
+        var dv = b.getAttribute("data-view");
+        b.classList.toggle("active", inFollow && (dv === tab || (dv === "followup" && tab === "followup")));
+      });
+    }
+
+    var recheckCache = { dashboard: null, settings: null };
+
+    function recheckFilterRows(rows, kind) {
+      kind = kind || "active";
+      var fKind = (document.getElementById("recheck-filter-kind") || {}).value || "";
+      var fStatus = (document.getElementById("recheck-filter-status") || {}).value || "";
+      var fOverdue = document.getElementById("recheck-filter-overdue") && document.getElementById("recheck-filter-overdue").checked;
+      return (rows || []).filter(function (x) {
+        if (fKind && (x.listing_kind || "") !== fKind) return false;
+        if (kind === "active" && fStatus && (x.queue_state || "") !== fStatus) return false;
+        if (fOverdue && kind === "active" && !(x.record_age_days >= 365)) return false;
+        return true;
+      });
+    }
+
+    function renderRecheckPanel() {
+      var d = recheckCache.dashboard || {};
+      var cap = d.capacity || {};
+      var cm = d.capacity_model || {};
+      var cfg = (cm.config || {});
+      var cats = d.categories || {};
+      var strip = document.getElementById("recheck-stats-strip");
+      if (strip) {
+        strip.innerHTML = [
+          { l: "Backlog", n: (cats.eligible_backlog || {}).count || 0 },
+          { l: "Active", n: (cats.active_queue || {}).count || 0 },
+          { l: "ชุดวันนี้เหลือ", n: (cats.batch_remaining_today || {}).count || 0 },
+          { l: "ใกล้หมดสัญญา", n: (cats.lease_end_soon || {}).count || 0 },
+          { l: "รอเจ้าของ", n: (cats.waiting_owner || {}).count || 0 }
+        ].map(function (c) {
+          return '<span class="meta-chip"><strong>' + esc(c.l) + "</strong> " + esc(String(c.n)) + "</span>";
+        }).join(" ");
+      }
+      var meta = document.getElementById("recheck-meta");
+      if (meta) {
+        meta.textContent = "เช่า≥" + (cfg.rent_recheck_threshold_days || "?") + "วัน · ขาย≥" +
+          (cfg.sale_recheck_threshold_days || "?") + "วัน · Active " +
+          (cap.active_count || 0) + "/" + (cap.max_total_active_rechecks || "?");
+      }
+      var active = recheckFilterRows(d.active_queue_rows || [], "active");
+      var backlog = recheckFilterRows((cm.backlog_sample || []), "backlog");
+      var ar = document.getElementById("recheck-active-rows");
+      if (ar) {
+        ar.innerHTML = active.length ? active.map(function (x) {
+          return "<tr><td>" + esc(x.property_code_display || x.property_id) + "</td><td>" +
+            esc(x.project_name_display || "—") + "</td><td>" + esc(x.listing_kind || "—") + "</td><td>" +
+            esc(String(x.record_age_days || 0)) + "</td><td>" + esc(x.queue_state || "—") + "</td><td>" +
+            esc(x.assigned_operator_id || "—") + '</td><td><button type="button" class="btn-xs" data-recheck-open="' +
+            esc(x.property_id || "") + '">เปิด</button></td></tr>';
+        }).join("") : '<tr><td colspan="7" class="empty">ไม่มีรายการในคิว Active</td></tr>';
+      }
+      var br = document.getElementById("recheck-backlog-rows");
+      if (br) {
+        br.innerHTML = backlog.length ? backlog.map(function (x) {
+          return "<tr><td>" + esc(x.property_code_display || x.property_id) + "</td><td>" +
+            esc(x.project_name_display || "—") + "</td><td>" + esc(x.listing_kind || "—") + "</td><td>" +
+            esc(String(x.record_age_days || 0)) + "</td><td>" + esc(String(x.priority_score || 0)) + "</td></tr>";
+        }).join("") : '<tr><td colspan="5" class="empty">ไม่มี Backlog ตัวอย่าง</td></tr>';
+      }
+      var lr = document.getElementById("recheck-lease-rows");
+      if (lr) {
+        lr.innerHTML = (d.lease_end_soon || []).length ? (d.lease_end_soon || []).map(function (x) {
+          return "<tr><td>" + esc(x.property_id || "—") + "</td><td>" + esc(x.contract_end || "—") +
+            "</td><td>" + esc(String(x.days_remaining || "")) + "</td></tr>";
+        }).join("") : '<tr><td colspan="3" class="empty">ไม่มี LEASE_END_FOLLOWUP ในช่วง 60 วัน</td></tr>';
+      }
+      var or = document.getElementById("recheck-owner-conf-rows");
+      if (or) {
+        or.innerHTML = (d.owner_confirmed_future || []).length ? (d.owner_confirmed_future || []).map(function (x) {
+          return "<tr><td>" + esc(x.property_code_display || x.property_id) + "</td><td>" +
+            esc(x.owner_confirmed_available_from || "—") + "</td><td>" + esc(x.confirmed_by || "—") + "</td></tr>";
+        }).join("") : '<tr><td colspan="3" class="empty">ยังไม่มี owner_confirmed_available_from</td></tr>';
+      }
+    }
+
+    function fillRecheckSettingsForm(s) {
+      s = s || {};
+      var map = {
+        "rs-rent": s.rent_recheck_threshold_days,
+        "rs-sale": s.sale_recheck_threshold_days,
+        "rs-batch": s.new_batch_per_day,
+        "rs-max": s.max_total_active,
+        "rs-per-op": s.max_active_per_operator,
+        "rs-cooldown": s.contact_cooldown_days
+      };
+      Object.keys(map).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && map[id] != null) el.value = map[id];
+      });
+      var ro = document.getElementById("recheck-settings-readonly");
+      var saveBtn = document.getElementById("recheck-settings-save");
+      var msg = document.getElementById("recheck-settings-msg");
+      if (ro) {
+        ro.textContent = s.write_allowed
+          ? "โหมด: " + (s.write_mode || "local") + " — แก้ไขได้"
+          : "โหมด: " + (s.write_mode || "read_only") + " — อ่านอย่างเดียว (production gate ปิด)";
+      }
+      if (saveBtn) saveBtn.disabled = !s.write_allowed;
+      if (msg) msg.textContent = s.production_write_env ? ("gate: " + s.production_write_env) : "";
+    }
+
+    async function loadRecheckPanel() {
+      try {
+        var d = await apiGet("/api/operator-follow-up");
+        recheckCache.dashboard = d;
+        var st = await apiGet("/api/operational-settings");
+        recheckCache.settings = (st.settings || st);
+        fillRecheckSettingsForm(recheckCache.settings);
+        renderRecheckPanel();
+      } catch (e) {
+        alert(e.message || "โหลดติดตามทรัพย์ไม่ได้");
+      }
+    }
+
+    function initRecheckPanel() {
+      var panel = document.getElementById("recheck-panel");
+      if (!panel || panel.dataset.ready === "1") return;
+      panel.dataset.ready = "1";
+      ["recheck-filter-kind", "recheck-filter-status", "recheck-filter-overdue"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener("change", renderRecheckPanel);
+      });
+      var rel = document.getElementById("recheck-release-btn");
+      if (rel) rel.addEventListener("click", async function () {
+        await apiPost("/api/recheck-capacity/release-batch", { strategy: "oldest_first" });
+        await loadRecheckPanel();
+      });
+      var ref = document.getElementById("recheck-refresh-btn");
+      if (ref) ref.addEventListener("click", loadRecheckPanel);
+      var save = document.getElementById("recheck-settings-save");
+      if (save) save.addEventListener("click", async function () {
+        try {
+          await apiPost("/api/operational-settings", {
+            rent_recheck_threshold_days: Number(document.getElementById("rs-rent").value),
+            sale_recheck_threshold_days: Number(document.getElementById("rs-sale").value),
+            new_batch_per_day: Number(document.getElementById("rs-batch").value),
+            max_total_active: Number(document.getElementById("rs-max").value),
+            max_active_per_operator: Number(document.getElementById("rs-per-op").value),
+            contact_cooldown_days: Number(document.getElementById("rs-cooldown").value),
+            reason: "hub recheck panel"
+          });
+          await loadRecheckPanel();
+        } catch (e) {
+          alert(e.message || "บันทึกการตั้งค่าไม่ได้");
+        }
+      });
+      panel.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-recheck-open]");
+        if (!btn) return;
+        var pid = btn.getAttribute("data-recheck-open");
+        if (!pid) return;
+        var prop = (window.PTP_DATA && window.PTP_DATA.properties || []).find(function (p) { return p.id === pid; });
+        if (prop) openEditProperty(prop);
+        else alert("ไม่พบทรัพย์ในรายการ — ลองรีเฟรชข้อมูล");
       });
     }
 
@@ -8186,10 +8402,12 @@
       document.getElementById("projects-panel").classList.toggle("hidden", view !== "db" || activeDbTab !== "projects");
       document.getElementById("queue-panel").classList.toggle("hidden", view !== "queue");
       document.getElementById("followup-panel").classList.toggle("hidden", view !== "followup");
+      var recheckPanel = document.getElementById("recheck-panel");
+      if (recheckPanel) recheckPanel.classList.toggle("hidden", view !== "recheck");
       var tnPanel = document.getElementById("tenants-panel");
       if (tnPanel) tnPanel.classList.toggle("hidden", view !== "tenants");
       var followSubWrap = document.getElementById("follow-subnav-wrap");
-      if (followSubWrap) followSubWrap.classList.toggle("hidden", view !== "followup" && view !== "tenants");
+      if (followSubWrap) followSubWrap.classList.toggle("hidden", view !== "followup" && view !== "tenants" && view !== "recheck");
       syncFollowSubnav(view);
       var coTrafficPanel = document.getElementById("co-traffic-panel");
       if (coTrafficPanel) coTrafficPanel.classList.toggle("hidden", view !== "co-traffic");
@@ -8216,6 +8434,7 @@
         focus: ["ทรัพย์ Focus", "พิมพ์รหัสทรัพย์เพื่อเพิ่มรายการที่ทีมกำลังโฟกัส"],
         queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
         followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
+        recheck: ["ติดตามทรัพย์เก่า", "OLD_RECORD_RECHECK · Backlog · คิว Active · การตั้งค่า"],
         tenants: ["เช่า · ลูกค้าปัจจุบัน", "กำลังเช่า · ค่าเช่า · หมดสัญญา · แจ้งเตือน"],
         "co-traffic": ["รายงานเว็บโคเอเจนต์", "สรุปภาษาคน · คนมาจากไหน · สนใจแค่ไหน · กดไลน์หรือยัง"],
         db: ["ฐานข้อมูล", ({
@@ -8243,11 +8462,11 @@
       });
       document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
         var dv = b.getAttribute("data-view");
-        b.classList.toggle("active", dv === view || (dv === "followup" && view === "tenants"));
+        b.classList.toggle("active", dv === view || (dv === "followup" && (view === "tenants" || view === "recheck")));
       });
       document.querySelectorAll("#view-tabs .tab").forEach(function (tEl) {
         var dv = tEl.getAttribute("data-view");
-        tEl.classList.toggle("active", dv === view || (dv === "followup" && view === "tenants"));
+        tEl.classList.toggle("active", dv === view || (dv === "followup" && (view === "tenants" || view === "recheck")));
       });
       if (typeof window.closeAppSidebar === "function") window.closeAppSidebar();
       var projectBanner = document.getElementById("project-view-banner");
@@ -8273,6 +8492,10 @@
       else if (view === "tenants") {
         hideTenantFormSection();
         loadTenants();
+      }
+      else if (view === "recheck") {
+        initRecheckPanel();
+        loadRecheckPanel();
       }
       else if (view === "co-traffic") {
         loadCoTraffic();

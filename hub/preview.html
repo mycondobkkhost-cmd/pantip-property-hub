@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -2175,58 +2176,63 @@
 
       <div class="hidden" id="recheck-panel">
         <div class="fu-board-bar">
-          <p class="fu-board-intro">
-            ติดตามทรัพย์เก่า (OLD_RECORD_RECHECK) — Backlog แยกจากคิว Active · ควบคุมความจุรายวัน ·
-            <span class="muted">LEASE_END_FOLLOWUP แสดงแยกด้านล่าง (หลักฐานสัญญาเท่านั้น)</span>
+          <p class="fu-board-intro recheck-intro-thai">
+            คิวงานติดตามทรัพย์ — ดูว่าวันนี้ต้องทำอะไร · ทรัพย์ถึงรอบติดตามแยกจากใกล้หมดสัญญา
           </p>
           <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
             <button type="button" class="btn-sm primary" id="recheck-release-btn">ดึงงานเข้าคิววันนี้</button>
             <button type="button" class="btn-sm" id="recheck-refresh-btn">รีเฟรช</button>
             <span id="recheck-meta" class="muted" style="font-size:12px;margin-left:auto"></span>
           </div>
+          <div class="recheck-summary-grid" id="recheck-summary-grid" aria-live="polite"></div>
           <div class="fu-stats-strip" id="recheck-stats-strip" aria-live="polite"></div>
         </div>
-        <div class="recheck-settings card-like" style="margin:12px 0;padding:12px;border:1px solid #e4e4e7;border-radius:12px;background:#fafafa">
-          <strong style="font-size:13px;display:block;margin-bottom:8px">การตั้งค่าติดตาม (ภายใน)</strong>
-          <div id="recheck-settings-readonly" class="muted" style="font-size:12px;margin-bottom:8px"></div>
-          <div class="fu-form-grid" id="recheck-settings-form" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">
-            <label><span>เช่า (วัน)</span><input type="number" id="rs-rent" min="30" max="730" /></label>
-            <label><span>ขาย (วัน)</span><input type="number" id="rs-sale" min="30" max="1095" /></label>
-            <label><span>ชุด/วัน</span><input type="number" id="rs-batch" min="1" max="200" /></label>
-            <label><span>Active สูงสุด</span><input type="number" id="rs-max" min="1" max="500" /></label>
-            <label><span>ต่อคน</span><input type="number" id="rs-per-op" min="1" max="100" /></label>
-            <label><span>คูลดาวน์ (วัน)</span><input type="number" id="rs-cooldown" min="0" max="90" /></label>
+        <details class="recheck-settings-collapsible card-like" style="margin:12px 0;padding:0 12px;border:1px solid #e4e4e7;border-radius:12px;background:#fafafa">
+          <summary>⚙ การตั้งค่าการติดตาม</summary>
+          <div class="recheck-settings-body" style="padding-bottom:12px">
+            <div id="recheck-settings-readonly" class="muted" style="font-size:12px;margin-bottom:8px"></div>
+            <div class="fu-form-grid" id="recheck-settings-form" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">
+              <label><span>เช่า (วัน)</span><input type="number" id="rs-rent" min="30" max="730" /></label>
+              <label><span>ขาย (วัน)</span><input type="number" id="rs-sale" min="30" max="1095" /></label>
+              <label><span>ชุด/วัน</span><input type="number" id="rs-batch" min="1" max="200" /></label>
+              <label><span>สูงสุดในคิว</span><input type="number" id="rs-max" min="1" max="500" /></label>
+              <label><span>ต่อคน</span><input type="number" id="rs-per-op" min="1" max="100" /></label>
+              <label><span>คูลดาวน์ (วัน)</span><input type="number" id="rs-cooldown" min="0" max="90" /></label>
+            </div>
+            <div class="toolbar-row" style="margin-top:8px;gap:8px">
+              <button type="button" class="btn-sm primary" id="recheck-settings-save" disabled>บันทึกการตั้งค่า</button>
+              <span id="recheck-settings-msg" class="muted" style="font-size:12px"></span>
+            </div>
           </div>
-          <div class="toolbar-row" style="margin-top:8px;gap:8px">
-            <button type="button" class="btn-sm primary" id="recheck-settings-save" disabled>บันทึกการตั้งค่า</button>
-            <span id="recheck-settings-msg" class="muted" style="font-size:12px"></span>
-          </div>
-        </div>
+        </details>
         <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;margin:8px 0">
           <label style="font-size:12px"><span>ประเภท </span>
             <select id="recheck-filter-kind"><option value="">ทั้งหมด</option><option value="rent">เช่า</option><option value="sale">ขาย</option><option value="both">เช่า+ขาย</option></select>
           </label>
           <label style="font-size:12px"><span>สถานะ </span>
-            <select id="recheck-filter-status"><option value="">ทั้งหมด</option><option value="RECHECK_QUEUED">คิว</option><option value="RECHECK_ASSIGNED">มอบหมาย</option><option value="RECHECK_WAITING_OWNER">รอเจ้าของ</option></select>
+            <select id="recheck-filter-status"><option value="">ทั้งหมด</option><option value="RECHECK_QUEUED">รอเข้าคิว</option><option value="RECHECK_ASSIGNED">มอบหมายแล้ว</option><option value="RECHECK_WAITING_OWNER">รอเจ้าของ</option></select>
           </label>
           <label style="font-size:12px"><input type="checkbox" id="recheck-filter-overdue" /> เกินกำหนด</label>
         </div>
-        <h3 style="font-size:14px;margin:12px 0 6px">คิวงาน Active (OLD_RECORD_RECHECK)</h3>
+        <div class="recheck-mobile-cards" id="recheck-mobile-cards" aria-live="polite"></div>
+        <div class="recheck-desktop-tables">
+        <h3 style="font-size:14px;margin:12px 0 6px">ต้องติดตามวันนี้</h3>
         <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
           <th>รหัส</th><th>โครงการ</th><th>ประเภท</th><th>อายุ</th><th>สถานะ</th><th>ผู้รับผิดชอบ</th><th></th>
         </tr></thead><tbody id="recheck-active-rows"></tbody></table></div></div>
-        <h3 style="font-size:14px;margin:16px 0 6px">Backlog (ยังไม่ดึงเข้าคิว)</h3>
+        <h3 style="font-size:14px;margin:16px 0 6px">รอเข้าคิว</h3>
         <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
           <th>รหัส</th><th>โครงการ</th><th>ประเภท</th><th>อายุ (วัน)</th><th>คะแนน</th>
         </tr></thead><tbody id="recheck-backlog-rows"></tbody></table></div></div>
-        <h3 style="font-size:14px;margin:16px 0 6px;color:#b45309">LEASE_END_FOLLOWUP — ใกล้หมดสัญญา (หลักฐานสัญญา)</h3>
+        <h3 style="font-size:14px;margin:16px 0 6px;color:#b45309">ใกล้หมดสัญญา</h3>
         <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
-          <th>property_id</th><th>หมดสัญญา</th><th>เหลือ (วัน)</th>
+          <th>รหัส</th><th>หมดสัญญา</th><th>เหลือ (วัน)</th>
         </tr></thead><tbody id="recheck-lease-rows"></tbody></table></div></div>
-        <h3 style="font-size:14px;margin:16px 0 6px">เจ้าของยืนยันว่าจะว่าง (explicit only)</h3>
+        <h3 style="font-size:14px;margin:16px 0 6px">เจ้าของยืนยันวันว่าง</h3>
         <div class="table-wrap"><div class="scroll"><table class="queue-sheet"><thead><tr>
           <th>รหัส</th><th>ว่างตั้งแต่</th><th>ยืนยันโดย</th>
         </tr></thead><tbody id="recheck-owner-conf-rows"></tbody></table></div></div>
+        </div>
       </div>
 
       <div class="hidden" id="followup-panel">
@@ -3409,6 +3415,8 @@
         </div>
         <div class="phase-banner" id="server-status">กำลังตรวจสอบเซิร์ฟเวอร์ Phase 2…</div>
 
+        <nav class="add-step-nav" id="add-step-nav" aria-label="ขั้นตอนเพิ่มทรัพย์"></nav>
+
         <div class="add-zones">
           <!-- Zone 1: Source -->
           <section class="add-zone" id="add-zone-source">
@@ -3693,21 +3701,19 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5 14.2 9h5.8l-4.7 3.4 1.8 5.6L12 14.8 7 18l1.8-5.6L4 9h5.8L12 3.5Z"/></svg>
             Focus<span class="nav-badge" id="mobile-focus-badge">0</span>
           </button>
-          <button type="button" data-view="queue">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-            คิว<span class="nav-badge" id="mobile-queue-badge">0</span>
+          <button type="button" data-view="add" class="nav-add" aria-label="เพิ่มทรัพย์">
+            <span class="nav-add-fab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+            <span>เพิ่ม</span>
           </button>
-          <button type="button" data-view="followup">
+          <button type="button" data-view="recheck">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
-            ฟอโล่ว<span class="nav-badge" id="mobile-followup-badge">0</span>
+            ติดตาม
           </button>
-          <button type="button" data-view="co-traffic">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
-            รายงาน
-          </button>
-          <button type="button" data-view="db">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
-            ฐานข้อมูล
+          <button type="button" data-view="more">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
+            เพิ่มเติม
           </button>
         </nav>
       </div>
@@ -3945,10 +3951,12 @@
           var btn = e.target.closest("button[data-view]");
           if (!btn) return;
           var view = btn.getAttribute("data-view");
+          if (view === "more" || view === "add") return;
           document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
             t.classList.toggle("active", t.getAttribute("data-view") === view);
           });
           if (typeof switchView === "function") switchView(view);
+          if (view === "recheck" && typeof loadRecheckPanel === "function") loadRecheckPanel();
         });
       }
     })();
@@ -8227,6 +8235,7 @@
     }
 
     var recheckCache = { dashboard: null, settings: null };
+    window.recheckCache = recheckCache;
 
     function recheckFilterRows(rows, kind) {
       kind = kind || "active";
@@ -8248,10 +8257,22 @@
       var cfg = (cm.config || {});
       var cats = d.categories || {};
       var strip = document.getElementById("recheck-stats-strip");
+      var summaryGrid = document.getElementById("recheck-summary-grid");
+      if (summaryGrid) {
+        summaryGrid.innerHTML = [
+          { l: "ต้องติดตามวันนี้", n: (cats.active_queue || {}).count || 0, f: "active" },
+          { l: "รอเจ้าของ", n: (cats.waiting_owner || {}).count || 0, f: "owner" },
+          { l: "ใกล้หมดสัญญา", n: (cats.lease_end_soon || {}).count || 0, f: "lease" },
+          { l: "รอเข้าคิว", n: (cats.eligible_backlog || {}).count || 0, f: "backlog" }
+        ].map(function (c) {
+          return '<button type="button" class="recheck-summary-card" data-recheck-filter="' + esc(c.f) + '">' +
+            "<strong>" + esc(String(c.n)) + "</strong><span>" + esc(c.l) + "</span></button>";
+        }).join("");
+      }
       if (strip) {
         strip.innerHTML = [
-          { l: "Backlog", n: (cats.eligible_backlog || {}).count || 0 },
-          { l: "Active", n: (cats.active_queue || {}).count || 0 },
+          { l: "รอเข้าคิว", n: (cats.eligible_backlog || {}).count || 0 },
+          { l: "ต้องติดตาม", n: (cats.active_queue || {}).count || 0 },
           { l: "ชุดวันนี้เหลือ", n: (cats.batch_remaining_today || {}).count || 0 },
           { l: "ใกล้หมดสัญญา", n: (cats.lease_end_soon || {}).count || 0 },
           { l: "รอเจ้าของ", n: (cats.waiting_owner || {}).count || 0 }
@@ -8262,7 +8283,7 @@
       var meta = document.getElementById("recheck-meta");
       if (meta) {
         meta.textContent = "เช่า≥" + (cfg.rent_recheck_threshold_days || "?") + "วัน · ขาย≥" +
-          (cfg.sale_recheck_threshold_days || "?") + "วัน · Active " +
+          (cfg.sale_recheck_threshold_days || "?") + "วัน · คิว " +
           (cap.active_count || 0) + "/" + (cap.max_total_active_rechecks || "?");
       }
       var active = recheckFilterRows(d.active_queue_rows || [], "active");
@@ -8275,7 +8296,7 @@
             esc(String(x.record_age_days || 0)) + "</td><td>" + esc(x.queue_state || "—") + "</td><td>" +
             esc(x.assigned_operator_id || "—") + '</td><td><button type="button" class="btn-xs" data-recheck-open="' +
             esc(x.property_id || "") + '">เปิด</button></td></tr>';
-        }).join("") : '<tr><td colspan="7" class="empty">ไม่มีรายการในคิว Active</td></tr>';
+        }).join("") : '<tr><td colspan="7" class="empty">ไม่มีรายการในคิวติดตาม</td></tr>';
       }
       var br = document.getElementById("recheck-backlog-rows");
       if (br) {
@@ -8283,23 +8304,28 @@
           return "<tr><td>" + esc(x.property_code_display || x.property_id) + "</td><td>" +
             esc(x.project_name_display || "—") + "</td><td>" + esc(x.listing_kind || "—") + "</td><td>" +
             esc(String(x.record_age_days || 0)) + "</td><td>" + esc(String(x.priority_score || 0)) + "</td></tr>";
-        }).join("") : '<tr><td colspan="5" class="empty">ไม่มี Backlog ตัวอย่าง</td></tr>';
+        }).join("") : '<tr><td colspan="5" class="empty">ไม่มีรายการรอเข้าคิว</td></tr>';
       }
       var lr = document.getElementById("recheck-lease-rows");
       if (lr) {
         lr.innerHTML = (d.lease_end_soon || []).length ? (d.lease_end_soon || []).map(function (x) {
           return "<tr><td>" + esc(x.property_id || "—") + "</td><td>" + esc(x.contract_end || "—") +
             "</td><td>" + esc(String(x.days_remaining || "")) + "</td></tr>";
-        }).join("") : '<tr><td colspan="3" class="empty">ไม่มี LEASE_END_FOLLOWUP ในช่วง 60 วัน</td></tr>';
+        }).join("") : '<tr><td colspan="3" class="empty">ไม่มีทรัพย์ใกล้หมดสัญญาในช่วง 60 วัน</td></tr>';
       }
       var or = document.getElementById("recheck-owner-conf-rows");
       if (or) {
         or.innerHTML = (d.owner_confirmed_future || []).length ? (d.owner_confirmed_future || []).map(function (x) {
           return "<tr><td>" + esc(x.property_code_display || x.property_id) + "</td><td>" +
             esc(x.owner_confirmed_available_from || "—") + "</td><td>" + esc(x.confirmed_by || "—") + "</td></tr>";
-        }).join("") : '<tr><td colspan="3" class="empty">ยังไม่มี owner_confirmed_available_from</td></tr>';
+        }).join("") : '<tr><td colspan="3" class="empty">ยังไม่มีเจ้าของยืนยันวันว่าง</td></tr>';
+      }
+      if (typeof window.ptpRenderRecheckMobileCards === "function") {
+        window.ptpRenderRecheckMobileCards(d, active, backlog);
       }
     }
+    window.renderRecheckPanel = renderRecheckPanel;
+    window.recheckFilterRows = recheckFilterRows;
 
     function fillRecheckSettingsForm(s) {
       s = s || {};
@@ -8321,7 +8347,7 @@
       if (ro) {
         ro.textContent = s.write_allowed
           ? "โหมด: " + (s.write_mode || "local") + " — แก้ไขได้"
-          : "โหมด: " + (s.write_mode || "read_only") + " — อ่านอย่างเดียว (production gate ปิด)";
+          : "ดูได้อย่างเดียว — " + (s.write_mode || "read_only") + " (production gate ปิด)";
       }
       if (saveBtn) saveBtn.disabled = !s.write_allowed;
       if (msg) msg.textContent = s.production_write_env ? ("gate: " + s.production_write_env) : "";
@@ -8434,7 +8460,7 @@
         focus: ["ทรัพย์ Focus", "พิมพ์รหัสทรัพย์เพื่อเพิ่มรายการที่ทีมกำลังโฟกัส"],
         queue: ["รอโพสต์", "คิวงานที่ต้องดำเนินการ เก่า→ใหม่"],
         followup: ["ฟอโล่วเคส", "ลูกค้า · โจทย์ · แนะนำทรัพย์ · ทักซ้ำ"],
-        recheck: ["ติดตามทรัพย์เก่า", "OLD_RECORD_RECHECK · Backlog · คิว Active · การตั้งค่า"],
+        recheck: ["ติดตามทรัพย์", "คิวงานวันนี้ · รอเจ้าของ · ใกล้หมดสัญญา"],
         tenants: ["เช่า · ลูกค้าปัจจุบัน", "กำลังเช่า · ค่าเช่า · หมดสัญญา · แจ้งเตือน"],
         "co-traffic": ["รายงานเว็บโคเอเจนต์", "สรุปภาษาคน · คนมาจากไหน · สนใจแค่ไหน · กดไลน์หรือยัง"],
         db: ["ฐานข้อมูล", ({
@@ -15552,6 +15578,53 @@
       });
     }
   </script>
+
+  <div class="mobile-sticky-save" id="mobile-sticky-save" aria-live="polite">
+    <button type="button" class="btn-sm primary sticky-save-btn" id="mobile-sticky-save-btn">บันทึกทรัพย์</button>
+    <span class="sticky-save-status" id="mobile-sticky-save-status">พร้อมบันทึก</span>
+  </div>
+
+  <div class="mobile-more-backdrop" id="mobile-more-backdrop" aria-hidden="true"></div>
+  <div class="mobile-more-sheet" id="mobile-more-sheet" role="dialog" aria-label="เมนูเพิ่มเติม">
+    <strong style="font-size:14px;display:block;margin-bottom:4px">เมนูเพิ่มเติม</strong>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 8px">งานที่ใช้น้อยกว่า — แตะเพื่อเปิด</p>
+    <div class="mobile-more-grid">
+      <button type="button" class="mobile-more-item" data-more-view="queue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        รอโพสต์
+      </button>
+      <button type="button" class="mobile-more-item" data-more-view="followup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8"/></svg>
+        ฟอโล่วเคส
+      </button>
+      <button type="button" class="mobile-more-item" data-more-view="tenants">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        เช่า
+      </button>
+      <button type="button" class="mobile-more-item" data-more-view="co-traffic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
+        รายงาน Co
+      </button>
+      <button type="button" class="mobile-more-item" data-more-view="db" data-more-db="publish">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+        โพสต์อัตโนมัติ
+      </button>
+      <button type="button" class="mobile-more-item" data-more-view="db" data-more-db="comments">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H8l-5 3V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        คอมเมนต์
+      </button>
+      <button type="button" class="mobile-more-item" data-more-view="db" data-more-db="projects">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg>
+        ฐานข้อมูล
+      </button>
+      <a class="mobile-more-item" href="/co/" target="_blank" rel="noopener" style="text-decoration:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Co-Agent
+      </a>
+    </div>
+  </div>
+
+  <script src="mobile-operations.js?v=z13"></script>
   <script src="preview-data.js"></script>
   <script>
     (async function bootHubData() {

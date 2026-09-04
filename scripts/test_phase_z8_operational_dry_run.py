@@ -94,6 +94,10 @@ class PhaseZ8Tests(unittest.TestCase):
             shutil.rmtree(CAPACITY_DIR)
         if LEASE_DIR.exists():
             shutil.rmtree(LEASE_DIR)
+        from src.hub.property_status_recheck import LOCAL_DIR as RECHECK_STATE_DIR
+
+        if RECHECK_STATE_DIR.exists():
+            shutil.rmtree(RECHECK_STATE_DIR)
 
     # CAPACITY / BACKLOG 1-12
     def test_01_backlog_not_active_queue(self):

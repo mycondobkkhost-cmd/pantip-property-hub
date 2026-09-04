@@ -17,9 +17,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from src.hub.operational_settings import (  # noqa: E402
-    AUDIT_PATH,
     PRODUCTION_WRITE_ENV,
     SETTING_BOUNDS,
+    audit_path,
     build_settings_api_payload,
     can_write_operational_settings,
     list_settings_audit,
@@ -86,8 +86,8 @@ class PhaseZ10Tests(unittest.TestCase):
     def setUp(self) -> None:
         if CAPACITY_DIR.exists():
             shutil.rmtree(CAPACITY_DIR)
-        if AUDIT_PATH.exists():
-            AUDIT_PATH.unlink()
+        if audit_path().exists():
+            audit_path().unlink()
 
     # Settings 1-10
     def test_01_settings_validation_rejects_negative(self) -> None:

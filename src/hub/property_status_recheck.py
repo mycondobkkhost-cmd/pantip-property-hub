@@ -17,7 +17,23 @@ from src.hub.legacy_entry_date import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-LOCAL_DIR = BASE_DIR / ".local" / "property_status_recheck_phase_z7"
+
+
+def _local_dir() -> Path:
+    import os
+
+    root = (os.environ.get("PANTIP_OPERATIONAL_STATE_ROOT") or "").strip()
+    if root:
+        return Path(root) / "property_status_recheck"
+    return BASE_DIR / ".local" / "property_status_recheck_phase_z7"
+
+
+def _paths() -> tuple[Path, Path, Path, Path]:
+    d = _local_dir()
+    return d, d / "rechecks.json", d / "contact_events.json", d / "config.json"
+
+
+LOCAL_DIR = _local_dir()
 RECHECKS_PATH = LOCAL_DIR / "rechecks.json"
 CONTACT_EVENTS_PATH = LOCAL_DIR / "contact_events.json"
 CONFIG_PATH = LOCAL_DIR / "config.json"

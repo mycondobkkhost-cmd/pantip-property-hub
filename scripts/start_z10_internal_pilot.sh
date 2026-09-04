@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="${HUB_PORT:-8765}"
-E2E_DIR="${ROOT}/.local/phase_z10_e2e"
+E2E_DIR="${PANTIP_E2E_DATA_ROOT:-${ROOT}/.local/phase_z10_e2e}"
 
 mkdir -p "${E2E_DIR}"
 if [ ! -f "${E2E_DIR}/projects.json" ]; then

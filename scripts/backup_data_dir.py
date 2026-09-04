@@ -209,6 +209,45 @@ def verify_backup(backup_dir: Path) -> dict[str, Any]:
     return {"ok": not errors, "errors": errors, "file_count": len(manifest.get("files") or [])}
 
 
+def validate_backup_identity(data_dir: Path) -> dict[str, Any]:
+    """Structural identity checks for restored authoritative JSON (no PII output)."""
+    data_dir = data_dir.resolve()
+    props_path = data_dir / "properties.json"
+    projs_path = data_dir / "projects.json"
+    report: dict[str, Any] = {
+        "json_parse_ok": False,
+        "unique_property_id": False,
+        "unique_project_id": False,
+        "duplicate_property_code_allowed": True,
+        "orphan_project_refs": 0,
+        "property_count": 0,
+        "project_count": 0,
+    }
+    try:
+        props = json.loads(props_path.read_text(encoding="utf-8"))
+        projs = json.loads(projs_path.read_text(encoding="utf-8"))
+        report["json_parse_ok"] = True
+    except (OSError, json.JSONDecodeError):
+        return report
+    if not isinstance(props, list) or not isinstance(projs, list):
+        return report
+    report["property_count"] = len(props)
+    report["project_count"] = len(projs)
+    pids = [str(p.get("id") or p.get("property_id") or "") for p in props]
+    pids = [x for x in pids if x]
+    report["unique_property_id"] = len(pids) == len(set(pids))
+    proj_ids = {str(p.get("id") or p.get("project_id") or "") for p in projs}
+    proj_ids.discard("")
+    report["unique_project_id"] = len(proj_ids) == len(projs)
+    orphans = 0
+    for prop in props:
+        ref = str(prop.get("project_id") or "").strip()
+        if ref and ref not in proj_ids:
+            orphans += 1
+    report["orphan_project_refs"] = orphans
+    return report
+
+
 def restore_data_dir(
     backup_dir: Path,
     dest_dir: Path,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -12,8 +12,21 @@ from typing import Any
 from src.hub.recheck_capacity import load_capacity_config, save_capacity_config
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-AUDIT_DIR = BASE_DIR / ".local" / "operational_settings_audit"
-AUDIT_PATH = AUDIT_DIR / "audit.jsonl"
+
+
+def _audit_dir() -> Path:
+    root = (os.environ.get("PANTIP_OPERATIONAL_STATE_ROOT") or "").strip()
+    if root:
+        return Path(root) / "operational_settings_audit"
+    return BASE_DIR / ".local" / "operational_settings_audit"
+
+
+def _audit_path() -> Path:
+    return _audit_dir() / "audit.jsonl"
+
+
+_AUDIT_LOCK = threading.RLock()
+_SETTINGS_LOCK = threading.RLock()
 
 # Canonical setting keys exposed to internal back-office UI / API.
 SETTING_KEYS = (
@@ -84,27 +97,21 @@ def _now_iso() -> str:
 
 
 def _append_audit(entry: dict[str, Any]) -> None:
-    AUDIT_DIR.mkdir(parents=True, exist_ok=True)
+    path = _audit_path()
+    audit_dir = _audit_dir()
     line = json.dumps(entry, ensure_ascii=False) + "\n"
-    fd, tmp = tempfile.mkstemp(dir=str(AUDIT_DIR), suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            if AUDIT_PATH.exists():
-                f.write(AUDIT_PATH.read_text(encoding="utf-8"))
+    with _AUDIT_LOCK:
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
             f.write(line)
-        os.replace(tmp, AUDIT_PATH)
-    except Exception:
-        try:
-            os.unlink(tmp)
-        except OSError:
-            pass
-        raise
 
 
 def list_settings_audit(*, limit: int = 50) -> list[dict[str, Any]]:
-    if not AUDIT_PATH.exists():
+    path = _audit_path()
+    if not path.exists():
         return []
-    lines = AUDIT_PATH.read_text(encoding="utf-8").strip().splitlines()
+    with _AUDIT_LOCK:
+        lines = path.read_text(encoding="utf-8").strip().splitlines()
     out: list[dict[str, Any]] = []
     for line in lines[-limit:]:
         try:
@@ -181,22 +188,23 @@ def save_operational_settings(
     for api_key, value in validated.items():
         cap_key = _TO_CAPACITY[api_key]
         mapped[cap_key] = value
-    save_capacity_config(**mapped)
-    new = load_operational_settings()
-
-    changed_keys = [k for k in validated if old.get(k) != new.get(k)]
-    _append_audit(
-        {
-            "timestamp": _now_iso(),
-            "operator_id": operator_id or "unknown",
-            "source": source,
-            "reason": (reason or "")[:500],
-            "changed_keys": changed_keys,
-            "old_values": {k: old.get(k) for k in changed_keys},
-            "new_values": {k: new.get(k) for k in changed_keys},
-            "write_mode": gate.get("mode"),
-        }
-    )
+    with _SETTINGS_LOCK:
+        save_capacity_config(**mapped)
+        new = load_operational_settings()
+        changed_keys = [k for k in validated if old.get(k) != new.get(k)]
+        if changed_keys:
+            _append_audit(
+                {
+                    "timestamp": _now_iso(),
+                    "operator_id": operator_id or "unknown",
+                    "source": source,
+                    "reason": (reason or "")[:500],
+                    "changed_keys": changed_keys,
+                    "old_values": {k: old.get(k) for k in changed_keys},
+                    "new_values": {k: new.get(k) for k in changed_keys},
+                    "write_mode": gate.get("mode"),
+                }
+            )
     return new
 
 
@@ -207,3 +215,8 @@ def build_settings_api_payload() -> dict[str, Any]:
         "audit_recent": list_settings_audit(limit=10),
         "write_gate": can_write_operational_settings(),
     }
+
+
+# Backward-compatible path for tests
+def audit_path() -> Path:
+    return _audit_path()

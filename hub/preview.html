@@ -1742,6 +1742,7 @@
           <div class="sidebar-subnav" id="follow-sidebar-sub" aria-label="ซับเมนู ฟอโล่ว">
             <button type="button" class="tab-sub" data-view="followup">ฟอโล่วเคส</button>
             <button type="button" class="tab-sub" data-view="tenants">เช่า<span class="tab-badge hidden" id="tenants-badge">0</span></button>
+            <a class="tab-sub" href="/operator-follow-up/" style="text-decoration:none;display:block">ติดตามทรัพย์เก่า</a>
           </div>
           <button type="button" class="tab" data-view="co-traffic">
             <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15v-3M12 15V8M16 15v-6"/></svg>
@@ -2105,8 +2106,8 @@
           </div>
           <div class="fu-form-grid" style="margin-top:8px">
             <label class="fu-wide">
-              <span>ลิงก์ต้นโพสต์ *</span>
-              <input type="text" id="queue-source" placeholder="https://www.facebook.com/share/p/…" />
+              <span>ลิงก์ต้นโพสต์ / แหล่งอ้างอิง</span>
+              <input type="text" id="queue-source" placeholder="ลิงก์โพสต์ หรือข้อความอ้างอิง เช่น รหัส LI-1234" />
             </label>
             <label class="fu-wide">
               <span>ลิงก์เจ้าของ / เบอร์ (ถ้ามี)</span>
@@ -3359,9 +3360,10 @@
             </div>
             <div class="add-grid">
               <div class="link-field add-wide" data-link-field>
-                <span>ลิงก์โพสต์ต้นทาง</span>
+                <span>ลิงก์ต้นโพสต์ / แหล่งอ้างอิง</span>
+                <p class="field-hint" style="margin:2px 0 6px;font-size:11px;color:#71717a">ใส่ลิงก์โพสต์ หรือข้อความอ้างอิงอื่นก็ได้</p>
                 <div class="link-field-row">
-                  <input type="url" id="add-url" readonly placeholder="โพสต์ต้นฉบับจากเจ้าของ เช่น facebook.com/share/..." />
+                  <input type="text" id="add-url" readonly placeholder="ลิงก์โพสต์ เช่น facebook.com/share/… หรือข้อความอ้างอิง เช่น รหัส LI-1234" />
                   <button type="button" class="btn-sm" data-link-edit>แก้ไข</button>
                   <button type="button" class="btn-sm" data-link-open>เปิด</button>
                   <button type="button" class="btn-sm" data-link-copy>คัดลอก</button>
@@ -4441,7 +4443,11 @@
     }
 
     function linksCell(p) {
-      return linkHtml(p.source_url, "ต้นทาง", "");
+      var ref = String(p.source_url || "").trim();
+      if (!ref) return '<span class="muted">—</span>';
+      if (isHttpUrl(ref)) return linkHtml(ref, "ต้นทาง", "");
+      var short = ref.length > 28 ? ref.slice(0, 26) + "…" : ref;
+      return '<span class="source-ref-text" title="' + esc(ref) + '">' + esc(short) + "</span>";
     }
 
     function ownerContactCell(p) {
@@ -8469,6 +8475,10 @@
     async function doScrape() {
       var url = document.getElementById("add-url").value.trim();
       if (!url) { alert("กด「แก้ไข」ที่ลิงก์ต้นทาง แล้ววางลิงก์ก่อน"); return; }
+      if (!isHttpUrl(normalizeOpenableUrl(url))) {
+        alert("ดึงจากลิงก์ต้องเป็น URL ที่ขึ้นต้นด้วย http:// หรือ https://\n\nถ้าเป็นข้อความอ้างอิง ให้วางข้อความด้านล่างแล้วกด「วิเคราะห์ข้อความ」แทน");
+        return;
+      }
       var btn = document.getElementById("add-scrape");
       btn.textContent = "กำลังดึง…";
       btn.disabled = true;

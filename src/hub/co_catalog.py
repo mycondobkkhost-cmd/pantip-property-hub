@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from src.hub.customer_match import bed_category, recommend_for_case, score_property_for_case
+from src.hub.source_reference import derive_public_listing_url, normalize_http_url
 from src.hub.project_store import (
     PROPERTIES_JSON,
     load_projects,
@@ -45,12 +46,15 @@ def _as_str_list(val: Any) -> list[str]:
 
 
 def listing_post_url(prop: dict) -> tuple[str, str]:
-    """Prefer Pantip page post; fall back to personal FB post (post_url)."""
-    page = (prop.get("post_pages_url") or "").strip()
-    if page.startswith("http"):
+    """Prefer Pantip page post; fall back to personal FB post (post_url).
+
+    Never uses internal ``source_url`` — Co-Agent only sees published post links.
+    """
+    page = normalize_http_url(prop.get("post_pages_url"))
+    if page:
         return page, "page"
-    personal = (prop.get("post_url") or "").strip()
-    if personal.startswith("http"):
+    personal = normalize_http_url(prop.get("post_url"))
+    if personal:
         return personal, "personal"
     return "", ""
 

@@ -1859,6 +1859,16 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/operational-settings":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.operational_settings import build_settings_api_payload
+
+                self._json(200, build_settings_api_payload())
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/live-freshness/dry-run":
             if not _require_operator(self):
                 return
@@ -2903,6 +2913,18 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(500, {"ok": False, "error": str(exc)})
             return
 
+        if path == "/api/operational-settings":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.operational_settings import save_operational_settings
+
+                settings = save_operational_settings(**{k: body.get(k) for k in body if k != "ok"})
+                self._json(200, {"ok": True, "settings": settings, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
         if path == "/api/listing-renewal/renew":
             user = _require_operator(self)
             if not user:
@@ -3855,9 +3877,17 @@ class HubHandler(BaseHTTPRequestHandler):
 
         if path == "/api/scrape":
             url = (body.get("url") or "").strip()
-            if not url:
-                self._json(400, {"error": "กรุณาใส่ URL"})
-                return
+            try:
+                from src.hub.source_reference import validate_url_for_action
+
+                ok, err = validate_url_for_action(url, action="scrape")
+                if not ok:
+                    self._json(400, {"error": err})
+                    return
+            except Exception:  # noqa: BLE001
+                if not url:
+                    self._json(400, {"error": "กรุณาใส่ URL"})
+                    return
             try:
                 pasted = (body.get("text") or body.get("pasted_text") or "").strip()
                 data = scrape_url(url, pasted_text=pasted)

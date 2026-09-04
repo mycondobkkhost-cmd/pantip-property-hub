@@ -344,24 +344,32 @@
 
     syncBackdrop();
 
-    backdrop.addEventListener("click", function () {
+    function closeFilterDrawer() {
       drawer.classList.add("hidden");
       toggle.classList.remove("active-filter-btn");
       toggle.textContent = "ตัวกรอง";
       syncBackdrop();
+    }
+
+    backdrop.addEventListener("click", function () {
+      closeFilterDrawer();
     });
 
     toggle.addEventListener("click", function () {
       setTimeout(syncBackdrop, 0);
     });
 
+    // Escape must close sheet + backdrop — otherwise backdrop blocks pagination/cards.
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      if (drawer.classList.contains("hidden")) return;
+      closeFilterDrawer();
+    });
+
     var apply = document.getElementById("apply-filter-btn");
     if (apply) apply.addEventListener("click", function () {
       setTimeout(function () {
-        drawer.classList.add("hidden");
-        toggle.classList.remove("active-filter-btn");
-        toggle.textContent = "ตัวกรอง";
-        syncBackdrop();
+        closeFilterDrawer();
       }, 0);
     });
   }

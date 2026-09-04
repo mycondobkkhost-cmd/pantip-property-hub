@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_3" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_4" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -3962,6 +3962,32 @@
       initData();
     }
 
+    function showCatalogLoadingState() {
+      var list = document.getElementById("property-rows");
+      if (list && !list.querySelector(".prop-sheet-row")) {
+        list.innerHTML =
+          '<div class="empty" id="catalog-loading-msg"><span>กำลังโหลดทรัพย์…</span>รอสักครู่ กำลังดึงข้อมูลจากเซิร์ฟเวอร์</div>';
+      }
+      var rc = document.getElementById("row-count");
+      if (rc && (rc.textContent === "—" || rc.textContent === "กำลังโหลด…" || !String(rc.textContent || "").trim())) {
+        rc.textContent = "กำลังโหลด…";
+      }
+      var pg = document.getElementById("prop-page-compact");
+      if (pg && (pg.textContent === "—" || !String(pg.textContent || "").trim())) {
+        pg.textContent = "…";
+      }
+    }
+
+    function showCatalogLoadError() {
+      var list = document.getElementById("property-rows");
+      if (list && !list.querySelector(".prop-sheet-row")) {
+        list.innerHTML =
+          '<div class="empty" id="catalog-load-error"><span>โหลดข้อมูลไม่สำเร็จ ลองใหม่อีกครั้ง</span>รีเฟรชหน้า หรือออกจากระบบแล้วเข้าใหม่</div>';
+      }
+      var rc = document.getElementById("row-count");
+      if (rc) rc.textContent = "โหลดไม่สำเร็จ";
+    }
+
     function showLogin() {
       appScreen.classList.add("hidden");
       loginScreen.classList.remove("hidden");
@@ -3979,7 +4005,9 @@
         var data = await res.json();
         if (data && data.ok && data.logged_in) {
           showApp(data.name || data.username || "ผู้ใช้");
-          await ensureHubCatalogLoaded();
+          showCatalogLoadingState();
+          var ok = await ensureHubCatalogLoaded();
+          if (!ok && !isInternalCatalogReady()) showCatalogLoadError();
           runHubInit(false);
         }
       } catch (e) { /* stay on login */ }
@@ -4018,7 +4046,9 @@
           return;
         }
         showApp(data.name || u);
-        await ensureHubCatalogLoaded();
+        showCatalogLoadingState();
+        var okCat = await ensureHubCatalogLoaded();
+        if (!okCat && !isInternalCatalogReady()) showCatalogLoadError();
         runHubInit(false);
       } catch (err) {
         loginError.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เปิด hub/เปิดดู.command";
@@ -15814,7 +15844,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_3"></script>
+  <script src="mobile-operations.js?v=z13_4"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {
@@ -15823,7 +15853,9 @@
         return;
       }
       // Authenticated Hub: catalog API only — do not download preview-data.js.
-      await ensureHubCatalogLoaded();
+      if (!isInternalCatalogReady()) showCatalogLoadingState();
+      var ok = await ensureHubCatalogLoaded();
+      if (!ok && !isInternalCatalogReady()) showCatalogLoadError();
       runHubInit(false);
     })();
   </script>

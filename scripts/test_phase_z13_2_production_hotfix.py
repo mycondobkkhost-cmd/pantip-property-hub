@@ -62,10 +62,12 @@ class PhaseZ132ProductionHotfix(unittest.TestCase):
         self.assertTrue(
             ("mobile-operations.css?v=z13_2" in html)
             or ("mobile-operations.css?v=z13_3" in html)
+            or ("mobile-operations.css?v=z13_4" in html)
         )
         self.assertTrue(
             ("mobile-operations.js?v=z13_2" in html)
             or ("mobile-operations.js?v=z13_3" in html)
+            or ("mobile-operations.js?v=z13_4" in html)
         )
 
     def test_07_lifecycle_sections_remain_separate(self) -> None:

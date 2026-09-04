@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ความสดประกาศ — Pantip Hub</title>
+  <style>
+    :root{--bg:#f6f7f9;--card:#fff;--text:#1a1a1a;--muted:#5c6570;--accent:#0b6e4f;--warn:#b45309;--border:#e2e8f0}
+    body{margin:0;font-family:"Noto Sans Thai",system-ui,sans-serif;background:var(--bg)}
+    .banner{background:#fff7ed;border-bottom:2px solid #fdba74;padding:10px;text-align:center;font-weight:600;color:#9a3412}
+    header{padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)}
+    main{max-width:900px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px}
+    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+    .tag{display:inline-block;padding:2px 8px;border-radius:6px;background:#e2e8f0;font-size:.75rem}
+    .tag.warn{background:#fef3c7;color:#92400e}
+    .tag.ok{background:#d1fae5;color:#065f46}
+    button{padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer}
+    nav a{margin-right:10px;color:var(--accent);font-size:.9rem}
+  </style>
+</head>
+<body>
+  <div class="banner">⚠️ TEST_ONLY — สอดคล้อง RealXtate verification (TTL เช่า 7 วัน)</div>
+  <header><h1>ความสดประกาศ</h1><nav><a href="/lease-opportunities/">โอกาสเช่า</a><a href="/lease-capture/">บันทึกสัญญา</a></nav></header>
+  <main>
+    <div class="card"><button id="seedBtn">โหลดข้อมูลทดสอบ</button>
+      <p class="muted" id="align"></p>
+      <table><thead><tr><th>Listing</th><th>สถานะ</th><th>ยืนยันล่าสุด</th><th>ครบกำหนด</th><th>แสดงผล</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+  </main>
+  <script>
+    const labels={VERIFIED_AVAILABLE:'ยืนยันแล้วว่ายังว่างวันนี้',VERIFICATION_DUE:'กำลังรอการยืนยันสถานะ',VERIFICATION_OVERDUE:'เกินกำหนดยืนยัน',STALE_UNCONFIRMED:'ยังไม่ยืนยันล่าสุด',OWNER_REPORTED_UNAVAILABLE:'เจ้าของแจ้งไม่ว่าง',RENTED:'เช่าแล้ว'};
+    async function api(p,o){const r=await fetch(p,{credentials:'same-origin',...o});return r.json()}
+    function tag(s){const c=s.includes('STALE')||s.includes('OVERDUE')?'warn':(s==='VERIFIED_AVAILABLE'?'ok':'');return `<span class="tag ${c}">${s}</span>`}
+    async function load(){
+      const d=await api('/api/listing-freshness');
+      document.getElementById('align').textContent=`RealXtate map: rent TTL ${d.realxtate_alignment.ttl_days_rent} วัน`;
+      document.getElementById('rows').innerHTML=(d.items||[]).map(x=>`<tr><td>${x.listing_id}</td><td>${tag(x.availability_state)}</td><td>${x.last_verified_at||'-'}</td><td>${x.verification_due_at||'-'}</td><td class="muted">${labels[x.availability_state]||''}</td></tr>`).join('');
+    }
+    async function boot(){
+      await fetch('/api/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'angkarn1996',password:'localdev'})});
+      await load();
+    }
+    document.getElementById('seedBtn').onclick=async()=>{await api('/api/listing-freshness/seed-fixtures',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});await load();};
+    boot();
+  </script>
+</body>
+</html>

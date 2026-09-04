@@ -928,6 +928,13 @@ def _is_lease_opportunity_pilot_mode() -> bool:
     return flag in ("1", "true", "yes", "on")
 
 
+def _is_z6_pilot_mode() -> bool:
+    import os
+
+    flag = (os.environ.get("Z6_PILOT_MODE") or "").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
 def _load_hub_users() -> dict:
     """Login users from HUB_USERS_JSON only (never embed passwords in HTML).
 
@@ -938,7 +945,9 @@ def _load_hub_users() -> dict:
 
     # Owner-review pilot launcher: .env may define production HUB_USERS_JSON,
     # but pilot must use local demo login only (no secrets in launcher script).
-    if _is_explicit_local_dev() and (_is_master_review_pilot_mode() or _is_lease_opportunity_pilot_mode()):
+    if _is_explicit_local_dev() and (
+        _is_master_review_pilot_mode() or _is_lease_opportunity_pilot_mode() or _is_z6_pilot_mode()
+    ):
         return _local_demo_hub_users()
 
     raw = (os.environ.get("HUB_USERS_JSON") or "").strip()
@@ -1736,6 +1745,49 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/lease-evidence/recovery":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.lease_evidence import build_recovery_dry_run
+
+                self._json(200, {"ok": True, **build_recovery_dry_run()})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/lease-evidence/inventory":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.lease_evidence import build_source_inventory
+
+                self._json(200, {"ok": True, "sources": build_source_inventory()})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/lease-records":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.lease_record import build_capture_contract, list_lease_records
+
+                self._json(
+                    200,
+                    {"ok": True, "contract": build_capture_contract(), "items": list_lease_records()},
+                )
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/listing-freshness":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.listing_freshness import build_api_payload
+
+                self._json(200, build_api_payload())
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/master-review/export":
             if not _require_operator(self):
                 return
@@ -2402,6 +2454,10 @@ class HubHandler(BaseHTTPRequestHandler):
             path = "/master-definition-review/index.html"
         if path in {"/lease-opportunities", "/lease-opportunities/"}:
             path = "/lease-opportunities/index.html"
+        if path in {"/lease-capture", "/lease-capture/"}:
+            path = "/lease-capture/index.html"
+        if path in {"/listing-freshness", "/listing-freshness/"}:
+            path = "/listing-freshness/index.html"
         if path == "/":
             path = "/preview.html"
         # Catalog JS/meta live on the data volume (not ephemeral hub/).
@@ -2571,6 +2627,39 @@ class HubHandler(BaseHTTPRequestHandler):
             elif not self._session_user():
                 self._json(401, {"ok": False, "error": "กรุณาเข้าสู่ระบบ"})
                 return
+
+        if path == "/api/lease-records/create":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.lease_record import create_lease_record
+
+                rec = create_lease_record(
+                    property_id=str(body.get("property_id") or ""),
+                    listing_cycle_id=str(body.get("listing_cycle_id") or ""),
+                    contract_start=str(body.get("contract_start") or ""),
+                    contract_end=str(body.get("contract_end") or ""),
+                    lease_term_months=int(body.get("lease_term_months") or 0),
+                    source_type=str(body.get("source_type") or "operator_entry"),
+                )
+                self._json(200, {"ok": True, "record": rec, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/listing-freshness/seed-fixtures":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.listing_freshness import seed_test_fixtures
+
+                items = seed_test_fixtures()
+                self._json(200, {"ok": True, "count": len(items), "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
 
         if path == "/api/lease-opportunities/seed-fixtures":
             user = _require_operator(self)

@@ -11,6 +11,8 @@ from typing import Any
 REALXTATE_REPO = Path("/Users/angkarn1996/Documents/Codex/RealXtate-Web-MVP")
 PANTIP_REPO = Path(__file__).resolve().parent.parent.parent
 ARTIFACT_DIR = Path("/tmp/pantip-phase-z5-sync")
+Z6_ARTIFACT_DIR = Path("/tmp/pantip-phase-z6")
+Z5_REALXTATE_HEAD = "cb7f4725598b349fc0cbd003190e757c9551136b"
 
 CAPABILITY_STATUSES = frozenset(
     {"IMPLEMENTED", "FOUNDATION_ONLY", "DESIGNED_ONLY", "NOT_FOUND", "DEFERRED"}
@@ -311,6 +313,84 @@ def write_sync_artifacts() -> dict[str, str]:
     diff = build_cross_product_capability_diff()
     state_path = ARTIFACT_DIR / "realxtate-current-state.json"
     diff_path = ARTIFACT_DIR / "cross-product-capability-diff.json"
+    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    diff_path.write_text(json.dumps(diff, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"state_path": str(state_path), "diff_path": str(diff_path)}
+
+
+def build_realxtate_delta_since_z5() -> dict[str, Any]:
+    head = _git(REALXTATE_REPO, "rev-parse", "HEAD")
+    log = _git(REALXTATE_REPO, "log", f"{Z5_REALXTATE_HEAD}..HEAD", "--oneline")
+    commits = [ln for ln in log.splitlines() if ln.strip()] if log else []
+    return {
+        "z5_observed_head": Z5_REALXTATE_HEAD,
+        "current_head": head,
+        "head_changed": head != Z5_REALXTATE_HEAD,
+        "commits_after_z5": commits,
+        "REALXTATE_NEW_SINCE_Z5": commits,
+        "pantip_relevance": "NO_MATERIAL_CHANGE" if not commits else "REVIEW_REQUIRED",
+    }
+
+
+def build_cross_product_capability_diff_v2() -> dict[str, Any]:
+    rx_caps = discover_realxtate_capabilities()
+    rows = [
+        _diff_row_v2("Canonical Project Master", rx_caps, "canonical_project_master", "IMPLEMENTED", "SHARED_CANONICAL_MASTER", "NO_CHANGE", "promotion blocked"),
+        _diff_row_v2("Property identity", rx_caps, "canonical_listing_vs_source_record", "FOUNDATION_ONLY", "PROPERTY_IDENTITY_CONTRACT", "Z6 lease_record", "shared"),
+        _diff_row_v2("Canonical listing", rx_caps, "canonical_listing_vs_source_record", "FOUNDATION_ONLY", "LISTING_IDENTITY_CONTRACT", "NO_CHANGE", "shared"),
+        _diff_row_v2("Source record/provenance", rx_caps, "source_provenance", "FOUNDATION_ONLY", "SOURCE_PROVENANCE_CONTRACT v0.1", "NO_CHANGE", "import later"),
+        _diff_row_v2("Listing cycle", rx_caps, "lease_lifecycle", "FOUNDATION_ONLY", "LISTING_CYCLE_CONTRACT", "Z6 lease_record", "shared"),
+        _diff_row_v2("Availability/freshness", rx_caps, "listing_availability_freshness", "FOUNDATION_ONLY", "LISTING_FRESHNESS_CONTRACT", "Z6 freshness MVP", "align TTL"),
+        _diff_row_v2("Renewal", rx_caps, "listing_renewal", "NOT_FOUND", "LISTING_FRESHNESS_CONTRACT", "contract only", "RealXtate future"),
+        _diff_row_v2("Bump", rx_caps, "listing_renewal", "NOT_FOUND", "separate event", "contract only", "product-specific"),
+        _diff_row_v2("Notification", rx_caps, "notifications", "FOUNDATION_ONLY", "NOTIFICATION_EVENT_CONTRACT", "Z6 extend", "shared taxonomy"),
+        _diff_row_v2("Viewing request", rx_caps, "viewing_requests", "FOUNDATION_ONLY", "VIEWING_REQUEST_CONTRACT", "NO_CHANGE", "no Pantip impl"),
+        _diff_row_v2("Customer-profile consent", rx_caps, "privacy_boundary", "IMPLEMENTED", "excluded from master", "NO_CHANGE", "shared"),
+        _diff_row_v2("Deal lifecycle", rx_caps, "lease_lifecycle", "FOUNDATION_ONLY", "DEAL_LIFECYCLE_CONTRACT", "Z6 capture point", "workflow"),
+        _diff_row_v2("Lease lifecycle", rx_caps, "lease_lifecycle", "FOUNDATION_ONLY", "LEASE_RECORD_CONTRACT v0.1", "Z6 lease_record", "operator"),
+        _diff_row_v2("Near vacancy", rx_caps, "lease_lifecycle", "FOUNDATION_ONLY", "LEASE_OPPORTUNITY_CONTRACT", "Z6 evidence dry-run", "7 strong"),
+        _diff_row_v2("Listing reactivation", rx_caps, "lease_lifecycle", "NOT_FOUND", "roadmap", "deferred", "future"),
+    ]
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "version": "v2",
+        "realxtate_head": _git(REALXTATE_REPO, "rev-parse", "HEAD"),
+        "pantip_head": _git(PANTIP_REPO, "rev-parse", "HEAD"),
+        "delta_since_z5": build_realxtate_delta_since_z5(),
+        "rows": rows,
+    }
+
+
+def _diff_row_v2(
+    capability: str,
+    rx_caps: dict[str, dict[str, Any]],
+    rx_key: str,
+    pantip_status: str,
+    shared_contract: str,
+    z6_action: str,
+    future_action: str,
+) -> dict[str, str]:
+    rx = rx_caps.get(rx_key, {})
+    rx_status = rx.get("status", "NOT_FOUND")
+    return {
+        "capability": capability,
+        "realxtate_latest": rx_status,
+        "pantip_latest": pantip_status,
+        "shared_contract_state": shared_contract,
+        "gap": _gap_label(rx_status, pantip_status),
+        "z6_action": z6_action,
+        "future_action": future_action,
+    }
+
+
+def write_z6_artifacts() -> dict[str, str]:
+    Z6_ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    state = build_realxtate_current_state()
+    state["delta_since_z5"] = build_realxtate_delta_since_z5()
+    state["z6_note"] = "HEAD unchanged from Z5 — no new RealXtate commits"
+    diff = build_cross_product_capability_diff_v2()
+    state_path = Z6_ARTIFACT_DIR / "realxtate-latest-state.json"
+    diff_path = Z6_ARTIFACT_DIR / "cross-product-capability-diff-v2.json"
     state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
     diff_path.write_text(json.dumps(diff, ensure_ascii=False, indent=2), encoding="utf-8")
     return {"state_path": str(state_path), "diff_path": str(diff_path)}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>บันทึกข้อมูลสัญญาเช่า — Pantip Hub</title>
+  <style>
+    :root{--bg:#f6f7f9;--card:#fff;--text:#1a1a1a;--muted:#5c6570;--accent:#0b6e4f;--border:#e2e8f0}
+    body{margin:0;font-family:"Noto Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--text)}
+    .banner{background:#fff7ed;border-bottom:2px solid #fdba74;padding:10px;text-align:center;font-weight:600;color:#9a3412}
+    main{max-width:520px;margin:20px auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+    label{display:block;margin:8px 0 4px;font-size:.9rem}
+    input,button{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:1rem}
+    button{background:var(--accent);color:#fff;border:none;cursor:pointer;margin-top:12px}
+    .muted{color:var(--muted);font-size:.85rem}
+    nav a{margin-right:10px;color:var(--accent)}
+  </style>
+</head>
+<body>
+  <div class="banner">⚠️ TEST_ONLY — ไม่เขียน Production</div>
+  <main>
+    <nav class="muted"><a href="/lease-opportunities/">โอกาสเช่า</a><a href="/listing-freshness/">ความสดประกาศ</a></nav>
+    <div class="card"><h1>บันทึกข้อมูลสัญญาเช่า</h1><p class="muted">กรอกเมื่อเคสถึงสถานะ เริ่มสัญญา — ไม่บังคับเดา</p>
+      <label>Property ID (ทดสอบ)</label><input id="property_id" value="test_prop_capture" />
+      <label>วันเริ่มสัญญา</label><input id="contract_start" type="date" />
+      <label>วันสิ้นสุดสัญญา</label><input id="contract_end" type="date" />
+      <label>ระยะเวลา (เดือน) — ถ้ามี</label><input id="lease_term_months" type="number" min="0" />
+      <button id="saveBtn">บันทึก (Local)</button>
+      <p id="msg" class="muted"></p>
+    </div>
+    <div class="card"><h2>รายการทดสอบ</h2><ul id="list"></ul></div>
+  </main>
+  <script>
+    async function api(p,o){const r=await fetch(p,{credentials:'same-origin',...o});if(r.status===401)location.reload();return r.json()}
+    async function boot(){
+      await fetch('/api/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'angkarn1996',password:'localdev'})});
+      const d=await api('/api/lease-records');
+      document.getElementById('list').innerHTML=(d.items||[]).map(x=>`<li>${x.lease_record_id} — ${x.lease_status} (${x.contract_start||'?'} → ${x.contract_end||'?'})</li>`).join('')||'<li class="muted">ยังไม่มี</li>';
+    }
+    document.getElementById('saveBtn').onclick=async()=>{
+      const body={property_id:property_id.value.trim(),contract_start:contract_start.value,contract_end:contract_end.value,lease_term_months:parseInt(lease_term_months.value||'0',10)};
+      const res=await api('/api/lease-records/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      document.getElementById('msg').textContent=res.ok?`บันทึกแล้ว: ${res.record.lease_status}`:(res.error||'ผิดพลาด');
+      boot();
+    };
+    boot();
+  </script>
+</body>
+</html>

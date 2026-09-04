@@ -46,3 +46,10 @@ RealXtate inspection confirms:
 - Notifications / lease / renewal: **DEFERRED or NOT_FOUND** on RealXtate — Pantip builds operator lease opportunity first
 
 See `docs/SHARED-OPERATIONAL-CAPABILITY-CONTRACT-v0.1.md` and `docs/PHASE-Z5-REALXTATE-PANTIP-SYNC.md`.
+
+## Z6 alignment (2026-09-04)
+
+- RealXtate HEAD unchanged (`cb7f472`) — shared contracts **NO_CHANGE_REQUIRED**
+- Pantip: lease evidence recovery PARTIAL (7 strong); วันที่ว่าง = availability not lease_end
+- Pantip listing freshness MVP aligned to RealXtate verification TTL (rent 7d)
+- Future lease capture via LEASE-RECORD-CONTRACT v0.1 at CONTRACT_STARTED

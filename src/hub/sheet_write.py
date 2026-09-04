@@ -19,9 +19,29 @@ from pathlib import Path
 from src.hub.codes import is_hub_owned
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-HUB_EXPORT_CSV = BASE_DIR / "data" / "hub_sheet_export.csv"
-OVERVIEW_EXPORT_CSV = BASE_DIR / "data" / "hub_overview_export.csv"
-PROPERTIES_JSON = BASE_DIR / "data" / "properties.json"
+
+
+def _e2e_data_root() -> Path | None:
+    raw = (os.environ.get("PANTIP_E2E_DATA_ROOT") or "").strip()
+    return Path(raw) if raw else None
+
+
+def _data_dir() -> Path:
+    raw = (os.environ.get("DATA_DIR") or "").strip()
+    return Path(raw) if raw else BASE_DIR / "data"
+
+
+def hub_export_csv_path() -> Path:
+    """Resolved Hub tab CSV export path (isolated E2E root when configured)."""
+    root = _e2e_data_root()
+    if root:
+        return root / "hub_sheet_export.csv"
+    return _data_dir() / "hub_sheet_export.csv"
+
+
+HUB_EXPORT_CSV = hub_export_csv_path()
+OVERVIEW_EXPORT_CSV = _data_dir() / "hub_overview_export.csv"
+PROPERTIES_JSON = _data_dir() / "properties.json"
 
 try:
     from src.hub.env_load import load_hub_env
@@ -601,13 +621,14 @@ def write_hub_export_csv(
 
     props = properties if properties is not None else hub_properties_from_disk()
     synced = datetime.now().strftime("%d/%m/%Y %H:%M")
-    HUB_EXPORT_CSV.parent.mkdir(parents=True, exist_ok=True)
-    with HUB_EXPORT_CSV.open("w", encoding="utf-8-sig", newline="") as f:
+    target = hub_export_csv_path()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(HUB_HEADERS)
         for p in props:
             w.writerow(prop_to_hub_row(p, synced, projects_by_id=projects_by_id))
-    return HUB_EXPORT_CSV
+    return target
 
 
 def write_overview_export_csv(

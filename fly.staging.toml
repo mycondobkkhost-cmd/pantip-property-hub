@@ -1,0 +1,50 @@
+# Property Hub — isolated staging (synthetic data only). NOT production.
+# Deploy: fly deploy --config fly.staging.toml --ha=false
+app = "property-hub-staging"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "8080"
+  PYTHONUNBUFFERED = "1"
+  HUB_ENV = "staging"
+  HUB_STARTUP_SHEET_SYNC = "0"
+  HUB_ALLOW_SHEET_PULL = "0"
+  HUB_AUTO_SYNC_TO_SHEET = "0"
+  HUB_QUEUE_SHEET_SYNC = "0"
+  HUB_FOCUS_SHEET_SYNC = "0"
+  HUB_CUSTOMERS_SHEET_SYNC = "0"
+  HUB_TENANTS_SHEET_SYNC = "0"
+  HUB_ZONES_SHEET_SYNC = "0"
+  HUB_TRANSITS_SHEET_SYNC = "0"
+  LINE_MENU_WEBHOOK = "0"
+  DATA_DIR = "/app/data"
+  DATA_SEED_DIR = "/app/data_seed"
+
+[[mounts]]
+  source = "hub_data_staging"
+  destination = "/app/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "120s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

@@ -31,8 +31,11 @@ def load_hub_env(*, force: bool = False) -> bool:
         return False
 
     on_render = bool((os.environ.get("RENDER") or "").strip())
+    # Isolated E2E: keep process env (users/port/data root) authoritative.
+    e2e = bool((os.environ.get("PANTIP_E2E_DATA_ROOT") or "").strip())
     # Local: override stale shell/launchd exports so `.env` is authoritative.
     # Render: keep platform env; only fill missing keys from a bundled `.env`.
-    load_dotenv(path, override=not on_render)
+    # E2E: never override injected test env with owner `.env`.
+    load_dotenv(path, override=(not on_render) and (not e2e))
     _LOADED = True
     return True

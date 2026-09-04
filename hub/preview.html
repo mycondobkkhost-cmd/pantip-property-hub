@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_2" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_3" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -3837,48 +3837,127 @@
       try { sessionStorage.setItem("ptp_display_name", name || ""); } catch (e) { /* ignore */ }
     }
 
-    async function loadHubInternalCatalog() {
-      if (window.location.protocol === "file:") return false;
-      try {
-        var res = await fetch("/api/hub/catalog", { credentials: "same-origin", cache: "no-store" });
-        if (!res.ok) return false;
-        var data = await res.json();
-        if (!data || !data.ok) return false;
-        window.PTP_DATA = data;
-        ensureProjectMap();
-        return (window.PTP_DATA.properties || []).length > 0;
-      } catch (e) {
-        return false;
-      }
+    var __ptpHubBootDone = false;
+    var __ptpHubCatalogPromise = null;
+    var __ptpHubInternalCatalogReady = false;
+    var __ptpHubSidePanelsLoaded = false;
+    var __ptpHubPostInitTimers = false;
+    var __ptpInitDataCount = 0;
+
+    function isInternalCatalogReady() {
+      return !!(
+        window.PTP_DATA &&
+        window.PTP_DATA.catalog_scope === "internal" &&
+        window.PTP_DATA.ok !== false &&
+        Array.isArray(window.PTP_DATA.properties)
+      );
     }
 
-    var __ptpHubBootDone = false;
+    function resetHubCatalogState() {
+      __ptpHubCatalogPromise = null;
+      __ptpHubInternalCatalogReady = false;
+      __ptpHubBootDone = false;
+      __ptpHubSidePanelsLoaded = false;
+      __ptpHubPostInitTimers = false;
+      window.__ptpQueueFetched = false;
+      window.__ptpFocusFetched = false;
+      window.__ptpQueueInflight = null;
+      window.__ptpFocusInflight = null;
+    }
+
+    function acceptInternalCatalogPayload(data) {
+      if (!data || data.ok === false) return false;
+      if (!Array.isArray(data.properties)) return false;
+      if (data.catalog_scope && data.catalog_scope !== "internal") return false;
+      if (!data.catalog_scope) data.catalog_scope = "internal";
+      window.PTP_DATA = data;
+      ensureProjectMap();
+      __ptpHubInternalCatalogReady = true;
+      return true;
+    }
+
+    async function loadHubInternalCatalog() {
+      if (window.location.protocol === "file:") return false;
+      if (isInternalCatalogReady()) return true;
+      if (__ptpHubCatalogPromise) return __ptpHubCatalogPromise;
+
+      __ptpHubCatalogPromise = (async function () {
+        try {
+          var res = await fetch("/api/hub/catalog", { credentials: "same-origin", cache: "no-store" });
+          if (!res.ok) throw new Error("catalog_http_" + res.status);
+          var data = await res.json();
+          if (!acceptInternalCatalogPayload(data)) throw new Error("catalog_invalid");
+          return true;
+        } catch (e) {
+          __ptpHubCatalogPromise = null;
+          __ptpHubInternalCatalogReady = false;
+          return false;
+        }
+      })();
+      return __ptpHubCatalogPromise;
+    }
 
     async function ensureHubCatalogLoaded() {
-      if (window.location.protocol === "file:") return !!(window.PTP_DATA && (window.PTP_DATA.properties || []).length);
-      var hasProps = window.PTP_DATA && (window.PTP_DATA.properties || []).length;
-      if (hasProps && window.PTP_DATA.catalog_scope === "internal") return true;
+      if (window.location.protocol === "file:") {
+        if (window.PTP_DATA && Array.isArray(window.PTP_DATA.properties)) return true;
+        try {
+          await loadPreviewDataScriptOnly();
+        } catch (e) { /* ignore */ }
+        return !!(window.PTP_DATA && Array.isArray(window.PTP_DATA.properties));
+      }
+      if (isInternalCatalogReady()) return true;
       try {
         var meRes = await fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" });
         if (meRes.ok) {
           var me = await meRes.json();
           if (me && me.ok && me.logged_in) {
-            var ok = await loadHubInternalCatalog();
-            if (ok) return true;
+            return !!(await loadHubInternalCatalog());
           }
         }
-      } catch (e) { /* fall through */ }
-      if (!hasProps && typeof reloadPreviewData === "function") {
-        try {
-          await reloadPreviewData();
-          return !!(window.PTP_DATA && (window.PTP_DATA.properties || []).length);
-        } catch (e2) { /* ignore */ }
-      }
-      return !!(window.PTP_DATA && (window.PTP_DATA.properties || []).length);
+      } catch (e) { /* not logged in */ }
+      // Authenticated-web path must not fall back to stale preview-data.js.
+      return false;
+    }
+
+    function refreshHubCatalogUI() {
+      if (!window.PTP_DATA) return;
+      ensureProjectMap();
+      invalidateSearchCaches();
+      updatePageSize();
+      var s = window.PTP_DATA.stats || {};
+      var el;
+      el = document.getElementById("stat-projects"); if (el) el.textContent = s.projects;
+      el = document.getElementById("stat-props"); if (el) el.textContent = s.properties_total;
+      el = document.getElementById("stat-active"); if (el) el.textContent = s.properties_active;
+      el = document.getElementById("stat-archived"); if (el) el.textContent = s.properties_archived;
+      el = document.getElementById("stat-dup"); if (el) el.textContent = s.properties_flagged_duplicate || 0;
+      var props = window.PTP_DATA.properties || [];
+      var rentCount = props.filter(function (p) { return hasPrice(p.rent_price); }).length;
+      var saleCount = props.filter(function (p) { return hasPrice(p.sale_price); }).length;
+      el = document.getElementById("stat-rent"); if (el) el.textContent = rentCount;
+      el = document.getElementById("stat-sale"); if (el) el.textContent = saleCount;
+      updateDataFreshnessLabel();
+      buildFilterOptions();
+      buildFuPickers(false);
+      applyFilter();
+      renderProjects();
+      initAddProjectPicker();
+      initLocationTagFields();
+    }
+
+    function loadHubSidePanelsOnce() {
+      if (__ptpHubSidePanelsLoaded) return;
+      __ptpHubSidePanelsLoaded = true;
+      loadQueue();
+      loadFocus();
     }
 
     function runHubInit(force) {
-      if (__ptpHubBootDone && !force) return;
+      if (__ptpHubBootDone && !force) {
+        if (window.PTP_DATA) refreshHubCatalogUI();
+        return;
+      }
+      if (!window.PTP_DATA) return;
       __ptpHubBootDone = true;
       initData();
     }
@@ -3901,7 +3980,7 @@
         if (data && data.ok && data.logged_in) {
           showApp(data.name || data.username || "ผู้ใช้");
           await ensureHubCatalogLoaded();
-          runHubInit(true);
+          runHubInit(false);
         }
       } catch (e) { /* stay on login */ }
     }
@@ -3940,7 +4019,7 @@
         }
         showApp(data.name || u);
         await ensureHubCatalogLoaded();
-        runHubInit(true);
+        runHubInit(false);
       } catch (err) {
         loginError.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เปิด hub/เปิดดู.command";
         loginError.classList.remove("hidden");
@@ -3956,6 +4035,8 @@
           body: "{}",
         });
       } catch (e) { /* ignore */ }
+      resetHubCatalogState();
+      try { window.PTP_DATA = null; } catch (e2) { /* ignore */ }
       showLogin();
     });
 
@@ -5737,44 +5818,27 @@
     }
 
     function initData() {
+      __ptpInitDataCount += 1;
       if (!window.PTP_DATA) {
         document.getElementById("property-rows").innerHTML =
-          '<div class="empty"><span>ไม่พบ preview-data.js</span>รัน: python3 scripts/build_master.py</div>';
+          '<div class="empty"><span>ยังไม่มีข้อมูลทรัพย์</span>เข้าสู่ระบบเพื่อโหลดแคตตาล็อก หรือเปิดผ่านเซิร์ฟเวอร์</div>';
         return;
       }
-      ensureProjectMap();
       initLinkFields();
-      invalidateSearchCaches();
-      updatePageSize();
-      var s = window.PTP_DATA.stats;
-      document.getElementById("stat-projects").textContent = s.projects;
-      document.getElementById("stat-props").textContent = s.properties_total;
-      document.getElementById("stat-active").textContent = s.properties_active;
-      document.getElementById("stat-archived").textContent = s.properties_archived;
-      document.getElementById("stat-dup").textContent = s.properties_flagged_duplicate || 0;
-      var props = window.PTP_DATA.properties || [];
-      var rentCount = props.filter(function (p) { return hasPrice(p.rent_price); }).length;
-      var saleCount = props.filter(function (p) { return hasPrice(p.sale_price); }).length;
-      document.getElementById("stat-rent").textContent = rentCount;
-      document.getElementById("stat-sale").textContent = saleCount;
-      updateDataFreshnessLabel();
-      buildFilterOptions();
-      buildFuPickers(false);
-      applyFilter();
-      renderProjects();
-      initAddProjectPicker();
-      initLocationTagFields();
-      loadQueue();
-      loadFocus();
-      // สร้าง cache ค้นหาหลังวาดหน้าแรก — กันค้างตอนเปิดแอป
-      setTimeout(function () {
-        try { ensureSearchCaches(); } catch (e) { console.warn(e); }
-      }, 50);
-      setTimeout(checkDataFreshness, 800);
-      // Restore view/scroll after external FB navigation (Back / full reload)
-      setTimeout(function () {
-        try { restoreHubNavState({}); } catch (e) { /* ignore */ }
-      }, 120);
+      refreshHubCatalogUI();
+      loadHubSidePanelsOnce();
+      if (!__ptpHubPostInitTimers) {
+        __ptpHubPostInitTimers = true;
+        // สร้าง cache ค้นหาหลังวาดหน้าแรก — กันค้างตอนเปิดแอป
+        setTimeout(function () {
+          try { ensureSearchCaches(); } catch (e) { console.warn(e); }
+        }, 50);
+        setTimeout(checkDataFreshness, 800);
+        // Restore view/scroll after external FB navigation (Back / full reload)
+        setTimeout(function () {
+          try { restoreHubNavState({}); } catch (e) { /* ignore */ }
+        }, 120);
+      }
     }
 
     function formatGeneratedAt(iso) {
@@ -5862,7 +5926,6 @@
         window.__ptpAutoReloading = true;
         try {
           await reloadPreviewData();
-          if (typeof loadQueue === "function") await loadQueue();
           hideStaleBanner();
           if (typeof updateDataFreshnessLabel === "function") updateDataFreshnessLabel();
         } catch (e) {
@@ -7562,25 +7625,33 @@
     var FOCUS_ID_SET = {};
 
     async function loadFocus() {
-      try {
-        var res = await fetch(API_BASE + "/api/focus", { cache: "no-store", credentials: "same-origin" });
-        var data = await res.json();
-        focusItems = data.items || [];
-        FOCUS_ID_SET = {};
-        (data.ids || focusItems.map(function (x) { return x.id; })).forEach(function (id) {
-          if (id) FOCUS_ID_SET[id] = true;
-        });
-        updateFocusBadge(data.stats || { total: focusItems.length });
-        if (activeView === "focus") renderFocusRows();
-      } catch (e) {
-        console.warn("loadFocus", e);
-        if (activeView === "focus") {
-          var board = document.getElementById("focus-rows");
-          if (board) {
-            board.innerHTML = '<div class="empty"><span>โหลด Focus ไม่ได้</span>เช็คเซิร์ฟเวอร์ Hub</div>';
+      if (window.__ptpFocusInflight) return window.__ptpFocusInflight;
+      window.__ptpFocusInflight = (async function () {
+        try {
+          var res = await fetch(API_BASE + "/api/focus", { cache: "no-store", credentials: "same-origin" });
+          if (!res.ok) return;
+          var data = await res.json();
+          focusItems = data.items || [];
+          FOCUS_ID_SET = {};
+          (data.ids || focusItems.map(function (x) { return x.id; })).forEach(function (id) {
+            if (id) FOCUS_ID_SET[id] = true;
+          });
+          updateFocusBadge(data.stats || { total: focusItems.length });
+          window.__ptpFocusFetched = true;
+          if (activeView === "focus") renderFocusRows();
+        } catch (e) {
+          console.warn("loadFocus", e);
+          if (activeView === "focus") {
+            var board = document.getElementById("focus-rows");
+            if (board) {
+              board.innerHTML = '<div class="empty"><span>โหลด Focus ไม่ได้</span>เช็คเซิร์ฟเวอร์ Hub</div>';
+            }
           }
+        } finally {
+          window.__ptpFocusInflight = null;
         }
-      }
+      })();
+      return window.__ptpFocusInflight;
     }
 
     async function addFocusByCode(rawCodes) {
@@ -8577,7 +8648,12 @@
       if (infoCards) infoCards.classList.add("hidden");
       if (view === "queue") {
         initQueueQueuedAtDefault();
-        loadQueue();
+        if (window.__ptpQueueFetched) {
+          updateQueuePanelMeta();
+          renderQueue();
+        } else {
+          loadQueue();
+        }
         updateQueuePanelMeta();
       } else if (typeof updateDataFreshnessLabel === "function") {
         updateDataFreshnessLabel();
@@ -11959,31 +12035,43 @@
     }
 
     async function loadQueue(forceSync) {
-      try {
-        var showDone = document.getElementById("queue-show-done").checked;
-        var qs = [];
-        if (showDone) qs.push("done=1");
-        if (forceSync) qs.push("sync=1");
-        var res = await fetch(API_BASE + "/api/queue" + (qs.length ? ("?" + qs.join("&")) : ""), {
-          credentials: "same-origin",
-          cache: "no-store",
-        });
-        var data = await res.json();
-        if (!res.ok) throw new Error(data.error || "โหลดคิวไม่ได้");
-        queueItems = data.items || [];
-        updateQueueBadge(data.stats || {});
-        updateQueuePanelMeta();
-        if (activeView === "queue") renderQueue();
-      } catch (e) {
-        if (activeView === "queue") {
-          var tbody = document.getElementById("queue-rows");
-          if (tbody) {
-            tbody.innerHTML =
-              '<tr><td colspan="8"><div class="q-empty-msg"><strong>โหลดไม่สำเร็จ</strong><br/>' +
-              esc(e.message) + "</div></td></tr>";
+      if (!forceSync && window.__ptpQueueInflight) return window.__ptpQueueInflight;
+      var run = (async function () {
+        try {
+          var showDoneEl = document.getElementById("queue-show-done");
+          var showDone = showDoneEl ? !!showDoneEl.checked : false;
+          var qs = [];
+          if (showDone) qs.push("done=1");
+          if (forceSync) qs.push("sync=1");
+          var res = await fetch(API_BASE + "/api/queue" + (qs.length ? ("?" + qs.join("&")) : ""), {
+            credentials: "same-origin",
+            cache: "no-store",
+          });
+          var data = await res.json();
+          if (!res.ok) throw new Error(data.error || "โหลดคิวไม่ได้");
+          queueItems = data.items || [];
+          updateQueueBadge(data.stats || {});
+          updateQueuePanelMeta();
+          window.__ptpQueueFetched = true;
+          if (activeView === "queue") renderQueue();
+        } catch (e) {
+          if (activeView === "queue") {
+            var tbody = document.getElementById("queue-rows");
+            if (tbody) {
+              tbody.innerHTML =
+                '<tr><td colspan="8"><div class="q-empty-msg"><strong>โหลดไม่สำเร็จ</strong><br/>' +
+                esc(e.message) + "</div></td></tr>";
+            }
           }
         }
+      })();
+      if (!forceSync) {
+        window.__ptpQueueInflight = run.finally(function () {
+          window.__ptpQueueInflight = null;
+        });
+        return window.__ptpQueueInflight;
       }
+      return run;
     }
 
     function initQueueProjectPicker() {
@@ -12114,8 +12202,8 @@
         }
       }
       if (activeFocusTab === "team") {
-        loadFocus();
-        renderFocusRows();
+        if (window.__ptpFocusFetched) renderFocusRows();
+        else loadFocus();
       } else if (activeFocusTab === "publish") {
         loadAutoFollow("publish");
       } else {
@@ -13966,7 +14054,34 @@
       btn.textContent = editingPropertyId ? "บันทึกการแก้ไข" : "ดำเนินการต่อ — บันทึกทรัพย์";
     }
 
+    function loadPreviewDataScriptOnly() {
+      return new Promise(function (resolve, reject) {
+        var bust = Date.now();
+        var s = document.createElement("script");
+        s.src = "preview-data.js?v=" + bust;
+        s.onload = function () { resolve(); };
+        s.onerror = function () {
+          reject(new Error("โหลด preview-data.js ไม่สำเร็จ"));
+        };
+        document.body.appendChild(s);
+      });
+    }
+
+    async function reloadInternalCatalogAndRefresh() {
+      __ptpHubCatalogPromise = null;
+      __ptpHubInternalCatalogReady = false;
+      var ok = await loadHubInternalCatalog();
+      if (!ok) throw new Error("โหลดแคตตาล็อกไม่สำเร็จ — รีเฟรชหน้าเว็บแล้วลองใหม่");
+      refreshHubCatalogUI();
+      hideStaleBanner();
+    }
+
     function reloadPreviewData() {
+      // Authenticated Hub: refresh from /api/hub/catalog (not 8MB preview-data.js).
+      // file:// and intentional fallback keep the script loader.
+      if (window.location.protocol !== "file:") {
+        return reloadInternalCatalogAndRefresh();
+      }
       return new Promise(function (resolve, reject) {
         var bust = Date.now();
         fetch("/api/data-meta", { cache: "no-store", credentials: "same-origin" })
@@ -13978,7 +14093,8 @@
             s.src = "preview-data.js?v=" + bust;
             s.onload = function () {
               try {
-                initData();
+                if (__ptpHubBootDone) refreshHubCatalogUI();
+                else runHubInit(false);
                 hideStaleBanner();
                 resolve();
               } catch (err) {
@@ -15584,9 +15700,8 @@
     fillAddTypeSelect("");
     fillAddBedsSelect("");
     checkServer();
-    loadQueue();
-    loadFollowups();
-    loadFocus();
+    // queue/focus/followups: loaded once after authenticated catalog via loadHubSidePanelsOnce()
+    // Do not eager-fetch here (causes pre-login 401s + duplicate boot requests).
     loadAllAutoFollowCaches();
     loadTenants();
 
@@ -15699,13 +15814,16 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_2"></script>
-  <script src="preview-data.js"></script>
+  <script src="mobile-operations.js?v=z13_3"></script>
   <script>
     (async function bootHubData() {
-      if (window.location.protocol !== "file:") {
-        await ensureHubCatalogLoaded();
+      if (window.location.protocol === "file:") {
+        try { await loadPreviewDataScriptOnly(); } catch (e) { /* empty UI */ }
+        runHubInit(false);
+        return;
       }
+      // Authenticated Hub: catalog API only — do not download preview-data.js.
+      await ensureHubCatalogLoaded();
       runHubInit(false);
     })();
   </script>

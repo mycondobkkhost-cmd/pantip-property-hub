@@ -140,15 +140,14 @@ def build_internal_catalog_payload(
     generated_at: str = "",
     data_version: str = "",
 ) -> dict[str, Any]:
-    project_map = {
-        str(p.get("id") or ""): p for p in projects if isinstance(p, dict) and p.get("id")
-    }
+    # Omit project_map from the wire payload — client builds it once via
+    # ensureProjectMap() from projects[] (avoids duplicating ~full projects JSON).
     return {
         "projects": [dict(p) for p in projects if isinstance(p, dict)],
         "properties": [dict(p) for p in properties if isinstance(p, dict)],
-        "project_map": project_map,
         "stats": stats or {},
         "generated_at": generated_at,
         "data_version": data_version,
         "catalog_scope": "internal",
+        "ok": True,
     }

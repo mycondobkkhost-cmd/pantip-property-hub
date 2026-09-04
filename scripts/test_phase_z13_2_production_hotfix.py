@@ -47,20 +47,26 @@ class PhaseZ132ProductionHotfix(unittest.TestCase):
         self.assertIn("ensureHubCatalogLoaded", html)
         self.assertIn("runHubInit", html)
 
-    def test_05_internal_catalog_includes_project_map(self) -> None:
+    def test_05_internal_catalog_omits_wire_project_map(self) -> None:
         from src.hub.public_projection import build_internal_catalog_payload
 
         payload = build_internal_catalog_payload(
             [{"id": "proj-1", "canonical_name": "Demo"}],
             [{"id": "prop-1", "project_id": "proj-1", "code": "PTP1"}],
         )
-        self.assertIn("project_map", payload)
-        self.assertIn("proj-1", payload["project_map"])
+        self.assertNotIn("project_map", payload)
+        self.assertEqual(payload.get("catalog_scope"), "internal")
 
-    def test_06_assets_version_z13_2(self) -> None:
+    def test_06_assets_version_z13_2_or_later(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")
-        self.assertIn("mobile-operations.css?v=z13_2", html)
-        self.assertIn("mobile-operations.js?v=z13_2", html)
+        self.assertTrue(
+            ("mobile-operations.css?v=z13_2" in html)
+            or ("mobile-operations.css?v=z13_3" in html)
+        )
+        self.assertTrue(
+            ("mobile-operations.js?v=z13_2" in html)
+            or ("mobile-operations.js?v=z13_3" in html)
+        )
 
     def test_07_lifecycle_sections_remain_separate(self) -> None:
         dash = (ROOT / "src" / "hub" / "operational_dashboard.py").read_text(encoding="utf-8")

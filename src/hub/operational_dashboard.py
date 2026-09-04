@@ -7,11 +7,17 @@ from typing import Any
 
 from src.hub.legacy_entry_date import audit_age_distribution, entry_date_semantics_proof
 from src.hub.lease_capture_integration import build_migration_dry_run
+from src.hub.lease_migration_sheet import pull_and_materialize_migration_candidates
 from src.hub.lease_record import list_lease_records
 from src.hub.listing_freshness import build_api_payload as freshness_payload
 from src.hub.listing_freshness import derive_freshness_state
 from src.hub.property_status_recheck import build_recheck_dry_run, list_rechecks, summary as recheck_summary
 from src.hub.property_status_recheck import load_config as recheck_config
+from src.hub.recheck_capacity import (
+    active_capacity_summary,
+    build_capacity_api_payload,
+    build_eligible_backlog,
+)
 
 
 def _lease_end_soon_items(*, within_days: int = 60) -> list[dict[str, Any]]:
@@ -84,10 +90,24 @@ def build_dashboard_payload(*, threshold_days: int | None = None) -> dict[str, A
     """Single operational view for operator follow-up work."""
     dry = build_recheck_dry_run(threshold_days=threshold_days)
     rs = recheck_summary()
+    cap = active_capacity_summary()
     categories = {
         "today": {
             "label_th": "วันนี้",
             "count": rs.get("due_today", 0),
+        },
+        "eligible_backlog": {
+            "label_th": "Backlog (เข้าเกณฑ์)",
+            "count": len(build_eligible_backlog()),
+        },
+        "active_queue": {
+            "label_th": "คิวงาน Active",
+            "count": cap.get("active_count", 0),
+            "capacity": f"{cap.get('active_count',0)}/{cap.get('max_total_active_rechecks',0)}",
+        },
+        "batch_remaining_today": {
+            "label_th": "ชุดใหม่วันนี้เหลือ",
+            "count": cap.get("remaining_today", 0),
         },
         "old_record_recheck": {
             "label_th": "ทรัพย์เก่าควรตรวจสอบ",
@@ -124,16 +144,16 @@ def build_dashboard_payload(*, threshold_days: int | None = None) -> dict[str, A
         "age_distribution": audit_age_distribution(),
         "recheck_dry_run": dry,
         "recheck_config": recheck_config(),
+        "capacity": cap,
+        "capacity_model": build_capacity_api_payload(),
         "categories": categories,
+        "active_queue_rows": build_capacity_api_payload().get("active_queue", [])[:50],
         "recheck_rows": list_rechecks()[:50],
         "verification_items": _verification_due_items()[:30],
         "lease_end_soon": _lease_end_soon_items()[:30],
         "missing_lease_data": _missing_lease_data()[:30],
         "owner_confirmed_future": _owner_confirmed_future()[:30],
-        "migration_dry_run_summary": {
-            "candidate_count": build_migration_dry_run(skip_live_sheet=True).get("candidate_count"),
-            "production_migration": False,
-        },
+        "migration_dry_run_summary": pull_and_materialize_migration_candidates(use_live_sheet=False),
         "operator_actions_test_only": [
             "ติดต่อเจ้าของแล้ว",
             "ยังว่าง",

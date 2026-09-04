@@ -942,6 +942,13 @@ def _is_z7_pilot_mode() -> bool:
     return flag in ("1", "true", "yes", "on")
 
 
+def _is_z8_pilot_mode() -> bool:
+    import os
+
+    flag = (os.environ.get("Z8_PILOT_MODE") or "").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
 def _load_hub_users() -> dict:
     """Login users from HUB_USERS_JSON only (never embed passwords in HTML).
 
@@ -957,6 +964,7 @@ def _load_hub_users() -> dict:
         or _is_lease_opportunity_pilot_mode()
         or _is_z6_pilot_mode()
         or _is_z7_pilot_mode()
+        or _is_z8_pilot_mode()
     ):
         return _local_demo_hub_users()
 
@@ -1831,9 +1839,53 @@ class HubHandler(BaseHTTPRequestHandler):
             if not _require_operator(self):
                 return
             try:
-                from src.hub.lease_capture_integration import build_migration_dry_run
+                from urllib.parse import parse_qs
 
-                self._json(200, {"ok": True, **build_migration_dry_run(skip_live_sheet=True)})
+                from src.hub.lease_migration_sheet import pull_and_materialize_migration_candidates
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                live = (qs.get("live") or ["0"])[0] == "1"
+                self._json(200, {"ok": True, **pull_and_materialize_migration_candidates(use_live_sheet=live)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/recheck-capacity":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.recheck_capacity import build_capacity_api_payload
+
+                self._json(200, build_capacity_api_payload())
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/live-freshness/dry-run":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.live_freshness_dry_run import build_live_freshness_dry_run
+
+                self._json(200, build_live_freshness_dry_run())
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/owner-policy-review":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.owner_policy_packet import build_owner_policy_packet
+
+                self._json(200, build_owner_policy_packet(include_live_freshness=False))
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/production-state":
+            if not _require_operator(self):
+                return
+            try:
+                from src.hub.live_freshness_dry_run import get_production_state_read_only
+
+                self._json(200, {"ok": True, **get_production_state_read_only()})
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
@@ -2509,6 +2561,8 @@ class HubHandler(BaseHTTPRequestHandler):
             path = "/listing-freshness/index.html"
         if path in {"/operator-follow-up", "/operator-follow-up/"}:
             path = "/operator-follow-up/index.html"
+        if path in {"/operator-policy-review", "/operator-policy-review/"}:
+            path = "/operator-policy-review/index.html"
         if path == "/":
             path = "/preview.html"
         # Catalog JS/meta live on the data volume (not ephemeral hub/).
@@ -2778,9 +2832,23 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
             try:
                 from src.hub.property_status_recheck import record_contact
+                from src.hub.recheck_capacity import check_contact_cooldown, privileged_contact_override
 
+                pid = str(body.get("property_id") or "")
+                last = str(body.get("last_contacted_at") or "")
+                cooldown = check_contact_cooldown(property_id=pid, last_contacted_at=last)
+                if not cooldown.get("allowed") and not body.get("privileged_override"):
+                    self._json(400, {"ok": False, "error": "contact_cooldown", "cooldown": cooldown})
+                    return
+                if body.get("privileged_override"):
+                    privileged_contact_override(
+                        property_id=pid,
+                        operator_id=str(user.get("username") or ""),
+                        reason=str(body.get("override_reason") or ""),
+                        privileged=bool(user.get("is_operator") or user.get("role") == "operator"),
+                    )
                 evt = record_contact(
-                    property_id=str(body.get("property_id") or ""),
+                    property_id=pid,
                     actor=str(user.get("username") or ""),
                     result=str(body.get("result") or ""),
                     note=str(body.get("note") or ""),
@@ -2788,6 +2856,49 @@ class HubHandler(BaseHTTPRequestHandler):
                     owner_confirmed_available_from=str(body.get("owner_confirmed_available_from") or ""),
                 )
                 self._json(200, {"ok": True, "event": evt, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/recheck-capacity/release-batch":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.recheck_capacity import release_batch_to_queue
+
+                result = release_batch_to_queue(
+                    operator_id=str(user.get("username") or ""),
+                    strategy=str(body.get("strategy") or "oldest_first"),
+                    limit=int(body.get("limit") or 0) or None,
+                )
+                self._json(200, {"ok": True, **result})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/recheck-capacity/assign":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.recheck_capacity import assign_operator
+
+                rec = assign_operator(str(body.get("property_id") or ""), str(body.get("operator_id") or user.get("username") or ""))
+                self._json(200, {"ok": True, "item": rec, "test_only": True})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+
+        if path == "/api/recheck-capacity/defer":
+            user = _require_operator(self)
+            if not user:
+                return
+            try:
+                from src.hub.recheck_capacity import defer_recheck
+
+                rec = defer_recheck(str(body.get("property_id") or ""), until=str(body.get("until") or ""), reason=str(body.get("reason") or ""))
+                self._json(200, {"ok": True, "item": rec, "test_only": True})
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ทบทวนนโยบาย — Pantip Hub</title>
+  <style>
+    :root{--bg:#f8faf9;--card:#fff;--text:#1a1a1a;--muted:#5c6570;--accent:#0b6e4f;--border:#e2e8f0}
+    body{margin:0;font-family:"Noto Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+    .banner{background:#ecfdf5;border-bottom:2px solid #6ee7b7;padding:10px;text-align:center;font-weight:600;color:#065f46}
+    header{padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)}
+    main{max-width:900px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+    h2{font-size:1.05rem;margin:0 0 8px}
+    .muted{color:var(--muted);font-size:.9rem}
+    nav a{margin-right:10px;color:var(--accent)}
+    ul{padding-left:1.2rem}
+    .choice{background:#f1f5f9;border-radius:8px;padding:8px 10px;margin:6px 0;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <div class="banner">📋 REVIEW ONLY — การเลือกที่นี่ไม่เปลี่ยน production</div>
+  <header>
+    <h1>ทบทวนนโยบายการติดตามทรัพย์</h1>
+    <nav><a href="/operator-follow-up/">งานติดตามทรัพย์</a></nav>
+  </header>
+  <main>
+    <div id="content" class="muted">กำลังโหลด...</div>
+    <div class="card" id="choices"></div>
+  </main>
+  <script>
+    async function api(p){const r=await fetch(p,{credentials:'same-origin'});return r.json()}
+    async function boot(){
+      await fetch('/api/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'angkarn1996',password:'localdev'})});
+      const d=await api('/api/owner-policy-review');
+      document.getElementById('content').innerHTML=(d.sections_th||[]).map(s=>`<div class="card"><h2>${s.title}</h2><p>${s.body}</p></div>`).join('');
+      const c=d.policy_choices||{};
+      document.getElementById('choices').innerHTML=`<h2>ตัวเลือกนโยบาย (ยังไม่บันทึก)</h2>
+        <div class="choice">Recheck เช่า: ${(c.recheck_rent_days||[]).join(' / ')} วัน</div>
+        <div class="choice">Recheck ขาย: ${(c.recheck_sale_days||[]).join(' / ')} วัน</div>
+        <div class="choice">ชุดงานใหม่/วัน: ${(c.new_recheck_batch_per_day||[]).join(' / ')}</div>
+        <div class="choice">Freshness bootstrap: ${(c.freshness_bootstrap||[]).join(' / ')}</div>
+        <div class="choice">Stale public: ${(c.stale_public||[]).join(' / ')}</div>
+        <p class="muted">คำแนะนำชุดแรก: ${(d.first_batch_recommendation||{}).rationale_th||'-'}</p>`;
+    }
+    boot();
+  </script>
+</body>
+</html>

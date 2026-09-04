@@ -3,10 +3,29 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+
+def _e2e_data_root() -> Path | None:
+    raw = (os.environ.get("PANTIP_E2E_DATA_ROOT") or "").strip()
+    return Path(raw) if raw else None
+
+
+def _data_dir() -> Path:
+    raw = (os.environ.get("DATA_DIR") or "").strip()
+    return Path(raw) if raw else BASE_DIR / "data"
+
+
+def group_recommend_history_path() -> Path:
+    """Resolved group recommend history path (isolated E2E root when configured)."""
+    root = _e2e_data_root()
+    if root:
+        return root / "group_recommend_history.json"
+    return _data_dir() / "group_recommend_history.json"
 GROUPS_JSON = BASE_DIR / "data" / "facebook_groups.json"
 
 # (zone_id, patterns matched against name+url blob)
@@ -487,23 +506,22 @@ def _project_match_keys(prop: dict) -> list[str]:
     return keys[:8]
 
 
-HISTORY_PATH = BASE_DIR / "data" / "group_recommend_history.json"
-
-
 def _load_recommend_history() -> list[dict]:
-    if not HISTORY_PATH.exists():
+    path = group_recommend_history_path()
+    if not path.exists():
         return []
     try:
-        data = json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
         return data if isinstance(data, list) else data.get("items") or []
     except Exception:  # noqa: BLE001
         return []
 
 
 def _save_recommend_history(items: list[dict]) -> None:
-    HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    path = group_recommend_history_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
     # keep last 500
-    HISTORY_PATH.write_text(
+    path.write_text(
         json.dumps(items[-500:], ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )

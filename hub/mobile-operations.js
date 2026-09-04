@@ -390,6 +390,118 @@
     return { scrollWidth: sw, viewport: vw, overflow: sw > vw + 1 };
   };
 
+  window.ptpMeasureNavGeometry = function () {
+    var nav = document.getElementById("mobile-nav");
+    if (!nav) return { ok: false, reason: "no nav" };
+    var vw = window.innerWidth;
+    var slots = nav.querySelectorAll("button[data-view]");
+    var widths = [];
+    slots.forEach(function (b) {
+      var r = b.getBoundingClientRect();
+      widths.push(Math.round(r.width));
+    });
+    var addBtn = nav.querySelector('[data-view="add"]');
+    var addFab = addBtn ? addBtn.querySelector(".nav-add-fab") : null;
+    var navRect = nav.getBoundingClientRect();
+    var centerX = addBtn ? addBtn.getBoundingClientRect().left + addBtn.getBoundingClientRect().width / 2 : 0;
+    var fabRect = addFab ? addFab.getBoundingClientRect() : null;
+    var avg = widths.length ? widths.reduce(function (a, b) { return a + b; }, 0) / widths.length : 0;
+    var maxDev = widths.length ? Math.max.apply(null, widths.map(function (w) { return Math.abs(w - avg); })) : 999;
+    return {
+      ok: true,
+      viewport: vw,
+      navWidth: Math.round(navRect.width),
+      slotWidths: widths,
+      slotWidthDeviation: Math.round(maxDev),
+      equalSlots: maxDev <= 12,
+      centerOffset: Math.round(centerX - vw / 2),
+      centerAligned: Math.abs(centerX - vw / 2) <= 8,
+      navHeight: Math.round(navRect.height),
+      fabProtrusion: fabRect ? Math.round(navRect.top - fabRect.top) : 0,
+      fabSize: fabRect ? Math.round(fabRect.width) : 0
+    };
+  };
+
+  function initMobileSearch() {
+    var box = document.getElementById("search-box");
+    if (box && isMobile()) {
+      box.placeholder = "ค้นหารหัส โครงการ หรือทำเล";
+    }
+    var loc = document.getElementById("location-search");
+    if (loc && isMobile()) {
+      loc.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function initPropMoreMenu() {
+    document.addEventListener("click", function (e) {
+      var moreBtn = e.target.closest("[data-prop-more]");
+      if (moreBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var wrap = moreBtn.closest(".prop-quick-actions");
+        var menu = wrap ? wrap.querySelector(".prop-more-menu") : null;
+        document.querySelectorAll(".prop-more-menu").forEach(function (m) {
+          if (m !== menu) m.classList.add("hidden");
+        });
+        if (menu) menu.classList.toggle("hidden");
+        return;
+      }
+      if (!e.target.closest(".prop-more-menu")) {
+        document.querySelectorAll(".prop-more-menu").forEach(function (m) {
+          m.classList.add("hidden");
+        });
+      }
+    });
+  }
+
+  function initFilterSheetPolish() {
+    var drawer = document.getElementById("filters-drawer");
+    if (!drawer || drawer.dataset.z131 === "1") return;
+    drawer.dataset.z131 = "1";
+    if (!drawer.querySelector(".mobile-filter-sheet-head")) {
+      var head = document.createElement("div");
+      head.className = "mobile-filter-sheet-head";
+      head.innerHTML = '<strong>ตัวกรอง</strong><button type="button" class="btn-sm" id="mobile-filter-close">ปิด</button>';
+      drawer.insertBefore(head, drawer.firstChild);
+    }
+    if (!drawer.querySelector(".mobile-filter-sheet-actions")) {
+      var actions = document.createElement("div");
+      actions.className = "mobile-filter-sheet-actions";
+      actions.innerHTML =
+        '<button type="button" class="btn-sm" id="mobile-filter-reset">ล้างตัวกรอง</button>' +
+        '<button type="button" class="btn-sm primary" id="mobile-filter-apply">ดูผลลัพธ์</button>';
+      drawer.appendChild(actions);
+    }
+    var closeBtn = document.getElementById("mobile-filter-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        var d = document.getElementById("filters-drawer");
+        var t = document.getElementById("toggle-filters");
+        if (d) d.classList.add("hidden");
+        if (t) { t.classList.remove("active-filter-btn"); t.textContent = "ตัวกรอง"; }
+        var bd = document.getElementById("filters-drawer-backdrop");
+        if (bd) bd.classList.add("hidden");
+      });
+    }
+    var applyM = document.getElementById("mobile-filter-apply");
+    if (applyM) {
+      applyM.addEventListener("click", function () {
+        var a = document.getElementById("apply-filter-btn");
+        if (a) a.click();
+        var close = document.getElementById("mobile-filter-close");
+        if (close) close.click();
+      });
+    }
+    var resetM = document.getElementById("mobile-filter-reset");
+    if (resetM) {
+      resetM.addEventListener("click", function () {
+        var r = document.getElementById("reset-filter");
+        if (r) r.click();
+      });
+    }
+  }
+
   function boot() {
     patchRenderRecheckPanel();
     initStickySave();
@@ -398,7 +510,10 @@
     initMoreMenu();
     initMobileNavAdd();
     initFilterSheet();
+    initFilterSheetPolish();
     initRecheckSummaryCards();
+    initMobileSearch();
+    initPropMoreMenu();
   }
 
   if (document.readyState === "loading") {

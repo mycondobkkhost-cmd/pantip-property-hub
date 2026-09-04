@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase Z13 mobile-first Playwright E2E — 390×844, 834×1194, desktop smoke."""
+"""Phase Z13 / Z13.1 mobile Playwright E2E — multi-viewport geometry + regression."""
 
 from __future__ import annotations
 
@@ -14,9 +14,16 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 E2E_DIR = ROOT / ".local" / "phase_z13_e2e"
-OUT = Path("/tmp/pantip-phase-z13-e2e")
+OUT = Path("/tmp/pantip-phase-z13-1-e2e")
 PORT = os.environ.get("HUB_PORT", "8767")
 BASE = f"http://127.0.0.1:{PORT}"
+
+PHONE_VIEWPORTS = [
+    ("375x667", 375, 667),
+    ("390x844", 390, 844),
+    ("393x852", 393, 852),
+    ("430x932", 430, 932),
+]
 
 
 def _wait_server(timeout: float = 25.0) -> bool:
@@ -75,6 +82,26 @@ def _overflow(page) -> dict[str, Any]:
           const sw = document.documentElement.scrollWidth;
           const vw = window.innerWidth;
           return { scrollWidth: sw, viewport: vw, overflow: sw > vw + 1 };
+        }"""
+    )
+
+
+def _nav_geometry(page) -> dict[str, Any]:
+    return page.evaluate(
+        """() => {
+          if (typeof ptpMeasureNavGeometry !== 'function') return { ok: false, reason: 'no helper' };
+          return ptpMeasureNavGeometry();
+        }"""
+    )
+
+
+def _desktop_header_visible(page) -> bool:
+    return page.evaluate(
+        """() => {
+          const el = document.querySelector('.prop-list-head-desktop');
+          if (!el) return false;
+          const st = window.getComputedStyle(el);
+          return st.display !== 'none' && st.visibility !== 'hidden' && el.offsetParent !== null;
         }"""
     )
 
@@ -168,7 +195,35 @@ def run_e2e() -> dict[str, Any]:
             page.wait_for_timeout(800)
             result["phone"]["property_list"] = page.locator("#property-rows .prop-sheet-row").count() >= 0
             result["phone"]["overflow_list"] = _overflow(page)
-            page.screenshot(path=str(OUT / "z13-phone-properties.png"), full_page=True)
+            result["phone"]["desktop_header_hidden"] = not _desktop_header_visible(page)
+            result["phone"]["compact_search"] = page.locator("#search-box").count() > 0
+            geo390 = _nav_geometry(page)
+            result["phone"]["nav_geometry_390"] = geo390
+            page.screenshot(path=str(OUT / "z13-1-phone-390-properties-top.png"), full_page=False)
+            page.evaluate("window.scrollBy(0, 420)")
+            page.wait_for_timeout(300)
+            page.screenshot(path=str(OUT / "z13-1-phone-390-properties-mid.png"), full_page=False)
+            page.evaluate("window.scrollTo(0, 0)")
+
+            # Multi-viewport nav geometry + overflow
+            result["phone"]["viewports"] = {}
+            for label, w, h in PHONE_VIEWPORTS:
+                page.set_viewport_size({"width": w, "height": h})
+                page.wait_for_timeout(250)
+                page.evaluate("switchView('properties')")
+                page.wait_for_timeout(400)
+                g = _nav_geometry(page)
+                ov = _overflow(page)
+                hdr = _desktop_header_visible(page)
+                result["phone"]["viewports"][label] = {
+                    "geometry": g,
+                    "overflow": ov,
+                    "desktop_header_visible": hdr,
+                }
+                if label == "430x932":
+                    page.screenshot(path=str(OUT / "z13-1-phone-430-properties.png"), full_page=False)
+            page.set_viewport_size({"width": 390, "height": 844})
+            page.wait_for_timeout(200)
 
             # Search + filter
             result["phone"]["search"] = page.locator("#search-box").count() > 0
@@ -188,7 +243,7 @@ def run_e2e() -> dict[str, Any]:
             result["phone"]["add_panel"] = page.locator("#add-panel:not(.hidden)").count() > 0
             result["phone"]["sticky_save"] = page.locator("#mobile-sticky-save").count() > 0
             result["phone"]["add_step_nav"] = page.locator("#add-step-nav .add-step-btn").count() >= 4
-            page.screenshot(path=str(OUT / "z13-phone-add-source.png"), full_page=True)
+            page.screenshot(path=str(OUT / "z13-1-phone-390-add-edit.png"), full_page=False)
 
             # Source text + URL save
             page.evaluate("switchView('add')")
@@ -260,7 +315,24 @@ def run_e2e() -> dict[str, Any]:
             result["phone"]["recheck_cards"] = page.locator(".recheck-summary-card").count() >= 4
             result["phone"]["recheck_settings_collapsed"] = page.locator(".recheck-settings-collapsible").count() > 0
             result["phone"]["overflow_recheck"] = _overflow(page)
-            page.screenshot(path=str(OUT / "z13-phone-recheck.png"), full_page=True)
+            page.screenshot(path=str(OUT / "z13-1-phone-390-follow-up.png"), full_page=False)
+
+            # Focus nav + More sheet
+            page.evaluate("switchView('focus')")
+            page.wait_for_timeout(600)
+            result["phone"]["focus_nav"] = page.locator("#focus-panel:not(.hidden)").count() > 0
+            geo_focus = _nav_geometry(page)
+            result["phone"]["nav_geometry_focus"] = geo_focus
+            page.click('#mobile-nav [data-view="more"]')
+            page.wait_for_timeout(400)
+            result["phone"]["more_sheet"] = page.locator("#mobile-more-sheet:not(.hidden)").count() > 0
+            page.screenshot(path=str(OUT / "z13-1-phone-390-more.png"), full_page=False)
+            page.evaluate(
+                """() => {
+                  const s = document.getElementById('mobile-more-sheet');
+                  if (s) s.classList.add('hidden');
+                }"""
+            )
 
             # Co-Agent
             co = ctx.new_page()
@@ -294,11 +366,11 @@ def run_e2e() -> dict[str, Any]:
             page.evaluate("switchView('add')")
             page.wait_for_timeout(600)
             result["ipad"]["add_edit"] = page.locator("#add-panel:not(.hidden)").count() > 0
-            page.screenshot(path=str(OUT / "z13-ipad-add.png"), full_page=True)
+            page.screenshot(path=str(OUT / "z13-1-ipad-add-edit.png"), full_page=False)
             page.evaluate("switchView('recheck')")
             page.wait_for_timeout(1500)
             result["ipad"]["recheck"] = page.locator("#recheck-panel:not(.hidden)").count() > 0
-            page.screenshot(path=str(OUT / "z13-ipad-recheck.png"), full_page=True)
+            page.screenshot(path=str(OUT / "z13-1-ipad-recheck.png"), full_page=False)
             co_ipad = ctx.new_page()
             co_ipad.set_viewport_size({"width": 834, "height": 1194})
             co_ipad.goto(f"{BASE}/co/")
@@ -306,7 +378,7 @@ def run_e2e() -> dict[str, Any]:
             result["ipad"]["coagent"] = True
             co_ipad.screenshot(path=str(OUT / "z13-ipad-coagent.png"), full_page=True)
             co_ipad.close()
-            page.screenshot(path=str(OUT / "z13-ipad-properties.png"), full_page=True)
+            page.screenshot(path=str(OUT / "z13-1-ipad-properties.png"), full_page=False)
 
             # Desktop smoke
             page.set_viewport_size({"width": 1440, "height": 900})
@@ -322,6 +394,21 @@ def run_e2e() -> dict[str, Any]:
         result["group_history_isolated"] = pre_history_hash == post_history_hash
         result["isolated_history_in_e2e"] = (E2E_DIR / "group_recommend_history.json").exists() or True
 
+        def _viewport_ok(vp: dict[str, Any]) -> bool:
+            g = vp.get("geometry") or {}
+            return (
+                g.get("ok")
+                and g.get("equalSlots")
+                and g.get("centerAligned")
+                and g.get("navHeight", 999) <= 110
+                and g.get("fabProtrusion", 99) <= 20
+                and not vp.get("overflow", {}).get("overflow", True)
+                and not vp.get("desktop_header_visible", True)
+            )
+
+        vps = result["phone"].get("viewports") or {}
+        viewport_geom_ok = all(_viewport_ok(vps.get(k, {})) for k, _, _ in PHONE_VIEWPORTS)
+
         phone_ok = (
             result["phone"].get("login")
             and result["phone"].get("bottom_nav")
@@ -329,9 +416,14 @@ def run_e2e() -> dict[str, Any]:
             and result["phone"].get("xss")
             and result["phone"].get("recheck")
             and result["phone"].get("coagent_privacy", True)
+            and result["phone"].get("desktop_header_hidden", False)
+            and result["phone"].get("focus_nav", False)
+            and result["phone"].get("more_sheet", False)
+            and viewport_geom_ok
             and not result["phone"].get("overflow_list", {}).get("overflow", True)
             and not result["phone"].get("overflow_recheck", {}).get("overflow", True)
         )
+        result["phone"]["viewport_geometry_ok"] = viewport_geom_ok
         result["gate"] = "PASS" if phone_ok and result.get("group_history_isolated") else "FAIL"
         (OUT / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         return result

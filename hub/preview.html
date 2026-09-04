@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta name="theme-color" content="#2e1065" />
@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_1" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -1990,8 +1990,8 @@
         <span class="result-count" id="filter-result">—</span>
         <span class="hidden" id="row-count-bar"></span>
         <div class="sort-wrap">
-          <span>เรียง</span>
-          <select id="f-sort">
+          <span class="sort-label-desktop">เรียง</span>
+          <select id="f-sort" aria-label="เรียงลำดับ">
             <option value="date_desc">ใหม่ล่าสุด</option>
             <option value="date_asc">เก่าสุด</option>
             <option value="rent_asc">เช่า ↑</option>
@@ -2001,9 +2001,10 @@
             <option value="project">ชื่อโครงการ</option>
           </select>
         </div>
-        <div class="toolbar-row">
-          <button type="button" class="btn btn-outline" id="prev-page">←</button>
-          <button type="button" class="btn btn-outline" id="next-page">→</button>
+        <div class="prop-page-compact-wrap">
+          <button type="button" class="prop-page-btn" id="prev-page" aria-label="หน้าก่อน">‹</button>
+          <span class="prop-page-compact" id="prop-page-compact" aria-live="polite">—</span>
+          <button type="button" class="prop-page-btn" id="next-page" aria-label="หน้าถัดไป">›</button>
         </div>
       </div>
 
@@ -2013,7 +2014,7 @@
       </div>
 
       <div class="table-wrap" id="props-panel">
-        <div class="prop-list-head">
+        <div class="prop-list-head prop-list-head-desktop" aria-hidden="true">
           <span>รูป</span>
           <span>รหัส · วันที่เพิ่ม · โครงการ · ห้อง/ขนาด/ชั้น/ประเภท/ทำเล · หมายเหตุ</span>
           <span class="head-side">ราคา</span>
@@ -5775,8 +5776,12 @@
         return;
       }
       var parts = [];
-      if (total) parts.push(Number(total).toLocaleString("th-TH") + " รายการบนเซิร์ฟเวอร์");
-      if (gen) parts.push("อัปเดต " + formatGeneratedAt(gen));
+      if (total) parts.push(Number(total).toLocaleString("th-TH") + " รายการ");
+      if (gen) {
+        var shortAt = formatGeneratedAt(gen);
+        var timeOnly = shortAt.indexOf(" ") >= 0 ? shortAt.split(" ").slice(1).join(" ") : shortAt;
+        parts.push("อัปเดต " + timeOnly);
+      }
       el.textContent = parts.join(" · ");
       el.classList.remove("hidden");
     }
@@ -7333,24 +7338,39 @@
       el.classList.toggle("is-ok", kind === "ok");
     }
 
+    function formatListedDateShort(s) {
+      if (!s || s === "—") return "";
+      var m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+      if (!m) return String(s);
+      var months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      var d = parseInt(m[1], 10);
+      var mo = parseInt(m[2], 10) - 1;
+      return "เพิ่ม " + d + " " + (months[mo] || m[2]);
+    }
+
     function propQuickLinkBtn(url, shortLabel, fullTitle) {
       var href = normalizeOpenableUrl(url);
-      if (!href || !isHttpUrl(href)) {
-        return '<button type="button" class="prop-qa-btn is-disabled" disabled title="ไม่มี' +
-          esc(fullTitle) + '">' + esc(shortLabel) + "</button>";
-      }
-      return '<a class="prop-qa-btn has-link" href="' + esc(href) +
+      if (!href || !isHttpUrl(href)) return "";
+      return '<a class="prop-more-item" href="' + esc(href) +
         '" target="_blank" rel="noopener noreferrer" title="' + esc(fullTitle) +
         '" data-prop-ext-link="1">' + esc(shortLabel) + "</a>";
     }
 
     function propQuickActionsHtml(p) {
-      // source_url = ลิงก์ต้นโพส · post_pages_url = ลิงก์โพสเพจ
+      var links = [];
+      var src = propQuickLinkBtn(p.source_url, "เปิดต้นโพสต์", "เปิดลิงก์ต้นโพสต์");
+      var page = propQuickLinkBtn(p.post_pages_url, "เปิดโพสต์เพจ", "เปิดลิงก์โพสต์หน้าเพจ");
+      if (src) links.push(src);
+      if (page) links.push(page);
+      var more = links.length
+        ? '<button type="button" class="prop-qa-btn more" data-prop-more="' + esc(p.id) +
+          '" aria-label="ตัวเลือกเพิ่มเติม" aria-haspopup="true">•••</button>' +
+          '<div class="prop-more-menu hidden" role="menu">' + links.join("") + "</div>"
+        : "";
       return '<div class="prop-quick-actions" role="group" aria-label="ทางลัด">' +
-        propQuickLinkBtn(p.source_url, "ลิงก์ต้นโพส", "เปิดลิงก์ต้นโพสต์") +
-        propQuickLinkBtn(p.post_pages_url, "ลิงก์โพสเพจ", "เปิดลิงก์โพสต์หน้าเพจ") +
-        '<button type="button" class="prop-qa-btn edit" data-prop-edit="' + esc(p.id) +
+        '<button type="button" class="prop-qa-btn edit primary" data-prop-edit="' + esc(p.id) +
           '" title="แก้ไขทรัพย์">แก้ไข</button>' +
+        more +
         "</div>";
     }
 
@@ -7380,6 +7400,15 @@
       var floor = p.floor || "—";
       var notesText = String(p.notes || "").trim();
       if (notesText === "-" || notesText === "—" || notesText === "–") notesText = "";
+      var offer = listingOffer(p);
+      var offerHtml = offerBadgeHtml(offer);
+      var dateShort = formatListedDateShort(p.last_listed_at);
+      var factBits = [];
+      if (beds && beds !== "—") factBits.push(beds + " นอน");
+      if (size && size !== "—") factBits.push(size + " ตร.ม.");
+      if (floor && floor !== "—") factBits.push("ชั้น " + floor);
+      if (typeLabel && typeLabel !== "—") factBits.push(typeLabel);
+      var factsText = factBits.join(" · ");
       var projectBtn = p.project_id
         ? '<button type="button" class="prop-project-link" data-open-project="' + esc(p.project_id) + '">' + esc(name) + "</button>"
         : esc(name);
@@ -7387,21 +7416,22 @@
         ? '<button type="button" class="focus-remove-btn" data-focus-remove="' + esc(p.id) + '"' +
           ' data-focus-code="' + esc(p.code || "") + '" title="เอาออกจาก Focus">เอาออก</button>'
         : "";
-      return '<article class="prop-sheet-row" data-prop-id="' + esc(p.id) + '">' +
+      return '<article class="prop-sheet-row" data-prop-id="' + esc(p.id) + '" tabindex="0" role="button" aria-label="เปิดทรัพย์ ' + esc(p.code || "") + '">' +
         '<div class="prop-sheet-thumb">' + thumbCellHtml(p, previewUrl) + "</div>" +
         '<div class="prop-sheet-main">' +
           '<div class="prop-sheet-top">' +
+            offerHtml +
             '<span class="code">' + esc(p.code) + "</span>" +
-            '<span class="prop-origin ' + origin + '">' + originLabel + "</span>" + warn + reviewBadge + petBadge +
-            '<span class="date' + (p.last_listed_at ? "" : " is-empty") +
-              '" title="วันที่เพิ่ม / โพสต์ล่าสุด">' +
-              '<span class="date-label">เพิ่ม</span>' +
-              '<span class="date-val">' + esc(p.last_listed_at || "—") + "</span>" +
-            "</span>" +
+            (warn ? warn : "") + (reviewBadge ? reviewBadge : "") + (petBadge ? petBadge : "") +
+            '<span class="prop-origin ' + origin + ' prop-origin-sub">' + originLabel + "</span>" +
+            (dateShort ? '<span class="prop-date-sub">' + esc(dateShort) + "</span>" : "") +
             removeBtn +
           "</div>" +
           '<div class="prop-sheet-project" title="' + esc(name) + '">' + projectBtn + "</div>" +
-          '<div class="prop-sheet-meta">' +
+          '<div class="prop-sheet-price-inline">' + priceStackHtml(p) + "</div>" +
+          (factsText ? '<div class="prop-sheet-facts">' + esc(factsText) + "</div>" : "") +
+          (locText ? '<div class="prop-sheet-loc">' + esc(locText) + "</div>" : "") +
+          '<div class="prop-sheet-meta prop-sheet-meta-desktop">' +
             '<span class="meta-chip"><strong>ห้อง</strong> ' + esc(beds) + "</span>" +
             '<span class="meta-chip"><strong>ขนาด</strong> ' + (size === "—" ? "—" : size + " ตร.ม.") + "</span>" +
             '<span class="meta-chip"><strong>ชั้น</strong> ' + esc(floor) + "</span>" +
@@ -7411,8 +7441,9 @@
           (notesText
             ? '<div class="prop-sheet-notes" title="' + esc(notesText) + '"><strong>หมายเหตุ</strong>' + esc(notesText) + "</div>"
             : "") +
+          '<div class="prop-sheet-actions-mobile">' + propQuickActionsHtml(p) + "</div>" +
         "</div>" +
-        '<div class="prop-sheet-side">' +
+        '<div class="prop-sheet-side prop-sheet-side-desktop">' +
           priceStackHtml(p) +
           propQuickActionsHtml(p) +
         "</div>" +
@@ -7451,6 +7482,15 @@
       if (bar) bar.textContent = rangeText;
       document.getElementById("filter-result").textContent =
         total.toLocaleString("th-TH") + " รายการ";
+      var pageTotal = Math.max(1, Math.ceil(total / PAGE_SIZE) || 1);
+      var pg = document.getElementById("prop-page-compact");
+      if (pg) {
+        pg.textContent = total ? ((page + 1) + " / " + pageTotal) : "—";
+      }
+      var prevBtn = document.getElementById("prev-page");
+      var nextBtn = document.getElementById("next-page");
+      if (prevBtn) prevBtn.disabled = page <= 0;
+      if (nextBtn) nextBtn.disabled = (page + 1) * PAGE_SIZE >= total;
 
       if (!list) return;
 
@@ -7596,15 +7636,17 @@
     }
 
     function priceStackHtml(p) {
-      var rent = formatPriceCell(p.rent_price, "rent");
-      var sale = formatPriceCell(p.sale_price, "sale");
-      var hasRent = hasPrice(p.rent_price);
-      var hasSale = hasPrice(p.sale_price);
-      if (!hasRent && !hasSale) return '<span class="muted">—</span>';
-      return '<div class="price-stack">' +
-        (hasRent ? rent : '<span class="muted">—</span>') +
-        (hasSale ? sale : "") +
-        "</div>";
+      var bits = [];
+      if (hasPrice(p.rent_price)) {
+        var rentShown = formatThNumber(p.rent_price, 0) || String(p.rent_price);
+        bits.push('<span class="price-rent"><span class="price-lbl">เช่า</span> ฿' + esc(rentShown) + '<span class="price-unit">/เดือน</span></span>');
+      }
+      if (hasPrice(p.sale_price)) {
+        var saleShown = formatThNumber(p.sale_price, 0) || String(p.sale_price);
+        bits.push('<span class="price-sale"><span class="price-lbl">ขาย</span> ฿' + esc(saleShown) + "</span>");
+      }
+      if (!bits.length) return '<span class="muted">—</span>';
+      return '<div class="price-stack">' + bits.join("") + "</div>";
     }
 
     function propLocText(p, proj) {
@@ -15624,7 +15666,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13"></script>
+  <script src="mobile-operations.js?v=z13_1"></script>
   <script src="preview-data.js"></script>
   <script>
     (async function bootHubData() {

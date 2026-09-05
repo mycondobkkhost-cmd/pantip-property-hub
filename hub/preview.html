@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_4" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_5" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -3842,6 +3842,8 @@
     var __ptpHubInternalCatalogReady = false;
     var __ptpHubSidePanelsLoaded = false;
     var __ptpHubPostInitTimers = false;
+    var __ptpLastCatalogVersion = "";
+    var __ptpPropsListScrollTop = 0;
     var __ptpInitDataCount = 0;
 
     function isInternalCatalogReady() {
@@ -3859,6 +3861,8 @@
       __ptpHubBootDone = false;
       __ptpHubSidePanelsLoaded = false;
       __ptpHubPostInitTimers = false;
+      __ptpLastCatalogVersion = "";
+      __ptpPropsListScrollTop = 0;
       window.__ptpQueueFetched = false;
       window.__ptpFocusFetched = false;
       window.__ptpQueueInflight = null;
@@ -3919,10 +3923,16 @@
       return false;
     }
 
-    function refreshHubCatalogUI() {
+    function refreshHubCatalogUI(opts) {
+      opts = opts || {};
       if (!window.PTP_DATA) return;
       ensureProjectMap();
-      invalidateSearchCaches();
+      // Rebuild search caches only when catalog version actually changed (Z13.5 lag).
+      var nextVer = String(window.PTP_DATA.data_version || "");
+      if (nextVer !== __ptpLastCatalogVersion) {
+        invalidateSearchCaches();
+        __ptpLastCatalogVersion = nextVer;
+      }
       updatePageSize();
       var s = window.PTP_DATA.stats || {};
       var el;
@@ -3931,15 +3941,39 @@
       el = document.getElementById("stat-active"); if (el) el.textContent = s.properties_active;
       el = document.getElementById("stat-archived"); if (el) el.textContent = s.properties_archived;
       el = document.getElementById("stat-dup"); if (el) el.textContent = s.properties_flagged_duplicate || 0;
-      var props = window.PTP_DATA.properties || [];
-      var rentCount = props.filter(function (p) { return hasPrice(p.rent_price); }).length;
-      var saleCount = props.filter(function (p) { return hasPrice(p.sale_price); }).length;
-      el = document.getElementById("stat-rent"); if (el) el.textContent = rentCount;
-      el = document.getElementById("stat-sale"); if (el) el.textContent = saleCount;
+      // Prefer server stats when present — avoid dual full-catalog scans on every refresh.
+      el = document.getElementById("stat-rent");
+      if (el) {
+        if (s.properties_rent != null) el.textContent = s.properties_rent;
+        else if (s.rent_count != null) el.textContent = s.rent_count;
+        else {
+          var propsR = window.PTP_DATA.properties || [];
+          var rentCount = 0;
+          for (var ri = 0; ri < propsR.length; ri++) {
+            if (hasPrice(propsR[ri].rent_price)) rentCount++;
+          }
+          el.textContent = rentCount;
+        }
+      }
+      el = document.getElementById("stat-sale");
+      if (el) {
+        if (s.properties_sale != null) el.textContent = s.properties_sale;
+        else if (s.sale_count != null) el.textContent = s.sale_count;
+        else {
+          var propsS = window.PTP_DATA.properties || [];
+          var saleCount = 0;
+          for (var si = 0; si < propsS.length; si++) {
+            if (hasPrice(propsS[si].sale_price)) saleCount++;
+          }
+          el.textContent = saleCount;
+        }
+      }
       updateDataFreshnessLabel();
       buildFilterOptions();
       buildFuPickers(false);
-      applyFilter();
+      // Background catalog refresh must NOT bounce staff to page 1 (Z13.5 Bug B).
+      var preserve = opts.preservePage !== false;
+      applyFilter({ preservePage: preserve, preserveScroll: preserve });
       renderProjects();
       initAddProjectPicker();
       initLocationTagFields();
@@ -3954,7 +3988,8 @@
 
     function runHubInit(force) {
       if (__ptpHubBootDone && !force) {
-        if (window.PTP_DATA) refreshHubCatalogUI();
+        // Already booted: refresh UI but keep pagination/scroll (do not treat as new login).
+        if (window.PTP_DATA) refreshHubCatalogUI({ preservePage: true });
         return;
       }
       if (!window.PTP_DATA) return;
@@ -4235,8 +4270,12 @@
         else if (state.view === "db" && typeof switchDbTab === "function") switchDbTab(activeDbTab);
       }
 
-      if (filtersChanged && typeof applyFilter === "function") applyFilter();
-      else if (typeof renderRows === "function" && activeView === "properties") renderRows();
+      if (filtersChanged && typeof applyFilter === "function") {
+        // Keep restored page (applyFilter default would bounce to 0).
+        applyFilter({ preservePage: true, preserveScroll: true });
+      } else if (typeof renderRows === "function" && activeView === "properties") {
+        renderRows({ preserveScroll: true });
+      }
 
       requestAnimationFrame(paintScrolls);
       setTimeout(paintScrolls, 60);
@@ -4325,10 +4364,20 @@
       PAGE_SIZE = window.matchMedia("(max-width: 768px)").matches ? 40 : 80;
     }
     updatePageSize();
+    // Safari chrome show/hide changes height often — only re-slice when PAGE_SIZE
+    // actually flips (mobile 40 ↔ desktop 80). Never reset page/query on height-only resize.
+    var __ptpResizeTimer = null;
     window.addEventListener("resize", function () {
-      var prev = PAGE_SIZE;
-      updatePageSize();
-      if (prev !== PAGE_SIZE) renderRows();
+      if (__ptpResizeTimer) clearTimeout(__ptpResizeTimer);
+      __ptpResizeTimer = setTimeout(function () {
+        var prev = PAGE_SIZE;
+        updatePageSize();
+        if (prev !== PAGE_SIZE) {
+          var pageTotal = Math.max(1, Math.ceil((filteredProps || []).length / PAGE_SIZE) || 1);
+          if (page > pageTotal - 1) page = Math.max(0, pageTotal - 1);
+          renderRows({ preserveScroll: true });
+        }
+      }, 120);
     });
 
     function debounce(fn, ms) {
@@ -7279,7 +7328,16 @@
       }
     }
 
-    function applyFilter() {
+    function applyFilter(opts) {
+      opts = opts || {};
+      var preservePage = !!opts.preservePage;
+      var preserveScroll = !!opts.preserveScroll;
+      var prevPage = page;
+      var scrollEl = document.querySelector("#props-panel .scroll");
+      if (preserveScroll && scrollEl) {
+        __ptpPropsListScrollTop = scrollEl.scrollTop || 0;
+      }
+
       var all = window.PTP_DATA.properties || [];
       var pmap = window.PTP_DATA.project_map || {};
       var f = getFilters();
@@ -7390,8 +7448,15 @@
       renderActiveFilterChips(f);
       syncQuickChips();
       updateProjectViewBanner(f);
-      page = 0;
-      renderRows();
+      var pageTotal = Math.max(1, Math.ceil(filteredProps.length / PAGE_SIZE) || 1);
+      if (preservePage) {
+        page = Math.min(Math.max(0, prevPage), pageTotal - 1);
+      } else {
+        page = 0;
+        __ptpPropsListScrollTop = 0;
+        if (scrollEl) scrollEl.scrollTop = 0;
+      }
+      renderRows({ preserveScroll: preserveScroll && preservePage });
     }
 
     function resetFilters() {
@@ -7595,7 +7660,8 @@
       nodes.forEach(function (el) { thumbObserver.observe(el); });
     }
 
-    function renderRows() {
+    function renderRows(opts) {
+      opts = opts || {};
       const list = document.getElementById("property-rows");
       const total = filteredProps.length;
       const start = page * PAGE_SIZE;
@@ -7626,8 +7692,22 @@
       }
 
       ensureSearchCaches();
-      list.innerHTML = slice.map(propCardHtml).join("");
+      // Build once then assign — avoids intermediate layout from incremental string growth.
+      var html = "";
+      for (var i = 0; i < slice.length; i++) {
+        html += propCardHtml(slice[i]);
+      }
+      list.innerHTML = html;
       scheduleThumbLoadsIn("#property-rows");
+      if (opts.preserveScroll) {
+        var scrollEl = document.querySelector("#props-panel .scroll");
+        if (scrollEl) {
+          var y = __ptpPropsListScrollTop || 0;
+          requestAnimationFrame(function () {
+            try { scrollEl.scrollTop = y; } catch (e) { /* ignore */ }
+          });
+        }
+      }
     }
 
     function renderFocusRows() {
@@ -15844,7 +15924,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_4"></script>
+  <script src="mobile-operations.js?v=z13_5"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

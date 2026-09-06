@@ -23,7 +23,7 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
     def test_01_simple_edit_always_enabled(self) -> None:
         self.assertIn('data-qact="edit"', self.html)
         self.assertIn(">แก้ไข</button>", self.html)
-        self.assertIn("openQueueEditSheet", self.html)
+        self.assertIn("openQueueFormForEdit", self.html)
         self.assertNotIn('data-qact="edit" disabled', self.html)
         chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
         self.assertNotIn("แก้ไขคิว", chunk)
@@ -39,8 +39,10 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
         self.assertNotIn('data-qact="link"', chunk)
 
     def test_04_queue_note_editor_present(self) -> None:
-        self.assertIn("queue-edit-note", self.html)
-        self.assertIn("openQueueEditSheet", self.html)
+        # Z13.12: full Add form is the editor (note field = #queue-note).
+        self.assertIn('id="queue-note"', self.html)
+        self.assertIn("openQueueFormForEdit", self.html)
+        self.assertIn("fillQueueFormFromItem", self.html)
 
     def test_05_delete_confirmation_and_label(self) -> None:
         self.assertIn("ลบรายการนี้ออกจากคิว?", self.html)
@@ -50,8 +52,8 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
         self.assertIn("def delete_item", self.store)
 
     def test_06_save_uses_queue_update_no_catalog_reload(self) -> None:
-        fn = self.html.split("async function saveQueueEditSheet")[1].split(
-            "function initQueueEditSheet"
+        fn = self.html.split("async function addToQueue()")[1].split(
+            "async function enqueuePropertyToWaitPost"
         )[0]
         self.assertIn('apiPost("/api/queue/update"', fn)
         self.assertIn("renderQueue()", fn)
@@ -59,9 +61,9 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
         self.assertNotIn("reloadPreviewData", fn)
         self.assertNotIn("/api/hub/catalog", fn)
 
-    def test_07_assets_z13_11(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_11", self.html)
-        self.assertIn("mobile-operations.js?v=z13_11", self.html)
+    def test_07_assets_z13_12(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_12", self.html)
+        self.assertIn("mobile-operations.js?v=z13_12", self.html)
 
     def test_08_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

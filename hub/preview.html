@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_11" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_12" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -7722,14 +7722,40 @@
       el.classList.toggle("is-ok", kind === "ok");
     }
 
+    function formatCompactDateTime(raw) {
+      // Compact owner display: 4/8/26 (11:00AM.) — never invent time if absent.
+      if (!raw || raw === "—") return "";
+      var s = String(raw).trim();
+      var y = 0, mo = 0, d = 0, hh = -1, mi = -1;
+      var mIso = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::\d{2})?)?/);
+      if (mIso) {
+        y = parseInt(mIso[1], 10);
+        mo = parseInt(mIso[2], 10);
+        d = parseInt(mIso[3], 10);
+        if (mIso[4] != null) { hh = parseInt(mIso[4], 10); mi = parseInt(mIso[5], 10); }
+      } else {
+        var mDmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:[ T](\d{1,2}):(\d{2})(?::\d{2})?)?/);
+        if (!mDmy) return s;
+        d = parseInt(mDmy[1], 10);
+        mo = parseInt(mDmy[2], 10);
+        y = parseInt(mDmy[3], 10);
+        if (y < 100) y += 2000;
+        if (mDmy[4] != null) { hh = parseInt(mDmy[4], 10); mi = parseInt(mDmy[5], 10); }
+      }
+      if (!y || !mo || !d) return s;
+      var yy = String(y % 100);
+      var datePart = d + "/" + mo + "/" + yy;
+      if (hh < 0 || mi < 0) return datePart;
+      var ap = hh >= 12 ? "PM" : "AM";
+      var h12 = hh % 12;
+      if (h12 === 0) h12 = 12;
+      var mm = String(mi).padStart(2, "0");
+      return datePart + " (" + h12 + ":" + mm + ap + ".)";
+    }
+
     function formatListedDateShort(s) {
-      if (!s || s === "—") return "";
-      var m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-      if (!m) return String(s);
-      var months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-      var d = parseInt(m[1], 10);
-      var mo = parseInt(m[2], 10) - 1;
-      return "เพิ่ม " + d + " " + (months[mo] || m[2]);
+      // Historical field: last_listed_at (date-only DD/MM/YYYY). Compact D/M/YY; no fake time.
+      return formatCompactDateTime(s);
     }
 
     function propQuickLinkBtn(url, shortLabel, fullTitle) {
@@ -7751,11 +7777,10 @@
           '" aria-label="ตัวเลือกเพิ่มเติม" aria-haspopup="true">•••</button>' +
           '<div class="prop-more-menu hidden" role="menu">' + links.join("") + "</div>"
         : "";
+      // Historical (pre-a83f2f0): Edit + optional ••• source/page links. No per-card รอโพสต์.
       return '<div class="prop-quick-actions" role="group" aria-label="ทางลัด">' +
         '<button type="button" class="prop-qa-btn edit primary" data-prop-edit="' + esc(p.id) +
           '" title="แก้ไขทรัพย์">แก้ไข</button>' +
-        '<button type="button" class="prop-qa-btn" data-prop-queue="' + esc(p.id) +
-          '" title="ใส่คิวรอโพสต์">รอโพสต์</button>' +
         more +
         "</div>";
     }
@@ -12189,7 +12214,18 @@
       if (el && !el.value) el.value = todayIsoDate();
     }
 
+    var __queueFormEditId = "";
+
+    function setQueueFormChrome(isEdit) {
+      var head = document.querySelector("#queue-form-section .fu-form-section-head strong");
+      var addBtn = document.getElementById("queue-add-btn");
+      if (head) head.textContent = isEdit ? "แก้ไขรายการรอโพสต์" : "เพิ่มคิวรอโพสต์";
+      if (addBtn) addBtn.textContent = isEdit ? "บันทึก" : "+ ใส่คิว";
+    }
+
     function clearQueueFormFields() {
+      __queueFormEditId = "";
+      setQueueFormChrome(false);
       var source = document.getElementById("queue-source");
       var owner = document.getElementById("queue-owner-contact");
       var note = document.getElementById("queue-note");
@@ -12197,6 +12233,7 @@
       var projectId = document.getElementById("queue-project-id");
       var price = document.getElementById("queue-price");
       var propId = document.getElementById("queue-property-id");
+      var queuedAt = document.getElementById("queue-queued-at");
       if (source) source.value = "";
       if (owner) owner.value = "";
       if (note) note.value = "";
@@ -12204,6 +12241,7 @@
       if (projectId) projectId.value = "";
       if (price) price.value = "";
       if (propId) propId.value = "";
+      if (queuedAt) queuedAt.value = "";
       initQueueQueuedAtDefault();
       var qn = document.getElementById("queue-project-note");
       if (qn) qn.textContent = "";
@@ -12213,7 +12251,7 @@
       var section = document.getElementById("queue-form-section");
       if (!section) return;
       section.classList.remove("hidden");
-      initQueueQueuedAtDefault();
+      if (!__queueFormEditId) initQueueQueuedAtDefault();
       try { section.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (e) { /* ignore */ }
       var src = document.getElementById("queue-source");
       if (src) setTimeout(function () { src.focus(); }, 60);
@@ -12224,7 +12262,33 @@
       if (section) section.classList.add("hidden");
     }
 
+    function fillQueueFormFromItem(item) {
+      if (!item) return;
+      var source = document.getElementById("queue-source");
+      var owner = document.getElementById("queue-owner-contact");
+      var note = document.getElementById("queue-note");
+      var project = document.getElementById("queue-project");
+      var projectId = document.getElementById("queue-project-id");
+      var price = document.getElementById("queue-price");
+      var propId = document.getElementById("queue-property-id");
+      var queuedAt = document.getElementById("queue-queued-at");
+      if (source) source.value = String(item.source_url || item.url || "");
+      if (owner) owner.value = ownerContactFromQueue(item);
+      if (note) note.value = String(item.note || "");
+      if (project) project.value = String(item.project || "");
+      if (projectId) projectId.value = "";
+      if (price) price.value = String(item.price || "");
+      // Queue edit identity = queue item id only. Do not require/set property_id.
+      if (propId) propId.value = "";
+      var qd = String(item.queued_at || "").trim();
+      if (!qd && item.created_at) qd = String(item.created_at).slice(0, 10);
+      if (queuedAt) queuedAt.value = qd ? qd.slice(0, 10) : todayIsoDate();
+      var qn = document.getElementById("queue-project-note");
+      if (qn) qn.textContent = "";
+    }
+
     function openQueueAddForm() {
+      closeQueueEditSheet();
       clearQueueFormFields();
       showQueueFormSection();
     }
@@ -12232,6 +12296,24 @@
     function closeQueueAddForm() {
       clearQueueFormFields();
       hideQueueFormSection();
+    }
+
+    function openQueueFormForEdit(queueItemId) {
+      // Z13.12: Edit reuses the SAME #queue-form-section as +เพิ่มคิวรอโพสต์.
+      var qid = String(queueItemId || "").trim();
+      if (!qid) return;
+      var item = (queueItems || []).find(function (x) { return String(x.id || "") === qid; });
+      if (!item) return;
+      closeQueueEditSheet();
+      __queueFormEditId = qid;
+      setQueueFormChrome(true);
+      fillQueueFormFromItem(item);
+      showQueueFormSection();
+    }
+
+    // Compat alias — older Z13.7–11 paths called openQueueEditSheet(id).
+    function openQueueEditSheet(queueItemId) {
+      openQueueFormForEdit(queueItemId);
     }
 
     function renderQueueLinkCollapsed(kind, value) {
@@ -12493,68 +12575,9 @@
       __queueEditQid = "";
     }
 
-    function openQueueEditSheet(queueItemId) {
-      var qid = String(queueItemId || "").trim();
-      if (!qid) return;
-      var item = (queueItems || []).find(function (x) { return String(x.id || "") === qid; });
-      if (!item) return;
-      __queueEditQid = qid;
-      var sheet = document.getElementById("queue-edit-sheet");
-      if (!sheet) return;
-      var hint = document.getElementById("queue-edit-hint");
-      if (hint) {
-        var bits = ["แก้ไขข้อมูลเบื้องต้นในคิวรอโพสต์"];
-        if (item.project) bits.push(item.project);
-        hint.textContent = bits.join(" · ");
-      }
-      var noteEl = document.getElementById("queue-edit-note");
-      var projEl = document.getElementById("queue-edit-project");
-      var priceEl = document.getElementById("queue-edit-price");
-      if (noteEl) noteEl.value = String(item.note || "");
-      if (projEl) projEl.value = String(item.project || "");
-      if (priceEl) priceEl.value = String(item.price || "");
-      sheet.classList.remove("hidden");
-      sheet.setAttribute("aria-hidden", "false");
-      if (noteEl) setTimeout(function () { noteEl.focus(); }, 50);
-    }
-
+    // Z13.12: note-only sheet unused — Edit routes to openQueueFormForEdit via alias above.
     async function saveQueueEditSheet() {
-      var qid = __queueEditQid;
-      if (!qid) return;
-      var noteEl = document.getElementById("queue-edit-note");
-      var projEl = document.getElementById("queue-edit-project");
-      var priceEl = document.getElementById("queue-edit-price");
-      var note = noteEl ? String(noteEl.value || "") : "";
-      var project = projEl ? String(projEl.value || "") : "";
-      var price = priceEl ? String(priceEl.value || "") : "";
-      var saveBtn = document.getElementById("queue-edit-save");
-      if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.textContent = "กำลังบันทึก…";
-      }
-      try {
-        // Narrow queue update only — no catalog reload.
-        var data = await apiPost("/api/queue/update", {
-          id: qid,
-          note: note,
-          project: project,
-          price: price
-        });
-        var updated = data.item || {};
-        queueItems = (queueItems || []).map(function (x) {
-          return String(x.id || "") === qid ? Object.assign({}, x, updated) : x;
-        });
-        updateQueueBadge(data.stats || {});
-        closeQueueEditSheet();
-        if (activeView === "queue") renderQueue();
-      } catch (err) {
-        alert((err && err.message) || "บันทึกคิวไม่สำเร็จ");
-      } finally {
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.textContent = "บันทึก";
-        }
-      }
+      closeQueueEditSheet();
     }
 
     function initQueueEditSheet() {
@@ -12564,7 +12587,7 @@
       var cancel = document.getElementById("queue-edit-cancel");
       var save = document.getElementById("queue-edit-save");
       if (cancel) cancel.addEventListener("click", closeQueueEditSheet);
-      if (save) save.addEventListener("click", function () { saveQueueEditSheet(); });
+      if (save) save.addEventListener("click", function () { closeQueueEditSheet(); });
       sheet.addEventListener("click", function (e) {
         if (e.target === sheet) closeQueueEditSheet();
       });
@@ -12638,7 +12661,7 @@
             openBtn += ' <button type="button" class="btn-xs" data-qact="finish">เสร็จ</button>';
           }
         }
-        var queued = (item.queued_at || item.created_at || "").slice(0, 10) || "—";
+        var queued = formatCompactDateTime(item.created_at || item.queued_at || "") || "—";
         var rowCls = status === "working" ? "q-row-working" : status === "done" ? "q-row-done" : "";
         var notesHtml = renderQueuePropNotes(null, item.note);
         return '<tr class="' + rowCls + '" data-qid="' + esc(item.id) + '">' +
@@ -14516,7 +14539,31 @@
       var propertyId = ((document.getElementById("queue-property-id") || {}).value || "").trim();
       var queuedAt = (document.getElementById("queue-queued-at") || {}).value || todayIsoDate();
       if (!source) { alert("ใส่ลิงก์ต้นโพสต์ก่อน"); return; }
+      var editId = String(__queueFormEditId || "").trim();
       try {
+        if (editId) {
+          // Full-field queue update by queue item id — same fields as Add. No property mutation.
+          var dataUp = await apiPost("/api/queue/update", {
+            id: editId,
+            source_url: source,
+            owner_contact: owner,
+            note: note,
+            project: project,
+            price: price,
+            queued_at: queuedAt
+          });
+          var updated = dataUp.item || {};
+          queueItems = (queueItems || []).map(function (x) {
+            return String(x.id || "") === editId ? Object.assign({}, x, updated) : x;
+          });
+          updateQueueBadge(dataUp.stats || {});
+          closeQueueAddForm();
+          if (activeView === "queue") renderQueue();
+          if (dataUp.sheet && dataUp.sheet.ok === false && dataUp.sheet.error) {
+            alert("บันทึกคิวบนเว็บแล้ว แต่ส่งขึ้นชีทไม่สำเร็จ:\n" + dataUp.sheet.error);
+          }
+          return;
+        }
         var body = {
           source_url: source,
           owner_contact: owner,
@@ -15102,7 +15149,7 @@
           return;
         }
         if (act === "edit" || act === "edit-queue") {
-          openQueueEditSheet(id);
+          openQueueFormForEdit(id);
           return;
         }
         if (act === "edit-property") {
@@ -15290,9 +15337,9 @@
       }
       var queueBtn = e.target.closest("[data-prop-queue]");
       if (queueBtn) {
+        // Z13.12: per-card รอโพสต์ removed; bottom-nav shortcut remains.
         e.preventDefault();
         e.stopPropagation();
-        enqueuePropertyToWaitPost(queueBtn.getAttribute("data-prop-queue"));
         return;
       }
       var extLink = e.target.closest("[data-prop-ext-link]");
@@ -15356,9 +15403,9 @@
         }
         var queueBtn = e.target.closest("[data-prop-queue]");
         if (queueBtn) {
+          // Z13.12: per-card รอโพสต์ removed; bottom-nav shortcut remains.
           e.preventDefault();
           e.stopPropagation();
-          enqueuePropertyToWaitPost(queueBtn.getAttribute("data-prop-queue"));
           return;
         }
         var extLink = e.target.closest("[data-prop-ext-link]");
@@ -16536,7 +16583,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_11"></script>
+  <script src="mobile-operations.js?v=z13_12"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

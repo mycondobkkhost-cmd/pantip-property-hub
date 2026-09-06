@@ -40,16 +40,16 @@ class PhaseZ1311WaitQueueUxRestore(unittest.TestCase):
         self.assertNotIn("ลบออกจากคิว", chunk)
 
     def test_03_edit_opens_queue_sheet_by_queue_id(self) -> None:
-        self.assertIn("openQueueEditSheet", self.html)
+        self.assertIn("openQueueFormForEdit", self.html)
         act = self.html.split('if (act === "edit" || act === "edit-queue")')[1].split(
             'if (act === "edit-property")'
         )[0]
-        self.assertIn("openQueueEditSheet(id)", act)
+        self.assertIn("openQueueFormForEdit(id)", act)
         self.assertNotIn("openPropertyEdit", act)
 
     def test_04_save_updates_queue_no_catalog(self) -> None:
-        fn = self.html.split("async function saveQueueEditSheet")[1].split(
-            "function initQueueEditSheet"
+        fn = self.html.split("async function addToQueue()")[1].split(
+            "async function enqueuePropertyToWaitPost"
         )[0]
         self.assertIn('apiPost("/api/queue/update"', fn)
         self.assertIn("renderQueue()", fn)
@@ -69,9 +69,9 @@ class PhaseZ1311WaitQueueUxRestore(unittest.TestCase):
         self.assertIn('data-view="queue"', nav)
         self.assertIn("รอโพสต์", nav)
 
-    def test_07_assets_z13_11(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_11", self.html)
-        self.assertIn("mobile-operations.js?v=z13_11", self.html)
+    def test_07_assets_z13_12(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_12", self.html)
+        self.assertIn("mobile-operations.js?v=z13_12", self.html)
 
     def test_08_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

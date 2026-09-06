@@ -30,21 +30,25 @@ class PhaseZ138WaitQueueLinkage(unittest.TestCase):
         self.assertIn("property_id=property_id", self.server)
 
     def test_03_ui_persists_property_id_and_prop_queue_action(self) -> None:
+        # Z13.12: property_id writers remain; per-card รอโพสต์ removed from main list.
         self.assertIn('id="queue-property-id"', self.html)
         self.assertIn("body.property_id = propertyId", self.html)
         self.assertIn("enqueuePropertyToWaitPost", self.html)
-        self.assertIn('data-prop-queue="', self.html)
+        prop_actions = self.html.split("function propQuickActionsHtml")[1].split(
+            "function propCardHtml"
+        )[0]
+        self.assertNotIn("data-prop-queue", prop_actions)
 
     def test_04_queue_edit_simple_property_link_backend_kept(self) -> None:
-        # Waiting-page Edit is queue-note; property_id writers/backends remain.
+        # Waiting-page Edit = full queue form; property_id writers/backends remain.
         self.assertIn('data-qact="edit"', self.html)
-        self.assertIn("openQueueEditSheet", self.html)
+        self.assertIn("openQueueFormForEdit", self.html)
         self.assertIn("openPropertyEdit(pid)", self.html)
         self.assertIn("enqueuePropertyToWaitPost", self.html)
 
-    def test_05_assets_z13_11(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_11", self.html)
-        self.assertIn("mobile-operations.js?v=z13_11", self.html)
+    def test_05_assets_z13_12(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_12", self.html)
+        self.assertIn("mobile-operations.js?v=z13_12", self.html)
 
     def test_06_co_agent_notes_absent(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

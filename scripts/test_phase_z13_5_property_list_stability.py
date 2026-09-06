@@ -59,8 +59,8 @@ class PhaseZ135PropertyListStability(unittest.TestCase):
         self.assertIn("if (nextVer !== __ptpLastCatalogVersion)", self.html)
 
     def test_07_assets_z13_8(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_11", self.html)
-        self.assertIn("mobile-operations.js?v=z13_11", self.html)
+        self.assertIn("mobile-operations.css?v=z13_12", self.html)
+        self.assertIn("mobile-operations.js?v=z13_12", self.html)
 
     def test_08_intentional_reset_still_default(self) -> None:
         # User search/filter calls applyFilter() without opts → page 0

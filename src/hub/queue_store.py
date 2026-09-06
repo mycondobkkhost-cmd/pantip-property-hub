@@ -484,6 +484,43 @@ def add_job(
     return item
 
 
+def link_queue_property(
+    queue_item_id: str,
+    property_id: str,
+    *,
+    allow_replace: bool = False,
+) -> dict:
+    """Explicitly attach a canonical property_id to one queue row.
+
+    Never resolves by property_code. Never mutates properties/projects.
+    By default refuses to overwrite an existing non-empty property_id.
+    """
+    qid = (queue_item_id or "").strip()
+    pid = (property_id or "").strip()
+    if not qid:
+        raise ValueError("ต้องระบุรายการคิว")
+    if not pid:
+        raise ValueError("ต้องเลือกทรัพย์")
+
+    props = _load_properties_for_link()
+    pid = validate_property_id(pid, properties=props)
+
+    items = load_queue()
+    item = next((x for x in items if str(x.get("id") or "") == qid), None)
+    if not item:
+        raise ValueError("ไม่พบรายการในคิว")
+
+    existing = str(item.get("property_id") or "").strip()
+    if existing and existing == pid:
+        return item
+    if existing and not allow_replace:
+        raise ValueError("รายการนี้เชื่อมทรัพย์แล้ว — ไม่เขียนทับอัตโนมัติ")
+
+    item["property_id"] = pid
+    save_queue(items)
+    return item
+
+
 def add_links(raw: str, note: str = "") -> list[dict]:
     """Backward-compatible: raw text → one job."""
     item = add_job(raw=raw, note=note)

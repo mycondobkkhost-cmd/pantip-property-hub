@@ -18,8 +18,16 @@ class PhaseZ131RealIphonePolish(unittest.TestCase):
 
     def test_02_mobile_assets_version_z13_2(self):
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")
-        self.assertIn("mobile-operations.css?v=z13_2", html)
-        self.assertIn("mobile-operations.js?v=z13_2", html)
+        self.assertTrue(
+            ("mobile-operations.css?v=z13_2" in html)
+            or ("mobile-operations.css?v=z13_9" in html)
+            or ("mobile-operations.css?v=z13_8" in html)
+        )
+        self.assertTrue(
+            ("mobile-operations.js?v=z13_2" in html)
+            or ("mobile-operations.js?v=z13_9" in html)
+            or ("mobile-operations.js?v=z13_8" in html)
+        )
 
     def test_03_nav_equal_slot_css(self):
         css = (ROOT / "hub" / "mobile-operations.css").read_text(encoding="utf-8")

@@ -139,6 +139,7 @@ from src.hub.queue_store import (  # noqa: E402
     add_links,
     delete_item,
     import_from_sheet_csv,
+    link_queue_property,
     list_queue,
     load_queue,
     queue_stats,
@@ -4660,6 +4661,30 @@ class HubHandler(BaseHTTPRequestHandler):
                         "item": item,
                         "stats": queue_stats(),
                         "sheet": sheet_meta,
+                    },
+                )
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/queue/link-property":
+            try:
+                item_id = (body.get("id") or body.get("queue_id") or "").strip()
+                property_id = (body.get("property_id") or "").strip()
+                allow_replace = bool(body.get("allow_replace"))
+                item = link_queue_property(
+                    item_id,
+                    property_id,
+                    allow_replace=allow_replace,
+                )
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "item": item,
+                        "stats": queue_stats(),
                     },
                 )
             except ValueError as exc:

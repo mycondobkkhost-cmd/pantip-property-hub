@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_8" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_9" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -1043,6 +1043,62 @@
       #queue-link-sheet .q-link-sheet-actions .btn-sm {
         width: auto; flex: 1 1 auto; min-width: 110px;
       }
+    }
+    /* Z13.9 — manual queue→property linker */
+    #queue-prop-link-sheet.modal-backdrop {
+      z-index: 1200;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    #queue-prop-link-sheet .q-prop-link-box {
+      width: min(560px, 100%);
+      max-height: min(86dvh, 720px);
+      margin: 0;
+      border-radius: 16px 16px 0 0;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -8px 28px rgba(0,0,0,.14);
+    }
+    #queue-prop-link-sheet .q-prop-link-handle {
+      width: 42px; height: 4px; border-radius: 999px; background: #d4d4d8;
+      margin: 2px auto 10px;
+    }
+    #queue-prop-link-sheet h3 { margin: 0 0 4px; font-size: 16px; }
+    #queue-prop-link-sheet .q-prop-link-hint {
+      margin: 0 0 10px; font-size: 12px; color: #71717a; line-height: 1.4;
+    }
+    #queue-prop-link-sheet #queue-prop-link-search {
+      width: 100%; padding: 10px 12px; border: 1px solid #d4d4d8; border-radius: 10px;
+      font-size: 15px; margin-bottom: 8px; box-sizing: border-box;
+    }
+    #queue-prop-link-sheet .q-prop-link-results {
+      flex: 1 1 auto; overflow: auto; -webkit-overflow-scrolling: touch;
+      max-height: min(52dvh, 420px); border: 1px solid #e4e4e7; border-radius: 10px;
+      background: #fafafa;
+    }
+    #queue-prop-link-sheet .q-prop-pick {
+      display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #ececec;
+      background: #fff; padding: 12px; cursor: pointer; min-height: 56px; box-sizing: border-box;
+    }
+    #queue-prop-link-sheet .q-prop-pick:active,
+    #queue-prop-link-sheet .q-prop-pick:hover { background: #f5f3ff; }
+    #queue-prop-link-sheet .q-prop-pick .code { font-weight: 700; font-size: 14px; color: #18181b; }
+    #queue-prop-link-sheet .q-prop-pick .meta { font-size: 12px; color: #52525b; margin-top: 2px; line-height: 1.35; }
+    #queue-prop-link-sheet .q-prop-link-empty {
+      padding: 18px 12px; font-size: 13px; color: #71717a; text-align: center;
+    }
+    #queue-prop-link-sheet .q-prop-link-actions {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+    }
+    #queue-prop-link-sheet .q-prop-link-actions .btn-sm { flex: 1 1 120px; min-height: 44px; }
+    @media (min-width: 834px) {
+      #queue-prop-link-sheet.modal-backdrop { align-items: center; padding: 16px; }
+      #queue-prop-link-sheet .q-prop-link-box {
+        border-radius: 14px; max-height: 80vh;
+      }
+      #queue-prop-link-sheet .q-prop-link-handle { display: none; }
     }
     .q-date-cell { font-variant-numeric: tabular-nums; font-size: 11px; color: #3c3548; }
     .q-empty-msg {
@@ -3790,6 +3846,19 @@
         <button type="button" class="btn-sm primary" id="queue-link-copy">คัดลอกลิงก์</button>
         <button type="button" class="btn-sm" id="queue-link-open">เปิดลิงก์</button>
         <button type="button" class="btn-sm" id="queue-link-close">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="queue-prop-link-sheet" aria-hidden="true">
+    <div class="modal-box q-prop-link-box" role="dialog" aria-modal="true" aria-labelledby="queue-prop-link-title">
+      <div class="q-prop-link-handle" aria-hidden="true"></div>
+      <h3 id="queue-prop-link-title">เชื่อมทรัพย์</h3>
+      <p class="q-prop-link-hint" id="queue-prop-link-hint">ยังไม่ได้เชื่อมกับทรัพย์ในระบบ — ค้นหาแล้วเลือกทรัพย์ที่ต้องการ</p>
+      <input type="search" id="queue-prop-link-search" placeholder="ค้นรหัส / โครงการ / ทำเล / ราคา…" autocomplete="off" />
+      <div class="q-prop-link-results" id="queue-prop-link-results" role="listbox" aria-label="ผลการค้นหาทรัพย์"></div>
+      <div class="q-prop-link-actions">
+        <button type="button" class="btn-sm" id="queue-prop-link-cancel">ยกเลิก</button>
       </div>
     </div>
   </div>
@@ -12177,6 +12246,165 @@
       });
     }
 
+    var __queuePropLinkQid = "";
+    var __queuePropLinkTimer = null;
+
+    function queuePropPickLabel(p) {
+      var pmap = (window.PTP_DATA && window.PTP_DATA.project_map) || {};
+      var proj = pmap[p.project_id] || {};
+      var name = proj.canonical_name || p.project_name || "—";
+      var rent = p.rent_price ? ("เช่า " + p.rent_price) : "";
+      var sale = p.sale_price ? ("ขาย " + p.sale_price) : "";
+      var price = [rent, sale].filter(Boolean).join(" · ") || "—";
+      var beds = p.bedrooms ? (p.bedrooms + " นอน") : "";
+      var size = p.size_sqm ? (String(p.size_sqm).replace(/[^\d.]/g, "") + " ตร.ม.") : "";
+      var bits = [name, price, [beds, size].filter(Boolean).join(" · ")].filter(Boolean);
+      var loc = "";
+      try { loc = propLocText(p, proj) || ""; } catch (eLoc) { loc = ""; }
+      if (loc) bits.push(loc);
+      return { code: String(p.code || "—"), meta: bits.join(" · ") };
+    }
+
+    function searchQueueLinkProperties(query) {
+      var q = String(query || "").trim();
+      var all = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      if (!all.length) return [];
+      ensureSearchCaches();
+      var needles = q ? expandSearchNeedles(q) : null;
+      var codeQ = q.toLowerCase();
+      var out = [];
+      var limit = 40;
+      for (var i = 0; i < all.length; i++) {
+        var p = all[i];
+        if (!p || !p.id) continue;
+        if (needles && needles.length) {
+          var blob = (PROP_SEARCH_CACHE && PROP_SEARCH_CACHE[p.id]) || "";
+          var code = String(p.code || "").toLowerCase();
+          var rent = String(p.rent_price || "");
+          var sale = String(p.sale_price || "");
+          var hit = blobMatchesNeedles(blob, needles) ||
+            (codeQ && code.indexOf(codeQ) >= 0) ||
+            (codeQ && rent.indexOf(codeQ) >= 0) ||
+            (codeQ && sale.indexOf(codeQ) >= 0);
+          if (!hit) continue;
+        }
+        out.push(p);
+        if (out.length >= limit) break;
+      }
+      return out;
+    }
+
+    function renderQueuePropLinkResults(query) {
+      var box = document.getElementById("queue-prop-link-results");
+      if (!box) return;
+      var rows = searchQueueLinkProperties(query);
+      if (!rows.length) {
+        box.innerHTML = '<div class="q-prop-link-empty">' +
+          (String(query || "").trim() ? "ไม่พบทรัพย์ที่ตรงคำค้น" : "พิมพ์เพื่อค้นหาทรัพย์ในระบบ") +
+          "</div>";
+        return;
+      }
+      box.innerHTML = rows.map(function (p) {
+        var lab = queuePropPickLabel(p);
+        return '<button type="button" class="q-prop-pick" role="option" data-pick-pid="' +
+          esc(p.id) + '" data-pick-code="' + esc(lab.code) + '" data-pick-meta="' + esc(lab.meta) + '">' +
+          '<div class="code">' + esc(lab.code) + "</div>" +
+          '<div class="meta">' + esc(lab.meta) + "</div></button>";
+      }).join("");
+    }
+
+    function closeQueuePropLinkSheet() {
+      var sheet = document.getElementById("queue-prop-link-sheet");
+      if (!sheet) return;
+      sheet.classList.add("hidden");
+      sheet.setAttribute("aria-hidden", "true");
+      __queuePropLinkQid = "";
+      var input = document.getElementById("queue-prop-link-search");
+      if (input) input.value = "";
+      var box = document.getElementById("queue-prop-link-results");
+      if (box) box.innerHTML = "";
+    }
+
+    function openQueuePropLinkSheet(queueItemId) {
+      var qid = String(queueItemId || "").trim();
+      if (!qid) return;
+      var sheet = document.getElementById("queue-prop-link-sheet");
+      if (!sheet) return;
+      __queuePropLinkQid = qid;
+      var item = (queueItems || []).find(function (x) { return String(x.id || "") === qid; });
+      var hint = document.getElementById("queue-prop-link-hint");
+      if (hint) {
+        var bits = ["ยังไม่ได้เชื่อมกับทรัพย์ในระบบ"];
+        if (item && item.project) bits.push("คิว: " + item.project);
+        if (item && item.price) bits.push("ราคา " + item.price);
+        hint.textContent = bits.join(" · ") + " — ค้นหาแล้วเลือกทรัพย์ที่ต้องการ";
+      }
+      sheet.classList.remove("hidden");
+      sheet.setAttribute("aria-hidden", "false");
+      renderQueuePropLinkResults("");
+      var input = document.getElementById("queue-prop-link-search");
+      if (input) setTimeout(function () { input.focus(); }, 50);
+    }
+
+    async function confirmQueuePropLink(propertyId, code, meta) {
+      var qid = __queuePropLinkQid;
+      var pid = String(propertyId || "").trim();
+      if (!qid || !pid) return;
+      var label = String(code || "") + (meta ? (" — " + meta) : "");
+      if (!confirm("เชื่อมกับ " + label + " ?")) return;
+      try {
+        var data = await apiPost("/api/queue/link-property", {
+          id: qid,
+          property_id: pid
+        });
+        var updated = data.item || {};
+        queueItems = (queueItems || []).map(function (x) {
+          return String(x.id || "") === qid ? Object.assign({}, x, updated) : x;
+        });
+        updateQueueBadge(data.stats || {});
+        closeQueuePropLinkSheet();
+        if (activeView === "queue") renderQueue();
+      } catch (err) {
+        alert((err && err.message) || "เชื่อมทรัพย์ไม่สำเร็จ");
+      }
+    }
+
+    function initQueuePropLinkSheet() {
+      var sheet = document.getElementById("queue-prop-link-sheet");
+      if (!sheet || sheet._bound) return;
+      sheet._bound = true;
+      var input = document.getElementById("queue-prop-link-search");
+      var cancel = document.getElementById("queue-prop-link-cancel");
+      var results = document.getElementById("queue-prop-link-results");
+      if (input) {
+        input.addEventListener("input", function () {
+          clearTimeout(__queuePropLinkTimer);
+          var v = input.value;
+          __queuePropLinkTimer = setTimeout(function () {
+            renderQueuePropLinkResults(v);
+          }, 120);
+        });
+      }
+      if (cancel) cancel.addEventListener("click", closeQueuePropLinkSheet);
+      if (results) {
+        results.addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-pick-pid]");
+          if (!btn) return;
+          confirmQueuePropLink(
+            btn.getAttribute("data-pick-pid"),
+            btn.getAttribute("data-pick-code"),
+            btn.getAttribute("data-pick-meta")
+          );
+        });
+      }
+      sheet.addEventListener("click", function (e) {
+        if (e.target === sheet) closeQueuePropLinkSheet();
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !sheet.classList.contains("hidden")) closeQueuePropLinkSheet();
+      });
+    }
+
     function resolveQueueLinkedProperty(item) {
       // Z13.7: Edit must use property_id only — never ambiguous property_code.
       var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
@@ -12240,11 +12468,13 @@
         var openBtn = "";
         var delBtn = '<button type="button" class="btn-xs danger" data-qact="delete">ลบ</button>';
         var editBtn = "";
+        var linkBtn = "";
         if (linked && linked.property_id) {
           editBtn = '<button type="button" class="btn-xs primary" data-qact="edit" data-property-id="' +
             esc(linked.property_id) + '">แก้ไข</button>';
         } else {
-          editBtn = '<button type="button" class="btn-xs" data-qact="edit" disabled title="เชื่อมทรัพย์ไม่สำเร็จ — ยังไม่มี property_id">แก้ไข</button>';
+          editBtn = '<button type="button" class="btn-xs" data-qact="edit" disabled title="ยังไม่ได้เชื่อมกับทรัพย์ในระบบ">แก้ไข</button>';
+          linkBtn = ' <button type="button" class="btn-xs primary" data-qact="link" title="เชื่อมกับทรัพย์ในระบบ">เชื่อมทรัพย์</button>';
         }
         if (status !== "done") {
           openBtn = '<button type="button" class="btn-xs primary" data-qact="open">เพิ่มโพส</button>';
@@ -12257,7 +12487,7 @@
         var notesHtml = renderQueuePropNotes(linked, item.note);
         return '<tr class="' + rowCls + '" data-qid="' + esc(item.id) + '"' +
           (linked && linked.property_id ? ' data-property-id="' + esc(linked.property_id) + '"' : "") + ">" +
-          '<td><div class="queue-actions">' + editBtn + " " + openBtn + "</div></td>" +
+          '<td><div class="queue-actions">' + editBtn + linkBtn + " " + openBtn + "</div></td>" +
           '<td><div class="queue-actions">' + delBtn + "</div></td>" +
           '<td class="q-date-cell">' + esc(queued) +
             ' <span class="queue-status ' + esc(status) + '">' + statusLabel(status) + "</span></td>" +
@@ -14713,9 +14943,13 @@
           openQueueLinkSheet(btn.getAttribute("data-qlink") || "", btn.getAttribute("data-qlabel") || "");
           return;
         }
+        if (act === "link") {
+          openQueuePropLinkSheet(id);
+          return;
+        }
         if (act === "edit") {
           if (btn.disabled) {
-            alert("เชื่อมทรัพย์ไม่สำเร็จ — ยังไม่มี property_id ที่ปลอดภัย");
+            alert("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ — กด「เชื่อมทรัพย์」ก่อน");
             return;
           }
           var pid = String(btn.getAttribute("data-property-id") || "").trim();
@@ -15719,6 +15953,7 @@
     initQueueQueuedAtDefault();
     initQueueProjectPicker();
     initQueueLinkSheet();
+    initQueuePropLinkSheet();
     var qNewBtn = document.getElementById("queue-project-new-btn");
     if (qNewBtn) {
       qNewBtn.addEventListener("click", function () {
@@ -16146,7 +16381,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_8"></script>
+  <script src="mobile-operations.js?v=z13_9"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

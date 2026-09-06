@@ -37,12 +37,12 @@ class PhaseZ138WaitQueueLinkage(unittest.TestCase):
 
     def test_04_edit_guard_still_requires_property_id(self) -> None:
         self.assertIn('data-qact="edit"', self.html)
-        self.assertIn("เชื่อมทรัพย์ไม่สำเร็จ", self.html)
+        self.assertIn("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ", self.html)
         self.assertIn("openPropertyEdit(pid)", self.html)
 
-    def test_05_assets_z13_8(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_8", self.html)
-        self.assertIn("mobile-operations.js?v=z13_8", self.html)
+    def test_05_assets_z13_9(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_9", self.html)
+        self.assertIn("mobile-operations.js?v=z13_9", self.html)
 
     def test_06_co_agent_notes_absent(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

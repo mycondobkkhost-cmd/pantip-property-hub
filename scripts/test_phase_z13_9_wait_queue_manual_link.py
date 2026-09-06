@@ -20,17 +20,20 @@ class PhaseZ139WaitQueueManualLink(unittest.TestCase):
         cls.store = (ROOT / "src" / "hub" / "queue_store.py").read_text(encoding="utf-8")
         cls.server = (ROOT / "scripts" / "hub_server.py").read_text(encoding="utf-8")
 
-    def test_01_unlinked_shows_link_action(self) -> None:
-        self.assertIn('data-qact="link"', self.html)
-        self.assertIn(">เชื่อมทรัพย์</button>", self.html)
-        self.assertIn("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ", self.html)
-
-    def test_02_linked_shows_edit_property_unlinked_shows_link(self) -> None:
+    def test_01_link_backend_retained_not_required_in_row_ui(self) -> None:
+        # Backend/API retained; waiting-page rows no longer require linking UI.
+        self.assertIn("openQueuePropLinkSheet", self.html)
+        self.assertIn('path == "/api/queue/link-property"', self.server)
         chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
-        self.assertIn('data-qact="edit-property"', chunk)
-        self.assertIn('data-property-id="', chunk)
-        self.assertIn('data-qact="link"', chunk)
-        self.assertIn('data-qact="edit-queue"', chunk)
+        self.assertNotIn("เชื่อมทรัพย์", chunk)
+        self.assertNotIn('data-qact="link"', chunk)
+
+    def test_02_simple_edit_on_waiting_rows(self) -> None:
+        chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
+        self.assertIn('data-qact="edit"', chunk)
+        self.assertNotIn('data-qact="edit-property"', chunk)
+        self.assertNotIn('data-qact="edit-queue"', chunk)
+        self.assertIn("openQueueEditSheet", self.html)
 
     def test_03_picker_results_carry_property_id(self) -> None:
         self.assertIn("data-pick-pid=", self.html)
@@ -52,9 +55,9 @@ class PhaseZ139WaitQueueManualLink(unittest.TestCase):
         self.assertIn("validate_property_id", fn)
         self.assertIn('item["property_id"] = pid', fn)
 
-    def test_06_assets_z13_10(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_10", self.html)
-        self.assertIn("mobile-operations.js?v=z13_10", self.html)
+    def test_06_assets_z13_11(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_11", self.html)
+        self.assertIn("mobile-operations.js?v=z13_11", self.html)
 
     def test_07_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

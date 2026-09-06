@@ -20,30 +20,32 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
         cls.store = (ROOT / "src" / "hub" / "queue_store.py").read_text(encoding="utf-8")
         cls.server = (ROOT / "scripts" / "hub_server.py").read_text(encoding="utf-8")
 
-    def test_01_unlinked_has_edit_queue(self) -> None:
-        self.assertIn('data-qact="edit-queue"', self.html)
-        self.assertIn(">แก้ไขคิว</button>", self.html)
+    def test_01_simple_edit_always_enabled(self) -> None:
+        self.assertIn('data-qact="edit"', self.html)
+        self.assertIn(">แก้ไข</button>", self.html)
         self.assertIn("openQueueEditSheet", self.html)
-        # Disabled property-only edit for unlinked must be gone
         self.assertNotIn('data-qact="edit" disabled', self.html)
+        chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
+        self.assertNotIn("แก้ไขคิว", chunk)
+        self.assertNotIn("แก้ไขทรัพย์", chunk)
 
-    def test_02_linked_has_edit_property_separate(self) -> None:
-        self.assertIn('data-qact="edit-property"', self.html)
-        self.assertIn(">แก้ไขทรัพย์</button>", self.html)
+    def test_02_property_edit_backend_path_kept(self) -> None:
         self.assertIn("openPropertyEdit(pid)", self.html)
+        self.assertIn('if (act === "edit-property")', self.html)
 
-    def test_03_unlinked_may_show_link(self) -> None:
-        self.assertIn('data-qact="link"', self.html)
-        self.assertIn(">เชื่อมทรัพย์</button>", self.html)
+    def test_03_link_not_required_on_waiting_rows(self) -> None:
+        chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
+        self.assertNotIn("เชื่อมทรัพย์", chunk)
+        self.assertNotIn('data-qact="link"', chunk)
 
-    def test_04_queue_note_labeled(self) -> None:
-        self.assertIn("หมายเหตุคิว", self.html)
-        self.assertIn("หมายเหตุทรัพย์", self.html)
+    def test_04_queue_note_editor_present(self) -> None:
         self.assertIn("queue-edit-note", self.html)
+        self.assertIn("openQueueEditSheet", self.html)
 
     def test_05_delete_confirmation_and_label(self) -> None:
-        self.assertIn("ลบรายการนี้ออกจากคิวรอโพสต์?", self.html)
-        self.assertIn(">ลบออกจากคิว</button>", self.html)
+        self.assertIn("ลบรายการนี้ออกจากคิว?", self.html)
+        chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
+        self.assertIn(">ลบ</button>", chunk)
         self.assertIn('path == "/api/queue/delete"', self.server)
         self.assertIn("def delete_item", self.store)
 
@@ -57,9 +59,9 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
         self.assertNotIn("reloadPreviewData", fn)
         self.assertNotIn("/api/hub/catalog", fn)
 
-    def test_07_assets_z13_10(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_10", self.html)
-        self.assertIn("mobile-operations.js?v=z13_10", self.html)
+    def test_07_assets_z13_11(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_11", self.html)
+        self.assertIn("mobile-operations.js?v=z13_11", self.html)
 
     def test_08_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload
@@ -81,12 +83,10 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
         self.assertNotIn("0812345678", blob)
 
     def test_09_notes_escaped(self) -> None:
-        # renderQueuePropNotes uses esc()
         chunk = self.html.split("function renderQueuePropNotes")[1].split(
             "function renderQueue()"
         )[0]
         self.assertIn("esc(qNote)", chunk)
-        self.assertIn("esc(propNotes)", chunk)
 
     def _e2e(self, props, queue_items, projects=None):
         tmp = Path(tempfile.mkdtemp(prefix="z1310_"))

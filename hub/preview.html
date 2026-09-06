@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_10" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_11" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -3920,10 +3920,10 @@
   <div class="modal-backdrop hidden" id="queue-edit-sheet" aria-hidden="true">
     <div class="modal-box q-edit-box" role="dialog" aria-modal="true" aria-labelledby="queue-edit-title">
       <div class="q-edit-handle" aria-hidden="true"></div>
-      <h3 id="queue-edit-title">แก้ไขคิวรอโพสต์</h3>
-      <p class="q-edit-hint" id="queue-edit-hint">แก้ไขหมายเหตุคิว — ไม่เปลี่ยนข้อมูลทรัพย์ในระบบ</p>
+      <h3 id="queue-edit-title">แก้ไข</h3>
+      <p class="q-edit-hint" id="queue-edit-hint">แก้ไขข้อมูลเบื้องต้นในคิวรอโพสต์</p>
       <label>
-        <span>หมายเหตุคิว</span>
+        <span>หมายเหตุ</span>
         <textarea id="queue-edit-note" placeholder="เช่น ว่างเดือนหน้า / รอรูป / ยังขาดราคา" maxlength="2000"></textarea>
       </label>
       <label>
@@ -12503,8 +12503,8 @@
       if (!sheet) return;
       var hint = document.getElementById("queue-edit-hint");
       if (hint) {
-        var bits = ["แก้ไขหมายเหตุคิว — ไม่เปลี่ยนข้อมูลทรัพย์ในระบบ"];
-        if (item.project) bits.push("คิว: " + item.project);
+        var bits = ["แก้ไขข้อมูลเบื้องต้นในคิวรอโพสต์"];
+        if (item.project) bits.push(item.project);
         hint.textContent = bits.join(" · ");
       }
       var noteEl = document.getElementById("queue-edit-note");
@@ -12605,21 +12605,11 @@
     }
 
     function renderQueuePropNotes(linked, queueNote) {
-      // Z13.10: queue note is independent from property.notes — always prioritize queue note.
+      // Z13.11: show queue item.note only (familiar compact note cell).
       var qNote = String(queueNote || "").trim();
       if (qNote === "-" || qNote === "—" || qNote === "–") qNote = "";
-      var propNotes = linked ? String(linked.notes || "").trim() : "";
-      if (propNotes === "-" || propNotes === "—" || propNotes === "–") propNotes = "";
-      var parts = [];
-      if (qNote) {
-        parts.push('<div class="q-prop-notes q-queue-notes" title="' + esc(qNote) + '"><strong>หมายเหตุคิว</strong> ' +
-          esc(qNote) + "</div>");
-      }
-      if (propNotes && linked && linked.property_id) {
-        parts.push('<div class="q-prop-notes-secondary" title="' + esc(propNotes) + '"><strong>หมายเหตุทรัพย์</strong> ' +
-          esc(propNotes) + "</div>");
-      }
-      return parts.join("");
+      if (!qNote) return "—";
+      return esc(qNote);
     }
 
     function renderQueue() {
@@ -12638,18 +12628,10 @@
         var source = item.source_url || item.url || "";
         var owner = ownerContactFromQueue(item);
         var status = item.status || "pending";
-        var linked = resolveQueueLinkedProperty(item);
         var openBtn = "";
-        var delBtn = '<button type="button" class="btn-xs danger" data-qact="delete" title="ลบออกจากคิวรอโพสต์">ลบออกจากคิว</button>';
-        // Z13.10: queue edit always enabled (no property_id required).
-        var editQueueBtn = '<button type="button" class="btn-xs primary" data-qact="edit-queue" title="แก้ไขหมายเหตุคิว">แก้ไขคิว</button>';
-        var secondaryBtn = "";
-        if (linked && linked.property_id) {
-          secondaryBtn = ' <button type="button" class="btn-xs" data-qact="edit-property" data-property-id="' +
-            esc(linked.property_id) + '" title="เปิดแก้ไขทรัพย์ในระบบ">แก้ไขทรัพย์</button>';
-        } else {
-          secondaryBtn = ' <button type="button" class="btn-xs" data-qact="link" title="เชื่อมกับทรัพย์ในระบบ">เชื่อมทรัพย์</button>';
-        }
+        var delBtn = '<button type="button" class="btn-xs danger" data-qact="delete">ลบ</button>';
+        // Z13.11: always-enabled queue Edit (by queue item id). No property link required.
+        var editBtn = '<button type="button" class="btn-xs primary" data-qact="edit">แก้ไข</button>';
         if (status !== "done") {
           openBtn = ' <button type="button" class="btn-xs primary" data-qact="open">เพิ่มโพส</button>';
           if (status === "working") {
@@ -12658,16 +12640,13 @@
         }
         var queued = (item.queued_at || item.created_at || "").slice(0, 10) || "—";
         var rowCls = status === "working" ? "q-row-working" : status === "done" ? "q-row-done" : "";
-        var notesHtml = renderQueuePropNotes(linked, item.note);
-        return '<tr class="' + rowCls + '" data-qid="' + esc(item.id) + '"' +
-          (linked && linked.property_id ? ' data-property-id="' + esc(linked.property_id) + '"' : "") + ">" +
-          '<td><div class="queue-actions queue-actions-primary">' + editQueueBtn + secondaryBtn + openBtn + "</div></td>" +
+        var notesHtml = renderQueuePropNotes(null, item.note);
+        return '<tr class="' + rowCls + '" data-qid="' + esc(item.id) + '">' +
+          '<td><div class="queue-actions">' + editBtn + openBtn + "</div></td>" +
           '<td><div class="queue-actions">' + delBtn + "</div></td>" +
           '<td class="q-date-cell">' + esc(queued) +
             ' <span class="queue-status ' + esc(status) + '">' + statusLabel(status) + "</span></td>" +
-          '<td class="q-proj">' + esc(item.project || "—") +
-            (linked && linked.code ? (' <span class="q-code-chip">' + esc(linked.code) + "</span>") : "") +
-          "</td>" +
+          '<td class="q-proj">' + esc(item.project || "—") + "</td>" +
           '<td>' + esc(item.price || "—") + "</td>" +
           '<td class="q-note">' + notesHtml + "</td>" +
           '<td class="q-link-cell">' + renderQueueLinkCollapsed("source", source) + "</td>" +
@@ -15118,17 +15097,18 @@
           return;
         }
         if (act === "link") {
+          // Backend linker retained; not shown on waiting-page rows (Z13.11 UX restore).
           openQueuePropLinkSheet(id);
           return;
         }
-        if (act === "edit-queue") {
+        if (act === "edit" || act === "edit-queue") {
           openQueueEditSheet(id);
           return;
         }
-        if (act === "edit-property" || act === "edit") {
+        if (act === "edit-property") {
           var pid = String(btn.getAttribute("data-property-id") || item.property_id || "").trim();
           if (!pid) {
-            alert("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ — กด「เชื่อมทรัพย์」ก่อน หรือแก้ไขคิวก่อน");
+            alert("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ");
             return;
           }
           var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
@@ -15148,11 +15128,11 @@
           return;
         }
         if (act === "finish") {
-          if (!confirm("โพสต์เสร็จแล้ว — ลบรายการนี้ออกจากคิวรอโพสต์?")) return;
+          if (!confirm("โพสต์เสร็จแล้ว — ลบรายการนี้ออกจากคิว?")) return;
           await apiPost("/api/queue/delete", { id: id });
           if (activeQueueId === id) activeQueueId = "";
         } else if (act === "delete") {
-          if (!confirm("ลบรายการนี้ออกจากคิวรอโพสต์?")) return;
+          if (!confirm("ลบรายการนี้ออกจากคิว?")) return;
           await apiPost("/api/queue/delete", { id: id });
           if (activeQueueId === id) activeQueueId = "";
         }
@@ -16556,7 +16536,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_10"></script>
+  <script src="mobile-operations.js?v=z13_11"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

@@ -38,8 +38,8 @@ class PhaseZ134Stability(unittest.TestCase):
 
     def test_03_assets_cache_bust_z13_8(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")
-        self.assertIn("mobile-operations.css?v=z13_10", html)
-        self.assertIn("mobile-operations.js?v=z13_10", html)
+        self.assertIn("mobile-operations.css?v=z13_11", html)
+        self.assertIn("mobile-operations.js?v=z13_11", html)
 
     def test_04_z13_3_boot_invariants_still_hold(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")

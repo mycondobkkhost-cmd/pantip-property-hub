@@ -35,15 +35,16 @@ class PhaseZ138WaitQueueLinkage(unittest.TestCase):
         self.assertIn("enqueuePropertyToWaitPost", self.html)
         self.assertIn('data-prop-queue="', self.html)
 
-    def test_04_edit_property_still_requires_property_id(self) -> None:
-        # Property editor path remains property_id-only; queue edit is separate.
-        self.assertIn('data-qact="edit-property"', self.html)
+    def test_04_queue_edit_simple_property_link_backend_kept(self) -> None:
+        # Waiting-page Edit is queue-note; property_id writers/backends remain.
+        self.assertIn('data-qact="edit"', self.html)
+        self.assertIn("openQueueEditSheet", self.html)
         self.assertIn("openPropertyEdit(pid)", self.html)
-        self.assertIn('data-qact="edit-queue"', self.html)
+        self.assertIn("enqueuePropertyToWaitPost", self.html)
 
-    def test_05_assets_z13_10(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_10", self.html)
-        self.assertIn("mobile-operations.js?v=z13_10", self.html)
+    def test_05_assets_z13_11(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_11", self.html)
+        self.assertIn("mobile-operations.js?v=z13_11", self.html)
 
     def test_06_co_agent_notes_absent(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

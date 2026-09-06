@@ -18,15 +18,16 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         cls.css = (ROOT / "hub" / "mobile-operations.css").read_text(encoding="utf-8")
         cls.proj = (ROOT / "src" / "hub" / "public_projection.py").read_text(encoding="utf-8")
 
-    def test_01_edit_uses_property_id_attr(self) -> None:
-        self.assertIn('data-qact="edit-property"', self.html)
-        self.assertIn("data-property-id=", self.html)
+    def test_01_queue_edit_is_simple_and_property_edit_path_safe(self) -> None:
+        # Z13.11: waiting-page Edit = queue note. Property edit path remains identity-safe if used.
+        self.assertIn('data-qact="edit"', self.html)
+        self.assertIn("openQueueEditSheet", self.html)
         self.assertIn("function resolveQueueLinkedProperty", self.html)
         self.assertIn("openPropertyEdit(pid)", self.html)
-        # Must not open property edit by property_code
-        edit_chunk = self.html.split('if (act === "edit-property" || act === "edit")')[1].split(
-            'if (act === "open")'
+        edit_chunk = self.html.split('if (act === "edit" || act === "edit-queue")')[1].split(
+            'if (act === "edit-property")'
         )[0]
+        self.assertIn("openQueueEditSheet(id)", edit_chunk)
         self.assertNotIn("property_code", edit_chunk)
 
     def test_02_duplicate_code_guard_in_resolver(self) -> None:
@@ -41,22 +42,19 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         # Returning display code is fine; matching on it is not
         self.assertIn("hits[0].id", chunk)
 
-    def test_03_notes_from_property_field(self) -> None:
+    def test_03_notes_from_queue_field(self) -> None:
         self.assertIn("function renderQueuePropNotes", self.html)
-        self.assertIn("linked.notes", self.html)
-        self.assertIn("q-prop-notes", self.html)
-        self.assertIn("-webkit-line-clamp: 3", self.html)
+        self.assertIn("queueNote", self.html)
+        self.assertIn("esc(qNote)", self.html)
 
     def test_04_notes_html_escaped(self) -> None:
         notes_fn = self.html.split("function renderQueuePropNotes")[1].split("function renderQueue()")[0]
         self.assertIn("esc(qNote)", notes_fn)
-        self.assertIn("esc(propNotes)", notes_fn)
         self.assertNotIn("innerHTML = text", notes_fn)
 
     def test_05_empty_note_omitted(self) -> None:
         notes_fn = self.html.split("function renderQueuePropNotes")[1].split("function renderQueue()")[0]
-        self.assertIn("if (qNote)", notes_fn)
-        self.assertIn('return parts.join("");', notes_fn)
+        self.assertIn('if (!qNote) return "—";', notes_fn)
 
     def test_06_edit_return_to_queue(self) -> None:
         self.assertIn('editReturnView = "queue"', self.html)
@@ -86,8 +84,8 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         self.assertIn("add-zone-source", self.html)
 
     def test_11_assets_z13_8(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_10", self.html)
-        self.assertIn("mobile-operations.js?v=z13_10", self.html)
+        self.assertIn("mobile-operations.css?v=z13_11", self.html)
+        self.assertIn("mobile-operations.js?v=z13_11", self.html)
 
     def test_12_co_agent_notes_not_in_public_projection(self) -> None:
         # Public projection must keep stripping notes
@@ -121,12 +119,12 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         self.assertNotIn("owner_phones", blob)
         self.assertNotIn("0812345678", blob)
 
-    def test_13_queue_edit_always_enabled_z13_10(self) -> None:
-        # Z13.10 corrects Z13.7: queue edit does not require property link.
-        self.assertIn('data-qact="edit-queue"', self.html)
+    def test_13_queue_edit_always_enabled_z13_11(self) -> None:
+        self.assertIn('data-qact="edit"', self.html)
         self.assertNotIn('data-qact="edit" disabled', self.html)
-        self.assertIn("หมายเหตุคิว", self.html)
-        self.assertIn('data-qact="link"', self.html)
+        chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
+        self.assertNotIn("เชื่อมทรัพย์", chunk)
+        self.assertIn(">แก้ไข</button>", chunk)
 
     def test_15_catalog_reload_forces_refetch(self) -> None:
         # After Save, queue must see updated notes — stale PTP_DATA short-circuit is forbidden.

@@ -574,7 +574,7 @@
     min-height: 44px;
   }
 
-  /* Add form */
+  /* Add form — sticky step nav so Step 1 stays tappable after scroll (Z13.6) */
   .add-step-nav {
     display: flex;
     gap: 4px;
@@ -582,6 +582,30 @@
     padding: 6px 0 8px;
     margin-bottom: 6px;
     -webkit-overflow-scrolling: touch;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--surface, #fff);
+    pointer-events: auto;
+  }
+
+  .add-step-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    min-width: 72px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line, #e4e4e7);
+    background: #fafafa;
+    font-size: 13px;
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  .add-step-btn.active {
+    background: #18181b;
+    color: #fff;
+    border-color: #18181b;
   }
 
   .add-zone.collapsed-mobile .add-grid,
@@ -712,9 +736,50 @@
   }
 }
 
-/* Tablet — preserve Z13 adaptive */
+/* Tablet — preserve Z13 adaptive + Accordion/step nav for Add/Edit (Z13.6) */
 @media (min-width: 769px) and (max-width: 1024px) {
   .mobile-nav {
+    display: none !important;
+  }
+
+  .add-step-nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 0 10px;
+    margin-bottom: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--surface, #fff);
+    pointer-events: auto;
+  }
+
+  .add-step-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    min-width: 80px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line, #e4e4e7);
+    background: #fafafa;
+    font-size: 13px;
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  .add-step-btn.active {
+    background: #18181b;
+    color: #fff;
+    border-color: #18181b;
+  }
+
+  .add-zone.collapsed-mobile .add-grid,
+  .add-zone.collapsed-mobile .toolbar-row,
+  .add-zone.collapsed-mobile label.add-wide,
+  .add-zone.collapsed-mobile .warn-list,
+  .add-zone.collapsed-mobile #post-footer-box,
+  .add-zone.collapsed-mobile #group-recommend-box {
     display: none !important;
   }
 

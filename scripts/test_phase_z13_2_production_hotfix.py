@@ -63,12 +63,14 @@ class PhaseZ132ProductionHotfix(unittest.TestCase):
             ("mobile-operations.css?v=z13_2" in html)
             or ("mobile-operations.css?v=z13_3" in html)
             or ("mobile-operations.css?v=z13_4" in html)
+            or ("mobile-operations.css?v=z13_6" in html)
             or ("mobile-operations.css?v=z13_5" in html)
         )
         self.assertTrue(
             ("mobile-operations.js?v=z13_2" in html)
             or ("mobile-operations.js?v=z13_3" in html)
             or ("mobile-operations.js?v=z13_4" in html)
+            or ("mobile-operations.js?v=z13_6" in html)
             or ("mobile-operations.js?v=z13_5" in html)
         )
 

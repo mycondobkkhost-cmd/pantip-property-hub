@@ -181,9 +181,16 @@
     syncVisible();
   }
 
+  function useAddStepAccordion() {
+    // Phone + iPad portrait/tablet — accordion hides other sections.
+    // Desktop (≥1025) keeps all zones expanded.
+    return window.matchMedia("(max-width: 1024px)").matches;
+  }
+
   function initAddStepNav() {
     var nav = document.getElementById("add-step-nav");
-    if (!nav) return;
+    if (!nav || nav.dataset.z136Ready === "1") return;
+    nav.dataset.z136Ready = "1";
     var zones = [
       { id: "add-zone-source", label: "ต้นทาง" },
       { id: "add-zone-details", label: "ข้อมูลทรัพย์" },
@@ -195,37 +202,65 @@
         '" data-step-zone="' + z.id + '">' + esc(z.label) + "</button>";
     }).join("");
 
+    function applyAccordion(zoneId) {
+      if (!useAddStepAccordion()) {
+        zones.forEach(function (zz) {
+          var zzEl = document.getElementById(zz.id);
+          if (zzEl) zzEl.classList.remove("collapsed-mobile");
+        });
+        return;
+      }
+      zones.forEach(function (zz) {
+        var zzEl = document.getElementById(zz.id);
+        if (zzEl) zzEl.classList.toggle("collapsed-mobile", zz.id !== zoneId);
+      });
+    }
+
     function go(zoneId) {
-      var el = document.getElementById(zoneId);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (!zoneId) zoneId = "add-zone-source";
+      applyAccordion(zoneId);
       nav.querySelectorAll(".add-step-btn").forEach(function (b) {
         b.classList.toggle("active", b.getAttribute("data-step-zone") === zoneId);
       });
+      var el = document.getElementById(zoneId);
+      if (el) {
+        try {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (e) {
+          try { el.scrollIntoView(true); } catch (e2) { /* ignore */ }
+        }
+      }
+      return zoneId;
     }
+
+    // Public: Edit/Add open + tests must reset to step 1 (Z13.6).
+    window.ptpGoAddStep = go;
+    window.ptpResetAddStepNav = function () {
+      return go("add-zone-source");
+    };
 
     nav.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-step-zone]");
       if (!btn) return;
+      e.preventDefault();
       go(btn.getAttribute("data-step-zone"));
     });
 
-    if (isMobile()) {
-      zones.forEach(function (z, i) {
-        var zone = document.getElementById(z.id);
-        if (!zone || i === 0) return;
-        zone.classList.add("collapsed-mobile");
-        var head = zone.querySelector(".add-zone-head");
-        if (head) {
-          head.addEventListener("click", function () {
-            zones.forEach(function (zz) {
-              var zzEl = document.getElementById(zz.id);
-              if (zzEl) zzEl.classList.toggle("collapsed-mobile", zz.id !== z.id);
-            });
-            go(z.id);
-          });
-        }
+    // Zone heads: ALL steps including ต้นทาง (previously skipped → unreachable).
+    zones.forEach(function (z) {
+      var zone = document.getElementById(z.id);
+      if (!zone) return;
+      var head = zone.querySelector(".add-zone-head");
+      if (!head || head.dataset.z136Bound === "1") return;
+      head.dataset.z136Bound = "1";
+      head.style.cursor = "pointer";
+      head.addEventListener("click", function () {
+        go(z.id);
       });
-    }
+    });
+
+    // Initial accordion: step 1 open, later steps collapsed on phone/iPad.
+    applyAccordion("add-zone-source");
   }
 
   function initOwnerContactBlock() {

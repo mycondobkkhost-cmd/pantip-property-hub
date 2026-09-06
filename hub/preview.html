@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_5" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_6" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -8189,6 +8189,11 @@
       });
       switchView("add");
       window.scrollTo(0, 0);
+      // Z13.6: always land on ต้นทาง so post/source links are reachable after reopen
+      try {
+        if (typeof window.ptpResetAddStepNav === "function") window.ptpResetAddStepNav();
+        else if (typeof window.ptpGoAddStep === "function") window.ptpGoAddStep("add-zone-source");
+      } catch (eNav) { /* ignore */ }
     }
 
     function cancelPropertyEdit() {
@@ -8660,7 +8665,7 @@
         var pid = btn.getAttribute("data-recheck-open");
         if (!pid) return;
         var prop = (window.PTP_DATA && window.PTP_DATA.properties || []).find(function (p) { return p.id === pid; });
-        if (prop) openEditProperty(prop);
+        if (prop) openPropertyEdit(prop.id);
         else alert("ไม่พบทรัพย์ในรายการ — ลองรีเฟรชข้อมูล");
       });
     }
@@ -8816,6 +8821,10 @@
         initLinkFields();
         lockAllLinkFields();
         checkServer();
+        try {
+          if (typeof window.ptpResetAddStepNav === "function") window.ptpResetAddStepNav();
+          else if (typeof window.ptpGoAddStep === "function") window.ptpGoAddStep("add-zone-source");
+        } catch (eAddNav) { /* ignore */ }
       }
       updateSubmenuBar();
     }
@@ -8888,7 +8897,9 @@
       if (data.raw_text) {
         document.getElementById("add-raw").value = data.raw_text;
       }
-      if (data.source_url) document.getElementById("add-url").value = data.source_url;
+      if (data.source_url != null && data.source_url !== undefined) {
+        document.getElementById("add-url").value = data.source_url || "";
+      }
       if (data.page_post_text) {
         var ppt = document.getElementById("add-page-post-text");
         if (ppt) ppt.value = data.page_post_text;
@@ -15924,7 +15935,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_5"></script>
+  <script src="mobile-operations.js?v=z13_6"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

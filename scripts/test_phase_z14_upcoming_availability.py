@@ -102,7 +102,7 @@ class PhaseZ14MainUxAndUpcoming(unittest.TestCase):
                 "code": "S1",
                 "sale_price": "5000000",
                 "rent_price": "",
-                "last_listed_at": "20/09/2025",
+                "last_posted_at": "2025-09-20",
                 "owner_confirmed_available_from": (today + timedelta(days=14)).isoformat(),
                 "project_name": "Sale Only",
             },
@@ -110,7 +110,7 @@ class PhaseZ14MainUxAndUpcoming(unittest.TestCase):
                 "id": "rent-far",
                 "code": "R1",
                 "rent_price": "20000",
-                "last_listed_at": "01/01/2026",
+                "last_posted_at": "2026-01-01",
                 "owner_confirmed_available_from": (today + timedelta(days=45)).isoformat(),
                 "project_name": "Far",
             },
@@ -118,7 +118,7 @@ class PhaseZ14MainUxAndUpcoming(unittest.TestCase):
                 "id": "rent-conf",
                 "code": "R2",
                 "rent_price": "20000",
-                "last_listed_at": "01/01/2026",
+                "last_posted_at": "2026-01-01",
                 "owner_confirmed_available_from": (today + timedelta(days=14)).isoformat(),
                 "project_name": "Confirmed",
             },
@@ -126,21 +126,21 @@ class PhaseZ14MainUxAndUpcoming(unittest.TestCase):
                 "id": "rent-ann",
                 "code": "R3",
                 "rent_price": "18000",
-                "last_listed_at": "26/09/2025",  # +1y = 26/09/2026 → 20 days
+                "last_posted_at": "2025-09-26",  # +1y = 2026-09-26 → 20 days
                 "project_name": "Annual",
             },
             {
                 "id": "rent-over",
                 "code": "R4",
                 "rent_price": "15000",
-                "last_listed_at": "01/09/2025",  # +1y = 01/09/2026 → overdue 5 days
+                "last_posted_at": "2025-09-01",  # +1y = 2026-09-01 → overdue 5 days
                 "project_name": "Overdue Annual",
             },
             {
                 "id": "both",
                 "code": "R5",
                 "rent_price": "22000",
-                "last_listed_at": "20/09/2025",  # annual also near
+                "last_posted_at": "2025-09-20",
                 "owner_confirmed_available_from": (today + timedelta(days=10)).isoformat(),
                 "project_name": "Both",
             },
@@ -149,6 +149,7 @@ class PhaseZ14MainUxAndUpcoming(unittest.TestCase):
                 "code": "R6",
                 "rent_price": "10000",
                 "last_listed_at": "01/01/2026",
+                "last_posted_at": "",
                 "available_raw": "20/09/2026",
                 "วันที่ว่าง": "20/09/2026",
                 "project_name": "Legacy",
@@ -170,16 +171,16 @@ class PhaseZ14MainUxAndUpcoming(unittest.TestCase):
         self.assertIn("both", ids)
         both = next(x for x in data["upcoming"] if x["property_id"] == "both")
         self.assertEqual(both["evidence"], "confirmed")
-        self.assertEqual(both["label"], "ยืนยันวันว่างแล้ว")
+        self.assertEqual(both["label"], "ยืนยันวันว่าง")
         ann = next(x for x in data["upcoming"] if x["property_id"] == "rent-ann")
         self.assertEqual(ann["evidence"], "annual_recheck")
         self.assertEqual(ann["label"], "ถึงรอบเช็ก")
         conf = next(x for x in data["upcoming"] if x["property_id"] == "rent-conf")
         self.assertEqual(conf["days_until"], 14)
-        self.assertEqual(conf["countdown"], "14 วัน")
+        self.assertEqual(conf["countdown"], "เหลืออีก 14 วัน")
         over = next(x for x in data["overdue"] if x["property_id"] == "rent-over")
         self.assertEqual(over["days_until"], -5)
-        self.assertEqual(over["countdown"], "เลยมา 5 วัน")
+        self.assertEqual(over["countdown"], "เลยรอบเช็กมา 5 วัน")
         # no duplicates
         self.assertEqual(len(ids), len(data["upcoming"]) + len(data["overdue"]))
 
@@ -230,8 +231,10 @@ class PhaseZ14MainUxAndUpcoming(unittest.TestCase):
         today = date(2026, 9, 6)
         self.assertEqual(days_until(today, today=today), 0)
         self.assertEqual(countdown_label(0), "วันนี้")
-        self.assertEqual(countdown_label(14), "14 วัน")
-        self.assertEqual(countdown_label(-5), "เลยมา 5 วัน")
+        self.assertEqual(countdown_label(14), "เหลืออีก 14 วัน")
+        self.assertEqual(countdown_label(1), "เหลืออีก 1 วัน")
+        self.assertEqual(countdown_label(-5), "เลยรอบเช็กมา 5 วัน")
+        self.assertEqual(countdown_label(-5, evidence="confirmed"), "เลยวันว่างมา 5 วัน")
 
     def test_14_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

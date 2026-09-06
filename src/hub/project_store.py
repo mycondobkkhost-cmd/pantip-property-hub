@@ -10,8 +10,11 @@ import threading
 import uuid
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BANGKOK = ZoneInfo("Asia/Bangkok")
+LAST_POSTED_AT_FIELD = "last_posted_at"
 PROJECTS_JSON = BASE_DIR / "data" / "projects.json"
 PROPERTIES_JSON = BASE_DIR / "data" / "properties.json"
 DB_PATH = BASE_DIR / "data" / "hub.db"
@@ -37,6 +40,41 @@ def projects_path() -> Path:
 def properties_path() -> Path:
     root = _e2e_data_root()
     return (root / "properties.json") if root else PROPERTIES_JSON
+
+
+def _norm_url(raw: str | None) -> str:
+    return (raw or "").strip()
+
+
+def bangkok_posted_stamp() -> str:
+    """Bangkok-local timestamp written only at true publish-URL boundary."""
+    return datetime.now(BANGKOK).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def stamp_last_posted_at_on_publish_url_change(
+    prop: dict,
+    *,
+    old_pages_url: str | None,
+    old_post_url: str | None,
+    new_pages_url: str | None,
+    new_post_url: str | None,
+) -> bool:
+    """Update last_posted_at only when a published page/profile URL is newly set or changed.
+
+    Does NOT stamp on ordinary Edit, queue actions, owner-contact edits, or empty clears.
+    Repost (new URL) refreshes the stamp so annual follow-up uses the latest real post.
+    """
+    old_pages = _norm_url(old_pages_url)
+    old_post = _norm_url(old_post_url)
+    new_pages = _norm_url(new_pages_url)
+    new_post = _norm_url(new_post_url)
+    pages_changed = bool(new_pages) and new_pages != old_pages
+    post_changed = bool(new_post) and new_post != old_post
+    if not pages_changed and not post_changed:
+        return False
+    prop[LAST_POSTED_AT_FIELD] = bangkok_posted_stamp()
+    return True
+
 
 # ThreadingHTTPServer serves requests concurrently — serialize read-modify-write
 # so multi-add / parallel saves cannot lose rows or collide on hub.db rebuild.
@@ -714,7 +752,16 @@ def _save_new_property_locked(payload: dict) -> dict:
         "page_post_text": (payload.get("page_post_text") or "").strip(),
         "linked_ptp_code": (payload.get("linked_ptp_code") or "").strip(),
         "pet_friendly": coerce_pet_friendly(payload.get("pet_friendly")),
+        LAST_POSTED_AT_FIELD: "",
     }
+    # New property created with an already-pasted publish URL → stamp once.
+    stamp_last_posted_at_on_publish_url_change(
+        prop,
+        old_pages_url="",
+        old_post_url="",
+        new_pages_url=post_pages_url,
+        new_post_url=post_url,
+    )
 
     properties.insert(0, prop)
     proj["listing_count"] = int(proj.get("listing_count") or 0) + 1
@@ -747,6 +794,9 @@ HUB_OVERLAY_FIELDS = (
     "page_post_text",
     "media_status",
     "hub_edited_at",
+    "last_posted_at",
+    "owner_confirmed_available_from",
+    "owner_confirmed_available_at",
 )
 
 
@@ -859,6 +909,8 @@ def _update_property_locked(property_id: str, payload: dict) -> dict:
     location_ref = project_location_label(proj)
 
     owner_fb_urls = [u.strip() for u in owner_facebook if isinstance(u, str) and u.strip()]
+    old_post_url = _norm_url(prop.get("post_url"))
+    old_pages_url = _norm_url(prop.get("post_pages_url"))
     post_url = (payload.get("post_url") if "post_url" in payload else prop.get("post_url") or "").strip()
     post_pages_url = (
         payload.get("post_pages_url") if "post_pages_url" in payload else prop.get("post_pages_url") or ""
@@ -899,6 +951,14 @@ def _update_property_locked(property_id: str, payload: dict) -> dict:
             or prop.get("last_listed_at")
             or datetime.now().strftime("%d/%m/%Y"),
         }
+    )
+    # Stamp only when published page/profile URL newly set/changed — not ordinary Edit.
+    stamp_last_posted_at_on_publish_url_change(
+        prop,
+        old_pages_url=old_pages_url,
+        old_post_url=old_post_url,
+        new_pages_url=post_pages_url,
+        new_post_url=post_url,
     )
     if "pet_friendly" in payload:
         prop["pet_friendly"] = coerce_pet_friendly(payload.get("pet_friendly"))
@@ -964,10 +1024,27 @@ def _update_property_links_locked(property_id: str, payload: dict) -> dict:
         owners = prop.get("owner_facebook") or []
         if post_url and post_url in owners:
             raise ValueError("ลิงก์โพสเราต้องไม่ซ้ำกับลิงก์เจ้าของ")
+        old_post = _norm_url(prop.get("post_url"))
         prop["post_url"] = post_url
         prop["media_status"] = "has_link" if post_url else (prop.get("media_status") or "pending")
+        stamp_last_posted_at_on_publish_url_change(
+            prop,
+            old_pages_url=prop.get("post_pages_url"),
+            old_post_url=old_post,
+            new_pages_url=prop.get("post_pages_url"),
+            new_post_url=post_url,
+        )
     if "post_pages_url" in payload:
-        prop["post_pages_url"] = (payload.get("post_pages_url") or "").strip()
+        old_pages = _norm_url(prop.get("post_pages_url"))
+        new_pages = (payload.get("post_pages_url") or "").strip()
+        prop["post_pages_url"] = new_pages
+        stamp_last_posted_at_on_publish_url_change(
+            prop,
+            old_pages_url=old_pages,
+            old_post_url=prop.get("post_url"),
+            new_pages_url=new_pages,
+            new_post_url=prop.get("post_url"),
+        )
     if "owner_facebook" in payload:
         fb = payload.get("owner_facebook") or []
         if isinstance(fb, str):

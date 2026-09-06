@@ -1,10 +1,18 @@
-"""Upcoming rental availability — Phase Z14 compact operational reminder.
+"""Upcoming rental availability — Phase Z14.2 true last_posted_at window.
 
-Evidence types (semantically separate):
-  TYPE A confirmed — owner_confirmed_available_from (explicit owner evidence only)
-  TYPE B annual_recheck — last_listed_at + 1 year (ถึงรอบเช็ก; never writes confirmed date)
+TWO independent qualification paths (rental / rent+sale only; sale-only never):
 
-Legacy วันที่ว่าง is NEVER used.
+  TYPE A — annual follow-up after REAL staff post (ถึงรอบเช็ก)
+    base = properties.last_posted_at  (explicit publish timestamp; NEVER last_listed_at)
+    target = last_posted_at.date + 1 calendar year
+    include iff  -WINDOW_DAYS <= days_until(target) <= +WINDOW_DAYS
+    Missing last_posted_at → NEVER qualifies via Type A (no legacy backfill)
+
+  TYPE B — admin confirmed availability (ยืนยันวันว่าง)
+    owner_confirmed_available_from only (legacy วันที่ว่าง contributes ZERO)
+    same ±WINDOW_DAYS window; independent of property age / last_posted_at
+    when both A and B qualify → one row; confirmed wins
+
 Does not merge OLD_RECORD_RECHECK / LEASE_END_FOLLOWUP engines.
 """
 
@@ -18,23 +26,20 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from src.hub.legacy_entry_date import (
-    LEGACY_RECORD_ENTERED_AT_FIELD,
-    parse_legacy_record_entered_at,
-)
+from src.hub.legacy_entry_date import parse_legacy_record_entered_at
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 BANGKOK = ZoneInfo("Asia/Bangkok")
 
-# Canonical annual base — properties.last_listed_at (sheet วันที่รับเข้า / data-entry date).
-ANNUAL_RECHECK_BASE_FIELD = LEGACY_RECORD_ENTERED_AT_FIELD  # "last_listed_at"
+# Canonical annual base — true staff publish clock (NOT วันที่รับเข้า / last_listed_at).
+ANNUAL_RECHECK_BASE_FIELD = "last_posted_at"
 CONFIRMED_FIELD = "owner_confirmed_available_from"
 WINDOW_DAYS = 30
 
 EVIDENCE_CONFIRMED = "confirmed"
 EVIDENCE_ANNUAL = "annual_recheck"
 
-LABEL_CONFIRMED = "ยืนยันวันว่างแล้ว"
+LABEL_CONFIRMED = "ยืนยันวันว่าง"
 LABEL_ANNUAL = "ถึงรอบเช็ก"
 
 
@@ -56,10 +61,16 @@ def bangkok_today(today: date | None = None) -> date:
     return datetime.now(timezone.utc).astimezone(BANGKOK).date()
 
 
+def bangkok_now_stamp() -> str:
+    """Bangkok-local wall clock for last_posted_at (no UTC confusion in UI)."""
+    return datetime.now(BANGKOK).strftime("%Y-%m-%dT%H:%M:%S")
+
+
 def parse_iso_or_dmy(raw: str | None) -> date | None:
     s = (raw or "").strip()
     if not s:
         return None
+    # ISO date or datetime (take calendar date in stamp / ISO forms)
     if re.match(r"^\d{4}-\d{2}-\d{2}", s):
         try:
             return date.fromisoformat(s[:10])
@@ -72,7 +83,6 @@ def add_one_year(d: date) -> date:
     try:
         return d.replace(year=d.year + 1)
     except ValueError:
-        # Feb 29 → Feb 28 next year
         return d + timedelta(days=365)
 
 
@@ -91,16 +101,31 @@ def days_until(target: date, *, today: date | None = None) -> int:
     return (target - bangkok_today(today)).days
 
 
-def countdown_label(days: int) -> str:
-    if days > 0:
-        return f"{days} วัน"
-    if days == 0:
-        return "วันนี้"
-    return f"เลยมา {abs(days)} วัน"
+def in_followup_window(days: int, *, window: int = WINDOW_DAYS) -> bool:
+    """Inclusive ±window. Outside → auto-drop from menu (property unchanged)."""
+    return -window <= days <= window
 
 
 def format_compact_date(d: date) -> str:
     return f"{d.day}/{d.month}/{d.year % 100}"
+
+
+def countdown_label(days: int, *, evidence: str = EVIDENCE_ANNUAL) -> str:
+    if days > 0:
+        return f"เหลืออีก {days} วัน"
+    if days == 0:
+        return "วันนี้"
+    n = abs(days)
+    if evidence == EVIDENCE_CONFIRMED:
+        return f"เลยวันว่างมา {n} วัน"
+    return f"เลยรอบเช็กมา {n} วัน"
+
+
+def target_date_phrase(d: date, *, evidence: str) -> str:
+    compact = format_compact_date(d)
+    if evidence == EVIDENCE_CONFIRMED:
+        return f"กำลังจะว่างวันที่ {compact}"
+    return f"ถึงรอบเช็กวันที่ {compact}"
 
 
 def _load_state() -> dict[str, Any]:
@@ -150,7 +175,6 @@ def suppress_property(
         "reason": (reason or "ไม่ติดตามต่อ").strip()[:120],
         "suppressed_at": datetime.now(BANGKOK).strftime("%Y-%m-%d %H:%M:%S"),
         "suppressed_by": (by or "").strip()[:80],
-        # Optional snooze target for recheck-later (NOT confirmed vacancy)
         "recheck_after": "",
     }
     _save_state(st)
@@ -198,49 +222,57 @@ def _candidate_confirmed(prop: dict[str, Any], *, today: date) -> dict[str, Any]
     if not target:
         return None
     days = days_until(target, today=today)
-    # Confirmed: upcoming within window OR any overdue until suppressed
-    if days > WINDOW_DAYS:
+    if not in_followup_window(days):
         return None
     return {
         "evidence": EVIDENCE_CONFIRMED,
         "label": LABEL_CONFIRMED,
         "target_date": target.isoformat(),
         "target_display": format_compact_date(target),
+        "target_phrase": target_date_phrase(target, evidence=EVIDENCE_CONFIRMED),
         "days_until": days,
-        "countdown": countdown_label(days),
+        "countdown": countdown_label(days, evidence=EVIDENCE_CONFIRMED),
         "bucket": "overdue" if days < 0 else "upcoming",
     }
 
 
 def _candidate_annual(prop: dict[str, Any], *, today: date) -> dict[str, Any] | None:
-    entered = parse_legacy_record_entered_at(str(prop.get(ANNUAL_RECHECK_BASE_FIELD) or ""))
-    if not entered:
+    """TYPE A: one year after LATEST real last_posted_at — never last_listed_at."""
+    posted = parse_iso_or_dmy(str(prop.get(ANNUAL_RECHECK_BASE_FIELD) or ""))
+    if not posted:
         return None
-    target = add_one_year(entered)
+    # Safety: never fall back to last_listed_at even if present
+    target = add_one_year(posted)
     days = days_until(target, today=today)
-    # ±30 day window around anniversary (avoids flooding all ancient rentals as overdue)
-    if days > WINDOW_DAYS or days < -WINDOW_DAYS:
+    if not in_followup_window(days):
         return None
     return {
         "evidence": EVIDENCE_ANNUAL,
         "label": LABEL_ANNUAL,
         "target_date": target.isoformat(),
         "target_display": format_compact_date(target),
+        "target_phrase": target_date_phrase(target, evidence=EVIDENCE_ANNUAL),
         "days_until": days,
-        "countdown": countdown_label(days),
+        "countdown": countdown_label(days, evidence=EVIDENCE_ANNUAL),
         "bucket": "overdue" if days < 0 else "upcoming",
-        "base_date": entered.isoformat(),
+        "base_date": posted.isoformat(),
         "base_field": ANNUAL_RECHECK_BASE_FIELD,
     }
 
 
 def _row_from_prop(prop: dict[str, Any], cand: dict[str, Any]) -> dict[str, Any]:
+    notes = str(prop.get("notes") or "").strip()
+    if notes in ("-", "—", "–"):
+        notes = ""
     return {
         "property_id": str(prop.get("id") or ""),
         "code": str(prop.get("code") or ""),
         "project_name": str(prop.get("project_name") or ""),
         "rent_price": str(prop.get("rent_price") or ""),
-        "notes": str(prop.get("notes") or "")[:120],
+        "notes": notes[:200],
+        "source_url": str(prop.get("source_url") or ""),
+        "post_pages_url": str(prop.get("post_pages_url") or ""),
+        "post_url": str(prop.get("post_url") or ""),
         **cand,
     }
 
@@ -251,7 +283,7 @@ def build_upcoming_items(
     today: date | None = None,
     state: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Derive upcoming/overdue rental reminders. One row per property; confirmed wins."""
+    """Derive upcoming/overdue rental reminders. One row per property_id; confirmed wins."""
     from src.hub.project_store import load_properties
 
     today = bangkok_today(today)
@@ -268,7 +300,6 @@ def build_upcoming_items(
             continue
         if is_suppressed(pid, st):
             continue
-        # Recheck-later snooze: hide until recheck_after
         item_st = (st.get("items") or {}).get(pid) or {}
         ra = parse_iso_or_dmy(str(item_st.get("recheck_after") or ""))
         if ra and ra > today:
@@ -276,7 +307,6 @@ def build_upcoming_items(
 
         confirmed = _candidate_confirmed(prop, today=today)
         annual = _candidate_annual(prop, today=today)
-        # Priority: confirmed wins; never duplicate
         chosen = confirmed or annual
         if not chosen:
             continue
@@ -286,7 +316,6 @@ def build_upcoming_items(
         else:
             upcoming.append(row)
 
-    # upcoming: soonest first; overdue: most overdue first (most negative days)
     upcoming.sort(key=lambda x: (x["days_until"], x.get("code") or ""))
     overdue.sort(key=lambda x: (x["days_until"], x.get("code") or ""))
 

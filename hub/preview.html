@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z14" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z14.2" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -551,12 +551,22 @@
     .prop-sheet-meta .meta-chip strong { font-weight: 600; color: #6b6280; font-size: 10px; }
     .prop-sheet-meta .meta-chip.loc { background: #f3e8ff; border-color: #ddd6fe; color: #5b21b6; }
     .prop-sheet-notes {
-      margin-top: 6px; font-size: 12px; line-height: 1.4; color: #5f6368;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden; word-break: break-word;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: #f4f0fa;
+      border: 1px solid #e8e2f1;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #3c3548;
+      display: block;
+      max-height: 4.35em;
+      overflow: hidden;
+      word-break: break-word;
     }
     .prop-sheet-notes strong {
-      font-weight: 600; color: #80868b; font-size: 10px; margin-right: 4px;
+      font-weight: 700; color: #5b21b6; font-size: 11px; margin-right: 2px;
     }
     .prop-sheet-side {
       text-align: right; min-width: 0;
@@ -642,16 +652,34 @@
       -webkit-overflow-scrolling: touch;
     }
     .upcoming-row {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 10px;
       border: 1px solid #ece6f4;
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 10px;
       margin-top: 8px;
       background: #faf9fc;
+      align-items: start;
     }
+    .upcoming-row-thumb {
+      width: 72px; height: 72px; border-radius: 10px; overflow: hidden; background: #f4f4f5;
+    }
+    .upcoming-row-thumb .prop-thumb,
+    .upcoming-row-thumb .prop-thumb-ph { width: 100%; height: 100%; border-radius: 10px; }
+    .upcoming-row-body { min-width: 0; }
     .upcoming-row-code { font-weight: 700; font-size: 14px; color: #1e1433; }
-    .upcoming-row-proj { font-size: 13px; color: #3f3f46; margin-top: 2px; }
+    .upcoming-row-proj { font-size: 13px; color: #3f3f46; margin-top: 2px; word-break: break-word; }
     .upcoming-row-price { font-size: 13px; color: #5b21b6; font-weight: 700; margin-top: 2px; }
-    .upcoming-row-meta { font-size: 12px; color: #52525b; margin-top: 6px; line-height: 1.4; }
+    .upcoming-row-notes {
+      margin-top: 4px; font-size: 12px; color: #3c3548; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; word-break: break-word;
+    }
+    .upcoming-row-notes strong { color: #5b21b6; font-size: 11px; }
+    .upcoming-row-meta { font-size: 12px; color: #52525b; margin-top: 6px; line-height: 1.45; }
+    .upcoming-row-meta .upcoming-date-line { display: block; margin-top: 2px; font-weight: 600; color: #3f3f46; }
+    .upcoming-row-meta .upcoming-countdown { display: block; margin-top: 1px; color: #5b21b6; font-weight: 700; }
     .upcoming-badge {
       display: inline-block; font-size: 11px; font-weight: 700;
       padding: 2px 8px; border-radius: 999px; margin-right: 6px;
@@ -659,6 +687,8 @@
     .upcoming-badge.confirmed { background: #dcfce7; color: #166534; }
     .upcoming-badge.annual { background: #ede9fe; color: #5b21b6; }
     .upcoming-badge.overdue { background: #fee2e2; color: #991b1b; }
+    .upcoming-row-prop-actions { margin-top: 8px; }
+    .upcoming-row-prop-actions .prop-quick-actions { justify-content: flex-start; }
     .upcoming-row-actions {
       display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
     }
@@ -7961,7 +7991,7 @@
             (locText ? '<span class="meta-chip loc" title="' + esc(locText) + '"><strong>ทำเล</strong> ' + esc(locText) + "</span>" : "") +
           "</div>" +
           (notesText
-            ? '<div class="prop-sheet-notes" title="' + esc(notesText) + '"><strong>หมายเหตุ</strong>' + esc(notesText) + "</div>"
+            ? '<div class="prop-sheet-notes" title="' + esc(notesText) + '"><strong>หมายเหตุ:</strong> ' + esc(notesText) + "</div>"
             : "") +
           '<div class="prop-sheet-actions-mobile">' + propQuickActionsHtml(p) + "</div>" +
         "</div>" +
@@ -9075,7 +9105,25 @@
         list.innerHTML = '<div class="empty" style="padding:24px 12px"><span>ไม่มีรายการ</span></div>';
         return;
       }
+      var allProps = (window.PTP_DATA && window.PTP_DATA.properties) || [];
       list.innerHTML = rows.map(function (it) {
+        var prop = null;
+        for (var i = 0; i < allProps.length; i++) {
+          if (String(allProps[i].id || "") === String(it.property_id || "")) {
+            prop = allProps[i];
+            break;
+          }
+        }
+        // Prefer live catalog record for thumb + links; fall back to API row fields.
+        var cardProp = prop || {
+          id: it.property_id,
+          code: it.code,
+          source_url: it.source_url || "",
+          post_pages_url: it.post_pages_url || "",
+          post_url: it.post_url || "",
+          notes: it.notes || "",
+        };
+        var previewUrl = propertyPreviewSourceUrl(cardProp);
         var badgeCls = it.evidence === "confirmed" ? "confirmed" : "annual";
         var overdueBadge = it.bucket === "overdue"
           ? '<span class="upcoming-badge overdue">เลยกำหนด</span>'
@@ -9083,22 +9131,35 @@
         var price = it.rent_price
           ? ("฿" + esc(String(it.rent_price)) + " / เดือน")
           : "";
+        var notesText = String((prop && prop.notes) || it.notes || "").trim();
+        if (notesText === "-" || notesText === "—" || notesText === "–") notesText = "";
+        var notesHtml = notesText
+          ? '<div class="upcoming-row-notes"><strong>หมายเหตุ:</strong> ' + esc(notesText) + "</div>"
+          : "";
+        var datePhrase = it.target_phrase
+          || ((it.evidence === "confirmed" ? "กำลังจะว่างวันที่ " : "ถึงรอบเช็กวันที่ ") + (it.target_display || ""));
         return '<div class="upcoming-row" data-upcoming-pid="' + esc(it.property_id) + '">' +
-          '<div class="upcoming-row-code">' + esc(it.code || "—") + "</div>" +
-          '<div class="upcoming-row-proj">' + esc(it.project_name || "—") + "</div>" +
-          (price ? '<div class="upcoming-row-price">' + price + "</div>" : "") +
-          '<div class="upcoming-row-meta">' +
-            '<span class="upcoming-badge ' + badgeCls + '">' + esc(it.label || "") + "</span>" +
-            overdueBadge +
-            esc(it.target_display || "") + " · " + esc(it.countdown || "") +
-          "</div>" +
-          '<div class="upcoming-row-actions">' +
-            '<button type="button" class="btn-xs" data-upcoming-act="edit">แก้ไขทรัพย์</button>' +
-            '<button type="button" class="btn-xs" data-upcoming-act="confirm-date">กำหนดวันว่างใหม่</button>' +
-            '<button type="button" class="btn-xs" data-upcoming-act="recheck-later">เช็กทีหลัง</button>' +
-            '<button type="button" class="btn-xs danger" data-upcoming-act="suppress">เอาออกจากการติดตาม</button>' +
+          '<div class="upcoming-row-thumb">' + thumbCellHtml(cardProp, previewUrl) + "</div>" +
+          '<div class="upcoming-row-body">' +
+            '<div class="upcoming-row-code">' + esc(it.code || "—") + "</div>" +
+            '<div class="upcoming-row-proj">' + esc(it.project_name || "—") + "</div>" +
+            (price ? '<div class="upcoming-row-price">' + price + "</div>" : "") +
+            notesHtml +
+            '<div class="upcoming-row-meta">' +
+              '<span class="upcoming-badge ' + badgeCls + '">' + esc(it.label || "") + "</span>" +
+              overdueBadge +
+              '<span class="upcoming-date-line">' + esc(datePhrase) + "</span>" +
+              '<span class="upcoming-countdown">' + esc(it.countdown || "") + "</span>" +
+            "</div>" +
+            '<div class="upcoming-row-prop-actions">' + propQuickActionsHtml(cardProp) + "</div>" +
+            '<div class="upcoming-row-actions">' +
+              '<button type="button" class="btn-xs" data-upcoming-act="confirm-date">กำหนดวันว่างใหม่</button>' +
+              '<button type="button" class="btn-xs" data-upcoming-act="recheck-later">เช็กทีหลัง</button>' +
+              '<button type="button" class="btn-xs danger" data-upcoming-act="suppress">เอาออกจากการติดตาม</button>' +
+            "</div>" +
           "</div></div>";
       }).join("");
+      scheduleThumbLoadsIn("#upcoming-list");
     }
 
     function openUpcomingPanel() {
@@ -9201,6 +9262,19 @@
       if (list && !list._bound) {
         list._bound = true;
         list.addEventListener("click", function (e) {
+          var editBtn = e.target.closest("[data-prop-edit]");
+          if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeUpcomingPanel();
+            openPropertyEdit(editBtn.getAttribute("data-prop-edit"));
+            return;
+          }
+          var extLink = e.target.closest("[data-prop-ext-link]");
+          if (extLink) {
+            e.stopPropagation();
+            return;
+          }
           var btn = e.target.closest("[data-upcoming-act]");
           if (!btn) return;
           var row = btn.closest("[data-upcoming-pid]");
@@ -16906,7 +16980,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z14"></script>
+  <script src="mobile-operations.js?v=z14.2"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

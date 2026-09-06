@@ -436,9 +436,27 @@
   }
 
   .prop-sheet-notes {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    max-height: 4.5em !important;
+    overflow: hidden !important;
+    font-size: 12px !important;
+    margin-top: 6px !important;
+    margin-bottom: 4px !important;
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    background: #f4f0fa !important;
+    border: 1px solid #e8e2f1 !important;
+    color: #3c3548 !important;
+    line-height: 1.4 !important;
+    -webkit-line-clamp: unset !important;
+  }
+
+  .prop-sheet-notes strong {
+    font-weight: 700 !important;
+    color: #5b21b6 !important;
     font-size: 11px !important;
-    margin-top: 4px !important;
-    color: var(--muted) !important;
   }
 
   .prop-sheet-actions-mobile {

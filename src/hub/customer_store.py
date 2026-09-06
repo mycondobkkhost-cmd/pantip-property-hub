@@ -454,9 +454,11 @@ def update_case(case_id: str, **fields) -> dict:
             if v is None:
                 continue
             merged[k] = v
-        # Recalc next follow-up when days or last contact change
+        # Recalc next follow-up when days or last contact change — BUT never
+        # overwrite an explicit next_followup_at the staff just set (วันที่ตรงหน้า).
+        explicit_next = fields.get("next_followup_at")
         if "followup_in_days" in fields or "last_contact_at" in fields:
-            if fields.get("next_followup_at") is None:
+            if not explicit_next:
                 merged["next_followup_at"] = _add_days(
                     merged.get("last_contact_at") or _today(),
                     int(merged.get("followup_in_days") or 3),

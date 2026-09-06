@@ -2257,6 +2257,15 @@ class HubHandler(BaseHTTPRequestHandler):
                 from src.hub.upcoming_availability import build_upcoming_items
 
                 q = urlparse(self.path).query or ""
+                from urllib.parse import parse_qs
+
+                qs = parse_qs(q)
+                pid = ((qs.get("property_id") or qs.get("id") or [""])[0] or "").strip()
+                if pid:
+                    from src.hub.upcoming_availability import get_property_followup
+
+                    self._json(200, {"ok": True, "followup": get_property_followup(pid)})
+                    return
                 summary_only = "summary=1" in q
                 data = build_upcoming_items()
                 if summary_only:
@@ -2270,6 +2279,22 @@ class HubHandler(BaseHTTPRequestHandler):
                     )
                 else:
                     self._json(200, data)
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
+        if path == "/api/upcoming-availability/followup":
+            try:
+                from urllib.parse import parse_qs
+
+                from src.hub.upcoming_availability import get_property_followup
+
+                qs = parse_qs(urlparse(self.path).query or "")
+                pid = ((qs.get("property_id") or qs.get("id") or [""])[0] or "").strip()
+                self._json(200, {"ok": True, "followup": get_property_followup(pid)})
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z14.2" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z14.3" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -686,7 +686,25 @@
     }
     .upcoming-badge.confirmed { background: #dcfce7; color: #166534; }
     .upcoming-badge.annual { background: #ede9fe; color: #5b21b6; }
+    .upcoming-badge.operational { background: #ffedd5; color: #9a3412; }
     .upcoming-badge.overdue { background: #fee2e2; color: #991b1b; }
+    .mobile-more-open {
+      display: none;
+      flex-shrink: 0;
+      margin-right: 6px;
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+    @media (max-width: 768px) {
+      .mobile-more-open { display: inline-flex; }
+    }
+    .prop-follow-sheet-box label { display: block; margin: 10px 0 6px; font-size: 12px; color: #52525b; }
+    .prop-follow-sheet-box input[type="date"] {
+      width: 100%; padding: 10px 12px; border: 1px solid #d4d4d8; border-radius: 10px; font: inherit;
+    }
+    .prop-follow-meta { font-size: 13px; line-height: 1.45; color: #3f3f46; margin: 0 0 8px; }
+    .prop-follow-meta strong { color: #18181b; }
+    .prop-qa-btn.follow { border-color: #fdba74; color: #9a3412; background: #fff7ed; }
     .upcoming-row-prop-actions { margin-top: 8px; }
     .upcoming-row-prop-actions .prop-quick-actions { justify-content: flex-start; }
     .upcoming-row-actions {
@@ -2023,6 +2041,7 @@
         </div>
         <header class="topbar">
           <button type="button" class="menu-toggle" id="menu-toggle" aria-label="เปิดเมนู"><span></span></button>
+          <button type="button" class="btn-sm mobile-more-open" id="mobile-more-open" aria-label="เมนูเพิ่มเติม" title="เมนูเพิ่มเติม">เมนู</button>
           <div class="page-title">
             <h2 id="panel-title">ภาพรวมทรัพย์</h2>
             <p id="panel-sub">ค้นหา · กรอง · จัดการรายการจากชีทและ Hub</p>
@@ -2600,7 +2619,8 @@
                 <div class="fu-picker-panel is-search-hidden"><div class="check-group short" id="fu-types-list"></div></div>
               </div>
             </label>
-            <label><span>ทักซ้ำในอีกกี่วัน</span><input id="fu-follow-days" type="number" min="0" value="3" /></label>
+            <label><span>วันฟอโล่วถัดไป (วันที่ตรงหน้า)</span><input id="fu-next-followup" type="date" /></label>
+            <label><span>ทักซ้ำในอีกกี่วัน (เมื่อยังไม่ตั้งวัน)</span><input id="fu-follow-days" type="number" min="0" value="3" /></label>
             <label><span>สถานะ</span>
               <select id="fu-status">
                 <option value="new">ใหม่</option>
@@ -3978,9 +3998,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
             รอโพสต์<span class="nav-badge" id="mobile-queue-badge">0</span>
           </button>
-          <button type="button" data-view="more">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
-            เพิ่มเติม
+          <button type="button" data-view="followup">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
+            ฟอโล่ว<span class="nav-badge" id="mobile-followup-badge">0</span>
           </button>
         </nav>
       </div>
@@ -4028,6 +4048,26 @@
       <div class="q-prop-link-results" id="queue-prop-link-results" role="listbox" aria-label="ผลการค้นหาทรัพย์"></div>
       <div class="q-prop-link-actions">
         <button type="button" class="btn-sm" id="queue-prop-link-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="prop-follow-sheet" aria-hidden="true">
+    <div class="modal-box prop-follow-sheet-box" role="dialog" aria-modal="true" aria-labelledby="prop-follow-title">
+      <div class="q-link-sheet-handle" aria-hidden="true"></div>
+      <h3 id="prop-follow-title">ติดตามห้อง</h3>
+      <p class="prop-follow-meta" id="prop-follow-code">—</p>
+      <p class="prop-follow-meta" id="prop-follow-phrase"><strong>ติดตามวันที่</strong> —</p>
+      <p class="prop-follow-meta" id="prop-follow-countdown">—</p>
+      <p class="prop-follow-meta" id="prop-follow-reason">เหตุผล: —</p>
+      <label><span>วันติดตาม (วันที่ทำงาน)</span>
+        <input type="date" id="prop-follow-date" />
+      </label>
+      <p class="prop-follow-meta" style="color:#71717a;font-size:11px">บันทึกจะตั้งวันติดตามปฏิบัติการ (recheck_after) — ไม่แก้ last_posted_at / วันว่างที่ยืนยัน</p>
+      <div class="modal-actions q-link-sheet-actions">
+        <button type="button" class="btn-sm primary" id="prop-follow-save">บันทึกวันติดตาม</button>
+        <button type="button" class="btn-sm" id="prop-follow-done">ติดตามแล้ว / ปิดงาน</button>
+        <button type="button" class="btn-sm" id="prop-follow-close">ปิด</button>
       </div>
     </div>
   </div>
@@ -7901,13 +7941,15 @@
     }
 
     function propQuickActionsHtml(p) {
-      // Historical (0bc5ca8): visible ลิงก์ต้นโพส · ลิงก์โพสเพจ · compact แก้ไข (not primary/full-width).
-      // source_url = ลิงก์ต้นโพส · post_pages_url = ลิงก์โพสเพจ. No •••. No per-card รอโพสต์.
+      // Historical (0bc5ca8): visible ลิงก์ต้นโพส · ลิงก์โพสเพจ · compact แก้ไข.
+      // Z14.3: restore compact ติดตาม (property Follow-up / recheck_after) by property_id.
       return '<div class="prop-quick-actions" role="group" aria-label="ทางลัด">' +
         propQuickLinkBtn(p.source_url, "ลิงก์ต้นโพส", "เปิดลิงก์ต้นโพสต์") +
         propQuickLinkBtn(p.post_pages_url, "ลิงก์โพสเพจ", "เปิดลิงก์โพสต์หน้าเพจ") +
         '<button type="button" class="prop-qa-btn edit" data-prop-edit="' + esc(p.id) +
           '" title="แก้ไขทรัพย์">แก้ไข</button>' +
+        '<button type="button" class="prop-qa-btn follow" data-prop-follow="' + esc(p.id) +
+          '" title="ติดตาม / ฟอโล่วห้อง">ติดตาม</button>' +
         "</div>";
     }
 
@@ -9124,7 +9166,9 @@
           notes: it.notes || "",
         };
         var previewUrl = propertyPreviewSourceUrl(cardProp);
-        var badgeCls = it.evidence === "confirmed" ? "confirmed" : "annual";
+        var badgeCls = it.evidence === "confirmed"
+          ? "confirmed"
+          : (it.evidence === "operational_recheck" ? "operational" : "annual");
         var overdueBadge = it.bucket === "overdue"
           ? '<span class="upcoming-badge overdue">เลยกำหนด</span>'
           : "";
@@ -9137,7 +9181,10 @@
           ? '<div class="upcoming-row-notes"><strong>หมายเหตุ:</strong> ' + esc(notesText) + "</div>"
           : "";
         var datePhrase = it.target_phrase
-          || ((it.evidence === "confirmed" ? "กำลังจะว่างวันที่ " : "ถึงรอบเช็กวันที่ ") + (it.target_display || ""));
+          || ((it.evidence === "confirmed"
+            ? "กำลังจะว่างวันที่ "
+            : (it.evidence === "operational_recheck" ? "ติดตามวันที่ " : "ถึงรอบเช็กวันที่ ")) +
+            (it.target_display || ""));
         return '<div class="upcoming-row" data-upcoming-pid="' + esc(it.property_id) + '">' +
           '<div class="upcoming-row-thumb">' + thumbCellHtml(cardProp, previewUrl) + "</div>" +
           '<div class="upcoming-row-body">' +
@@ -9179,6 +9226,114 @@
       panel.setAttribute("aria-hidden", "true");
     }
 
+    async function openPropFollowSheet(propertyId) {
+      var pid = String(propertyId || "").trim();
+      if (!pid) return;
+      var sheet = document.getElementById("prop-follow-sheet");
+      if (!sheet) return;
+      sheet.dataset.propertyId = pid;
+      var codeEl = document.getElementById("prop-follow-code");
+      var phraseEl = document.getElementById("prop-follow-phrase");
+      var cdEl = document.getElementById("prop-follow-countdown");
+      var reasonEl = document.getElementById("prop-follow-reason");
+      var dateEl = document.getElementById("prop-follow-date");
+      if (codeEl) codeEl.textContent = "กำลังโหลด…";
+      if (phraseEl) phraseEl.innerHTML = "<strong>ติดตามวันที่</strong> —";
+      if (cdEl) cdEl.textContent = "—";
+      if (reasonEl) reasonEl.textContent = "เหตุผล: —";
+      if (dateEl) dateEl.value = "";
+      sheet.classList.remove("hidden");
+      sheet.setAttribute("aria-hidden", "false");
+      try {
+        var res = await apiGet("/api/upcoming-availability/followup?property_id=" + encodeURIComponent(pid));
+        var fu = (res && res.followup) || {};
+        if (codeEl) {
+          codeEl.textContent = (fu.code || "—") + (fu.project_name ? (" · " + fu.project_name) : "");
+        }
+        var active = fu.active_date || "";
+        if (phraseEl) {
+          phraseEl.innerHTML = "<strong>" + esc(fu.target_phrase || ("ติดตามวันที่ " + (fu.target_display || active || "—"))) + "</strong>";
+        }
+        if (cdEl) cdEl.textContent = fu.countdown || (fu.suppressed ? "ปิดงานแล้ว" : "—");
+        if (reasonEl) {
+          var reasonMap = {
+            OPERATIONAL_RECHECK: "ติดตามปฏิบัติการ (staff)",
+            CONFIRMED_AVAILABILITY: "ยืนยันวันว่าง",
+            POST_FIRST_YEAR: "ถึงรอบเช็ก 1 ปีหลังโพสต์",
+            SUPPRESSED: "ปิดงานแล้ว",
+            NONE: "ยังไม่มีวันติดตาม"
+          };
+          reasonEl.textContent = "เหตุผล: " + (reasonMap[fu.reason] || fu.reason || "—");
+        }
+        if (dateEl) dateEl.value = String(active || "").slice(0, 10);
+      } catch (err) {
+        if (codeEl) codeEl.textContent = "โหลดไม่สำเร็จ";
+        alert((err && err.message) || "โหลดวันติดตามไม่สำเร็จ");
+      }
+    }
+
+    function closePropFollowSheet() {
+      var sheet = document.getElementById("prop-follow-sheet");
+      if (!sheet) return;
+      sheet.classList.add("hidden");
+      sheet.setAttribute("aria-hidden", "true");
+      delete sheet.dataset.propertyId;
+    }
+
+    async function savePropFollowDate() {
+      var sheet = document.getElementById("prop-follow-sheet");
+      var pid = sheet && sheet.dataset.propertyId;
+      var dateEl = document.getElementById("prop-follow-date");
+      var when = dateEl && dateEl.value;
+      if (!pid || !when) {
+        alert("เลือกวันติดตามก่อนบันทึก");
+        return;
+      }
+      await apiPost("/api/upcoming-availability/recheck-later", {
+        property_id: pid,
+        recheck_after: when,
+      });
+      if (typeof loadUpcomingAvailability === "function") await loadUpcomingAvailability(true);
+      await openPropFollowSheet(pid);
+    }
+
+    async function completePropFollow() {
+      var sheet = document.getElementById("prop-follow-sheet");
+      var pid = sheet && sheet.dataset.propertyId;
+      if (!pid) return;
+      var reason = prompt("เหตุผลที่ปิดงานติดตาม", "ติดตามแล้ว");
+      if (reason === null) return;
+      await apiPost("/api/upcoming-availability/suppress", {
+        property_id: pid,
+        reason: reason || "ติดตามแล้ว",
+      });
+      if (typeof loadUpcomingAvailability === "function") await loadUpcomingAvailability(true);
+      closePropFollowSheet();
+    }
+
+    function initPropFollowSheet() {
+      var sheet = document.getElementById("prop-follow-sheet");
+      if (!sheet || sheet._bound) return;
+      sheet._bound = true;
+      sheet.addEventListener("click", function (e) {
+        if (e.target === sheet) closePropFollowSheet();
+      });
+      var closeBtn = document.getElementById("prop-follow-close");
+      var saveBtn = document.getElementById("prop-follow-save");
+      var doneBtn = document.getElementById("prop-follow-done");
+      if (closeBtn) closeBtn.addEventListener("click", closePropFollowSheet);
+      if (saveBtn) saveBtn.addEventListener("click", function () {
+        savePropFollowDate().catch(function (err) {
+          alert((err && err.message) || "บันทึกไม่สำเร็จ");
+        });
+      });
+      if (doneBtn) doneBtn.addEventListener("click", function () {
+        completePropFollow().catch(function (err) {
+          alert((err && err.message) || "ปิดงานไม่สำเร็จ");
+        });
+      });
+    }
+
     async function onUpcomingAction(pid, act) {
       if (!pid || !act) return;
       if (act === "edit") {
@@ -9197,13 +9352,8 @@
         return;
       }
       if (act === "recheck-later") {
-        var when = prompt("เช็กอีกครั้งวันที่ (YYYY-MM-DD)", "");
-        if (!when) return;
-        await apiPost("/api/upcoming-availability/recheck-later", {
-          property_id: pid,
-          recheck_after: when,
-        });
-        await loadUpcomingAvailability(true);
+        // Same canonical operational date as Main ติดตาม (recheck_after).
+        await openPropFollowSheet(pid);
         return;
       }
       if (act === "confirm-date") {
@@ -9268,6 +9418,13 @@
             e.stopPropagation();
             closeUpcomingPanel();
             openPropertyEdit(editBtn.getAttribute("data-prop-edit"));
+            return;
+          }
+          var followBtn = e.target.closest("[data-prop-follow]");
+          if (followBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            openPropFollowSheet(followBtn.getAttribute("data-prop-follow"));
             return;
           }
           var extLink = e.target.closest("[data-prop-ext-link]");
@@ -9372,9 +9529,7 @@
       });
       document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
         var dv = b.getAttribute("data-view");
-        var moreViews = { recheck: 1, followup: 1, tenants: 1, "co-traffic": 1, db: 1 };
         var on = dv === view ||
-          (dv === "more" && !!moreViews[view]) ||
           (dv === "followup" && (view === "tenants" || view === "recheck"));
         b.classList.toggle("active", on);
       });
@@ -13917,6 +14072,7 @@
         bedrooms: fuSelectedChecks("fu-beds-list"),
         property_types: fuSelectedChecks("fu-types-list"),
         followup_in_days: document.getElementById("fu-follow-days").value || 3,
+        next_followup_at: (document.getElementById("fu-next-followup") || {}).value || "",
         status: document.getElementById("fu-status").value,
         status_date: (document.getElementById("fu-status-date") || {}).value || "",
         priority: document.getElementById("fu-priority").value,
@@ -13975,6 +14131,8 @@
       document.getElementById("fu-budget-min").value = "";
       document.getElementById("fu-budget-max").value = "";
       document.getElementById("fu-follow-days").value = "3";
+      var fuNextClear = document.getElementById("fu-next-followup");
+      if (fuNextClear) fuNextClear.value = "";
       document.getElementById("fu-status").value = "new";
       var sd = document.getElementById("fu-status-date");
       if (sd) sd.value = "";
@@ -14018,6 +14176,8 @@
       document.getElementById("fu-budget-min").value = it.budget_min || "";
       document.getElementById("fu-budget-max").value = it.budget_max || "";
       document.getElementById("fu-follow-days").value = it.followup_in_days != null ? it.followup_in_days : 3;
+      var fuNext = document.getElementById("fu-next-followup");
+      if (fuNext) fuNext.value = (it.next_followup_at || "").slice(0, 10);
       document.getElementById("fu-status").value = it.status || "new";
       var sdEl = document.getElementById("fu-status-date");
       if (sdEl) sdEl.value = (it.status_date || "").slice(0, 10);
@@ -15731,6 +15891,13 @@
         openPropertyEdit(editBtn.getAttribute("data-prop-edit"));
         return;
       }
+      var followBtn = e.target.closest("[data-prop-follow]");
+      if (followBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openPropFollowSheet(followBtn.getAttribute("data-prop-follow"));
+        return;
+      }
       var queueBtn = e.target.closest("[data-prop-queue]");
       if (queueBtn) {
         // Z13.12: per-card รอโพสต์ removed; bottom-nav shortcut remains.
@@ -15795,6 +15962,13 @@
           e.preventDefault();
           e.stopPropagation();
           openPropertyEdit(editBtn.getAttribute("data-prop-edit"));
+          return;
+        }
+        var followBtn = e.target.closest("[data-prop-follow]");
+        if (followBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          openPropFollowSheet(followBtn.getAttribute("data-prop-follow"));
           return;
         }
         var queueBtn = e.target.closest("[data-prop-queue]");
@@ -16553,6 +16727,7 @@
     initQueuePropLinkSheet();
     initQueueEditSheet();
     initUpcomingUi();
+    initPropFollowSheet();
     var qNewBtn = document.getElementById("queue-project-new-btn");
     if (qNewBtn) {
       qNewBtn.addEventListener("click", function () {
@@ -16980,7 +17155,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z14.2"></script>
+  <script src="mobile-operations.js?v=z14.3"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

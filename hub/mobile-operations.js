@@ -307,21 +307,26 @@
   function initMoreMenu() {
     var sheet = document.getElementById("mobile-more-sheet");
     var backdrop = document.getElementById("mobile-more-backdrop");
-    var moreBtn = document.querySelector('#mobile-nav [data-view="more"]');
+    // Z14.3: bottom-nav ฟอโล่ว restored; More opens from #mobile-more-open (topbar).
+    var moreBtn = document.getElementById("mobile-more-open") ||
+      document.querySelector('#mobile-nav [data-view="more"]');
     if (!sheet || !backdrop || !moreBtn) return;
 
     function open() {
       sheet.classList.add("open");
       backdrop.classList.add("open");
+      moreBtn.setAttribute("aria-expanded", "true");
     }
     function close() {
       sheet.classList.remove("open");
       backdrop.classList.remove("open");
+      moreBtn.setAttribute("aria-expanded", "false");
     }
 
     moreBtn.addEventListener("click", function (e) {
       e.stopPropagation();
-      open();
+      if (sheet.classList.contains("open")) close();
+      else open();
     });
     backdrop.addEventListener("click", close);
     sheet.querySelectorAll("[data-more-view]").forEach(function (btn) {
@@ -330,10 +335,10 @@
         close();
         if (view && typeof window.switchView === "function") {
           window.switchView(view);
-          var moreViews = { recheck: 1, followup: 1, tenants: 1, "co-traffic": 1, db: 1 };
           document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
             var dv = b.getAttribute("data-view");
-            b.classList.toggle("active", dv === view || (dv === "more" && !!moreViews[view]));
+            b.classList.toggle("active", dv === view ||
+              (dv === "followup" && (view === "tenants" || view === "recheck" || view === "followup")));
           });
         }
         if (view === "db" && typeof window.switchDbTab === "function") {

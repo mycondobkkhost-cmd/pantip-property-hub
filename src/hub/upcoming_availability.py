@@ -1,17 +1,23 @@
-"""Upcoming rental availability — Phase Z14.2 true last_posted_at window.
+"""Upcoming rental availability — Phase Z14.2/Z14.3.
 
-TWO independent qualification paths (rental / rent+sale only; sale-only never):
+TWO lifecycle qualification paths + ONE operational override (rental only):
 
   TYPE A — annual follow-up after REAL staff post (ถึงรอบเช็ก)
-    base = properties.last_posted_at  (explicit publish timestamp; NEVER last_listed_at)
+    base = properties.last_posted_at  (NEVER last_listed_at)
     target = last_posted_at.date + 1 calendar year
-    include iff  -WINDOW_DAYS <= days_until(target) <= +WINDOW_DAYS
-    Missing last_posted_at → NEVER qualifies via Type A (no legacy backfill)
+    ±WINDOW_DAYS; missing last_posted_at → never Type A
 
   TYPE B — admin confirmed availability (ยืนยันวันว่าง)
-    owner_confirmed_available_from only (legacy วันที่ว่าง contributes ZERO)
-    same ±WINDOW_DAYS window; independent of property age / last_posted_at
-    when both A and B qualify → one row; confirmed wins
+    owner_confirmed_available_from only
+    ±WINDOW_DAYS; when both A and B → confirmed wins
+
+  TYPE C — explicit operational Follow-up (ติดตาม) — Z14.3
+    recheck_after in upcoming_followup_state.json (property_id keyed)
+    Future recheck_after ⇒ hide from Upcoming list (snooze)
+    Due/overdue within ±WINDOW_DAYS ⇒ face date = recheck_after (wins over annual)
+    Confirmed vacancy still wins over operational when both due
+    resolve_active_followup / get_property_followup: explicit recheck_after
+    always wins as working date (even future / outside window)
 
 Does not merge OLD_RECORD_RECHECK / LEASE_END_FOLLOWUP engines.
 """
@@ -38,9 +44,15 @@ WINDOW_DAYS = 30
 
 EVIDENCE_CONFIRMED = "confirmed"
 EVIDENCE_ANNUAL = "annual_recheck"
+EVIDENCE_OPERATIONAL = "operational_recheck"
 
 LABEL_CONFIRMED = "ยืนยันวันว่าง"
 LABEL_ANNUAL = "ถึงรอบเช็ก"
+LABEL_OPERATIONAL = "ติดตาม"
+
+# Canonical operational Follow-up date for property rental workflow (Z14.3).
+# Stored in upcoming_followup_state.json — NOT last_posted_at / owner_confirmed.
+OPERATIONAL_FOLLOWUP_FIELD = "recheck_after"
 
 
 def _e2e_root() -> Path | None:
@@ -110,6 +122,15 @@ def format_compact_date(d: date) -> str:
     return f"{d.day}/{d.month}/{d.year % 100}"
 
 
+def target_date_phrase(d: date, *, evidence: str) -> str:
+    compact = format_compact_date(d)
+    if evidence == EVIDENCE_CONFIRMED:
+        return f"กำลังจะว่างวันที่ {compact}"
+    if evidence == EVIDENCE_OPERATIONAL:
+        return f"ติดตามวันที่ {compact}"
+    return f"ถึงรอบเช็กวันที่ {compact}"
+
+
 def countdown_label(days: int, *, evidence: str = EVIDENCE_ANNUAL) -> str:
     if days > 0:
         return f"เหลืออีก {days} วัน"
@@ -118,14 +139,9 @@ def countdown_label(days: int, *, evidence: str = EVIDENCE_ANNUAL) -> str:
     n = abs(days)
     if evidence == EVIDENCE_CONFIRMED:
         return f"เลยวันว่างมา {n} วัน"
+    if evidence == EVIDENCE_OPERATIONAL:
+        return f"เลยกำหนด {n} วัน"
     return f"เลยรอบเช็กมา {n} วัน"
-
-
-def target_date_phrase(d: date, *, evidence: str) -> str:
-    compact = format_compact_date(d)
-    if evidence == EVIDENCE_CONFIRMED:
-        return f"กำลังจะว่างวันที่ {compact}"
-    return f"ถึงรอบเช็กวันที่ {compact}"
 
 
 def _load_state() -> dict[str, Any]:
@@ -216,6 +232,200 @@ def clear_suppression(property_id: str) -> None:
         _save_state(st)
 
 
+def _candidate_operational(
+    recheck_after: date | None,
+    *,
+    today: date,
+) -> dict[str, Any] | None:
+    """TYPE C — explicit staff operational Follow-up date (recheck_after).
+
+    Future recheck_after snoozes (caller hides). When due/overdue within ±30,
+    it becomes the face date and wins over annual (but not over confirmed vacancy).
+    """
+    if not recheck_after:
+        return None
+    days = days_until(recheck_after, today=today)
+    if not in_followup_window(days):
+        return None
+    return {
+        "evidence": EVIDENCE_OPERATIONAL,
+        "label": LABEL_OPERATIONAL,
+        "target_date": recheck_after.isoformat(),
+        "target_display": format_compact_date(recheck_after),
+        "target_phrase": target_date_phrase(recheck_after, evidence=EVIDENCE_OPERATIONAL),
+        "days_until": days,
+        "countdown": countdown_label(days, evidence=EVIDENCE_OPERATIONAL),
+        "bucket": "overdue" if days < 0 else "upcoming",
+        "base_field": OPERATIONAL_FOLLOWUP_FIELD,
+    }
+
+
+def resolve_active_followup(
+    prop: dict[str, Any],
+    *,
+    today: date | None = None,
+    state: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Active Follow-up date for a property (Z14.3 priority).
+
+    Priority:
+      1. Explicit operational ``recheck_after`` (always wins once set — any future/past)
+      2. Otherwise ``owner_confirmed_available_from`` when present
+      3. Otherwise ``last_posted_at + 1 year`` when present
+
+    Upcoming *listing* still uses ±30 window + future-recheck hide; this resolver
+    returns the working face date for Follow-up UI even when deferred/outside window.
+    """
+    today = bangkok_today(today)
+    st = state if state is not None else _load_state()
+    pid = str(prop.get("id") or "").strip()
+    if not pid or not is_rental_inventory(prop):
+        return None
+    if is_suppressed(pid, st):
+        return {
+            "property_id": pid,
+            "deferred": False,
+            "suppressed": True,
+            "active_date": None,
+            "active_field": None,
+            "reason": "SUPPRESSED",
+            "candidate": None,
+        }
+    item_st = (st.get("items") or {}).get(pid) or {}
+    ra = parse_iso_or_dmy(str(item_st.get(OPERATIONAL_FOLLOWUP_FIELD) or ""))
+
+    def _pack(cand: dict[str, Any], *, deferred: bool = False) -> dict[str, Any]:
+        return {
+            "property_id": pid,
+            "deferred": deferred,
+            "suppressed": False,
+            "active_date": cand["target_date"],
+            "active_field": cand.get("base_field")
+            or (
+                CONFIRMED_FIELD
+                if cand["evidence"] == EVIDENCE_CONFIRMED
+                else ANNUAL_RECHECK_BASE_FIELD
+            ),
+            "reason": {
+                EVIDENCE_OPERATIONAL: "OPERATIONAL_RECHECK",
+                EVIDENCE_CONFIRMED: "CONFIRMED_AVAILABILITY",
+                EVIDENCE_ANNUAL: "POST_FIRST_YEAR",
+            }.get(cand["evidence"], cand["evidence"]),
+            "evidence": cand["evidence"],
+            "label": cand.get("label") or "",
+            "target_display": cand.get("target_display") or "",
+            "target_phrase": cand.get("target_phrase") or "",
+            "countdown": cand.get("countdown") or "",
+            "days_until": cand.get("days_until"),
+            "candidate": cand,
+        }
+
+    # Explicit staff date always wins (even future / outside ±30).
+    if ra:
+        days = days_until(ra, today=today)
+        cand = {
+            "evidence": EVIDENCE_OPERATIONAL,
+            "label": LABEL_OPERATIONAL,
+            "target_date": ra.isoformat(),
+            "target_display": format_compact_date(ra),
+            "target_phrase": target_date_phrase(ra, evidence=EVIDENCE_OPERATIONAL),
+            "days_until": days,
+            "countdown": countdown_label(days, evidence=EVIDENCE_OPERATIONAL),
+            "bucket": "overdue" if days < 0 else ("upcoming" if days == 0 or in_followup_window(days) else "scheduled"),
+            "base_field": OPERATIONAL_FOLLOWUP_FIELD,
+        }
+        return _pack(cand, deferred=ra > today)
+
+    # Derived lifecycle targets (may be outside Upcoming ±30 — still shown in sheet).
+    conf_raw = prop.get(CONFIRMED_FIELD) or prop.get("owner_confirmed_available_from")
+    conf_d = parse_iso_or_dmy(str(conf_raw or ""))
+    if conf_d:
+        days = days_until(conf_d, today=today)
+        cand = {
+            "evidence": EVIDENCE_CONFIRMED,
+            "label": LABEL_CONFIRMED,
+            "target_date": conf_d.isoformat(),
+            "target_display": format_compact_date(conf_d),
+            "target_phrase": target_date_phrase(conf_d, evidence=EVIDENCE_CONFIRMED),
+            "days_until": days,
+            "countdown": countdown_label(days, evidence=EVIDENCE_CONFIRMED),
+            "bucket": "overdue" if days < 0 else "upcoming",
+            "base_field": CONFIRMED_FIELD,
+        }
+        return _pack(cand)
+
+    posted = parse_iso_or_dmy(str(prop.get(ANNUAL_RECHECK_BASE_FIELD) or ""))
+    if posted:
+        target = add_one_year(posted)
+        days = days_until(target, today=today)
+        cand = {
+            "evidence": EVIDENCE_ANNUAL,
+            "label": LABEL_ANNUAL,
+            "target_date": target.isoformat(),
+            "target_display": format_compact_date(target),
+            "target_phrase": target_date_phrase(target, evidence=EVIDENCE_ANNUAL),
+            "days_until": days,
+            "countdown": countdown_label(days, evidence=EVIDENCE_ANNUAL),
+            "bucket": "overdue" if days < 0 else "upcoming",
+            "base_date": posted.isoformat(),
+            "base_field": ANNUAL_RECHECK_BASE_FIELD,
+        }
+        return _pack(cand)
+
+    return {
+        "property_id": pid,
+        "deferred": False,
+        "suppressed": False,
+        "active_date": None,
+        "active_field": None,
+        "reason": "NONE",
+        "candidate": None,
+    }
+
+
+def get_property_followup(
+    property_id: str,
+    *,
+    today: date | None = None,
+    properties: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Load Follow-up detail for one property_id (never property_code first-match)."""
+    pid = str(property_id or "").strip()
+    if not pid:
+        raise ValueError("property_id required")
+    if properties is None:
+        from src.hub.project_store import load_properties
+
+        properties = load_properties()
+    prop = None
+    for p in properties or []:
+        if str(p.get("id") or "").strip() == pid:
+            prop = p
+            break
+    if not prop:
+        raise ValueError("ไม่พบทรัพย์")
+    detail = resolve_active_followup(prop, today=today)
+    if not detail:
+        detail = {
+            "property_id": pid,
+            "deferred": False,
+            "suppressed": False,
+            "active_date": None,
+            "active_field": None,
+            "reason": "NONE",
+            "candidate": None,
+        }
+    detail["code"] = str(prop.get("code") or "")
+    detail["project_name"] = str(prop.get("project_name") or "")
+    detail["notes"] = str(prop.get("notes") or "").strip()
+    detail["last_posted_at"] = str(prop.get(ANNUAL_RECHECK_BASE_FIELD) or "")
+    detail["owner_confirmed_available_from"] = str(
+        prop.get(CONFIRMED_FIELD) or prop.get("owner_confirmed_available_from") or ""
+    )
+    detail["operational_field"] = OPERATIONAL_FOLLOWUP_FIELD
+    return detail
+
+
 def _candidate_confirmed(prop: dict[str, Any], *, today: date) -> dict[str, Any] | None:
     raw = prop.get(CONFIRMED_FIELD) or prop.get("owner_confirmed_available_from")
     target = parse_iso_or_dmy(str(raw or ""))
@@ -301,13 +511,15 @@ def build_upcoming_items(
         if is_suppressed(pid, st):
             continue
         item_st = (st.get("items") or {}).get(pid) or {}
-        ra = parse_iso_or_dmy(str(item_st.get("recheck_after") or ""))
+        ra = parse_iso_or_dmy(str(item_st.get(OPERATIONAL_FOLLOWUP_FIELD) or ""))
         if ra and ra > today:
             continue
 
         confirmed = _candidate_confirmed(prop, today=today)
+        operational = _candidate_operational(ra, today=today)
         annual = _candidate_annual(prop, today=today)
-        chosen = confirmed or annual
+        # Priority: confirmed vacancy > explicit operational recheck > annual
+        chosen = confirmed or operational or annual
         if not chosen:
             continue
         row = _row_from_prop(prop, chosen)
@@ -335,7 +547,9 @@ def build_upcoming_items(
         "labels": {
             "confirmed": LABEL_CONFIRMED,
             "annual": LABEL_ANNUAL,
+            "operational": LABEL_OPERATIONAL,
         },
+        "operational_field": OPERATIONAL_FOLLOWUP_FIELD,
     }
 
 

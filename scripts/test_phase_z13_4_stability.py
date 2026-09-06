@@ -36,10 +36,10 @@ class PhaseZ134Stability(unittest.TestCase):
         self.assertGreaterEqual(html.count("showCatalogLoadingState()"), 3)
         self.assertIn("showCatalogLoadError()", html)
 
-    def test_03_assets_cache_bust_z13_6(self) -> None:
+    def test_03_assets_cache_bust_z13_7(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")
-        self.assertIn("mobile-operations.css?v=z13_6", html)
-        self.assertIn("mobile-operations.js?v=z13_6", html)
+        self.assertIn("mobile-operations.css?v=z13_7", html)
+        self.assertIn("mobile-operations.js?v=z13_7", html)
 
     def test_04_z13_3_boot_invariants_still_hold(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")

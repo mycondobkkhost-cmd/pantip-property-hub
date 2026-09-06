@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_6" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_7" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -940,6 +940,46 @@
     #queue-panel table.queue-sheet td {
       padding: 4px 6px; font-size: 12px; line-height: 1.3;
       white-space: nowrap; vertical-align: middle;
+    }
+    #queue-panel table.queue-sheet td.q-note {
+      max-width: 220px;
+      vertical-align: top;
+      white-space: normal;
+    }
+    #queue-panel .q-prop-notes {
+      font-size: 12px;
+      line-height: 1.35;
+      color: #3f3f46;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
+      word-break: break-word;
+    }
+    #queue-panel .q-prop-notes strong {
+      color: #18181b;
+      font-weight: 600;
+    }
+    #queue-panel .q-note-fallback {
+      font-size: 12px;
+      color: #52525b;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
+    }
+    #queue-panel .q-code-chip {
+      display: inline-block;
+      margin-left: 4px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #f4f4f5;
+      font-size: 10px;
+      color: #52525b;
+    }
+    #queue-panel .queue-actions .btn-xs[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
     #queue-panel table.queue-sheet td.q-proj,
     #queue-panel table.queue-sheet td.q-note {
@@ -3708,9 +3748,9 @@
             </span>
             <span>เพิ่ม</span>
           </button>
-          <button type="button" data-view="recheck">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
-            ติดตาม
+          <button type="button" data-view="queue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+            รอโพสต์<span class="nav-badge" id="mobile-queue-badge">0</span>
           </button>
           <button type="button" data-view="more">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
@@ -3847,7 +3887,10 @@
     var __ptpInitDataCount = 0;
 
     function isInternalCatalogReady() {
+      // Must honor __ptpHubInternalCatalogReady so reloadInternalCatalogAndRefresh
+      // can force a fresh /api/hub/catalog fetch after Save (Z13.7 note freshness).
       return !!(
+        __ptpHubInternalCatalogReady &&
         window.PTP_DATA &&
         window.PTP_DATA.catalog_scope === "internal" &&
         window.PTP_DATA.ok !== false &&
@@ -4147,6 +4190,8 @@
     let PAGE_SIZE = 80;
     let filteredProps = [];
     let editingPropertyId = "";
+    let editReturnView = "";
+    let queueScrollBeforeEdit = 0;
     let activeZones = [];
     var PROP_SEARCH_CACHE = null;
     var PROP_PROJECT_CACHE = null;
@@ -8197,13 +8242,21 @@
     }
 
     function cancelPropertyEdit() {
+      var ret = editReturnView || "properties";
+      editReturnView = "";
       setEditMode(false, null);
       clearAddFormFields();
       checkServer();
       document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
-        t.classList.toggle("active", t.getAttribute("data-view") === "properties");
+        t.classList.toggle("active", t.getAttribute("data-view") === ret);
       });
-      switchView("properties");
+      switchView(ret);
+      if (ret === "queue") {
+        try {
+          var sc = document.querySelector("#queue-panel .scroll");
+          if (sc) sc.scrollTop = queueScrollBeforeEdit || 0;
+        } catch (eScroll) { /* ignore */ }
+      }
     }
 
     function updateProjectViewBanner(f) {
@@ -8749,7 +8802,11 @@
       });
       document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
         var dv = b.getAttribute("data-view");
-        b.classList.toggle("active", dv === view || (dv === "followup" && (view === "tenants" || view === "recheck")));
+        var moreViews = { recheck: 1, followup: 1, tenants: 1, "co-traffic": 1, db: 1 };
+        var on = dv === view ||
+          (dv === "more" && !!moreViews[view]) ||
+          (dv === "followup" && (view === "tenants" || view === "recheck"));
+        b.classList.toggle("active", on);
       });
       document.querySelectorAll("#view-tabs .tab").forEach(function (tEl) {
         var dv = tEl.getAttribute("data-view");
@@ -12115,6 +12172,49 @@
       });
     }
 
+    function resolveQueueLinkedProperty(item) {
+      // Z13.7: Edit must use property_id only — never ambiguous property_code.
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      var explicit = String((item && item.property_id) || "").trim();
+      if (explicit) {
+        for (var i = 0; i < props.length; i++) {
+          if (String(props[i].id || "") === explicit) {
+            return {
+              property_id: explicit,
+              notes: String(props[i].notes || ""),
+              code: String(props[i].code || "")
+            };
+          }
+        }
+        return null;
+      }
+      var url = String((item && (item.source_url || item.url)) || "").trim();
+      if (!url) return null;
+      var hits = [];
+      for (var j = 0; j < props.length; j++) {
+        var su = String(props[j].source_url || "").trim();
+        if (su && su === url) hits.push(props[j]);
+      }
+      if (hits.length !== 1) return null;
+      return {
+        property_id: String(hits[0].id || ""),
+        notes: String(hits[0].notes || ""),
+        code: String(hits[0].code || "")
+      };
+    }
+
+    function renderQueuePropNotes(linked, queueNote) {
+      var propNotes = linked ? String(linked.notes || "").trim() : "";
+      if (propNotes === "-" || propNotes === "—" || propNotes === "–") propNotes = "";
+      var qNote = String(queueNote || "").trim();
+      if (qNote === "-" || qNote === "—" || qNote === "–") qNote = "";
+      // Linked rows: property.notes only (omit when empty). Unlinked: queue job note.
+      var text = propNotes || (!linked ? qNote : "");
+      if (!text) return "";
+      return '<div class="q-prop-notes" title="' + esc(text) + '"><strong>หมายเหตุ</strong> ' +
+        esc(text) + "</div>";
+    }
+
     function renderQueue() {
       var showDone = document.getElementById("queue-show-done").checked;
       var rows = queueItems.filter(function (x) {
@@ -12131,8 +12231,16 @@
         var source = item.source_url || item.url || "";
         var owner = ownerContactFromQueue(item);
         var status = item.status || "pending";
+        var linked = resolveQueueLinkedProperty(item);
         var openBtn = "";
         var delBtn = '<button type="button" class="btn-xs danger" data-qact="delete">ลบ</button>';
+        var editBtn = "";
+        if (linked && linked.property_id) {
+          editBtn = '<button type="button" class="btn-xs primary" data-qact="edit" data-property-id="' +
+            esc(linked.property_id) + '">แก้ไข</button>';
+        } else {
+          editBtn = '<button type="button" class="btn-xs" data-qact="edit" disabled title="ยังไม่ผูกทรัพย์ในระบบ — ใช้「เพิ่มโพส」ก่อน">แก้ไข</button>';
+        }
         if (status !== "done") {
           openBtn = '<button type="button" class="btn-xs primary" data-qact="open">เพิ่มโพส</button>';
           if (status === "working") {
@@ -12141,14 +12249,18 @@
         }
         var queued = (item.queued_at || item.created_at || "").slice(0, 10) || "—";
         var rowCls = status === "working" ? "q-row-working" : status === "done" ? "q-row-done" : "";
-        return '<tr class="' + rowCls + '" data-qid="' + esc(item.id) + '">' +
-          '<td><div class="queue-actions">' + openBtn + "</div></td>" +
+        var notesHtml = renderQueuePropNotes(linked, item.note);
+        return '<tr class="' + rowCls + '" data-qid="' + esc(item.id) + '"' +
+          (linked && linked.property_id ? ' data-property-id="' + esc(linked.property_id) + '"' : "") + ">" +
+          '<td><div class="queue-actions">' + editBtn + " " + openBtn + "</div></td>" +
           '<td><div class="queue-actions">' + delBtn + "</div></td>" +
           '<td class="q-date-cell">' + esc(queued) +
             ' <span class="queue-status ' + esc(status) + '">' + statusLabel(status) + "</span></td>" +
-          '<td class="q-proj">' + esc(item.project || "—") + "</td>" +
+          '<td class="q-proj">' + esc(item.project || "—") +
+            (linked && linked.code ? (' <span class="q-code-chip">' + esc(linked.code) + "</span>") : "") +
+          "</td>" +
           '<td>' + esc(item.price || "—") + "</td>" +
-          '<td class="q-note">' + esc(item.note || "—") + "</td>" +
+          '<td class="q-note">' + notesHtml + "</td>" +
           '<td class="q-link-cell">' + renderQueueLinkCollapsed("source", source) + "</td>" +
           '<td class="q-link-cell">' + renderQueueLinkCollapsed("owner", owner) + "</td>" +
         "</tr>";
@@ -14134,13 +14246,21 @@
           payload.id = editingPropertyId;
           data = await apiPost("/api/properties/update", { id: editingPropertyId, property: payload });
           alert("อัปเดตแล้ว · " + ((data.property && data.property.code) || payload.code));
+          var ret = editReturnView || "properties";
+          editReturnView = "";
           setEditMode(false, null);
           clearAddFormFields();
           await reloadPreviewData();
           document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
-            t.classList.toggle("active", t.getAttribute("data-view") === "properties");
+            t.classList.toggle("active", t.getAttribute("data-view") === ret);
           });
-          switchView("properties");
+          switchView(ret);
+          if (ret === "queue") {
+            try {
+              var sc = document.querySelector("#queue-panel .scroll");
+              if (sc) sc.scrollTop = queueScrollBeforeEdit || 0;
+            } catch (eScroll2) { /* ignore */ }
+          }
         } else {
           data = await apiPost("/api/properties/save", { property: payload });
           var removedFromQueue = false;
@@ -14191,6 +14311,8 @@
     async function reloadInternalCatalogAndRefresh() {
       __ptpHubCatalogPromise = null;
       __ptpHubInternalCatalogReady = false;
+      // Drop stale catalog so isInternalCatalogReady() cannot short-circuit the refetch.
+      try { window.PTP_DATA = null; } catch (eCat) { /* ignore */ }
       var ok = await loadHubInternalCatalog();
       if (!ok) throw new Error("โหลดแคตตาล็อกไม่สำเร็จ — รีเฟรชหน้าเว็บแล้วลองใหม่");
       refreshHubCatalogUI();
@@ -14540,6 +14662,28 @@
       try {
         if (act === "open-link") {
           openQueueLinkSheet(btn.getAttribute("data-qlink") || "", btn.getAttribute("data-qlabel") || "");
+          return;
+        }
+        if (act === "edit") {
+          if (btn.disabled) {
+            alert("รายการนี้ยังไม่ผูกทรัพย์ในระบบ — กด「เพิ่มโพส」เพื่อสร้าง/บันทึกทรัพย์ก่อน");
+            return;
+          }
+          var pid = String(btn.getAttribute("data-property-id") || "").trim();
+          if (!pid) {
+            alert("ไม่พบ property_id — เปิดแก้ไขไม่ได้");
+            return;
+          }
+          var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+          var hit = props.find(function (p) { return String(p.id || "") === pid; });
+          if (!hit) {
+            alert("ไม่พบทรัพย์ตาม property_id ในแคตตาล็อก");
+            return;
+          }
+          var scEl = document.querySelector("#queue-panel .scroll");
+          queueScrollBeforeEdit = scEl ? (scEl.scrollTop || 0) : 0;
+          editReturnView = "queue";
+          openPropertyEdit(pid);
           return;
         }
         if (act === "open") {
@@ -15900,6 +16044,10 @@
     <strong style="font-size:14px;display:block;margin-bottom:4px">เมนูเพิ่มเติม</strong>
     <p style="font-size:12px;color:var(--muted);margin:0 0 8px">งานที่ใช้น้อยกว่า — แตะเพื่อเปิด</p>
     <div class="mobile-more-grid">
+      <button type="button" class="mobile-more-item" data-more-view="recheck">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M6 16V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M9 11h6M9 14h4"/></svg>
+        ติดตาม
+      </button>
       <button type="button" class="mobile-more-item" data-more-view="queue">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
         รอโพสต์
@@ -15935,7 +16083,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_6"></script>
+  <script src="mobile-operations.js?v=z13_7"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

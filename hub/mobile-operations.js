@@ -330,8 +330,10 @@
         close();
         if (view && typeof window.switchView === "function") {
           window.switchView(view);
+          var moreViews = { recheck: 1, followup: 1, tenants: 1, "co-traffic": 1, db: 1 };
           document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
-            b.classList.toggle("active", b.getAttribute("data-view") === view);
+            var dv = b.getAttribute("data-view");
+            b.classList.toggle("active", dv === view || (dv === "more" && !!moreViews[view]));
           });
         }
         if (view === "db" && typeof window.switchDbTab === "function") {

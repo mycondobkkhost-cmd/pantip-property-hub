@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import uuid
 from datetime import date, datetime, timezone
@@ -41,6 +42,21 @@ SHEET_HEADERS = [
     "ราคา",
     "วันที่มาใส่คิว",
 ]
+
+
+def _e2e_data_root() -> Path | None:
+    raw = (os.environ.get("PANTIP_E2E_DATA_ROOT") or "").strip()
+    return Path(raw) if raw else None
+
+
+def queue_path() -> Path:
+    root = _e2e_data_root()
+    return (root / "wait_post_queue.json") if root else QUEUE_PATH
+
+
+def sheet_csv_path() -> Path:
+    root = _e2e_data_root()
+    return (root / "wait_post_sheet.csv") if root else SHEET_CSV
 
 
 def _now() -> str:
@@ -113,6 +129,7 @@ def _normalize_item(item: dict) -> dict:
     item.setdefault("note", "")
     item.setdefault("project", "")
     item.setdefault("price", "")
+    item.setdefault("property_id", "")
     item.setdefault("status", "pending")
     item.setdefault("done_at", "")
     item["project"] = str(item.get("project") or "").strip()
@@ -130,10 +147,11 @@ def _normalize_item(item: dict) -> dict:
 
 
 def load_queue() -> list[dict]:
-    if not QUEUE_PATH.exists():
+    path = queue_path()
+    if not path.exists():
         return []
     try:
-        data = json.loads(QUEUE_PATH.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return []
     if isinstance(data, dict):
@@ -146,9 +164,10 @@ def load_queue() -> list[dict]:
 
 
 def save_queue(items: list[dict]) -> None:
-    QUEUE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    path = queue_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
     normalized = [_normalize_item(dict(x)) for x in items]
-    QUEUE_PATH.write_text(
+    path.write_text(
         json.dumps(
             {"items": normalized, "updated_at": _now()},
             ensure_ascii=False,

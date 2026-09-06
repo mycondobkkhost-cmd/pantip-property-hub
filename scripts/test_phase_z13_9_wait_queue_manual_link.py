@@ -55,9 +55,9 @@ class PhaseZ139WaitQueueManualLink(unittest.TestCase):
         self.assertIn("validate_property_id", fn)
         self.assertIn('item["property_id"] = pid', fn)
 
-    def test_06_assets_z13_12(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_12", self.html)
-        self.assertIn("mobile-operations.js?v=z13_12", self.html)
+    def test_06_assets_z14(self) -> None:
+        self.assertIn("mobile-operations.css?v=z14", self.html)
+        self.assertIn("mobile-operations.js?v=z14", self.html)
 
     def test_07_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

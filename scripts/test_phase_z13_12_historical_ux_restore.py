@@ -80,17 +80,18 @@ class PhaseZ1312HistoricalUxRestore(unittest.TestCase):
 
     def test_02_small_edit_exists(self) -> None:
         chunk = self._prop_actions()
-        self.assertIn("prop-qa-btn edit primary", chunk)
+        self.assertIn("prop-qa-btn edit", chunk)
         self.assertIn('data-prop-edit="', chunk)
         self.assertIn(">แก้ไข</button>", chunk)
+        self.assertNotIn("edit primary", chunk)
 
     def test_03_source_link_mapping(self) -> None:
         chunk = self._prop_actions()
-        self.assertIn('propQuickLinkBtn(p.source_url, "เปิดต้นโพสต์"', chunk)
+        self.assertIn('propQuickLinkBtn(p.source_url, "ลิงก์ต้นโพส"', chunk)
 
     def test_04_page_post_link_mapping(self) -> None:
         chunk = self._prop_actions()
-        self.assertIn('propQuickLinkBtn(p.post_pages_url, "เปิดโพสต์เพจ"', chunk)
+        self.assertIn('propQuickLinkBtn(p.post_pages_url, "ลิงก์โพสเพจ"', chunk)
 
     def test_05_compact_timestamp_format(self) -> None:
         self.assertIn("function formatCompactDateTime", self.html)
@@ -193,9 +194,9 @@ class PhaseZ1312HistoricalUxRestore(unittest.TestCase):
         chunk = self._render_queue()
         self.assertIn("formatCompactDateTime(item.created_at || item.queued_at", chunk)
 
-    def test_14_assets_z13_12(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_12", self.html)
-        self.assertIn("mobile-operations.js?v=z13_12", self.html)
+    def test_14_assets_z14(self) -> None:
+        self.assertIn("mobile-operations.css?v=z14", self.html)
+        self.assertIn("mobile-operations.js?v=z14", self.html)
 
     def test_15_queue_update_persists_all_fields_no_property_mutation(self) -> None:
         from src.hub.queue_store import update_item, load_queue

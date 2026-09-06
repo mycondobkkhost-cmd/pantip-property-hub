@@ -2252,6 +2252,27 @@ class HubHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001
                 self._json(500, {"ok": False, "error": str(exc)})
             return
+        if path == "/api/upcoming-availability":
+            try:
+                from src.hub.upcoming_availability import build_upcoming_items
+
+                q = urlparse(self.path).query or ""
+                summary_only = "summary=1" in q
+                data = build_upcoming_items()
+                if summary_only:
+                    self._json(
+                        200,
+                        {
+                            "ok": True,
+                            "today": data.get("today"),
+                            "counts": data.get("counts") or {},
+                        },
+                    )
+                else:
+                    self._json(200, data)
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"ok": False, "error": str(exc)})
+            return
         if path == "/api/queue":
             include_done = "done=1" in (urlparse(self.path).query or "")
             q = urlparse(self.path).query or ""
@@ -4326,6 +4347,72 @@ class HubHandler(BaseHTTPRequestHandler):
                 self._json(
                     200,
                     {"ok": True, "property": prop, "sheet_sync": sheet_sync},
+                )
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/upcoming-availability/suppress":
+            try:
+                from src.hub.upcoming_availability import suppress_property
+
+                user = self._session_user() or {}
+                pid = (body.get("property_id") or body.get("id") or "").strip()
+                reason = (body.get("reason") or "ไม่ติดตามต่อ").strip()
+                item = suppress_property(
+                    pid,
+                    reason=reason,
+                    by=str(user.get("username") or ""),
+                )
+                self._json(200, {"ok": True, "item": item})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/upcoming-availability/recheck-later":
+            try:
+                from src.hub.upcoming_availability import set_recheck_after
+
+                user = self._session_user() or {}
+                pid = (body.get("property_id") or body.get("id") or "").strip()
+                when = (body.get("recheck_after") or body.get("date") or "").strip()
+                item = set_recheck_after(
+                    pid,
+                    when,
+                    by=str(user.get("username") or ""),
+                )
+                self._json(200, {"ok": True, "item": item})
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._json(500, {"error": str(exc)})
+            return
+
+        if path == "/api/upcoming-availability/confirm-date":
+            try:
+                # Explicit owner-confirmed vacancy date — writes property field only.
+                pid = (body.get("property_id") or body.get("id") or "").strip()
+                when = (body.get("owner_confirmed_available_from") or body.get("date") or "").strip()
+                if not pid:
+                    raise ValueError("property_id required")
+                prop = update_property(
+                    pid,
+                    {"owner_confirmed_available_from": when, "id": pid},
+                )
+                self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "property_id": prop.get("id"),
+                        "owner_confirmed_available_from": prop.get(
+                            "owner_confirmed_available_from"
+                        )
+                        or "",
+                    },
                 )
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})

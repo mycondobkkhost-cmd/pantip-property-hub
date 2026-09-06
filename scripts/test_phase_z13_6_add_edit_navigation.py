@@ -67,8 +67,8 @@ class PhaseZ136AddEditNavigation(unittest.TestCase):
         self.assertNotIn("openEditProperty(prop)", self.html)
 
     def test_09_assets_z13_8(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_12", self.html)
-        self.assertIn("mobile-operations.js?v=z13_12", self.html)
+        self.assertIn("mobile-operations.css?v=z14", self.html)
+        self.assertIn("mobile-operations.js?v=z14", self.html)
 
     def test_10_zones_markup_present(self) -> None:
         for zid in (

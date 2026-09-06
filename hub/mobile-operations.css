@@ -459,8 +459,13 @@
     border-radius: 8px !important;
   }
 
+  .prop-qa-btn.edit {
+    flex: 0 0 auto !important;
+  }
+
   .prop-qa-btn.edit.primary {
-    flex: 1 1 auto;
+    /* Z14: Edit is compact secondary — never full-width. */
+    flex: 0 0 auto !important;
   }
 
   .prop-qa-btn.more {

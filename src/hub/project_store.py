@@ -910,6 +910,19 @@ def _update_property_locked(property_id: str, payload: dict) -> dict:
         prop["raw_text"] = payload.get("raw_text") or ""
     if "page_post_text" in payload:
         prop["page_post_text"] = (payload.get("page_post_text") or "").strip()
+    # Explicit owner-confirmed future vacancy only — never from legacy วันที่ว่าง.
+    if "owner_confirmed_available_from" in payload:
+        raw_oc = str(payload.get("owner_confirmed_available_from") or "").strip()
+        if not raw_oc:
+            prop["owner_confirmed_available_from"] = ""
+        else:
+            from src.hub.upcoming_availability import parse_iso_or_dmy
+
+            d = parse_iso_or_dmy(raw_oc)
+            if not d:
+                raise ValueError("วันที่ยืนยันว่างไม่ถูกต้อง")
+            prop["owner_confirmed_available_from"] = d.isoformat()
+            prop["owner_confirmed_available_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     _stamp_hub_edited(prop)
 
     if old_project_id != project_id:

@@ -46,9 +46,9 @@ class PhaseZ138WaitQueueLinkage(unittest.TestCase):
         self.assertIn("openPropertyEdit(pid)", self.html)
         self.assertIn("enqueuePropertyToWaitPost", self.html)
 
-    def test_05_assets_z13_12(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_12", self.html)
-        self.assertIn("mobile-operations.js?v=z13_12", self.html)
+    def test_05_assets_z14(self) -> None:
+        self.assertIn("mobile-operations.css?v=z14", self.html)
+        self.assertIn("mobile-operations.js?v=z14", self.html)
 
     def test_06_co_agent_notes_absent(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

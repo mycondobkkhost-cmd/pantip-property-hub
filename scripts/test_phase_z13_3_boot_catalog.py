@@ -42,8 +42,8 @@ class PhaseZ133BootCatalog(unittest.TestCase):
 
     def test_04_assets_version_z13_8(self) -> None:
         html = (ROOT / "hub" / "preview.html").read_text(encoding="utf-8")
-        self.assertIn("mobile-operations.css?v=z13_12", html)
-        self.assertIn("mobile-operations.js?v=z13_12", html)
+        self.assertIn("mobile-operations.css?v=z14", html)
+        self.assertIn("mobile-operations.js?v=z14", html)
 
     def test_05_internal_catalog_omits_project_map_wire_dup(self) -> None:
         from src.hub.public_projection import build_internal_catalog_payload

@@ -61,9 +61,9 @@ class PhaseZ1310WaitQueueEditing(unittest.TestCase):
         self.assertNotIn("reloadPreviewData", fn)
         self.assertNotIn("/api/hub/catalog", fn)
 
-    def test_07_assets_z13_12(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_12", self.html)
-        self.assertIn("mobile-operations.js?v=z13_12", self.html)
+    def test_07_assets_z14(self) -> None:
+        self.assertIn("mobile-operations.css?v=z14", self.html)
+        self.assertIn("mobile-operations.js?v=z14", self.html)
 
     def test_08_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

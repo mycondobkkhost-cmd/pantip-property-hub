@@ -84,8 +84,8 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         self.assertIn("add-zone-source", self.html)
 
     def test_11_assets_z13_8(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_12", self.html)
-        self.assertIn("mobile-operations.js?v=z13_12", self.html)
+        self.assertIn("mobile-operations.css?v=z14", self.html)
+        self.assertIn("mobile-operations.js?v=z14", self.html)
 
     def test_12_co_agent_notes_not_in_public_projection(self) -> None:
         # Public projection must keep stripping notes
@@ -119,7 +119,7 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         self.assertNotIn("owner_phones", blob)
         self.assertNotIn("0812345678", blob)
 
-    def test_13_queue_edit_always_enabled_z13_12(self) -> None:
+    def test_13_queue_edit_always_enabled_z14(self) -> None:
         self.assertIn('data-qact="edit"', self.html)
         self.assertNotIn('data-qact="edit" disabled', self.html)
         chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]

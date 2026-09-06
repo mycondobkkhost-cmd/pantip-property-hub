@@ -4559,6 +4559,7 @@ class HubHandler(BaseHTTPRequestHandler):
                 price = body.get("price") or ""
                 queued_at = body.get("queued_at") or ""
                 raw = body.get("text") or body.get("urls") or ""
+                property_id = (body.get("property_id") or "").strip()
                 if source or owner or raw:
                     item = add_job(
                         source_url=source,
@@ -4568,6 +4569,7 @@ class HubHandler(BaseHTTPRequestHandler):
                         project=project,
                         price=price,
                         queued_at=queued_at,
+                        property_id=property_id,
                     )
                     created = [item]
                 else:

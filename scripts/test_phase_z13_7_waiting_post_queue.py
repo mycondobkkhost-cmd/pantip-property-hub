@@ -80,9 +80,9 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         self.assertIn("ptpResetAddStepNav", self.js)
         self.assertIn("add-zone-source", self.html)
 
-    def test_11_assets_z13_7(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_7", self.html)
-        self.assertIn("mobile-operations.js?v=z13_7", self.html)
+    def test_11_assets_z13_8(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_8", self.html)
+        self.assertIn("mobile-operations.js?v=z13_8", self.html)
 
     def test_12_co_agent_notes_not_in_public_projection(self) -> None:
         # Public projection must keep stripping notes
@@ -118,7 +118,7 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
 
     def test_13_disabled_edit_when_unlinked(self) -> None:
         self.assertIn('data-qact="edit" disabled', self.html)
-        self.assertIn("ยังไม่ผูกทรัพย์ในระบบ", self.html)
+        self.assertIn("เชื่อมทรัพย์ไม่สำเร็จ", self.html)
 
     def test_15_catalog_reload_forces_refetch(self) -> None:
         # After Save, queue must see updated notes — stale PTP_DATA short-circuit is forbidden.

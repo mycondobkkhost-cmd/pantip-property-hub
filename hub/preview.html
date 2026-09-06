@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_7" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_8" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -2151,6 +2151,7 @@
             <label class="fu-wide">
               <span>ลิงก์ต้นโพสต์ / แหล่งอ้างอิง</span>
               <input type="text" id="queue-source" placeholder="ลิงก์โพสต์ หรือข้อความอ้างอิง เช่น รหัส LI-1234" />
+              <input type="hidden" id="queue-property-id" value="" />
             </label>
             <label class="fu-wide">
               <span>ลิงก์เจ้าของ / เบอร์ (ถ้ามี)</span>
@@ -7606,6 +7607,8 @@
       return '<div class="prop-quick-actions" role="group" aria-label="ทางลัด">' +
         '<button type="button" class="prop-qa-btn edit primary" data-prop-edit="' + esc(p.id) +
           '" title="แก้ไขทรัพย์">แก้ไข</button>' +
+        '<button type="button" class="prop-qa-btn" data-prop-queue="' + esc(p.id) +
+          '" title="ใส่คิวรอโพสต์">รอโพสต์</button>' +
         more +
         "</div>";
     }
@@ -12046,12 +12049,14 @@
       var project = document.getElementById("queue-project");
       var projectId = document.getElementById("queue-project-id");
       var price = document.getElementById("queue-price");
+      var propId = document.getElementById("queue-property-id");
       if (source) source.value = "";
       if (owner) owner.value = "";
       if (note) note.value = "";
       if (project) project.value = "";
       if (projectId) projectId.value = "";
       if (price) price.value = "";
+      if (propId) propId.value = "";
       initQueueQueuedAtDefault();
       var qn = document.getElementById("queue-project-note");
       if (qn) qn.textContent = "";
@@ -12239,7 +12244,7 @@
           editBtn = '<button type="button" class="btn-xs primary" data-qact="edit" data-property-id="' +
             esc(linked.property_id) + '">แก้ไข</button>';
         } else {
-          editBtn = '<button type="button" class="btn-xs" data-qact="edit" disabled title="ยังไม่ผูกทรัพย์ในระบบ — ใช้「เพิ่มโพส」ก่อน">แก้ไข</button>';
+          editBtn = '<button type="button" class="btn-xs" data-qact="edit" disabled title="เชื่อมทรัพย์ไม่สำเร็จ — ยังไม่มี property_id">แก้ไข</button>';
         }
         if (status !== "done") {
           openBtn = '<button type="button" class="btn-xs primary" data-qact="open">เพิ่มโพส</button>';
@@ -14125,17 +14130,20 @@
       var note = document.getElementById("queue-note").value.trim();
       var project = document.getElementById("queue-project").value.trim();
       var price = document.getElementById("queue-price").value.trim();
+      var propertyId = ((document.getElementById("queue-property-id") || {}).value || "").trim();
       var queuedAt = (document.getElementById("queue-queued-at") || {}).value || todayIsoDate();
       if (!source) { alert("ใส่ลิงก์ต้นโพสต์ก่อน"); return; }
       try {
-        var data = await apiPost("/api/queue/add", {
+        var body = {
           source_url: source,
           owner_contact: owner,
           note: note,
           project: project,
           price: price,
           queued_at: queuedAt
-        });
+        };
+        if (propertyId) body.property_id = propertyId;
+        var data = await apiPost("/api/queue/add", body);
         closeQueueAddForm();
         if (data.created && data.created.length) {
           var created = data.created[0];
@@ -14151,6 +14159,47 @@
         }
       } catch (e) {
         alert(e.message);
+      }
+    }
+
+    async function enqueuePropertyToWaitPost(propertyId) {
+      var pid = String(propertyId || "").trim();
+      if (!pid) {
+        alert("ไม่พบ property_id");
+        return;
+      }
+      var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
+      var prop = props.find(function (p) { return String(p.id || "") === pid; });
+      if (!prop) {
+        alert("ไม่พบทรัพย์ในแคตตาล็อก");
+        return;
+      }
+      var source = String(prop.source_url || "").trim();
+      if (!source || !/^https?:\/\//i.test(source)) {
+        alert("ทรัพย์นี้ยังไม่มีลิงก์ต้นทาง (source_url) — ใส่ลิงก์ในแก้ไขทรัพย์ก่อน หรือใช้「+ เพิ่มคิวรอโพสต์」");
+        return;
+      }
+      try {
+        var data = await apiPost("/api/queue/add", {
+          source_url: source,
+          owner_contact: "",
+          note: "",
+          project: prop.project_name || "",
+          price: String(prop.rent_price || prop.sale_price || ""),
+          queued_at: todayIsoDate(),
+          property_id: pid
+        });
+        updateQueueBadge(data.stats || {});
+        await loadQueue();
+        document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
+          t.classList.toggle("active", t.getAttribute("data-view") === "queue");
+        });
+        switchView("queue");
+        if (data.sheet && data.sheet.ok === false && data.sheet.error) {
+          alert("ใส่คิวแล้ว แต่ส่งขึ้นชีทไม่สำเร็จ:\n" + data.sheet.error);
+        }
+      } catch (e) {
+        alert(e.message || "ใส่คิวไม่ได้");
       }
     }
 
@@ -14666,7 +14715,7 @@
         }
         if (act === "edit") {
           if (btn.disabled) {
-            alert("รายการนี้ยังไม่ผูกทรัพย์ในระบบ — กด「เพิ่มโพส」เพื่อสร้าง/บันทึกทรัพย์ก่อน");
+            alert("เชื่อมทรัพย์ไม่สำเร็จ — ยังไม่มี property_id ที่ปลอดภัย");
             return;
           }
           var pid = String(btn.getAttribute("data-property-id") || "").trim();
@@ -14851,6 +14900,13 @@
         openPropertyEdit(editBtn.getAttribute("data-prop-edit"));
         return;
       }
+      var queueBtn = e.target.closest("[data-prop-queue]");
+      if (queueBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        enqueuePropertyToWaitPost(queueBtn.getAttribute("data-prop-queue"));
+        return;
+      }
       var extLink = e.target.closest("[data-prop-ext-link]");
       if (extLink) {
         // initExternalLinkGuard + openExternalUrl รักษาแท็บ/สกอลล์ Hub
@@ -14908,6 +14964,13 @@
           e.preventDefault();
           e.stopPropagation();
           openPropertyEdit(editBtn.getAttribute("data-prop-edit"));
+          return;
+        }
+        var queueBtn = e.target.closest("[data-prop-queue]");
+        if (queueBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          enqueuePropertyToWaitPost(queueBtn.getAttribute("data-prop-queue"));
           return;
         }
         var extLink = e.target.closest("[data-prop-ext-link]");
@@ -16083,7 +16146,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_7"></script>
+  <script src="mobile-operations.js?v=z13_8"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

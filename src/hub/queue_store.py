@@ -217,6 +217,201 @@ def item_to_sheet_row(item: dict) -> list[str]:
     ]
 
 
+def _load_properties_for_link() -> list[dict]:
+    from src.hub.project_store import load_properties
+
+    return load_properties()
+
+
+def find_unique_property_id_by_source_url(
+    source_url: str,
+    *,
+    properties: list[dict] | None = None,
+) -> str:
+    """Return property_id only when exactly one property shares this source_url."""
+    url = (source_url or "").strip()
+    if not url:
+        return ""
+    props = properties if properties is not None else _load_properties_for_link()
+    hits = [
+        str(p.get("id") or "").strip()
+        for p in props
+        if isinstance(p, dict)
+        and str(p.get("source_url") or "").strip() == url
+        and str(p.get("id") or "").strip()
+    ]
+    if len(hits) != 1:
+        return ""
+    return hits[0]
+
+
+def validate_property_id(property_id: str, *, properties: list[dict] | None = None) -> str:
+    pid = (property_id or "").strip()
+    if not pid:
+        return ""
+    props = properties if properties is not None else _load_properties_for_link()
+    for p in props:
+        if isinstance(p, dict) and str(p.get("id") or "").strip() == pid:
+            return pid
+    raise ValueError("property_id ไม่พบในระบบ")
+
+
+def classify_queue_link(
+    item: dict,
+    *,
+    properties: list[dict] | None = None,
+) -> dict:
+    """Classify queue→property linkage without mutating.
+
+    Categories: already_linked | linked_by_exact_source | linked_by_unique_verified_code
+    | ambiguous | no_match
+    Never selects first-of-many property_code matches.
+    """
+    props = properties if properties is not None else _load_properties_for_link()
+    by_id = {
+        str(p.get("id") or "").strip(): p
+        for p in props
+        if isinstance(p, dict) and str(p.get("id") or "").strip()
+    }
+    by_code: dict[str, list[dict]] = {}
+    for p in props:
+        if not isinstance(p, dict):
+            continue
+        code = str(p.get("code") or "").strip()
+        if code:
+            by_code.setdefault(code, []).append(p)
+
+    existing = str(item.get("property_id") or "").strip()
+    if existing and existing in by_id:
+        return {
+            "category": "already_linked",
+            "property_id": existing,
+            "basis": "exact_property_id",
+        }
+    if existing and existing not in by_id:
+        # Invalid stored id — treat as missing for migration (do not overwrite unless filling)
+        pass
+
+    url = str(item.get("source_url") or item.get("url") or "").strip()
+    if url:
+        src_hits = [
+            str(p.get("id") or "").strip()
+            for p in props
+            if isinstance(p, dict) and str(p.get("source_url") or "").strip() == url
+        ]
+        src_hits = [x for x in src_hits if x]
+        if len(src_hits) == 1:
+            return {
+                "category": "linked_by_exact_source",
+                "property_id": src_hits[0],
+                "basis": "exact_unique_source_url",
+            }
+        if len(src_hits) > 1:
+            return {
+                "category": "ambiguous",
+                "property_id": "",
+                "basis": "ambiguous_source_url",
+                "candidate_count": len(src_hits),
+            }
+
+    code = str(item.get("property_code") or item.get("code") or "").strip()
+    if code:
+        code_hits = by_code.get(code) or []
+        if len(code_hits) > 1:
+            return {
+                "category": "ambiguous",
+                "property_id": "",
+                "basis": "ambiguous_property_code",
+                "candidate_count": len(code_hits),
+            }
+        if len(code_hits) == 1:
+            prop = code_hits[0]
+            project = str(item.get("project") or item.get("project_name") or "").strip()
+            price = str(item.get("price") or "").strip()
+            corr: list[str] = []
+            if project and project == str(prop.get("project_name") or "").strip():
+                corr.append("project")
+            if price and price == str(prop.get("rent_price") or "").strip():
+                corr.append("price")
+            if corr:
+                return {
+                    "category": "linked_by_unique_verified_code",
+                    "property_id": str(prop.get("id") or "").strip(),
+                    "basis": "unique_code_plus_" + "+".join(corr),
+                    "corroborating": corr,
+                }
+            return {
+                "category": "no_match",
+                "property_id": "",
+                "basis": "unique_code_without_corroboration",
+            }
+
+    return {"category": "no_match", "property_id": "", "basis": "no_match"}
+
+
+def backfill_queue_property_ids(*, dry_run: bool = True) -> dict:
+    """Fill missing property_id on queue rows when linkage is deterministic.
+
+    Never overwrites a valid existing property_id.
+    Never mutates ambiguous rows.
+    """
+    props = _load_properties_for_link()
+    items = load_queue()
+    summary = {
+        "dry_run": dry_run,
+        "already_linked": 0,
+        "linked_by_exact_source": 0,
+        "linked_by_unique_verified_code": 0,
+        "ambiguous": 0,
+        "no_match": 0,
+        "invalid_existing_cleared": 0,
+        "changed_ids": [],
+        "ambiguous_ids": [],
+        "no_match_ids": [],
+    }
+    changed = False
+    for item in items:
+        qid = str(item.get("id") or "")
+        existing = str(item.get("property_id") or "").strip()
+        by_id = {
+            str(p.get("id") or "").strip()
+            for p in props
+            if isinstance(p, dict) and p.get("id")
+        }
+        if existing and existing in by_id:
+            summary["already_linked"] += 1
+            continue
+        result = classify_queue_link(item, properties=props)
+        cat = result.get("category") or "no_match"
+        if cat == "already_linked":
+            summary["already_linked"] += 1
+            continue
+        if cat == "ambiguous":
+            summary["ambiguous"] += 1
+            summary["ambiguous_ids"].append(qid)
+            continue
+        if cat == "no_match":
+            summary["no_match"] += 1
+            summary["no_match_ids"].append(qid)
+            continue
+        new_pid = str(result.get("property_id") or "").strip()
+        if not new_pid:
+            summary["no_match"] += 1
+            summary["no_match_ids"].append(qid)
+            continue
+        if existing and existing != new_pid:
+            # Invalid existing id — only replace when deterministic candidate found
+            summary["invalid_existing_cleared"] += 1
+        if not dry_run:
+            item["property_id"] = new_pid
+            changed = True
+        summary[cat] = int(summary.get(cat) or 0) + 1
+        summary["changed_ids"].append({"id": qid, "property_id": new_pid, "basis": result.get("basis")})
+    if changed and not dry_run:
+        save_queue(items)
+    return summary
+
+
 def add_job(
     source_url: str = "",
     owner_contact: str = "",
@@ -227,6 +422,7 @@ def add_job(
     project: str = "",
     price: str = "",
     queued_at: str = "",
+    property_id: str = "",
 ) -> dict:
     """Create one queue job: source post URL + optional owner contact + project/price."""
     note = (note or "").strip()
@@ -235,6 +431,7 @@ def add_job(
     project = (project or "").strip()
     price = (price or "").strip()
     queued_at = _normalize_queued_at(queued_at)
+    property_id = (property_id or "").strip()
 
     if raw and not source_url:
         urls = _extract_urls(raw)
@@ -252,6 +449,13 @@ def add_job(
     if not _is_url(source_url):
         raise ValueError("ลิงก์ต้นทางไม่ถูกต้อง (ต้องเป็น URL)")
 
+    props = _load_properties_for_link()
+    if property_id:
+        property_id = validate_property_id(property_id, properties=props)
+    else:
+        # Auto-link only when source_url uniquely identifies one property.
+        property_id = find_unique_property_id_by_source_url(source_url, properties=props)
+
     items = load_queue()
     if source_url in _source_keys(items):
         raise ValueError("ลิงก์ต้นทางนี้มีในคิวรอโพสต์แล้ว")
@@ -268,6 +472,7 @@ def add_job(
         "project": project,
         "price": price,
         "queued_at": queued_at,
+        "property_id": property_id,
         "status": "pending",
         "created_at": _now(),
         "created_ts": ts,
@@ -637,6 +842,8 @@ def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> di
             queued_at = row.get("queued_at") or (
                 (prev or {}).get("queued_at") or (prev or {}).get("created_at") or ""
             )
+            prev_pid = str((prev or {}).get("property_id") or "").strip()
+            resolved_pid = prev_pid or find_unique_property_id_by_source_url(source_url)
             items.append(
                 {
                     "id": item_id,
@@ -649,6 +856,7 @@ def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> di
                     "project": project,
                     "price": price,
                     "queued_at": _normalize_queued_at(queued_at, fallback=created_at),
+                    "property_id": resolved_pid,
                     "status": status,
                     "created_at": created_at,
                     "created_ts": created_ts,
@@ -711,6 +919,7 @@ def import_from_sheet_csv(path: Path | None = None, replace: bool = False) -> di
                 "project": row.get("project") or "",
                 "price": row.get("price") or "",
                 "queued_at": _normalize_queued_at(row.get("queued_at") or ""),
+                "property_id": find_unique_property_id_by_source_url(source_url),
                 "status": "pending",
                 "created_at": _now(),
                 "created_ts": ts,

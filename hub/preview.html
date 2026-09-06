@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z13_9" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z13_10" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -1099,6 +1099,60 @@
         border-radius: 14px; max-height: 80vh;
       }
       #queue-prop-link-sheet .q-prop-link-handle { display: none; }
+    }
+    /* Z13.10 — edit queue item (note) sheet */
+    #queue-edit-sheet.modal-backdrop {
+      z-index: 1200;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    #queue-edit-sheet .q-edit-box {
+      width: min(520px, 100%);
+      max-height: min(86dvh, 640px);
+      margin: 0;
+      border-radius: 16px 16px 0 0;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -8px 28px rgba(0,0,0,.14);
+    }
+    #queue-edit-sheet .q-edit-handle {
+      width: 42px; height: 4px; border-radius: 999px; background: #d4d4d8;
+      margin: 2px auto 10px;
+    }
+    #queue-edit-sheet h3 { margin: 0 0 4px; font-size: 16px; }
+    #queue-edit-sheet .q-edit-hint {
+      margin: 0 0 10px; font-size: 12px; color: #71717a; line-height: 1.4;
+    }
+    #queue-edit-sheet label {
+      display: block; margin: 0 0 10px; font-size: 12px; color: #52525b;
+    }
+    #queue-edit-sheet label span { display: block; margin-bottom: 4px; font-weight: 600; color: #3f3f46; }
+    #queue-edit-sheet textarea,
+    #queue-edit-sheet input[type="text"] {
+      width: 100%; box-sizing: border-box; padding: 10px 12px;
+      border: 1px solid #d4d4d8; border-radius: 10px; font-size: 15px;
+      font-family: inherit;
+    }
+    #queue-edit-sheet textarea { min-height: 96px; resize: vertical; line-height: 1.4; }
+    #queue-edit-sheet .q-edit-actions {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;
+    }
+    #queue-edit-sheet .q-edit-actions .btn-sm { flex: 1 1 120px; min-height: 44px; }
+    @media (min-width: 834px) {
+      #queue-edit-sheet.modal-backdrop { align-items: center; padding: 16px; }
+      #queue-edit-sheet .q-edit-box { border-radius: 14px; }
+      #queue-edit-sheet .q-edit-handle { display: none; }
+    }
+    #queue-panel .q-queue-notes { margin-bottom: 2px; }
+    #queue-panel .q-prop-notes-secondary {
+      margin-top: 4px; font-size: 11px; color: #71717a;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+      overflow: hidden; word-break: break-word;
+    }
+    #queue-panel .queue-actions-primary {
+      display: flex; flex-wrap: wrap; gap: 3px; align-items: center;
     }
     .q-date-cell { font-variant-numeric: tabular-nums; font-size: 11px; color: #3c3548; }
     .q-empty-msg {
@@ -3859,6 +3913,30 @@
       <div class="q-prop-link-results" id="queue-prop-link-results" role="listbox" aria-label="ผลการค้นหาทรัพย์"></div>
       <div class="q-prop-link-actions">
         <button type="button" class="btn-sm" id="queue-prop-link-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="queue-edit-sheet" aria-hidden="true">
+    <div class="modal-box q-edit-box" role="dialog" aria-modal="true" aria-labelledby="queue-edit-title">
+      <div class="q-edit-handle" aria-hidden="true"></div>
+      <h3 id="queue-edit-title">แก้ไขคิวรอโพสต์</h3>
+      <p class="q-edit-hint" id="queue-edit-hint">แก้ไขหมายเหตุคิว — ไม่เปลี่ยนข้อมูลทรัพย์ในระบบ</p>
+      <label>
+        <span>หมายเหตุคิว</span>
+        <textarea id="queue-edit-note" placeholder="เช่น ว่างเดือนหน้า / รอรูป / ยังขาดราคา" maxlength="2000"></textarea>
+      </label>
+      <label>
+        <span>โครงการ (ในคิว)</span>
+        <input type="text" id="queue-edit-project" placeholder="ชื่อโครงการเบื้องต้น" maxlength="200" autocomplete="off" />
+      </label>
+      <label>
+        <span>ราคา (ในคิว)</span>
+        <input type="text" id="queue-edit-price" placeholder="ราคาเบื้องต้น" maxlength="80" autocomplete="off" />
+      </label>
+      <div class="q-edit-actions">
+        <button type="button" class="btn-sm" id="queue-edit-cancel">ยกเลิก</button>
+        <button type="button" class="btn-sm primary" id="queue-edit-save">บันทึก</button>
       </div>
     </div>
   </div>
@@ -12405,6 +12483,96 @@
       });
     }
 
+    var __queueEditQid = "";
+
+    function closeQueueEditSheet() {
+      var sheet = document.getElementById("queue-edit-sheet");
+      if (!sheet) return;
+      sheet.classList.add("hidden");
+      sheet.setAttribute("aria-hidden", "true");
+      __queueEditQid = "";
+    }
+
+    function openQueueEditSheet(queueItemId) {
+      var qid = String(queueItemId || "").trim();
+      if (!qid) return;
+      var item = (queueItems || []).find(function (x) { return String(x.id || "") === qid; });
+      if (!item) return;
+      __queueEditQid = qid;
+      var sheet = document.getElementById("queue-edit-sheet");
+      if (!sheet) return;
+      var hint = document.getElementById("queue-edit-hint");
+      if (hint) {
+        var bits = ["แก้ไขหมายเหตุคิว — ไม่เปลี่ยนข้อมูลทรัพย์ในระบบ"];
+        if (item.project) bits.push("คิว: " + item.project);
+        hint.textContent = bits.join(" · ");
+      }
+      var noteEl = document.getElementById("queue-edit-note");
+      var projEl = document.getElementById("queue-edit-project");
+      var priceEl = document.getElementById("queue-edit-price");
+      if (noteEl) noteEl.value = String(item.note || "");
+      if (projEl) projEl.value = String(item.project || "");
+      if (priceEl) priceEl.value = String(item.price || "");
+      sheet.classList.remove("hidden");
+      sheet.setAttribute("aria-hidden", "false");
+      if (noteEl) setTimeout(function () { noteEl.focus(); }, 50);
+    }
+
+    async function saveQueueEditSheet() {
+      var qid = __queueEditQid;
+      if (!qid) return;
+      var noteEl = document.getElementById("queue-edit-note");
+      var projEl = document.getElementById("queue-edit-project");
+      var priceEl = document.getElementById("queue-edit-price");
+      var note = noteEl ? String(noteEl.value || "") : "";
+      var project = projEl ? String(projEl.value || "") : "";
+      var price = priceEl ? String(priceEl.value || "") : "";
+      var saveBtn = document.getElementById("queue-edit-save");
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "กำลังบันทึก…";
+      }
+      try {
+        // Narrow queue update only — no catalog reload.
+        var data = await apiPost("/api/queue/update", {
+          id: qid,
+          note: note,
+          project: project,
+          price: price
+        });
+        var updated = data.item || {};
+        queueItems = (queueItems || []).map(function (x) {
+          return String(x.id || "") === qid ? Object.assign({}, x, updated) : x;
+        });
+        updateQueueBadge(data.stats || {});
+        closeQueueEditSheet();
+        if (activeView === "queue") renderQueue();
+      } catch (err) {
+        alert((err && err.message) || "บันทึกคิวไม่สำเร็จ");
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "บันทึก";
+        }
+      }
+    }
+
+    function initQueueEditSheet() {
+      var sheet = document.getElementById("queue-edit-sheet");
+      if (!sheet || sheet._bound) return;
+      sheet._bound = true;
+      var cancel = document.getElementById("queue-edit-cancel");
+      var save = document.getElementById("queue-edit-save");
+      if (cancel) cancel.addEventListener("click", closeQueueEditSheet);
+      if (save) save.addEventListener("click", function () { saveQueueEditSheet(); });
+      sheet.addEventListener("click", function (e) {
+        if (e.target === sheet) closeQueueEditSheet();
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !sheet.classList.contains("hidden")) closeQueueEditSheet();
+      });
+    }
+
     function resolveQueueLinkedProperty(item) {
       // Z13.7: Edit must use property_id only — never ambiguous property_code.
       var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
@@ -12437,15 +12605,21 @@
     }
 
     function renderQueuePropNotes(linked, queueNote) {
-      var propNotes = linked ? String(linked.notes || "").trim() : "";
-      if (propNotes === "-" || propNotes === "—" || propNotes === "–") propNotes = "";
+      // Z13.10: queue note is independent from property.notes — always prioritize queue note.
       var qNote = String(queueNote || "").trim();
       if (qNote === "-" || qNote === "—" || qNote === "–") qNote = "";
-      // Linked rows: property.notes only (omit when empty). Unlinked: queue job note.
-      var text = propNotes || (!linked ? qNote : "");
-      if (!text) return "";
-      return '<div class="q-prop-notes" title="' + esc(text) + '"><strong>หมายเหตุ</strong> ' +
-        esc(text) + "</div>";
+      var propNotes = linked ? String(linked.notes || "").trim() : "";
+      if (propNotes === "-" || propNotes === "—" || propNotes === "–") propNotes = "";
+      var parts = [];
+      if (qNote) {
+        parts.push('<div class="q-prop-notes q-queue-notes" title="' + esc(qNote) + '"><strong>หมายเหตุคิว</strong> ' +
+          esc(qNote) + "</div>");
+      }
+      if (propNotes && linked && linked.property_id) {
+        parts.push('<div class="q-prop-notes-secondary" title="' + esc(propNotes) + '"><strong>หมายเหตุทรัพย์</strong> ' +
+          esc(propNotes) + "</div>");
+      }
+      return parts.join("");
     }
 
     function renderQueue() {
@@ -12466,18 +12640,18 @@
         var status = item.status || "pending";
         var linked = resolveQueueLinkedProperty(item);
         var openBtn = "";
-        var delBtn = '<button type="button" class="btn-xs danger" data-qact="delete">ลบ</button>';
-        var editBtn = "";
-        var linkBtn = "";
+        var delBtn = '<button type="button" class="btn-xs danger" data-qact="delete" title="ลบออกจากคิวรอโพสต์">ลบออกจากคิว</button>';
+        // Z13.10: queue edit always enabled (no property_id required).
+        var editQueueBtn = '<button type="button" class="btn-xs primary" data-qact="edit-queue" title="แก้ไขหมายเหตุคิว">แก้ไขคิว</button>';
+        var secondaryBtn = "";
         if (linked && linked.property_id) {
-          editBtn = '<button type="button" class="btn-xs primary" data-qact="edit" data-property-id="' +
-            esc(linked.property_id) + '">แก้ไข</button>';
+          secondaryBtn = ' <button type="button" class="btn-xs" data-qact="edit-property" data-property-id="' +
+            esc(linked.property_id) + '" title="เปิดแก้ไขทรัพย์ในระบบ">แก้ไขทรัพย์</button>';
         } else {
-          editBtn = '<button type="button" class="btn-xs" data-qact="edit" disabled title="ยังไม่ได้เชื่อมกับทรัพย์ในระบบ">แก้ไข</button>';
-          linkBtn = ' <button type="button" class="btn-xs primary" data-qact="link" title="เชื่อมกับทรัพย์ในระบบ">เชื่อมทรัพย์</button>';
+          secondaryBtn = ' <button type="button" class="btn-xs" data-qact="link" title="เชื่อมกับทรัพย์ในระบบ">เชื่อมทรัพย์</button>';
         }
         if (status !== "done") {
-          openBtn = '<button type="button" class="btn-xs primary" data-qact="open">เพิ่มโพส</button>';
+          openBtn = ' <button type="button" class="btn-xs primary" data-qact="open">เพิ่มโพส</button>';
           if (status === "working") {
             openBtn += ' <button type="button" class="btn-xs" data-qact="finish">เสร็จ</button>';
           }
@@ -12487,7 +12661,7 @@
         var notesHtml = renderQueuePropNotes(linked, item.note);
         return '<tr class="' + rowCls + '" data-qid="' + esc(item.id) + '"' +
           (linked && linked.property_id ? ' data-property-id="' + esc(linked.property_id) + '"' : "") + ">" +
-          '<td><div class="queue-actions">' + editBtn + linkBtn + " " + openBtn + "</div></td>" +
+          '<td><div class="queue-actions queue-actions-primary">' + editQueueBtn + secondaryBtn + openBtn + "</div></td>" +
           '<td><div class="queue-actions">' + delBtn + "</div></td>" +
           '<td class="q-date-cell">' + esc(queued) +
             ' <span class="queue-status ' + esc(status) + '">' + statusLabel(status) + "</span></td>" +
@@ -14947,14 +15121,14 @@
           openQueuePropLinkSheet(id);
           return;
         }
-        if (act === "edit") {
-          if (btn.disabled) {
-            alert("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ — กด「เชื่อมทรัพย์」ก่อน");
-            return;
-          }
-          var pid = String(btn.getAttribute("data-property-id") || "").trim();
+        if (act === "edit-queue") {
+          openQueueEditSheet(id);
+          return;
+        }
+        if (act === "edit-property" || act === "edit") {
+          var pid = String(btn.getAttribute("data-property-id") || item.property_id || "").trim();
           if (!pid) {
-            alert("ไม่พบ property_id — เปิดแก้ไขไม่ได้");
+            alert("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ — กด「เชื่อมทรัพย์」ก่อน หรือแก้ไขคิวก่อน");
             return;
           }
           var props = (window.PTP_DATA && window.PTP_DATA.properties) || [];
@@ -14974,11 +15148,11 @@
           return;
         }
         if (act === "finish") {
-          if (!confirm("โพสต์เสร็จแล้ว — ลบรายการนี้ออกจากคิว?")) return;
+          if (!confirm("โพสต์เสร็จแล้ว — ลบรายการนี้ออกจากคิวรอโพสต์?")) return;
           await apiPost("/api/queue/delete", { id: id });
           if (activeQueueId === id) activeQueueId = "";
         } else if (act === "delete") {
-          if (!confirm("ลบรายการนี้ออกจากคิว?")) return;
+          if (!confirm("ลบรายการนี้ออกจากคิวรอโพสต์?")) return;
           await apiPost("/api/queue/delete", { id: id });
           if (activeQueueId === id) activeQueueId = "";
         }
@@ -15954,6 +16128,7 @@
     initQueueProjectPicker();
     initQueueLinkSheet();
     initQueuePropLinkSheet();
+    initQueueEditSheet();
     var qNewBtn = document.getElementById("queue-project-new-btn");
     if (qNewBtn) {
       qNewBtn.addEventListener("click", function () {
@@ -16381,7 +16556,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z13_9"></script>
+  <script src="mobile-operations.js?v=z13_10"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {

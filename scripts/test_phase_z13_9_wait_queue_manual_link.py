@@ -25,11 +25,12 @@ class PhaseZ139WaitQueueManualLink(unittest.TestCase):
         self.assertIn(">เชื่อมทรัพย์</button>", self.html)
         self.assertIn("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ", self.html)
 
-    def test_02_linked_shows_enabled_edit_not_link(self) -> None:
-        # Linked branch renders edit with property_id; link button only in else
+    def test_02_linked_shows_edit_property_unlinked_shows_link(self) -> None:
         chunk = self.html.split("function renderQueue()")[1].split("async function loadQueue")[0]
-        self.assertIn('data-qact="edit" data-property-id="', chunk)
+        self.assertIn('data-qact="edit-property"', chunk)
+        self.assertIn('data-property-id="', chunk)
         self.assertIn('data-qact="link"', chunk)
+        self.assertIn('data-qact="edit-queue"', chunk)
 
     def test_03_picker_results_carry_property_id(self) -> None:
         self.assertIn("data-pick-pid=", self.html)
@@ -51,9 +52,9 @@ class PhaseZ139WaitQueueManualLink(unittest.TestCase):
         self.assertIn("validate_property_id", fn)
         self.assertIn('item["property_id"] = pid', fn)
 
-    def test_06_assets_z13_9(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_9", self.html)
-        self.assertIn("mobile-operations.js?v=z13_9", self.html)
+    def test_06_assets_z13_10(self) -> None:
+        self.assertIn("mobile-operations.css?v=z13_10", self.html)
+        self.assertIn("mobile-operations.js?v=z13_10", self.html)
 
     def test_07_co_agent_privacy(self) -> None:
         from src.hub.public_projection import build_public_catalog_payload

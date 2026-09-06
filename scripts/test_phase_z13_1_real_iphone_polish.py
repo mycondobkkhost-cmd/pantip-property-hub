@@ -21,11 +21,13 @@ class PhaseZ131RealIphonePolish(unittest.TestCase):
         self.assertTrue(
             ("mobile-operations.css?v=z13_2" in html)
             or ("mobile-operations.css?v=z13_9" in html)
+            or ("mobile-operations.css?v=z13_10" in html)
             or ("mobile-operations.css?v=z13_8" in html)
         )
         self.assertTrue(
             ("mobile-operations.js?v=z13_2" in html)
             or ("mobile-operations.js?v=z13_9" in html)
+            or ("mobile-operations.js?v=z13_10" in html)
             or ("mobile-operations.js?v=z13_8" in html)
         )
 

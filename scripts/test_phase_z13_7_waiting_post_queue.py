@@ -19,12 +19,14 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         cls.proj = (ROOT / "src" / "hub" / "public_projection.py").read_text(encoding="utf-8")
 
     def test_01_edit_uses_property_id_attr(self) -> None:
-        self.assertIn('data-qact="edit"', self.html)
+        self.assertIn('data-qact="edit-property"', self.html)
         self.assertIn("data-property-id=", self.html)
         self.assertIn("function resolveQueueLinkedProperty", self.html)
         self.assertIn("openPropertyEdit(pid)", self.html)
-        # Must not open edit by property_code
-        edit_chunk = self.html.split('if (act === "edit")')[1].split('if (act === "open")')[0]
+        # Must not open property edit by property_code
+        edit_chunk = self.html.split('if (act === "edit-property" || act === "edit")')[1].split(
+            'if (act === "open")'
+        )[0]
         self.assertNotIn("property_code", edit_chunk)
 
     def test_02_duplicate_code_guard_in_resolver(self) -> None:
@@ -47,11 +49,14 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
 
     def test_04_notes_html_escaped(self) -> None:
         notes_fn = self.html.split("function renderQueuePropNotes")[1].split("function renderQueue()")[0]
-        self.assertIn("esc(text)", notes_fn)
+        self.assertIn("esc(qNote)", notes_fn)
+        self.assertIn("esc(propNotes)", notes_fn)
         self.assertNotIn("innerHTML = text", notes_fn)
 
     def test_05_empty_note_omitted(self) -> None:
-        self.assertIn('if (!text) return "";', self.html.split("function renderQueuePropNotes")[1].split("function renderQueue()")[0])
+        notes_fn = self.html.split("function renderQueuePropNotes")[1].split("function renderQueue()")[0]
+        self.assertIn("if (qNote)", notes_fn)
+        self.assertIn('return parts.join("");', notes_fn)
 
     def test_06_edit_return_to_queue(self) -> None:
         self.assertIn('editReturnView = "queue"', self.html)
@@ -81,8 +86,8 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         self.assertIn("add-zone-source", self.html)
 
     def test_11_assets_z13_8(self) -> None:
-        self.assertIn("mobile-operations.css?v=z13_9", self.html)
-        self.assertIn("mobile-operations.js?v=z13_9", self.html)
+        self.assertIn("mobile-operations.css?v=z13_10", self.html)
+        self.assertIn("mobile-operations.js?v=z13_10", self.html)
 
     def test_12_co_agent_notes_not_in_public_projection(self) -> None:
         # Public projection must keep stripping notes
@@ -116,9 +121,11 @@ class PhaseZ137WaitingPostQueue(unittest.TestCase):
         self.assertNotIn("owner_phones", blob)
         self.assertNotIn("0812345678", blob)
 
-    def test_13_disabled_edit_when_unlinked(self) -> None:
-        self.assertIn('data-qact="edit" disabled', self.html)
-        self.assertIn("ยังไม่ได้เชื่อมกับทรัพย์ในระบบ", self.html)
+    def test_13_queue_edit_always_enabled_z13_10(self) -> None:
+        # Z13.10 corrects Z13.7: queue edit does not require property link.
+        self.assertIn('data-qact="edit-queue"', self.html)
+        self.assertNotIn('data-qact="edit" disabled', self.html)
+        self.assertIn("หมายเหตุคิว", self.html)
         self.assertIn('data-qact="link"', self.html)
 
     def test_15_catalog_reload_forces_refetch(self) -> None:

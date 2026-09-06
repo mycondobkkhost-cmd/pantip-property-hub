@@ -48,7 +48,7 @@ EVIDENCE_OPERATIONAL = "operational_recheck"
 
 LABEL_CONFIRMED = "ยืนยันวันว่าง"
 LABEL_ANNUAL = "ถึงรอบเช็ก"
-LABEL_OPERATIONAL = "ติดตาม"
+LABEL_OPERATIONAL = "เช็กทีหลัง"
 
 # Canonical operational Follow-up date for property rental workflow (Z14.3).
 # Stored in upcoming_followup_state.json — NOT last_posted_at / owner_confirmed.
@@ -487,13 +487,46 @@ def _row_from_prop(prop: dict[str, Any], cand: dict[str, Any]) -> dict[str, Any]
     }
 
 
+def _attach_vacancy_context(
+    row: dict[str, Any],
+    prop: dict[str, Any],
+    *,
+    recheck_after: date | None,
+) -> dict[str, Any]:
+    """Preserve confirmed vacancy wording when an operational recheck is also active."""
+    conf_raw = prop.get(CONFIRMED_FIELD) or prop.get("owner_confirmed_available_from")
+    conf_d = parse_iso_or_dmy(str(conf_raw or ""))
+    if conf_d:
+        row["reason"] = LABEL_CONFIRMED
+        row["label"] = LABEL_CONFIRMED
+        row["vacancy_date"] = conf_d.isoformat()
+        row["vacancy_display"] = format_compact_date(conf_d)
+        row["vacancy_phrase"] = target_date_phrase(conf_d, evidence=EVIDENCE_CONFIRMED)
+        # Primary face phrase stays confirmed vacancy; working schedule may differ.
+        row["target_phrase"] = row["vacancy_phrase"]
+    if recheck_after:
+        row["recheck_after"] = recheck_after.isoformat()
+        row["recheck_display"] = format_compact_date(recheck_after)
+        row["recheck_phrase"] = f"เช็กอีกครั้งวันที่ {format_compact_date(recheck_after)}"
+    return row
+
+
 def build_upcoming_items(
     properties: list[dict[str, Any]] | None = None,
     *,
     today: date | None = None,
     state: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Derive upcoming/overdue rental reminders. One row per property_id; confirmed wins."""
+    """Unified Property Follow-up Center dataset (one row per property_id).
+
+    Entry reasons (same inbox):
+      TYPE A annual — last_posted_at + 1y (ถึงรอบเช็ก)
+      TYPE B confirmed — owner_confirmed_available_from (ยืนยันวันว่าง)
+      TYPE C operational — recheck_after due in ±30 (เช็กทีหลัง)
+
+    Future recheck_after snoozes the row until due. When operational is due,
+    it drives the working schedule; confirmed vacancy context is preserved.
+    """
     from src.hub.project_store import load_properties
 
     today = bangkok_today(today)
@@ -512,17 +545,42 @@ def build_upcoming_items(
             continue
         item_st = (st.get("items") or {}).get(pid) or {}
         ra = parse_iso_or_dmy(str(item_st.get(OPERATIONAL_FOLLOWUP_FIELD) or ""))
-        if ra and ra > today:
+        if ra and ra > today and days_until(ra, today=today) > WINDOW_DAYS:
+            # Explicit future recheck outside ±30 — stored, not shown yet.
             continue
 
         confirmed = _candidate_confirmed(prop, today=today)
         operational = _candidate_operational(ra, today=today)
         annual = _candidate_annual(prop, today=today)
-        # Priority: confirmed vacancy > explicit operational recheck > annual
-        chosen = confirmed or operational or annual
-        if not chosen:
+
+        # Working schedule: active operational recheck wins over derived dates.
+        # Confirmed still wins over annual when no operational due date.
+        if operational:
+            chosen = dict(operational)
+        elif confirmed:
+            chosen = dict(confirmed)
+        elif annual:
+            chosen = dict(annual)
+        else:
             continue
+
         row = _row_from_prop(prop, chosen)
+        row["reason"] = chosen.get("label") or ""
+        # Preserve confirmed vacancy semantics when operational snooze/check is active.
+        conf_raw = prop.get(CONFIRMED_FIELD) or prop.get("owner_confirmed_available_from")
+        conf_d = parse_iso_or_dmy(str(conf_raw or ""))
+        if operational and conf_d:
+            row = _attach_vacancy_context(row, prop, recheck_after=ra)
+            # Bucket/countdown stay on operational working date.
+        elif operational and ra:
+            row["recheck_after"] = ra.isoformat()
+            row["recheck_display"] = format_compact_date(ra)
+            row["recheck_phrase"] = row.get("target_phrase") or ""
+        elif confirmed:
+            row["vacancy_date"] = chosen.get("target_date")
+            row["vacancy_display"] = chosen.get("target_display")
+            row["vacancy_phrase"] = chosen.get("target_phrase")
+
         if row["bucket"] == "overdue":
             overdue.append(row)
         else:
@@ -537,6 +595,7 @@ def build_upcoming_items(
         "window_days": WINDOW_DAYS,
         "annual_base_field": ANNUAL_RECHECK_BASE_FIELD,
         "confirmed_field": CONFIRMED_FIELD,
+        "center_title": "ฟอโล่วห้องเก่า",
         "upcoming": upcoming,
         "overdue": overdue,
         "counts": {

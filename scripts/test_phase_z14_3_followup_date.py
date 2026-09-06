@@ -198,13 +198,15 @@ class PhaseZ143MainRestoration(unittest.TestCase):
         self.assertNotIn('data-view="more"', nav)
 
     def test_J_property_id_follow_action(self) -> None:
-        self.assertIn('data-prop-follow="', HTML)
+        # Z14.4: per-card follow removed; property Follow-up Center uses property_id APIs.
         self.assertIn("openPropFollowSheet", HTML)
         self.assertIn("/api/upcoming-availability/followup", HTML)
         self.assertIn("/api/upcoming-availability/followup", SERVER)
+        self.assertNotIn('data-prop-follow="', HTML[HTML.find("function propQuickActionsHtml"): HTML.find("function propQuickActionsHtml")+700])
 
     def test_K_duplicate_code_uses_id(self) -> None:
-        self.assertIn("data-prop-follow=\"' + esc(p.id)", HTML)
+        self.assertIn("data-prop-edit=\"' + esc(p.id)", HTML)
+        self.assertIn("data-upcoming-pid", HTML)
 
     def test_L_M_N_O_links_edit_card(self) -> None:
         self.assertIn("ลิงก์ต้นโพส", HTML)
@@ -253,11 +255,11 @@ class PhaseZ143MainRestoration(unittest.TestCase):
 
 class PhaseZ143PrivacyPerf(unittest.TestCase):
     def test_no_per_card_followup_fetch_in_render(self) -> None:
-        # propQuickActionsHtml must not call followup API
         start = HTML.find("function propQuickActionsHtml")
         chunk = HTML[start : start + 800]
         self.assertNotIn("/api/upcoming-availability/followup", chunk)
-        self.assertIn("data-prop-follow", chunk)
+        # Z14.4: no per-card Follow-up button
+        self.assertNotIn("data-prop-follow", chunk)
 
     def test_co_agent_no_recheck_in_catalog_builder(self) -> None:
         co = (ROOT / "src" / "hub" / "co_catalog.py").read_text(encoding="utf-8")

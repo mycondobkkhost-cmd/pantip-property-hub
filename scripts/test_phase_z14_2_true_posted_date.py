@@ -329,10 +329,11 @@ class PhaseZ142UiNotes(unittest.TestCase):
         self.assertIn("scheduleThumbLoadsIn(\"#upcoming-list\")", up)
 
     def test_assets_z142(self) -> None:
-        # Z14.3 bumps cache-bust; Z14.2 semantics remain.
+        # Cache-bust may advance in later phases; Z14.2 semantics remain.
         self.assertTrue(
             "mobile-operations.css?v=z14.2" in self.html
             or "mobile-operations.css?v=z14.3" in self.html
+            or "mobile-operations.css?v=z14.4" in self.html
         )
 
     def test_co_agent_privacy(self) -> None:

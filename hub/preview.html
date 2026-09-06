@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile-operations.css?v=z14.3" />
+  <link rel="stylesheet" href="mobile-operations.css?v=z14.4" />
   <style>
     :root {
       --bg: #f3f0f8;
@@ -686,7 +686,7 @@
     }
     .upcoming-badge.confirmed { background: #dcfce7; color: #166534; }
     .upcoming-badge.annual { background: #ede9fe; color: #5b21b6; }
-    .upcoming-badge.operational { background: #ffedd5; color: #9a3412; }
+    .upcoming-recheck-line { display: block; color: #9a3412; font-weight: 600; }
     .upcoming-badge.overdue { background: #fee2e2; color: #991b1b; }
     .mobile-more-open {
       display: none;
@@ -2278,9 +2278,9 @@
         </div>
       </div>
 
-      <div id="upcoming-strip" class="upcoming-strip hidden" role="button" tabindex="0" aria-label="กำลังจะว่าง">
+      <div id="upcoming-strip" class="upcoming-strip hidden" role="button" tabindex="0" aria-label="ฟอโล่วห้องเก่า">
         <div class="upcoming-strip-main">
-          <span class="upcoming-strip-title">กำลังจะว่าง</span>
+          <span class="upcoming-strip-title">ฟอโล่วห้องเก่า</span>
           <span class="upcoming-strip-count" id="upcoming-strip-count">0</span>
           <span class="upcoming-strip-chevron" aria-hidden="true">›</span>
         </div>
@@ -4075,7 +4075,7 @@
   <div class="upcoming-panel hidden" id="upcoming-panel" aria-hidden="true">
     <div class="upcoming-sheet" role="dialog" aria-modal="true" aria-labelledby="upcoming-title">
       <div class="upcoming-sheet-head">
-        <h3 id="upcoming-title">กำลังจะว่าง</h3>
+        <h3 id="upcoming-title">ฟอโล่วห้องเก่า</h3>
         <button type="button" class="btn-sm" id="upcoming-close-btn">ปิด</button>
       </div>
       <div class="upcoming-tabs" role="tablist">
@@ -4493,6 +4493,16 @@
           if (!btn) return;
           var view = btn.getAttribute("data-view");
           if (view === "more" || view === "add") return;
+          // Z14.4: bottom-nav ฟอโล่ว opens unified Property Follow-up Center (not CRM).
+          if (view === "followup") {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof openUpcomingPanel === "function") openUpcomingPanel();
+            document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
+              b.classList.toggle("active", b.getAttribute("data-view") === "followup");
+            });
+            return;
+          }
           document.querySelectorAll("#view-tabs .tab").forEach(function (t) {
             t.classList.toggle("active", t.getAttribute("data-view") === view);
           });
@@ -7941,15 +7951,12 @@
     }
 
     function propQuickActionsHtml(p) {
-      // Historical (0bc5ca8): visible ลิงก์ต้นโพส · ลิงก์โพสเพจ · compact แก้ไข.
-      // Z14.3: restore compact ติดตาม (property Follow-up / recheck_after) by property_id.
+      // Main / Follow-up Center property actions only (Z14.4: no per-card ติดตาม).
       return '<div class="prop-quick-actions" role="group" aria-label="ทางลัด">' +
         propQuickLinkBtn(p.source_url, "ลิงก์ต้นโพส", "เปิดลิงก์ต้นโพสต์") +
         propQuickLinkBtn(p.post_pages_url, "ลิงก์โพสเพจ", "เปิดลิงก์โพสต์หน้าเพจ") +
         '<button type="button" class="prop-qa-btn edit" data-prop-edit="' + esc(p.id) +
           '" title="แก้ไขทรัพย์">แก้ไข</button>' +
-        '<button type="button" class="prop-qa-btn follow" data-prop-follow="' + esc(p.id) +
-          '" title="ติดตาม / ฟอโล่วห้อง">ติดตาม</button>' +
         "</div>";
     }
 
@@ -9116,9 +9123,10 @@
             cache: "no-store",
           });
           var data = await res.json();
-          if (!res.ok) throw new Error(data.error || "โหลดกำลังจะว่างไม่ได้");
+          if (!res.ok) throw new Error(data.error || "โหลดฟอโล่วห้องเก่าไม่ได้");
           upcomingCache.data = data;
           refreshUpcomingStrip();
+          refreshPropertyFollowBadge();
           if (!document.getElementById("upcoming-panel").classList.contains("hidden")) {
             renderUpcomingList();
           }
@@ -9180,11 +9188,15 @@
         var notesHtml = notesText
           ? '<div class="upcoming-row-notes"><strong>หมายเหตุ:</strong> ' + esc(notesText) + "</div>"
           : "";
-        var datePhrase = it.target_phrase
+        var reasonLabel = it.reason || it.label || "";
+        var datePhrase = it.vacancy_phrase || it.target_phrase
           || ((it.evidence === "confirmed"
             ? "กำลังจะว่างวันที่ "
             : (it.evidence === "operational_recheck" ? "ติดตามวันที่ " : "ถึงรอบเช็กวันที่ ")) +
             (it.target_display || ""));
+        var recheckLine = it.recheck_phrase && it.vacancy_phrase
+          ? '<span class="upcoming-date-line upcoming-recheck-line">' + esc(it.recheck_phrase) + "</span>"
+          : "";
         return '<div class="upcoming-row" data-upcoming-pid="' + esc(it.property_id) + '">' +
           '<div class="upcoming-row-thumb">' + thumbCellHtml(cardProp, previewUrl) + "</div>" +
           '<div class="upcoming-row-body">' +
@@ -9193,9 +9205,10 @@
             (price ? '<div class="upcoming-row-price">' + price + "</div>" : "") +
             notesHtml +
             '<div class="upcoming-row-meta">' +
-              '<span class="upcoming-badge ' + badgeCls + '">' + esc(it.label || "") + "</span>" +
+              '<span class="upcoming-badge ' + badgeCls + '">' + esc(reasonLabel) + "</span>" +
               overdueBadge +
               '<span class="upcoming-date-line">' + esc(datePhrase) + "</span>" +
+              recheckLine +
               '<span class="upcoming-countdown">' + esc(it.countdown || "") + "</span>" +
             "</div>" +
             '<div class="upcoming-row-prop-actions">' + propQuickActionsHtml(cardProp) + "</div>" +
@@ -9217,6 +9230,9 @@
       upcomingCache.tab = "upcoming";
       renderUpcomingList();
       loadUpcomingAvailability(true);
+      document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-view") === "followup");
+      });
     }
 
     function closeUpcomingPanel() {
@@ -9224,6 +9240,10 @@
       if (!panel) return;
       panel.classList.add("hidden");
       panel.setAttribute("aria-hidden", "true");
+      document.querySelectorAll("#mobile-nav button[data-view]").forEach(function (b) {
+        var dv = b.getAttribute("data-view");
+        b.classList.toggle("active", dv === activeView);
+      });
     }
 
     async function openPropFollowSheet(propertyId) {
@@ -9418,13 +9438,6 @@
             e.stopPropagation();
             closeUpcomingPanel();
             openPropertyEdit(editBtn.getAttribute("data-prop-edit"));
-            return;
-          }
-          var followBtn = e.target.closest("[data-prop-follow]");
-          if (followBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            openPropFollowSheet(followBtn.getAttribute("data-prop-follow"));
             return;
           }
           var extLink = e.target.closest("[data-prop-ext-link]");
@@ -13566,22 +13579,26 @@
       renderFollowupStatsStrip(stats || {});
     }
 
-    function refreshMobileFollowBadge() {
-      var due = window._fuBadgeDue || 0;
-      var alerts = window._tnBadgeAlerts || 0;
-      var total = due + alerts;
+    function refreshPropertyFollowBadge() {
+      var counts = (upcomingCache.data && upcomingCache.data.counts) || {};
+      var total = counts.total || 0;
       var el = document.getElementById("mobile-followup-badge");
       if (!el) return;
       el.textContent = String(total);
       el.classList.toggle("hidden", !total);
       el.classList.toggle("show", !!total);
       if (total) {
-        el.title = (due ? ("ฟอโล่วถึงคิว " + due) : "") +
-          (due && alerts ? " · " : "") +
-          (alerts ? ("แจ้งเตือนเช่า " + alerts) : "");
+        el.title = "ฟอโล่วห้องเก่า " + total +
+          " (ใกล้ถึง " + (counts.upcoming || 0) +
+          " · เลยกำหนด " + (counts.overdue || 0) + ")";
       } else {
         el.removeAttribute("title");
       }
+    }
+
+    function refreshMobileFollowBadge() {
+      // Z14.4: mobile ฟอโล่ว badge = Property Follow-up Center (not CRM).
+      refreshPropertyFollowBadge();
     }
 
     function fuDaysUntil(dateStr) {
@@ -15895,7 +15912,7 @@
       if (followBtn) {
         e.preventDefault();
         e.stopPropagation();
-        openPropFollowSheet(followBtn.getAttribute("data-prop-follow"));
+        // Z14.4: per-card ติดตาม removed — Follow-up Center via strip / bottom-nav.
         return;
       }
       var queueBtn = e.target.closest("[data-prop-queue]");
@@ -15968,7 +15985,7 @@
         if (followBtn) {
           e.preventDefault();
           e.stopPropagation();
-          openPropFollowSheet(followBtn.getAttribute("data-prop-follow"));
+          // Z14.4: per-card ติดตาม removed.
           return;
         }
         var queueBtn = e.target.closest("[data-prop-queue]");
@@ -17155,7 +17172,7 @@
     </div>
   </div>
 
-  <script src="mobile-operations.js?v=z14.3"></script>
+  <script src="mobile-operations.js?v=z14.4"></script>
   <script>
     (async function bootHubData() {
       if (window.location.protocol === "file:") {
